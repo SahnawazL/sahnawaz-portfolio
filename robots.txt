@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sahnawazl.github.io/sahnawaz-portfolio/sitemap.xml
