@@ -1,4 +1,6 @@
-<h1 align="center">My Portfolio & Projects</h1>
+<h1 align="center">
+  <img src="https://img.shields.io/badge/Bytewithsahnawaz-%23000000.svg?&style=for-the-badge&logoColor=white&color=141321&labelColor=ff00cc&label=" alt="Bytewithsahnawaz" />
+</h1>
 
 ---
 
@@ -12,7 +14,9 @@
   display: inline-block;
   max-width: 600px;
 ">
-  <img src="profile.jpg" width="180" style="border-radius:50%; margin-bottom:15px; box-shadow:0 0 20px rgba(0, 255, 255, 0.4);" alt="Profile Picture">
+  <img src="profile.jpg" width="220" 
+       style="border-radius:25px; margin-bottom:15px; box-shadow:0 0 25px rgba(0, 255, 255, 0.3);" 
+       alt="Profile Picture">
   
   <p align="center">
     <strong>Hi, I’m Sahnawaz Ahmed Laskar 👋</strong><br>
@@ -43,5 +47,6 @@ Please check back soon! 🚀
 ---
 
 ### 📊 GitHub Stats
-![GitHub Stats](https://github-readme-stats.vercel.app/api?username=sahnawaz&show_icons=true&theme=radical)
-
+<p align="center">
+  <img src="https://github-readme-stats.vercel.app/api?username=sahnawaz&show_icons=true&theme=radical" width="450">
+</p>
