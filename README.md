@@ -1,10 +1,4 @@
-<h1 align="center">🚀 ByteWithSahnawaz</h1>
-<h3 align="center">My Portfolio & Projects</h3>
-
----
-
-> ⚠️ **Currently Under Maintenance**  
-My portfolio website is being upgraded for a better experience. Please check back soon! 🚧  
+<h1 align="center">My Portfolio & Projects</h1>
 
 ---
 
@@ -22,10 +16,9 @@ My portfolio website is being upgraded for a better experience. Please check bac
   
   <p align="center">
     <strong>Hi, I’m Sahnawaz Ahmed Laskar 👋</strong><br>
-    Designing modern, smart interfaces with code & creativity from <b>Silchar, Assam</b>.  
-    Passionate about blending <b>structure, storytelling</b>, and seamless <b>user journeys</b>.  
-    With a foundation in <b>Computer Science</b> and experience at <b>Xiaomi, Flipkart, Rapido</b>,  
-    I focus on <b>clarity, responsiveness, and impact</b>.
+    Crafting modern interfaces & seamless user journeys.  
+    Background in <b>Computer Science</b> + experience at <b>Xiaomi, Flipkart, Rapido</b>.  
+    Focused on <b>clarity, responsiveness, and impact</b>.  
   </p>
 
   <a href="https://www.instagram.com/_sarfaraz__k?igsh=N3lqYjN5eHlxM2M=" target="_blank">
@@ -35,7 +28,13 @@ My portfolio website is being upgraded for a better experience. Please check bac
 
 ---
 
-### 🔜 Coming Soon
+### 🚧 Currently Under Maintenance
+> ⚠️ My portfolio website is being upgraded for a better experience.  
+Please check back soon! 🚀  
+
+---
+
+### ⏳ Coming Soon
 - 🎨 New portfolio design  
 - 📂 Project showcase  
 - 📝 Blog section  
@@ -44,7 +43,5 @@ My portfolio website is being upgraded for a better experience. Please check bac
 ---
 
 ### 📊 GitHub Stats
-<p align="center">
-  <img src="https://github-readme-stats.vercel.app/api?username=Sahnawaz&show_icons=true&theme=tokyonight" width="400">
-  <img src="https://github-readme-streak-stats.herokuapp.com/?user=Sahnawaz&theme=tokyonight" width="400">
-</p>
+![GitHub Stats](https://github-readme-stats.vercel.app/api?username=sahnawaz&show_icons=true&theme=radical)
+
