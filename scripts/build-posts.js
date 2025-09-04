@@ -1,85 +1,45 @@
-// scripts/build-posts.js
-//
-// Converts Markdown posts in /posts into HTML pages
-// using the template in /templates/post_template.html
-
 const fs = require("fs");
 const path = require("path");
 const matter = require("gray-matter");
 const { marked } = require("marked");
 
-const POSTS_DIR = path.join(__dirname, "..", "posts");
-const TEMPLATE_PATH = path.join(__dirname, "..", "templates", "post_template.html");
+// Paths
+const postsDir = path.join(__dirname, "..", "posts");
+const templatePath = path.join(__dirname, "..", "templates", "post_template.html");
+const outputDir = path.join(__dirname, "..");
 
 // Load template
-const template = fs.readFileSync(TEMPLATE_PATH, "utf-8");
+const template = fs.readFileSync(templatePath, "utf-8");
 
-// Utility: format date as "Sept 5, 2025"
-function formatDate(date) {
-  return new Date(date).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+// Ensure posts folder exists
+if (!fs.existsSync(postsDir)) {
+  console.error("❌ posts folder not found!");
+  process.exit(1);
 }
 
-// Collect all .md posts
-const files = fs.readdirSync(POSTS_DIR).filter(f => f.endsWith(".md"));
+// Process markdown files
+fs.readdirSync(postsDir).forEach((file) => {
+  if (file.endsWith(".md")) {
+    const filePath = path.join(postsDir, file);
+    const content = fs.readFileSync(filePath, "utf-8");
 
-// List of posts for index page
-let postsList = [];
+    // Parse front matter
+    const { data, content: markdownContent } = matter(content);
 
-files.forEach(file => {
-  const filePath = path.join(POSTS_DIR, file);
-  const raw = fs.readFileSync(filePath, "utf-8");
-  const { data, content } = matter(raw);
+    // Convert markdown to HTML
+    const htmlContent = marked(markdownContent);
 
-  const title = data.title || file.replace(".md", "");
-  const date = data.date ? formatDate(data.date) : formatDate(new Date());
+    // Replace placeholders in template
+    let finalHtml = template
+      .replace("{{title}}", data.title || "Untitled Post")
+      .replace("{{date}}", data.date || new Date().toISOString().split("T")[0])
+      .replace("{{content}}", htmlContent);
 
-  const slug = file.replace(/\\.md$/, "");
-  const htmlContent = marked(content);
+    // Save output (same name as md but .html)
+    const outputFile = path.join(outputDir, file.replace(".md", ".html"));
+    fs.writeFileSync(outputFile, finalHtml);
 
-  // Fill template
-  const page = template
-    .replace(/{{title}}/g, title)
-    .replace(/{{date}}/g, date)
-    .replace("{{content}}", htmlContent)
-    .replace("{{url}}", `/posts/${slug}/`);
-
-  // Output folder
-  const outDir = path.join(POSTS_DIR, slug);
-  fs.mkdirSync(outDir, { recursive: true });
-  fs.writeFileSync(path.join(outDir, "index.html"), page, "utf-8");
-
-  // Collect for index
-  postsList.push({ title, date, slug });
+    console.log(`✅ Built ${outputFile}`);
+  }
 });
-
-// Build posts index
-const indexHtml = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Blog | Sahnawaz Ahmed Laskar</title>
-  <link rel="stylesheet" href="../style.css" />
-</head>
-<body>
-  <header>
-    <h1>📰 Blog</h1>
-    <nav><a href="../index.html" class="btn">🏠 Home</a></nav>
-  </header>
-  <main style="max-width:800px;margin:2rem auto;padding:1rem;">
-    <ul>
-      ${postsList.map(p => `<li><a href="./${p.slug}/">${p.title}</a> <small>(${p.date})</small></li>`).join("")}
-    </ul>
-  </main>
-</body>
-</html>
-`;
-
-fs.writeFileSync(path.join(POSTS_DIR, "index.html"), indexHtml, "utf-8");
-
-console.log("✅ Blog posts built successfully.");
+   
