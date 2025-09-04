@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{title}} | Sahnawaz Ahmed Laskar</title>
+
+  <!-- SEO / Social Sharing -->
+  <meta name="description" content="{{title}} - A blog post by Sahnawaz Ahmed Laskar">
+  <meta property="og:title" content="{{title}} | Sahnawaz Ahmed Laskar">
+  <meta property="og:description" content="Read this article on {{title}}.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="{{url}}">
+  <meta property="og:image" content="../profile.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{title}} | Sahnawaz Ahmed Laskar">
+  <meta name="twitter:description" content="Read this article on {{title}}.">
+  <meta name="twitter:image" content="../profile.jpg">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="icon" href="../favicon.ico" />
+
+  <style>
+    body {
+      font-family: "Segoe UI", Roboto, sans-serif;
+      background: #001018;
+      color: #e6f7ff;
+      margin: 0;
+      line-height: 1.6;
+    }
+    header, footer {
+      text-align: center;
+      padding: 1rem;
+      background: #001a22;
+      border-bottom: 1px solid #00ffff33;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.4rem;
+      color: #00ffff;
+    }
+    nav a {
+      margin: 0 0.5rem;
+      text-decoration: none;
+    }
+    .post-content {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: #00202a;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+    }
+    .post-content h1 {
+      margin-top: 0;
+      color: #00ffff;
+    }
+    .post-date {
+      font-size: 0.9rem;
+      color: #99e6ff;
+      margin-bottom: 1.5rem;
+    }
+    .post-content img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin: 1rem 0;
+    }
+    footer {
+      margin-top: 2rem;
+      border-top: 1px solid #00ffff33;
+      color: #88cdd9;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <h1>Sahnawaz Ahmed Laskar</h1>
+    <nav>
+      <a href="../index.html" class="btn">🏠 Home</a>
+      <a href="../posts/" class="btn">📰 Blog</a>
+    </nav>
+  </header>
+
+  <!-- Blog Post Content -->
+  <main class="post-content">
+    <article>
+      <h1>{{title}}</h1>
+      <p class="post-date">Published on {{date}}</p>
+      {{content}}
+    </article>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>© 2025 Sahnawaz Ahmed Laskar — Built with 💻, ☕, and a lot of ❤️</p>
+  </footer>
+</body>
+</html>
