@@ -3,48 +3,47 @@ const path = require("path");
 const matter = require("gray-matter");
 const { marked } = require("marked");
 
-const postsDir = "posts";          // where your .md files live
-const outputDir = ".";             // output HTMLs into repo root
+// Paths
+const postsDir = path.join(__dirname, "../posts");   // where .md files live
+const outputDir = path.join(__dirname, "../docs");   // GitHub Pages root
 
-// Check if posts folder exists
-if (!fs.existsSync(postsDir)) {
-  console.error(`❌ Posts folder not found: ${postsDir}`);
-  process.exit(1);
+// Make sure /docs exists
+if (!fs.existsSync(outputDir)) {
+  fs.mkdirSync(outputDir, { recursive: true });
 }
 
-// Loop through all .md files
-fs.readdirSync(postsDir).forEach((file) => {
-  if (file.endsWith(".md")) {
+// Read each markdown file and convert
+fs.readdirSync(postsDir).forEach(file => {
+  if (path.extname(file) === ".md") {
     const filePath = path.join(postsDir, file);
     const mdContent = fs.readFileSync(filePath, "utf-8");
 
-    // Extract front matter (title, date, etc.)
+    // Parse frontmatter + content
     const { data, content } = matter(mdContent);
+    const htmlContent = marked(content);
 
-    // Convert markdown to HTML
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <title>${data.title || "Untitled Post"}</title>
-        <link rel="stylesheet" href="style.css">
-      </head>
-      <body>
-        <header>
-          <h1>${data.title || "Untitled Post"}</h1>
-          <p><em>Published on ${data.date || "Unknown date"}</em></p>
-        </header>
-        <main>
-          ${marked(content)}
-        </main>
-      </body>
-      </html>
-    `;
+    // Wrap in a simple HTML page
+    const htmlPage = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${data.title || "Untitled"}</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>${data.title || "Untitled"}</h1>
+  <p><em>Published on ${data.date || "Unknown"}</em></p>
+  <div>${htmlContent}</div>
+</body>
+</html>
+`;
 
-    // Save HTML file
-    const outFile = file.replace(".md", ".html");
-    fs.writeFileSync(path.join(outputDir, outFile), htmlContent);
-    console.log(`✅ Built ${outFile}`);
+    // Save as .html in /docs
+    const outFile = path.join(outputDir, file.replace(".md", ".html"));
+    fs.writeFileSync(outFile, htmlPage, "utf-8");
+    console.log(`✅ Generated: ${outFile}`);
   }
 });
+    
