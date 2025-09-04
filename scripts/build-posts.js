@@ -3,43 +3,48 @@ const path = require("path");
 const matter = require("gray-matter");
 const { marked } = require("marked");
 
-// Paths
-const postsDir = path.join(__dirname, "..", "posts");
-const templatePath = path.join(__dirname, "..", "templates", "post_template.html");
-const outputDir = path.join(__dirname, "..");
+const postsDir = "posts";          // where your .md files live
+const outputDir = ".";             // output HTMLs into repo root
 
-// Load template
-const template = fs.readFileSync(templatePath, "utf-8");
-
-// Ensure posts folder exists
+// Check if posts folder exists
 if (!fs.existsSync(postsDir)) {
-  console.error("❌ posts folder not found!");
+  console.error(`❌ Posts folder not found: ${postsDir}`);
   process.exit(1);
 }
 
-// Process markdown files
+// Loop through all .md files
 fs.readdirSync(postsDir).forEach((file) => {
   if (file.endsWith(".md")) {
     const filePath = path.join(postsDir, file);
-    const content = fs.readFileSync(filePath, "utf-8");
+    const mdContent = fs.readFileSync(filePath, "utf-8");
 
-    // Parse front matter
-    const { data, content: markdownContent } = matter(content);
+    // Extract front matter (title, date, etc.)
+    const { data, content } = matter(mdContent);
 
     // Convert markdown to HTML
-    const htmlContent = marked(markdownContent);
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <title>${data.title || "Untitled Post"}</title>
+        <link rel="stylesheet" href="style.css">
+      </head>
+      <body>
+        <header>
+          <h1>${data.title || "Untitled Post"}</h1>
+          <p><em>Published on ${data.date || "Unknown date"}</em></p>
+        </header>
+        <main>
+          ${marked(content)}
+        </main>
+      </body>
+      </html>
+    `;
 
-    // Replace placeholders in template
-    let finalHtml = template
-      .replace("{{title}}", data.title || "Untitled Post")
-      .replace("{{date}}", data.date || new Date().toISOString().split("T")[0])
-      .replace("{{content}}", htmlContent);
-
-    // Save output (same name as md but .html)
-    const outputFile = path.join(outputDir, file.replace(".md", ".html"));
-    fs.writeFileSync(outputFile, finalHtml);
-
-    console.log(`✅ Built ${outputFile}`);
+    // Save HTML file
+    const outFile = file.replace(".md", ".html");
+    fs.writeFileSync(path.join(outputDir, outFile), htmlContent);
+    console.log(`✅ Built ${outFile}`);
   }
 });
-   
