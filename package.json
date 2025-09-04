@@ -1,0 +1,13 @@
+{
+  "name": "build-posts",
+  "version": "1.0.0",
+  "description": "Convert markdown posts to HTML for GitHub Pages",
+  "main": "scripts/build-posts.js",
+  "scripts": {
+    "build": "node scripts/build-posts.js"
+  },
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "marked": "^9.0.0"
+  }
+}
