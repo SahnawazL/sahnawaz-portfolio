@@ -1,5 +1,8 @@
 name: Build Blog Posts
 
+permissions:
+  contents: write
+
 on:
   push:
     paths:
