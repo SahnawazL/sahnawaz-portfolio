@@ -1,16 +1,11 @@
 name: Build Blog Posts
 
-permissions:
-  contents: write
-
 on:
   push:
+    branches:
+      - main
     paths:
-      - "posts/**"
-      - "scripts/**"
-      - "templates/**"
-      - "package.json"
-      - ".github/workflows/build-posts.yml"
+      - "posts/*.md"
 
 jobs:
   build:
@@ -20,16 +15,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: "18"
 
       - name: Install dependencies
         run: npm install
 
       - name: Build posts
         run: npm run build
+
+      - name: Copy posts to root
+        run: cp -r posts/*.html . || true
 
       - name: Commit generated files
         run: |
