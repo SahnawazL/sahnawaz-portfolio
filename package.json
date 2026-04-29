@@ -5,6 +5,6 @@
     "build": "echo 'No build needed'"
   },
   "engines": {
-    "node": "22.x"
+    "node": "18.x"
   }
 }
