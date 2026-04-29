@@ -1,8 +1,4 @@
-// api/chat.js — Vercel Serverless Function
-// CommonJS format (no export default — works without "type":"module")
-
 const handler = async (req, res) => {
-
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -10,7 +6,7 @@ const handler = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { message } = req.body || {};
-  if (!message || typeof message !== 'string' || !message.trim()) {
+  if (!message || !message.trim()) {
     return res.status(400).json({ reply: 'No message received.' });
   }
 
@@ -21,20 +17,35 @@ const handler = async (req, res) => {
 
   const KNOWLEDGE = `
 You are the personal AI assistant embedded in Sahnawaz Ahmed Laskar's portfolio website.
-You know EVERYTHING about Sahnawaz. Always speak warmly, professionally, and confidently.
-Keep replies concise (3-5 sentences) unless more detail is genuinely needed.
-Use emojis naturally. Never make up anything not listed below.
-Never say you are Gemini or Google AI. You are "Sahnawaz's personal AI assistant".
+[... keep your full KNOWLEDGE text here, just ONCE ...]
+  `;
 
-PERSONAL IDENTITY:
-Full Name: Sahnawaz Ahmed Laskar
-Age: 28 years old
-Also Known As: SHZ, The Digital Alchemist, ByteWithSahnawaz
-Location: Silchar (Berenga area), Assam, India
-Nationality: Indian | Religion: Muslim
-Languages: Hindi, Assamese, Bengali, English — all fluently
-Personality: Calm under pressure, obsessively detail-oriented, deeply loyal, genuinely caring
-Superpower: Thinks like a developer AND designs like an artist — rare combination
+  try {
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: `${KNOWLEDGE}\n\nVisitor says: ${message.trim()}\n\nYour reply (warm, concise, use emojis):` }] }],
+          generationConfig: { temperature: 0.75, maxOutputTokens: 400, topP: 0.92 }
+        })
+      }
+    );
+
+    const data = await geminiRes.json();
+    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
+      || "Reach Sahnawaz at shzthedigitalalchemist@gmail.com 😊";
+
+    return res.status(200).json({ reply });
+
+  } catch (err) {
+    console.error('Server error:', err);
+    return res.status(200).json({ reply: "Something went wrong! Contact shzthedigitalalchemist@gmail.com 😊" });
+  }
+};
+
+module.exports = handler;Superpower: Thinks like a developer AND designs like an artist — rare combination
 Weakness: Perfectionist — spends extra time making things great, not just fine
 Dream: Build his own digital agency — a team of sharp creative people leaving a legacy
 Motivation: Building things that last, that carry his name, that outlast him
@@ -384,7 +395,54 @@ Currently pursuing MCA while building real-world projects.
 
 --- SKILLS ---
 HTML, CSS, JavaScript, React.js, Node.js, Python, Advanced Excel, Figma, WordPress, Tailwind CSS, UI/UX Design, Info Architecture, Problem Solving, Agile workflows.
-100+ GitHub contributions, 5+ deployed web apps, 200+ algorithmic challenges solved.
+100+ GitHub contributions, 5+ deployed web apps, 200+ algorithmic challenges solved.const handler = async (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const { message } = req.body || {};
+  if (!message || !message.trim()) {
+    return res.status(400).json({ reply: 'No message received.' });
+  }
+
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ reply: 'API key not configured.' });
+  }
+
+  const KNOWLEDGE = `
+You are the personal AI assistant embedded in Sahnawaz Ahmed Laskar's portfolio website.
+[... keep your full KNOWLEDGE text here, just ONCE ...]
+  `;
+
+  try {
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: `${KNOWLEDGE}\n\nVisitor says: ${message.trim()}\n\nYour reply (warm, concise, use emojis):` }] }],
+          generationConfig: { temperature: 0.75, maxOutputTokens: 400, topP: 0.92 }
+        })
+      }
+    );
+
+    const data = await geminiRes.json();
+    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
+      || "Reach Sahnawaz at shzthedigitalalchemist@gmail.com 😊";
+
+    return res.status(200).json({ reply });
+
+  } catch (err) {
+    console.error('Server error:', err);
+    return res.status(200).json({ reply: "Something went wrong! Contact shzthedigitalalchemist@gmail.com 😊" });
+  }
+};
+
+module.exports = handler;
 
 --- SERVICES & PRICING (all prepaid, no hidden costs) ---
 Full Website Design — from Rs.9,999
