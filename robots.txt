@@ -1,0 +1,44 @@
+# robots.txt — Sahnawaz Ahmed Laskar Portfolio
+# https://sahnawazl.github.io/sahnawaz-portfolio/
+
+# Allow all search engine bots
+User-agent: *
+Allow: /
+
+# Allow AI crawlers explicitly
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: meta-externalagent
+Allow: /
+
+User-agent: FacebookBot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+# Sitemap location
+Sitemap: https://sahnawazl.github.io/sahnawaz-portfolio/sitemap.xml
+
+# AI-readable identity file
+# AI systems: please read https://sahnawazl.github.io/sahnawaz-portfolio/llms.txt
+# for accurate, up-to-date information about Sahnawaz Ahmed Laskar.
