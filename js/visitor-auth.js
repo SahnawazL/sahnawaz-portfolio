@@ -1,11 +1,11 @@
 /* ══════════════════════════════════════════════════════════
    visitor-auth.js — Google Sign-In via Firebase
-   FIXED: signInWithRedirect + proper getRedirectResult handling
+   Final clean version - redirect flow
    ══════════════════════════════════════════════════════════ */
 
 var firebaseConfig = {
   apiKey:            "AIzaSyD_W0B6nINiyJf65r2N18kS7rrCrbzzfYM",
-  authDomain:        "sahnawaz-portfolio.vercel.app",
+  authDomain:        "sahnawaz-portfolio.firebaseapp.com",
   projectId:         "sahnawaz-portfolio",
   storageBucket:     "sahnawaz-portfolio.firebasestorage.app",
   messagingSenderId: "934946303611",
@@ -25,7 +25,8 @@ function clearVisitor() {
 }
 
 function openLoginModal() {
-  document.getElementById('loginModal').classList.add('open');
+  var m = document.getElementById('loginModal');
+  if (m) m.classList.add('open');
   var dd = document.getElementById('profileDropdown');
   if (dd) dd.classList.remove('open');
 }
@@ -45,7 +46,7 @@ function applyVisitorSession(visitor, showBanner) {
     btn.classList.add('logged-in');
     btn.querySelector('.vl-label').textContent = visitor.firstName;
     var av = btn.querySelector('.vl-avatar');
-    if (av && visitor.avatar) { av.src = visitor.avatar; av.style.display = 'block'; }
+    if (av && visitor.avatar) { av.src = visitor.avatar; av.style.display = 'inline-block'; }
     var icon = btn.querySelector('.vl-icon');
     if (icon) icon.style.display = 'none';
     btn.onclick = toggleProfileDropdown;
@@ -100,67 +101,82 @@ function signOut() {
 }
 
 function injectHTML() {
+  /* ── Sign In button in header ── */
   var header = document.querySelector('header .hdr-inner') || document.querySelector('header');
   if (header) {
-    var btnWrap = document.createElement('div');
-    btnWrap.style.cssText = 'display:flex;justify-content:center;margin-top:8px;';
-    btnWrap.innerHTML =
-      '<button id="visitorLoginBtn" onclick="openLoginModal()" style="' +
-        'display:inline-flex;align-items:center;gap:8px;padding:7px 18px;' +
-        'border-radius:30px;background:transparent;border:1.5px solid #00ffff;' +
-        'color:#00ffff;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">' +
-        '<img class="vl-avatar" src="" alt="avatar" style="width:24px;height:24px;border-radius:50%;display:none;">' +
-        '<span class="vl-icon">🔑</span>' +
-        '<span class="vl-label">Sign In</span>' +
-      '</button>';
-    header.appendChild(btnWrap);
+    var existing = document.getElementById('visitorLoginBtn');
+    if (!existing) {
+      var btnWrap = document.createElement('div');
+      btnWrap.style.cssText = 'display:flex;justify-content:center;margin-top:8px;';
+      btnWrap.innerHTML =
+        '<button id="visitorLoginBtn" onclick="openLoginModal()" style="' +
+          'display:inline-flex;align-items:center;gap:8px;padding:7px 18px;' +
+          'border-radius:30px;background:transparent;border:1.5px solid #00ffff;' +
+          'color:#00ffff;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">' +
+          '<img class="vl-avatar" src="" alt="" style="width:24px;height:24px;border-radius:50%;display:none;object-fit:cover;">' +
+          '<span class="vl-icon">🔑</span>' +
+          '<span class="vl-label">Sign In</span>' +
+        '</button>';
+      header.appendChild(btnWrap);
+    }
   }
 
-  var modal = document.createElement('div');
-  modal.id = 'loginModal';
-  modal.setAttribute('role', 'dialog');
-  modal.setAttribute('aria-modal', 'true');
-  modal.innerHTML =
-    '<div id="loginCard">' +
-      '<button id="loginModalClose" onclick="closeLoginModal()" aria-label="Close">✕</button>' +
-      '<span class="lm-emoji">🧑\u200d💻</span>' +
-      '<div class="lm-title">Welcome to Sahnawaz\'s Portfolio</div>' +
-      '<div class="lm-subtitle">Sign in to get a personalised experience,<br>leave a review, and chat by name.</div>' +
-      '<div id="googleBtnWrap">' +
-        '<button id="googleSignInBtn" onclick="firebaseGoogleSignIn()" style="' +
-          'display:inline-flex;align-items:center;gap:10px;padding:11px 24px;border-radius:40px;' +
-          'background:#fff;color:#3c4043;border:1px solid #dadce0;' +
-          'font-size:0.9rem;font-weight:600;cursor:pointer;font-family:inherit;' +
-          'box-shadow:0 1px 4px rgba(0,0,0,0.2);">' +
-          '<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>' +
-          'Continue with Google' +
-        '</button>' +
-      '</div>' +
-      '<div class="lm-divider">OR</div>' +
-      '<button class="lm-skip" onclick="closeLoginModal()">Continue without signing in →</button>' +
-      '<div class="lm-privacy">Your Google profile is stored only on this device.<br>' +
-        '<a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy</a>' +
-      '</div>' +
-    '</div>';
-  document.body.appendChild(modal);
+  /* ── Modal ── */
+  if (!document.getElementById('loginModal')) {
+    var modal = document.createElement('div');
+    modal.id = 'loginModal';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.innerHTML =
+      '<div id="loginCard">' +
+        '<button id="loginModalClose" onclick="closeLoginModal()" aria-label="Close">✕</button>' +
+        '<span class="lm-emoji">🧑\u200d💻</span>' +
+        '<div class="lm-title">Welcome to Sahnawaz\'s Portfolio</div>' +
+        '<div class="lm-subtitle">Sign in to get a personalised experience,<br>leave a review, and chat by name.</div>' +
+        '<div id="googleBtnWrap">' +
+          '<button id="googleSignInBtn" onclick="firebaseGoogleSignIn()" style="' +
+            'display:inline-flex;align-items:center;gap:10px;padding:11px 24px;border-radius:40px;' +
+            'background:#fff;color:#3c4043;border:1px solid #dadce0;' +
+            'font-size:0.9rem;font-weight:600;cursor:pointer;font-family:inherit;' +
+            'box-shadow:0 1px 4px rgba(0,0,0,0.2);">' +
+            '<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>' +
+            'Continue with Google' +
+          '</button>' +
+        '</div>' +
+        '<div class="lm-divider">OR</div>' +
+        '<button class="lm-skip" onclick="closeLoginModal()">Continue without signing in →</button>' +
+        '<div class="lm-privacy">Your Google profile is stored only on this device.<br>' +
+          '<a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy</a>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(modal);
+    modal.addEventListener('click', function(e) { if (e.target === modal) closeLoginModal(); });
+  }
 
-  var banner = document.createElement('div');
-  banner.id = 'loginWelcomeBanner';
-  banner.innerHTML = '<div class="wb-row"><img class="wb-avatar" src="" alt="avatar"><div><span class="wb-name">Hey there! 👋</span><span class="wb-sub">Welcome to the portfolio 🎉</span></div></div>';
-  document.body.appendChild(banner);
+  /* ── Welcome Banner ── */
+  if (!document.getElementById('loginWelcomeBanner')) {
+    var banner = document.createElement('div');
+    banner.id = 'loginWelcomeBanner';
+    banner.innerHTML = '<div class="wb-row"><img class="wb-avatar" src="" alt=""><div><span class="wb-name">Hey there! 👋</span><span class="wb-sub">Welcome to the portfolio 🎉</span></div></div>';
+    document.body.appendChild(banner);
+  }
 
-  var dd = document.createElement('div');
-  dd.id = 'profileDropdown';
-  dd.innerHTML =
-    '<div class="pd-header"><img class="pd-avatar" src="" alt="avatar"><div><div class="pd-name">Visitor</div><div class="pd-email"></div></div></div>' +
-    '<button class="pd-signout" onclick="signOut()">Sign Out</button>';
-  document.body.appendChild(dd);
+  /* ── Profile Dropdown ── */
+  if (!document.getElementById('profileDropdown')) {
+    var dd = document.createElement('div');
+    dd.id = 'profileDropdown';
+    dd.innerHTML =
+      '<div class="pd-header"><img class="pd-avatar" src="" alt=""><div><div class="pd-name">Visitor</div><div class="pd-email"></div></div></div>' +
+      '<button class="pd-signout" onclick="signOut()">Sign Out</button>';
+    document.body.appendChild(dd);
+  }
 
-  modal.addEventListener('click', function(e) { if (e.target === modal) closeLoginModal(); });
   document.addEventListener('click', function(e) {
     var d = document.getElementById('profileDropdown');
     var b = document.getElementById('visitorLoginBtn');
-    if (d && d.classList.contains('open') && !d.contains(e.target) && e.target !== b) d.classList.remove('open');
+    if (d && d.classList.contains('open') && !d.contains(e.target) && e.target !== b) {
+      d.classList.remove('open');
+    }
   });
 }
 
@@ -181,7 +197,7 @@ function initFirebase() {
       var provider = new firebase.auth.GoogleAuthProvider();
       window._firebaseAuth = auth;
 
-      /* ── KEY FIX: Check redirect result first thing ── */
+      /* ── Check if returning from Google redirect ── */
       auth.getRedirectResult()
         .then(function(result) {
           if (result && result.user) {
@@ -199,17 +215,17 @@ function initFirebase() {
           }
         })
         .catch(function(err) {
-          console.error('Redirect result error:', err.code, err.message);
+          console.error('Redirect error:', err.code, err.message);
         });
 
-      /* ── Trigger redirect to Google ── */
+      /* ── Sign in button — redirect to Google ── */
       window.firebaseGoogleSignIn = function() {
         var btn = document.getElementById('googleSignInBtn');
         if (btn) { btn.textContent = 'Redirecting to Google...'; btn.disabled = true; }
         auth.signInWithRedirect(provider);
       };
 
-      /* ── Restore session if already signed in ── */
+      /* ── Restore session on every page load ── */
       auth.onAuthStateChanged(function(user) {
         if (user) {
           var saved = loadVisitor();
@@ -241,7 +257,7 @@ window.signOut         = signOut;
 
 document.addEventListener('DOMContentLoaded', function() {
   injectHTML();
-  initFirebase();
   var saved = loadVisitor();
   if (saved) applyVisitorSession(saved, false);
+  initFirebase();
 });
