@@ -1,12 +1,11 @@
 /* ══════════════════════════════════════════════════════════
    visitor-auth.js — Google Sign-In via Firebase
-   Sahnawaz Ahmed Laskar Portfolio
-   Uses Firebase compat CDN + signInWithPopup
+   FIXED: signInWithRedirect + proper getRedirectResult handling
    ══════════════════════════════════════════════════════════ */
 
 var firebaseConfig = {
   apiKey:            "AIzaSyD_W0B6nINiyJf65r2N18kS7rrCrbzzfYM",
-  authDomain:        "sahnawaz-portfolio.firebaseapp.com",
+  authDomain:        "sahnawaz-portfolio.vercel.app",
   projectId:         "sahnawaz-portfolio",
   storageBucket:     "sahnawaz-portfolio.firebasestorage.app",
   messagingSenderId: "934946303611",
@@ -182,13 +181,10 @@ function initFirebase() {
       var provider = new firebase.auth.GoogleAuthProvider();
       window._firebaseAuth = auth;
 
-      /* ── Sign in with popup — works on Android Chrome ── */
-      window.firebaseGoogleSignIn = function() {
-        var btn = document.getElementById('googleSignInBtn');
-        if (btn) { btn.textContent = 'Signing in...'; btn.disabled = true; }
-
-        auth.signInWithPopup(provider)
-          .then(function(result) {
+      /* ── KEY FIX: Check redirect result first thing ── */
+      auth.getRedirectResult()
+        .then(function(result) {
+          if (result && result.user) {
             var u = result.user;
             var visitor = {
               firstName: u.displayName ? u.displayName.split(' ')[0] : 'Friend',
@@ -199,14 +195,18 @@ function initFirebase() {
               loginAt:   Date.now()
             };
             saveVisitor(visitor);
-            closeLoginModal();
             applyVisitorSession(visitor, true);
-          })
-          .catch(function(err) {
-            console.error('Sign-in error:', err.code, err.message);
-            var btn = document.getElementById('googleSignInBtn');
-            if (btn) { btn.textContent = 'Continue with Google'; btn.disabled = false; }
-          });
+          }
+        })
+        .catch(function(err) {
+          console.error('Redirect result error:', err.code, err.message);
+        });
+
+      /* ── Trigger redirect to Google ── */
+      window.firebaseGoogleSignIn = function() {
+        var btn = document.getElementById('googleSignInBtn');
+        if (btn) { btn.textContent = 'Redirecting to Google...'; btn.disabled = true; }
+        auth.signInWithRedirect(provider);
       };
 
       /* ── Restore session if already signed in ── */
