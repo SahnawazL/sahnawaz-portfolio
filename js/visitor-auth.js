@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
    visitor-auth.js — Google Sign-In via Firebase
-   Fixed version - popup flow (redirect broken on Vercel)
+   Mobile-safe version: redirect with localStorage flag
    ══════════════════════════════════════════════════════════ */
 
 var firebaseConfig = {
@@ -12,7 +12,8 @@ var firebaseConfig = {
   appId:             "1:934946303611:web:b3dbcf9199b8aa15c13cde"
 };
 
-var VISITOR_KEY = 'shnz_visitor_v1';
+var VISITOR_KEY   = 'shnz_visitor_v1';
+var REDIRECT_FLAG = 'shnz_google_redirect_pending';
 
 function saveVisitor(data) {
   try { localStorage.setItem(VISITOR_KEY, JSON.stringify(data)); } catch(e) {}
@@ -22,6 +23,15 @@ function loadVisitor() {
 }
 function clearVisitor() {
   try { localStorage.removeItem(VISITOR_KEY); } catch(e) {}
+}
+function setRedirectFlag() {
+  try { localStorage.setItem(REDIRECT_FLAG, '1'); } catch(e) {}
+}
+function clearRedirectFlag() {
+  try { localStorage.removeItem(REDIRECT_FLAG); } catch(e) {}
+}
+function hasRedirectFlag() {
+  try { return localStorage.getItem(REDIRECT_FLAG) === '1'; } catch(e) { return false; }
 }
 
 function openLoginModal() {
@@ -46,7 +56,10 @@ function applyVisitorSession(visitor, showBanner) {
     btn.classList.add('logged-in');
     btn.querySelector('.vl-label').textContent = visitor.firstName;
     var av = btn.querySelector('.vl-avatar');
-    if (av && visitor.avatar) { av.src = visitor.avatar; av.style.display = 'inline-block'; }
+    if (av && visitor.avatar) {
+      av.src = visitor.avatar;
+      av.style.display = 'inline-block';
+    }
     var icon = btn.querySelector('.vl-icon');
     if (icon) icon.style.display = 'none';
     btn.onclick = toggleProfileDropdown;
@@ -61,7 +74,7 @@ function applyVisitorSession(visitor, showBanner) {
     if (ddEmail) ddEmail.textContent = visitor.email || '';
   }
   window._pendingVisitorName = visitor.firstName;
-  window._chatVisitorName = visitor.firstName;
+  window._chatVisitorName    = visitor.firstName;
   if (window.setVisitorName) window.setVisitorName(visitor.firstName);
   if (showBanner) showWelcomeBanner(visitor);
 }
@@ -73,18 +86,19 @@ function showWelcomeBanner(visitor) {
   var avEl   = banner.querySelector('.wb-avatar');
   if (nameEl) nameEl.textContent = 'Hey ' + visitor.firstName + '! 👋';
   if (avEl && visitor.avatar) avEl.src = visitor.avatar;
-  banner.style.display = 'block';
-  banner.style.opacity = '1';
+  banner.style.display    = 'block';
+  banner.style.opacity    = '1';
   banner.style.transition = '';
   setTimeout(function() {
     banner.style.transition = 'opacity 0.6s ease';
-    banner.style.opacity = '0';
+    banner.style.opacity    = '0';
     setTimeout(function() { banner.style.display = 'none'; }, 600);
   }, 4000);
 }
 
 function signOut() {
   clearVisitor();
+  clearRedirectFlag();
   if (window._firebaseAuth) window._firebaseAuth.signOut().catch(function(){});
   var btn = document.getElementById('visitorLoginBtn');
   if (btn) {
@@ -99,28 +113,25 @@ function signOut() {
   var dd = document.getElementById('profileDropdown');
   if (dd) dd.classList.remove('open');
   window._pendingVisitorName = null;
-  window._chatVisitorName = null;
+  window._chatVisitorName    = null;
 }
 
 function injectHTML() {
   /* ── Sign In button in header ── */
   var header = document.querySelector('header .hdr-inner') || document.querySelector('header');
-  if (header) {
-    var existing = document.getElementById('visitorLoginBtn');
-    if (!existing) {
-      var btnWrap = document.createElement('div');
-      btnWrap.style.cssText = 'display:flex;justify-content:center;margin-top:8px;';
-      btnWrap.innerHTML =
-        '<button id="visitorLoginBtn" onclick="openLoginModal()" style="' +
-          'display:inline-flex;align-items:center;gap:8px;padding:7px 18px;' +
-          'border-radius:30px;background:transparent;border:1.5px solid #00ffff;' +
-          'color:#00ffff;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">' +
-          '<img class="vl-avatar" src="" alt="" style="width:24px;height:24px;border-radius:50%;display:none;object-fit:cover;">' +
-          '<span class="vl-icon">🔑</span>' +
-          '<span class="vl-label">Sign In</span>' +
-        '</button>';
-      header.appendChild(btnWrap);
-    }
+  if (header && !document.getElementById('visitorLoginBtn')) {
+    var btnWrap = document.createElement('div');
+    btnWrap.style.cssText = 'display:flex;justify-content:center;margin-top:8px;';
+    btnWrap.innerHTML =
+      '<button id="visitorLoginBtn" onclick="openLoginModal()" style="' +
+        'display:inline-flex;align-items:center;gap:8px;padding:7px 18px;' +
+        'border-radius:30px;background:transparent;border:1.5px solid #00ffff;' +
+        'color:#00ffff;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">' +
+        '<img class="vl-avatar" src="" alt="" style="width:24px;height:24px;border-radius:50%;display:none;object-fit:cover;">' +
+        '<span class="vl-icon">🔑</span>' +
+        '<span class="vl-label">Sign In</span>' +
+      '</button>';
+    header.appendChild(btnWrap);
   }
 
   /* ── Modal ── */
@@ -199,38 +210,57 @@ function initFirebase() {
       var provider = new firebase.auth.GoogleAuthProvider();
       window._firebaseAuth = auth;
 
-      /* ── Sign in with POPUP (redirect broken on Vercel) ── */
-      window.firebaseGoogleSignIn = function() {
-        var btn = document.getElementById('googleSignInBtn');
-        if (btn) { btn.textContent = 'Signing in...'; btn.disabled = true; }
+      /* ══════════════════════════════════════════════════════
+         STEP 1 — Did we just come back from Google login?
+         Check the flag we set before leaving the page.
+         ══════════════════════════════════════════════════════ */
+      if (hasRedirectFlag()) {
+        clearRedirectFlag();
 
-        auth.signInWithPopup(provider)
+        /* Show subtle loading state */
+        var loginBtn = document.getElementById('visitorLoginBtn');
+        if (loginBtn) loginBtn.querySelector('.vl-label').textContent = 'Signing in…';
+
+        auth.getRedirectResult()
           .then(function(result) {
-            var u = result.user;
-            var visitor = {
-              firstName: u.displayName ? u.displayName.split(' ')[0] : 'Friend',
-              fullName:  u.displayName || '',
-              email:     u.email || '',
-              avatar:    u.photoURL || '',
-              uid:       u.uid,
-              loginAt:   Date.now()
-            };
-            saveVisitor(visitor);
-            closeLoginModal();
-            applyVisitorSession(visitor, true);
+            if (result && result.user) {
+              /* ✅ Success — save and apply */
+              var u = result.user;
+              var visitor = {
+                firstName: u.displayName ? u.displayName.split(' ')[0] : 'Friend',
+                fullName:  u.displayName || '',
+                email:     u.email || '',
+                avatar:    u.photoURL || '',
+                uid:       u.uid,
+                loginAt:   Date.now()
+              };
+              saveVisitor(visitor);
+              applyVisitorSession(visitor, true);
+            } else {
+              /* getRedirectResult returned empty — onAuthStateChanged will handle */
+              if (loginBtn) loginBtn.querySelector('.vl-label').textContent = 'Sign In';
+            }
           })
           .catch(function(err) {
-            console.error('Popup sign-in error:', err.code, err.message);
-            if (btn) {
-              btn.innerHTML =
-                '<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>' +
-                'Continue with Google';
-              btn.disabled = false;
-            }
+            console.error('getRedirectResult error:', err.code, err.message);
+            if (loginBtn) loginBtn.querySelector('.vl-label').textContent = 'Sign In';
           });
+      }
+
+      /* ══════════════════════════════════════════════════════
+         STEP 2 — Sign In button clicked: set flag then redirect
+         ══════════════════════════════════════════════════════ */
+      window.firebaseGoogleSignIn = function() {
+        var btn = document.getElementById('googleSignInBtn');
+        if (btn) { btn.textContent = 'Redirecting to Google…'; btn.disabled = true; }
+        setRedirectFlag();                  /* remember we started login */
+        auth.signInWithRedirect(provider);  /* go to Google */
       };
 
-      /* ── Restore session on every page load ── */
+      /* ══════════════════════════════════════════════════════
+         STEP 3 — Restore session silently on every page load
+         (handles already-logged-in users coming back later)
+         ══════════════════════════════════════════════════════ */
       auth.onAuthStateChanged(function(user) {
         if (user) {
           var saved = loadVisitor();
@@ -257,7 +287,7 @@ function initFirebase() {
 
 window.setVisitorName  = window.setVisitorName || function(name) {
   window._pendingVisitorName = name;
-  window._chatVisitorName = name;
+  window._chatVisitorName    = name;
 };
 window.openLoginModal  = openLoginModal;
 window.closeLoginModal = closeLoginModal;
@@ -266,6 +296,6 @@ window.signOut         = signOut;
 document.addEventListener('DOMContentLoaded', function() {
   injectHTML();
   var saved = loadVisitor();
-  if (saved) applyVisitorSession(saved, false);
+  if (saved) applyVisitorSession(saved, false);  /* instant restore from cache */
   initFirebase();
 });
