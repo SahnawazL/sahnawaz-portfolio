@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════════════════════
    visitor-auth.js — Google Sign-In via Firebase
    Sahnawaz Ahmed Laskar Portfolio
-   FIXED: Uses Firebase compat CDN (no ES module imports needed)
+   Uses Firebase compat CDN + signInWithPopup
    ══════════════════════════════════════════════════════════ */
 
 var firebaseConfig = {
@@ -47,6 +47,8 @@ function applyVisitorSession(visitor, showBanner) {
     btn.querySelector('.vl-label').textContent = visitor.firstName;
     var av = btn.querySelector('.vl-avatar');
     if (av && visitor.avatar) { av.src = visitor.avatar; av.style.display = 'block'; }
+    var icon = btn.querySelector('.vl-icon');
+    if (icon) icon.style.display = 'none';
     btn.onclick = toggleProfileDropdown;
   }
   var dd = document.getElementById('profileDropdown');
@@ -89,6 +91,8 @@ function signOut() {
     btn.querySelector('.vl-label').textContent = 'Sign In';
     var av = btn.querySelector('.vl-avatar');
     if (av) { av.src = ''; av.style.display = 'none'; }
+    var icon = btn.querySelector('.vl-icon');
+    if (icon) icon.style.display = 'inline';
     btn.onclick = openLoginModal;
   }
   var dd = document.getElementById('profileDropdown');
@@ -106,7 +110,7 @@ function injectHTML() {
         'display:inline-flex;align-items:center;gap:8px;padding:7px 18px;' +
         'border-radius:30px;background:transparent;border:1.5px solid #00ffff;' +
         'color:#00ffff;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">' +
-        '<img class="vl-avatar" src="" alt="avatar" style="width:22px;height:22px;border-radius:50%;display:none;">' +
+        '<img class="vl-avatar" src="" alt="avatar" style="width:24px;height:24px;border-radius:50%;display:none;">' +
         '<span class="vl-icon">🔑</span>' +
         '<span class="vl-label">Sign In</span>' +
       '</button>';
@@ -161,29 +165,30 @@ function injectHTML() {
   });
 }
 
-/* ── Load a script tag dynamically ── */
 function loadScript(src, cb) {
   var s = document.createElement('script');
   s.src = src;
   s.onload = cb;
-  s.onerror = function() { console.error('Failed to load Firebase script: ' + src); };
+  s.onerror = function() { console.error('Failed to load: ' + src); };
   document.head.appendChild(s);
 }
 
-/* ── Init Firebase using compat CDN (works without type=module) ── */
 function initFirebase() {
   loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js', function() {
     loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js', function() {
 
-      var app      = firebase.initializeApp(firebaseConfig);
+      firebase.initializeApp(firebaseConfig);
       var auth     = firebase.auth();
       var provider = new firebase.auth.GoogleAuthProvider();
       window._firebaseAuth = auth;
 
-      /* Check if returning from Google redirect */
-      auth.getRedirectResult()
-        .then(function(result) {
-          if (result && result.user) {
+      /* ── Sign in with popup — works on Android Chrome ── */
+      window.firebaseGoogleSignIn = function() {
+        var btn = document.getElementById('googleSignInBtn');
+        if (btn) { btn.textContent = 'Signing in...'; btn.disabled = true; }
+
+        auth.signInWithPopup(provider)
+          .then(function(result) {
             var u = result.user;
             var visitor = {
               firstName: u.displayName ? u.displayName.split(' ')[0] : 'Friend',
@@ -194,19 +199,17 @@ function initFirebase() {
               loginAt:   Date.now()
             };
             saveVisitor(visitor);
+            closeLoginModal();
             applyVisitorSession(visitor, true);
-          }
-        })
-        .catch(function(err) { console.error('Redirect error:', err.message); });
-
-      /* Sign-in button triggers redirect */
-      window.firebaseGoogleSignIn = function() {
-        var btn = document.getElementById('googleSignInBtn');
-        if (btn) { btn.textContent = 'Redirecting to Google...'; btn.disabled = true; }
-        auth.signInWithRedirect(provider);
+          })
+          .catch(function(err) {
+            console.error('Sign-in error:', err.code, err.message);
+            var btn = document.getElementById('googleSignInBtn');
+            if (btn) { btn.textContent = 'Continue with Google'; btn.disabled = false; }
+          });
       };
 
-      /* Restore existing session */
+      /* ── Restore session if already signed in ── */
       auth.onAuthStateChanged(function(user) {
         if (user) {
           var saved = loadVisitor();
