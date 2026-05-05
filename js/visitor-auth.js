@@ -1,6 +1,7 @@
 /* ══════════════════════════════════════════════════════════
    visitor-auth.js — Google Sign-In via Firebase
-   Mobile-safe version: redirect with localStorage flag
+   Uses signInWithPopup called DIRECTLY from user tap.
+   This is the only method that works on Vercel + mobile.
    ══════════════════════════════════════════════════════════ */
 
 var firebaseConfig = {
@@ -12,9 +13,9 @@ var firebaseConfig = {
   appId:             "1:934946303611:web:b3dbcf9199b8aa15c13cde"
 };
 
-var VISITOR_KEY   = 'shnz_visitor_v1';
-var REDIRECT_FLAG = 'shnz_google_redirect_pending';
+var VISITOR_KEY = 'shnz_visitor_v1';
 
+/* ── localStorage helpers ── */
 function saveVisitor(data) {
   try { localStorage.setItem(VISITOR_KEY, JSON.stringify(data)); } catch(e) {}
 }
@@ -24,16 +25,8 @@ function loadVisitor() {
 function clearVisitor() {
   try { localStorage.removeItem(VISITOR_KEY); } catch(e) {}
 }
-function setRedirectFlag() {
-  try { localStorage.setItem(REDIRECT_FLAG, '1'); } catch(e) {}
-}
-function clearRedirectFlag() {
-  try { localStorage.removeItem(REDIRECT_FLAG); } catch(e) {}
-}
-function hasRedirectFlag() {
-  try { return localStorage.getItem(REDIRECT_FLAG) === '1'; } catch(e) { return false; }
-}
 
+/* ── Modal helpers ── */
 function openLoginModal() {
   var m = document.getElementById('loginModal');
   if (m) m.classList.add('open');
@@ -49,6 +42,7 @@ function toggleProfileDropdown() {
   if (dd) dd.classList.toggle('open');
 }
 
+/* ── Apply logged-in state to UI ── */
 function applyVisitorSession(visitor, showBanner) {
   if (!visitor) return;
   var btn = document.getElementById('visitorLoginBtn');
@@ -56,10 +50,7 @@ function applyVisitorSession(visitor, showBanner) {
     btn.classList.add('logged-in');
     btn.querySelector('.vl-label').textContent = visitor.firstName;
     var av = btn.querySelector('.vl-avatar');
-    if (av && visitor.avatar) {
-      av.src = visitor.avatar;
-      av.style.display = 'inline-block';
-    }
+    if (av && visitor.avatar) { av.src = visitor.avatar; av.style.display = 'inline-block'; }
     var icon = btn.querySelector('.vl-icon');
     if (icon) icon.style.display = 'none';
     btn.onclick = toggleProfileDropdown;
@@ -79,6 +70,7 @@ function applyVisitorSession(visitor, showBanner) {
   if (showBanner) showWelcomeBanner(visitor);
 }
 
+/* ── Welcome banner ── */
 function showWelcomeBanner(visitor) {
   var banner = document.getElementById('loginWelcomeBanner');
   if (!banner) return;
@@ -86,19 +78,19 @@ function showWelcomeBanner(visitor) {
   var avEl   = banner.querySelector('.wb-avatar');
   if (nameEl) nameEl.textContent = 'Hey ' + visitor.firstName + '! 👋';
   if (avEl && visitor.avatar) avEl.src = visitor.avatar;
-  banner.style.display    = 'block';
-  banner.style.opacity    = '1';
+  banner.style.display = 'block';
+  banner.style.opacity = '1';
   banner.style.transition = '';
   setTimeout(function() {
     banner.style.transition = 'opacity 0.6s ease';
-    banner.style.opacity    = '0';
+    banner.style.opacity = '0';
     setTimeout(function() { banner.style.display = 'none'; }, 600);
   }, 4000);
 }
 
+/* ── Sign out ── */
 function signOut() {
   clearVisitor();
-  clearRedirectFlag();
   if (window._firebaseAuth) window._firebaseAuth.signOut().catch(function(){});
   var btn = document.getElementById('visitorLoginBtn');
   if (btn) {
@@ -116,14 +108,14 @@ function signOut() {
   window._chatVisitorName    = null;
 }
 
+/* ── Inject all HTML ── */
 function injectHTML() {
-  /* ── Sign In button in header ── */
   var header = document.querySelector('header .hdr-inner') || document.querySelector('header');
   if (header && !document.getElementById('visitorLoginBtn')) {
     var btnWrap = document.createElement('div');
     btnWrap.style.cssText = 'display:flex;justify-content:center;margin-top:8px;';
     btnWrap.innerHTML =
-      '<button id="visitorLoginBtn" onclick="openLoginModal()" style="' +
+      '<button id="visitorLoginBtn" style="' +
         'display:inline-flex;align-items:center;gap:8px;padding:7px 18px;' +
         'border-radius:30px;background:transparent;border:1.5px solid #00ffff;' +
         'color:#00ffff;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">' +
@@ -132,9 +124,10 @@ function injectHTML() {
         '<span class="vl-label">Sign In</span>' +
       '</button>';
     header.appendChild(btnWrap);
+    /* onclick set here — not inline — so it always calls latest openLoginModal */
+    document.getElementById('visitorLoginBtn').onclick = openLoginModal;
   }
 
-  /* ── Modal ── */
   if (!document.getElementById('loginModal')) {
     var modal = document.createElement('div');
     modal.id = 'loginModal';
@@ -142,12 +135,12 @@ function injectHTML() {
     modal.setAttribute('aria-modal', 'true');
     modal.innerHTML =
       '<div id="loginCard">' +
-        '<button id="loginModalClose" onclick="closeLoginModal()" aria-label="Close">✕</button>' +
+        '<button id="loginModalClose" aria-label="Close">✕</button>' +
         '<span class="lm-emoji">🧑\u200d💻</span>' +
         '<div class="lm-title">Welcome to Sahnawaz\'s Portfolio</div>' +
         '<div class="lm-subtitle">Sign in to get a personalised experience,<br>leave a review, and chat by name.</div>' +
         '<div id="googleBtnWrap">' +
-          '<button id="googleSignInBtn" onclick="firebaseGoogleSignIn()" style="' +
+          '<button id="googleSignInBtn" style="' +
             'display:inline-flex;align-items:center;gap:10px;padding:11px 24px;border-radius:40px;' +
             'background:#fff;color:#3c4043;border:1px solid #dadce0;' +
             'font-size:0.9rem;font-weight:600;cursor:pointer;font-family:inherit;' +
@@ -157,16 +150,21 @@ function injectHTML() {
           '</button>' +
         '</div>' +
         '<div class="lm-divider">OR</div>' +
-        '<button class="lm-skip" onclick="closeLoginModal()">Continue without signing in →</button>' +
+        '<button class="lm-skip">Continue without signing in →</button>' +
         '<div class="lm-privacy">Your Google profile is stored only on this device.<br>' +
           '<a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy</a>' +
         '</div>' +
       '</div>';
     document.body.appendChild(modal);
+
+    /* Attach clicks via JS — NOT inline onclick — critical for popup to work on mobile */
+    document.getElementById('loginModalClose').onclick = closeLoginModal;
+    document.querySelector('.lm-skip').onclick = closeLoginModal;
     modal.addEventListener('click', function(e) { if (e.target === modal) closeLoginModal(); });
+
+    /* googleSignInBtn onclick is set inside initFirebase() once auth is ready */
   }
 
-  /* ── Welcome Banner ── */
   if (!document.getElementById('loginWelcomeBanner')) {
     var banner = document.createElement('div');
     banner.id = 'loginWelcomeBanner';
@@ -174,14 +172,14 @@ function injectHTML() {
     document.body.appendChild(banner);
   }
 
-  /* ── Profile Dropdown ── */
   if (!document.getElementById('profileDropdown')) {
     var dd = document.createElement('div');
     dd.id = 'profileDropdown';
     dd.innerHTML =
       '<div class="pd-header"><img class="pd-avatar" src="" alt=""><div><div class="pd-name">Visitor</div><div class="pd-email"></div></div></div>' +
-      '<button class="pd-signout" onclick="signOut()">Sign Out</button>';
+      '<button class="pd-signout">Sign Out</button>';
     document.body.appendChild(dd);
+    dd.querySelector('.pd-signout').onclick = signOut;
   }
 
   document.addEventListener('click', function(e) {
@@ -193,6 +191,7 @@ function injectHTML() {
   });
 }
 
+/* ── Load script helper ── */
 function loadScript(src, cb) {
   var s = document.createElement('script');
   s.src = src;
@@ -201,6 +200,12 @@ function loadScript(src, cb) {
   document.head.appendChild(s);
 }
 
+/* ══════════════════════════════════════════════════════════
+   CORE: initFirebase
+   - Loads Firebase scripts
+   - Sets googleSignInBtn.onclick directly (NOT inline)
+     so the popup is a direct result of the user's tap
+   ══════════════════════════════════════════════════════════ */
 function initFirebase() {
   loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js', function() {
     loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js', function() {
@@ -210,21 +215,19 @@ function initFirebase() {
       var provider = new firebase.auth.GoogleAuthProvider();
       window._firebaseAuth = auth;
 
-      /* ══════════════════════════════════════════════════════
-         STEP 1 — Did we just come back from Google login?
-         Check the flag we set before leaving the page.
-         ══════════════════════════════════════════════════════ */
-      if (hasRedirectFlag()) {
-        clearRedirectFlag();
+      /* Set the Google button click handler NOW that Firebase is ready.
+         Must be a direct onclick — no wrapper function — so mobile Chrome
+         treats it as a user-gesture and allows the popup. */
+      var googleBtn = document.getElementById('googleSignInBtn');
+      if (googleBtn) {
+        googleBtn.onclick = function() {
+          /* Show loading state */
+          googleBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 48 48" style="animation:spin 1s linear infinite"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Connecting…';
+          googleBtn.disabled = true;
 
-        /* Show subtle loading state */
-        var loginBtn = document.getElementById('visitorLoginBtn');
-        if (loginBtn) loginBtn.querySelector('.vl-label').textContent = 'Signing in…';
-
-        auth.getRedirectResult()
-          .then(function(result) {
-            if (result && result.user) {
-              /* ✅ Success — save and apply */
+          /* signInWithPopup called DIRECTLY inside onclick = user gesture preserved */
+          auth.signInWithPopup(provider)
+            .then(function(result) {
               var u = result.user;
               var visitor = {
                 firstName: u.displayName ? u.displayName.split(' ')[0] : 'Friend',
@@ -235,32 +238,28 @@ function initFirebase() {
                 loginAt:   Date.now()
               };
               saveVisitor(visitor);
+              closeLoginModal();
               applyVisitorSession(visitor, true);
-            } else {
-              /* getRedirectResult returned empty — onAuthStateChanged will handle */
-              if (loginBtn) loginBtn.querySelector('.vl-label').textContent = 'Sign In';
-            }
-          })
-          .catch(function(err) {
-            console.error('getRedirectResult error:', err.code, err.message);
-            if (loginBtn) loginBtn.querySelector('.vl-label').textContent = 'Sign In';
-          });
+            })
+            .catch(function(err) {
+              console.error('Sign-in error:', err.code, err.message);
+              /* Reset button on error */
+              googleBtn.innerHTML =
+                '<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Continue with Google';
+              googleBtn.disabled = false;
+            });
+        };
       }
 
-      /* ══════════════════════════════════════════════════════
-         STEP 2 — Sign In button clicked: set flag then redirect
-         ══════════════════════════════════════════════════════ */
-      window.firebaseGoogleSignIn = function() {
-        var btn = document.getElementById('googleSignInBtn');
-        if (btn) { btn.textContent = 'Redirecting to Google…'; btn.disabled = true; }
-        setRedirectFlag();                  /* remember we started login */
-        auth.signInWithRedirect(provider);  /* go to Google */
-      };
+      /* Add spin animation for loading icon */
+      if (!document.getElementById('spin-style')) {
+        var style = document.createElement('style');
+        style.id = 'spin-style';
+        style.textContent = '@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }';
+        document.head.appendChild(style);
+      }
 
-      /* ══════════════════════════════════════════════════════
-         STEP 3 — Restore session silently on every page load
-         (handles already-logged-in users coming back later)
-         ══════════════════════════════════════════════════════ */
+      /* Restore session silently on every page load */
       auth.onAuthStateChanged(function(user) {
         if (user) {
           var saved = loadVisitor();
@@ -296,6 +295,6 @@ window.signOut         = signOut;
 document.addEventListener('DOMContentLoaded', function() {
   injectHTML();
   var saved = loadVisitor();
-  if (saved) applyVisitorSession(saved, false);  /* instant restore from cache */
+  if (saved) applyVisitorSession(saved, false);
   initFirebase();
 });
