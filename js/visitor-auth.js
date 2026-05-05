@@ -1,16 +1,17 @@
 /* ══════════════════════════════════════════════════════════
    visitor-auth.js — Google Sign-In via Firebase
    
-   THE FIX: authDomain = "sahnawaz-portfolio.vercel.app"
-   + vercel.json proxies /__/auth/* to firebaseapp.com
-   
-   This eliminates cross-origin cookie blocking in
-   Chrome M115+, Firefox 109+, Safari 16.1+ on mobile.
+   FIXED:
+   1. authDomain = "sahnawaz-portfolio.firebaseapp.com"
+      (custom vercel.app authDomain caused redirect_uri_mismatch)
+   2. signInWithRedirect + getRedirectResult instead of popup
+      (popup blocked on mobile browsers; redirect is reliable)
+   3. getRedirectResult handled on page load — fixes "Try again" bug
    ══════════════════════════════════════════════════════════ */
 
 var firebaseConfig = {
   apiKey:            "AIzaSyD_W0B6nINiyJf65r2N18kS7rrCrbzzfYM",
-  authDomain:        "sahnawaz-portfolio.vercel.app",  /* ← THIS was the bug. Was firebaseapp.com */
+  authDomain:        "sahnawaz-portfolio.firebaseapp.com",
   projectId:         "sahnawaz-portfolio",
   storageBucket:     "sahnawaz-portfolio.firebasestorage.app",
   messagingSenderId: "934946303611",
@@ -201,40 +202,46 @@ function initFirebase() {
       var provider = new firebase.auth.GoogleAuthProvider();
       window._firebaseAuth = auth;
 
-      /* googleSignInBtn onclick assigned directly here — not via inline HTML.
-         signInWithPopup is called inside the click handler itself.
-         With authDomain = vercel domain + proxy, no cross-origin block occurs. */
+      /* ── FIX: Handle redirect result on page load ──────────────
+         When user returns from Google sign-in, getRedirectResult()
+         picks up the credentials. This is what was causing "Try again"
+         — the result was never being read after the redirect. */
+      auth.getRedirectResult()
+        .then(function(result) {
+          if (result && result.user) {
+            var u = result.user;
+            var visitor = {
+              firstName: u.displayName ? u.displayName.split(' ')[0] : 'Friend',
+              fullName:  u.displayName || '',
+              email:     u.email || '',
+              avatar:    u.photoURL || '',
+              uid:       u.uid,
+              loginAt:   Date.now()
+            };
+            saveVisitor(visitor);
+            closeLoginModal();
+            applyVisitorSession(visitor, true);
+          }
+        })
+        .catch(function(err) {
+          console.error('Redirect result error:', err.code, err.message);
+        });
+
+      /* ── FIX: Use signInWithRedirect (not popup) ───────────────
+         Popups are unreliable on mobile browsers (blocked, or open
+         a new tab that never communicates back). Redirect is the
+         correct method for mobile. */
       var googleBtn = document.getElementById('googleSignInBtn');
       if (googleBtn) {
         googleBtn.onclick = function() {
-          googleBtn.textContent = 'Connecting…';
+          googleBtn.innerHTML =
+            '<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Redirecting to Google…';
           googleBtn.disabled = true;
-
-          auth.signInWithPopup(provider)
-            .then(function(result) {
-              var u = result.user;
-              var visitor = {
-                firstName: u.displayName ? u.displayName.split(' ')[0] : 'Friend',
-                fullName:  u.displayName || '',
-                email:     u.email || '',
-                avatar:    u.photoURL || '',
-                uid:       u.uid,
-                loginAt:   Date.now()
-              };
-              saveVisitor(visitor);
-              closeLoginModal();
-              applyVisitorSession(visitor, true);
-            })
-            .catch(function(err) {
-              console.error('Sign-in error:', err.code, err.message);
-              googleBtn.innerHTML =
-                '<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Continue with Google';
-              googleBtn.disabled = false;
-            });
+          auth.signInWithRedirect(provider);
         };
       }
 
-      /* Restore session on every page load */
+      /* ── Restore session on every page load ───────────────────── */
       auth.onAuthStateChanged(function(user) {
         if (user) {
           var saved = loadVisitor();
