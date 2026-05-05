@@ -1,12 +1,17 @@
 /* ══════════════════════════════════════════════════════════
-   visitor-auth.js — Google Sign-In via Firebase
-
+   visitor-auth.js — Google One Tap + Firebase Auth
+   
    STRATEGY:
-   - Chrome Android → signInWithRedirect (popup never works)
-   - All other browsers → signInWithPopup (instant, no page leave)
-   - On EVERY page load, always call getRedirectResult() so the
-     result is never missed when returning from Google on Chrome.
+   - Google One Tap (GSI) for sign-in UI — works on ALL browsers
+     including Chrome Android M115+, iOS Safari, desktop Chrome.
+     No popups. No redirects. Native Google prompt on the page.
+   - Firebase Auth used only to exchange the One Tap credential
+     for a Firebase user session (googleCredential → signInWith)
+   - Falls back to signInWithPopup on desktop if One Tap is
+     dismissed or unavailable.
    ══════════════════════════════════════════════════════════ */
+
+var GOOGLE_CLIENT_ID = '934946303611-fg64ivrlc0n2vj7gt1ccff7qpktidpnf.apps.googleusercontent.com';
 
 var firebaseConfig = {
   apiKey:            "AIzaSyD_W0B6nINiyJf65r2N18kS7rrCrbzzfYM",
@@ -40,6 +45,8 @@ function openLoginModal() {
   if (m) m.classList.add('open');
   var dd = document.getElementById('profileDropdown');
   if (dd) dd.classList.remove('open');
+  /* Trigger One Tap prompt when modal opens */
+  if (window._oneTapReady) promptOneTap();
 }
 function closeLoginModal() {
   var m = document.getElementById('loginModal');
@@ -97,6 +104,10 @@ function showWelcomeBanner(visitor) {
 function signOut() {
   clearVisitor();
   if (window._firebaseAuth) window._firebaseAuth.signOut().catch(function(){});
+  /* Cancel any active One Tap session */
+  if (window.google && window.google.accounts && window.google.accounts.id) {
+    window.google.accounts.id.disableAutoSelect();
+  }
   var btn = document.getElementById('visitorLoginBtn');
   if (btn) {
     btn.classList.remove('logged-in');
@@ -122,6 +133,45 @@ function visitorFromUser(u) {
     uid:       u.uid,
     loginAt:   Date.now()
   };
+}
+
+/* ── Called after Firebase signs in (any method) ───────── */
+function onSignInSuccess(firebaseUser, showBanner) {
+  var visitor = visitorFromUser(firebaseUser);
+  saveVisitor(visitor);
+  closeLoginModal();
+  applyVisitorSession(visitor, showBanner !== false);
+}
+
+/* ── One Tap credential callback ────────────────────────── */
+function handleOneTapCredential(response) {
+  if (!response || !response.credential) return;
+  var auth = window._firebaseAuth;
+  if (!auth) return;
+
+  /* Exchange Google JWT for Firebase session */
+  var credential = firebase.auth.GoogleAuthProvider.credential(response.credential);
+  auth.signInWithCredential(credential)
+    .then(function(result) {
+      onSignInSuccess(result.user, true);
+    })
+    .catch(function(err) {
+      console.error('One Tap Firebase error:', err.code, err.message);
+    });
+}
+window._handleOneTapCredential = handleOneTapCredential;
+
+/* ── Prompt One Tap ─────────────────────────────────────── */
+function promptOneTap() {
+  if (!window.google || !window.google.accounts || !window.google.accounts.id) return;
+  window.google.accounts.id.prompt(function(notification) {
+    /* If One Tap is suppressed/skipped on Chrome Android,
+       the modal button fallback handles it */
+    if (notification.isSkippedMoment() || notification.isDismissedMoment()) {
+      console.log('One Tap dismissed:', notification.getDismissedReason
+        ? notification.getDismissedReason() : '');
+    }
+  });
 }
 
 function injectHTML() {
@@ -153,7 +203,14 @@ function injectHTML() {
         '<span class="lm-emoji">🧑\u200d💻</span>' +
         '<div class="lm-title">Welcome to Sahnawaz\'s Portfolio</div>' +
         '<div class="lm-subtitle">Sign in to get a personalised experience,<br>leave a review, and chat by name.</div>' +
-        '<div id="googleBtnWrap">' +
+
+        /* Google One Tap renders its own button here on Chrome Android */
+        '<div id="oneTapBtnWrap" style="display:flex;justify-content:center;margin-bottom:20px;">' +
+          '<div id="g_id_signin"></div>' +
+        '</div>' +
+
+        /* Fallback standard button — used on desktop / iOS */
+        '<div id="googleBtnWrap" style="display:flex;justify-content:center;margin-bottom:20px;">' +
           '<button id="googleSignInBtn" style="' +
             'display:inline-flex;align-items:center;gap:10px;padding:11px 24px;border-radius:40px;' +
             'background:#fff;color:#3c4043;border:1px solid #dadce0;' +
@@ -163,6 +220,7 @@ function injectHTML() {
             'Continue with Google' +
           '</button>' +
         '</div>' +
+
         '<div class="lm-divider">OR</div>' +
         '<button class="lm-skip">Continue without signing in →</button>' +
         '<div class="lm-privacy">Your Google profile is stored only on this device.<br>' +
@@ -209,6 +267,37 @@ function loadScript(src, cb) {
   document.head.appendChild(s);
 }
 
+function initOneTap() {
+  /* Load Google Identity Services script */
+  loadScript('https://accounts.google.com/gsi/client', function() {
+    window.google.accounts.id.initialize({
+      client_id:         GOOGLE_CLIENT_ID,
+      callback:          window._handleOneTapCredential,
+      auto_select:       true,   /* Auto-sign in returning users */
+      cancel_on_tap_outside: false
+    });
+
+    /* Render a standard Google Sign-In button inside the modal
+       as the primary CTA on Chrome Android */
+    var signinDiv = document.getElementById('g_id_signin');
+    if (signinDiv) {
+      window.google.accounts.id.renderButton(signinDiv, {
+        type:  'standard',
+        shape: 'pill',
+        theme: 'outline',
+        text:  'continue_with',
+        size:  'large',
+        logo_alignment: 'left'
+      });
+    }
+
+    window._oneTapReady = true;
+
+    /* Show One Tap prompt automatically (floating card from Google) */
+    promptOneTap();
+  });
+}
+
 function initFirebase() {
   loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js', function() {
     loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js', function() {
@@ -218,58 +307,26 @@ function initFirebase() {
       var provider = new firebase.auth.GoogleAuthProvider();
       window._firebaseAuth = auth;
 
-      var chromeAndroid = isChromeAndroid();
-
-      /* ══ ALWAYS call getRedirectResult on page load ════════════
-         On Chrome Android, after Google redirects back to the site,
-         this is the ONLY place to catch the sign-in result.
-         It resolves with null if there's no pending redirect — safe
-         to call every time, costs nothing if unused.              */
-      auth.getRedirectResult()
-        .then(function(result) {
-          if (result && result.user) {
-            var visitor = visitorFromUser(result.user);
-            saveVisitor(visitor);
-            closeLoginModal();
-            applyVisitorSession(visitor, true);
-          }
-        })
-        .catch(function(err) {
-          /* Ignore — no pending redirect, or user cancelled */
-          console.warn('getRedirectResult:', err.code);
-        });
-
-      /* ══ Button click ══════════════════════════════════════════ */
+      /* ── Fallback button (desktop / iOS popup) ─────────────── */
       var googleBtn = document.getElementById('googleSignInBtn');
       if (googleBtn) {
+        /* Hide fallback button on Chrome Android — One Tap handles it */
+        if (isChromeAndroid()) {
+          var wrap = document.getElementById('googleBtnWrap');
+          if (wrap) wrap.style.display = 'none';
+        }
+
         googleBtn.onclick = function() {
           googleBtn.innerHTML =
             '<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Connecting…';
           googleBtn.disabled = true;
 
-          if (chromeAndroid) {
-            /* Chrome Android — go straight to redirect, no popup attempt */
-            auth.signInWithRedirect(provider);
-            return;
-          }
-
-          /* All other browsers — use popup */
           auth.signInWithPopup(provider)
             .then(function(result) {
-              var visitor = visitorFromUser(result.user);
-              saveVisitor(visitor);
-              closeLoginModal();
-              applyVisitorSession(visitor, true);
+              onSignInSuccess(result.user, true);
             })
             .catch(function(err) {
-              console.error('Popup error:', err.code, err.message);
-              /* Popup blocked — fall back to redirect */
-              if (err.code === 'auth/popup-blocked' ||
-                  err.code === 'auth/popup-closed-by-user' ||
-                  err.code === 'auth/cancelled-popup-request') {
-                auth.signInWithRedirect(provider);
-                return;
-              }
+              console.error('Popup error:', err.code);
               googleBtn.innerHTML =
                 '<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Continue with Google';
               googleBtn.disabled = false;
@@ -277,7 +334,7 @@ function initFirebase() {
         };
       }
 
-      /* ══ Restore session on every page load ═══════════════════ */
+      /* ── Restore session on every page load ────────────────── */
       auth.onAuthStateChanged(function(user) {
         if (user) {
           var saved = loadVisitor();
@@ -290,6 +347,9 @@ function initFirebase() {
           }
         }
       });
+
+      /* ── Init One Tap after Firebase is ready ──────────────── */
+      initOneTap();
 
     });
   });
