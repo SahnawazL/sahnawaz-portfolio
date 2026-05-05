@@ -1,16 +1,7 @@
 {
+  "outputDirectory": ".",
   "rewrites": [
-    {
-      "source": "/__/auth/:path*",
-      "destination": "https://sahnawaz-portfolio.firebaseapp.com/__/auth/:path*"
-    },
-    {
-      "source": "/__/firebase/:path*",
-      "destination": "https://sahnawaz-portfolio.firebaseapp.com/__/firebase/:path*"
-    },
-    {
-      "source": "/api/:path*",
-      "destination": "/api/:path*"
-    }
+    { "source": "/api/chat", "destination": "/api/chat.js" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
