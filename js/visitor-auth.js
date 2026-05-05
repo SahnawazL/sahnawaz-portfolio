@@ -1,12 +1,16 @@
 /* ══════════════════════════════════════════════════════════
    visitor-auth.js — Google Sign-In via Firebase
-   Uses signInWithPopup called DIRECTLY from user tap.
-   This is the only method that works on Vercel + mobile.
+   
+   THE FIX: authDomain = "sahnawaz-portfolio.vercel.app"
+   + vercel.json proxies /__/auth/* to firebaseapp.com
+   
+   This eliminates cross-origin cookie blocking in
+   Chrome M115+, Firefox 109+, Safari 16.1+ on mobile.
    ══════════════════════════════════════════════════════════ */
 
 var firebaseConfig = {
   apiKey:            "AIzaSyD_W0B6nINiyJf65r2N18kS7rrCrbzzfYM",
-  authDomain:        "sahnawaz-portfolio.firebaseapp.com",
+  authDomain:        "sahnawaz-portfolio.vercel.app",  /* ← THIS was the bug. Was firebaseapp.com */
   projectId:         "sahnawaz-portfolio",
   storageBucket:     "sahnawaz-portfolio.firebasestorage.app",
   messagingSenderId: "934946303611",
@@ -15,7 +19,6 @@ var firebaseConfig = {
 
 var VISITOR_KEY = 'shnz_visitor_v1';
 
-/* ── localStorage helpers ── */
 function saveVisitor(data) {
   try { localStorage.setItem(VISITOR_KEY, JSON.stringify(data)); } catch(e) {}
 }
@@ -26,7 +29,6 @@ function clearVisitor() {
   try { localStorage.removeItem(VISITOR_KEY); } catch(e) {}
 }
 
-/* ── Modal helpers ── */
 function openLoginModal() {
   var m = document.getElementById('loginModal');
   if (m) m.classList.add('open');
@@ -42,7 +44,6 @@ function toggleProfileDropdown() {
   if (dd) dd.classList.toggle('open');
 }
 
-/* ── Apply logged-in state to UI ── */
 function applyVisitorSession(visitor, showBanner) {
   if (!visitor) return;
   var btn = document.getElementById('visitorLoginBtn');
@@ -70,7 +71,6 @@ function applyVisitorSession(visitor, showBanner) {
   if (showBanner) showWelcomeBanner(visitor);
 }
 
-/* ── Welcome banner ── */
 function showWelcomeBanner(visitor) {
   var banner = document.getElementById('loginWelcomeBanner');
   if (!banner) return;
@@ -78,17 +78,16 @@ function showWelcomeBanner(visitor) {
   var avEl   = banner.querySelector('.wb-avatar');
   if (nameEl) nameEl.textContent = 'Hey ' + visitor.firstName + '! 👋';
   if (avEl && visitor.avatar) avEl.src = visitor.avatar;
-  banner.style.display = 'block';
-  banner.style.opacity = '1';
+  banner.style.display    = 'block';
+  banner.style.opacity    = '1';
   banner.style.transition = '';
   setTimeout(function() {
     banner.style.transition = 'opacity 0.6s ease';
-    banner.style.opacity = '0';
+    banner.style.opacity    = '0';
     setTimeout(function() { banner.style.display = 'none'; }, 600);
   }, 4000);
 }
 
-/* ── Sign out ── */
 function signOut() {
   clearVisitor();
   if (window._firebaseAuth) window._firebaseAuth.signOut().catch(function(){});
@@ -108,7 +107,6 @@ function signOut() {
   window._chatVisitorName    = null;
 }
 
-/* ── Inject all HTML ── */
 function injectHTML() {
   var header = document.querySelector('header .hdr-inner') || document.querySelector('header');
   if (header && !document.getElementById('visitorLoginBtn')) {
@@ -124,7 +122,6 @@ function injectHTML() {
         '<span class="vl-label">Sign In</span>' +
       '</button>';
     header.appendChild(btnWrap);
-    /* onclick set here — not inline — so it always calls latest openLoginModal */
     document.getElementById('visitorLoginBtn').onclick = openLoginModal;
   }
 
@@ -156,13 +153,9 @@ function injectHTML() {
         '</div>' +
       '</div>';
     document.body.appendChild(modal);
-
-    /* Attach clicks via JS — NOT inline onclick — critical for popup to work on mobile */
     document.getElementById('loginModalClose').onclick = closeLoginModal;
     document.querySelector('.lm-skip').onclick = closeLoginModal;
     modal.addEventListener('click', function(e) { if (e.target === modal) closeLoginModal(); });
-
-    /* googleSignInBtn onclick is set inside initFirebase() once auth is ready */
   }
 
   if (!document.getElementById('loginWelcomeBanner')) {
@@ -191,7 +184,6 @@ function injectHTML() {
   });
 }
 
-/* ── Load script helper ── */
 function loadScript(src, cb) {
   var s = document.createElement('script');
   s.src = src;
@@ -200,12 +192,6 @@ function loadScript(src, cb) {
   document.head.appendChild(s);
 }
 
-/* ══════════════════════════════════════════════════════════
-   CORE: initFirebase
-   - Loads Firebase scripts
-   - Sets googleSignInBtn.onclick directly (NOT inline)
-     so the popup is a direct result of the user's tap
-   ══════════════════════════════════════════════════════════ */
 function initFirebase() {
   loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js', function() {
     loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js', function() {
@@ -215,17 +201,15 @@ function initFirebase() {
       var provider = new firebase.auth.GoogleAuthProvider();
       window._firebaseAuth = auth;
 
-      /* Set the Google button click handler NOW that Firebase is ready.
-         Must be a direct onclick — no wrapper function — so mobile Chrome
-         treats it as a user-gesture and allows the popup. */
+      /* googleSignInBtn onclick assigned directly here — not via inline HTML.
+         signInWithPopup is called inside the click handler itself.
+         With authDomain = vercel domain + proxy, no cross-origin block occurs. */
       var googleBtn = document.getElementById('googleSignInBtn');
       if (googleBtn) {
         googleBtn.onclick = function() {
-          /* Show loading state */
-          googleBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 48 48" style="animation:spin 1s linear infinite"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Connecting…';
+          googleBtn.textContent = 'Connecting…';
           googleBtn.disabled = true;
 
-          /* signInWithPopup called DIRECTLY inside onclick = user gesture preserved */
           auth.signInWithPopup(provider)
             .then(function(result) {
               var u = result.user;
@@ -243,7 +227,6 @@ function initFirebase() {
             })
             .catch(function(err) {
               console.error('Sign-in error:', err.code, err.message);
-              /* Reset button on error */
               googleBtn.innerHTML =
                 '<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Continue with Google';
               googleBtn.disabled = false;
@@ -251,15 +234,7 @@ function initFirebase() {
         };
       }
 
-      /* Add spin animation for loading icon */
-      if (!document.getElementById('spin-style')) {
-        var style = document.createElement('style');
-        style.id = 'spin-style';
-        style.textContent = '@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }';
-        document.head.appendChild(style);
-      }
-
-      /* Restore session silently on every page load */
+      /* Restore session on every page load */
       auth.onAuthStateChanged(function(user) {
         if (user) {
           var saved = loadVisitor();
