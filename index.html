@@ -20846,6 +20846,10 @@ document.addEventListener('DOMContentLoaded', function(){
 
       playReceive();
       addToHistory('bot', answer);
+      /* ── Save bot reply to Firestore history (direct call — MutationObserver
+         fires too early, before text is swapped in from dots, so we save here
+         explicitly once the real answer is rendered) ── */
+      if (window._saveChatMessage) window._saveChatMessage('bot', answer);
       scrollMsgs();
 
       setTimeout(function(){
@@ -21225,7 +21229,12 @@ document.addEventListener('DOMContentLoaded', function(){
     fetch(apiUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: msgToSend, history: historyPayload, visitorName: conversationHistory.length <= 1 ? namePayload : null })
+      body: JSON.stringify({
+        message: msgToSend,
+        history: historyPayload,
+        visitorName: conversationHistory.length <= 1 ? namePayload : null,
+        visitorActivity: window._visitorActivity || null
+      })
     })
     .then(function(res){
       if (!res.ok) { throw new Error('API returned status ' + res.status); }
