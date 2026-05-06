@@ -22,7 +22,7 @@ const handler = async (req, res) => {
   }
   isProcessing = true;
 
-  const { message, history = [], visitorName = null } = req.body || {};
+  const { message, history = [], visitorName = null, visitorActivity = null } = req.body || {};
 
   if (!message || !message.trim()) {
     isProcessing = false;
@@ -141,6 +141,32 @@ const handler = async (req, res) => {
     ? `The visitor's name is ${visitorName} — use their name naturally and warmly in replies.`
     : '';
 
+  // ── UPGRADE 7: Visitor activity context personalisation ──────────────────
+  let visitorActivityHint = '';
+  if (visitorActivity && typeof visitorActivity === 'object') {
+    const va = visitorActivity;
+    const lines = ['--- VISITOR ACTIVITY CONTEXT (use this to personalise replies) ---'];
+    if (va.name)  lines.push(`Visitor's name: ${va.name}`);
+    if (va.email) lines.push(`Visitor's email: ${va.email}`);
+    if (va.likedProjects && va.likedProjects.length > 0)
+      lines.push(`Projects they liked: ${va.likedProjects.join(', ')}`);
+    else
+      lines.push('They have not liked any projects yet.');
+    lines.push(`Downloaded/viewed resume: ${va.resumeDownloaded ? 'Yes' : 'No'}`);
+    if (va.reviewSubmitted)
+      lines.push(`Left a review: Yes — ${va.reviewSubmitted.stars} stars. Text: "${va.reviewSubmitted.text}"`);
+    else
+      lines.push('Has not submitted a review yet.');
+    lines.push(`Total chat messages sent: ${va.totalChats || 0}`);
+    lines.push('Use this naturally to personalise replies. Examples:');
+    lines.push('- Liked projects → acknowledge it warmly: "You already liked [X], great taste! 😄"');
+    lines.push('- Downloaded resume → "You even grabbed his CV — a strong sign! 📄"');
+    lines.push('- Left 5-star review → "You gave him 5 stars — you clearly think so! 😄"');
+    lines.push('- Returning user (totalChats > 0) → "Welcome back! Great to see you again 😊"');
+    lines.push('- First visit (totalChats = 0) → greet them fresh and warmly.');
+    visitorActivityHint = lines.join('\n');
+  }
+
   // ── KNOWLEDGE BASE ─────────────────────────────────────────────────────
   const KNOWLEDGE = `
 You are the personal AI assistant embedded in Sahnawaz Ahmed Laskar's portfolio website.
@@ -201,6 +227,7 @@ CRITICAL RULE: Use ONLY the markers below. Do NOT use markdown (#, ##, ###).
 ${intentHint ? `INTENT HINT: ${intentHint}` : ''}
 ${langHint   ? `LANGUAGE HINT: ${langHint}`  : ''}
 ${nameHint   ? `VISITOR HINT: ${nameHint}`   : ''}
+${visitorActivityHint}
 
 --- SITE CONTROL COMMANDS (IMPORTANT) ---
 You can control the portfolio website directly. If a visitor asks you to:
