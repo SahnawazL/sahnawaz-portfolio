@@ -713,7 +713,8 @@
     var iv = setInterval(function(){
       var input = document.getElementById('chatInput') ||
                   document.querySelector('input[placeholder*="message"], textarea[placeholder*="message"]');
-      var send  = document.getElementById('chatSendBtn') ||
+      var send  = document.getElementById('chatSend') ||
+                  document.getElementById('chatSendBtn') ||
                   document.querySelector('button[id*="send"], button[class*="send"]');
       if (input && send) {
         clearInterval(iv);
@@ -727,13 +728,21 @@
   }
 
   function watchBotReplies() {
-    var body = document.getElementById('chatBody') ||
+    var body = document.getElementById('chatMessages') ||
+               document.getElementById('chatBody') ||
                document.querySelector('.chat-messages, .chat-body');
     if (!body) return;
     new MutationObserver(function(muts){
       muts.forEach(function(m){
         m.addedNodes.forEach(function(node){
           if (node.nodeType!==1) return;
+          if (node.classList && node.classList.contains('chat-msg-wrap') && node.classList.contains('bot')) {
+            var bubble = node.querySelector('.chat-msg.bot');
+            var txt = (bubble ? bubble.textContent : node.textContent || '').trim();
+            if (txt && txt.length > 5 && !txt.includes('thinking') && window._saveChatMessage) {
+              window._saveChatMessage('bot', txt.slice(0, 500));
+            }
+          }
           if (node.classList && (node.classList.contains('bot-msg') || node.getAttribute('data-role')==='bot')) {
             var txt = (node.textContent||'').trim();
             if (txt && window._saveChatMessage) window._saveChatMessage('bot', txt.slice(0,500));
