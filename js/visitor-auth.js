@@ -67,7 +67,18 @@ function applyVisitorSession(visitor, showBanner) {
     if (av && visitor.avatar) { av.src = visitor.avatar; av.style.display = 'inline-block'; }
     var icon = btn.querySelector('.vl-icon');
     if (icon) icon.style.display = 'none';
-    btn.onclick = toggleProfileDropdown;
+    /* Mobile fix: use touchend for instant response — prevents race with
+       document click listener that was closing the dropdown immediately. */
+    btn.onclick = null;
+    btn.ontouchend = function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleProfileDropdown();
+    };
+    btn.onclick = function(e) {
+      if (e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents) return;
+      toggleProfileDropdown();
+    };
   }
   var dd = document.getElementById('profileDropdown');
   if (dd) {
@@ -215,11 +226,6 @@ function injectHTML() {
           '<div id="g_id_signin"></div>' +
         '</div>' +
 
-        /* Helper hint between the two buttons */
-        '<div style="text-align:center;font-size:0.75rem;color:rgba(255,255,255,0.35);margin:0 16px 14px;line-height:1.55;">' +
-          "💡 If the first button does not respond, simply refresh the page and try the second one below." +
-        '</div>' +
-
         /* Fallback standard button — used on desktop / iOS */
         '<div id="googleBtnWrap" style="display:flex;justify-content:center;margin-bottom:20px;">' +
           '<button id="googleSignInBtn" style="' +
@@ -261,13 +267,17 @@ function injectHTML() {
     dd.querySelector('.pd-signout').onclick = signOut;
   }
 
-  document.addEventListener('click', function(e) {
+  /* Fix: b.contains() catches taps on avatar/label inside the pill.
+     touchstart closes dropdown on outside tap without racing the button. */
+  function _outsideHandler(e) {
     var d = document.getElementById('profileDropdown');
     var b = document.getElementById('visitorLoginBtn');
-    if (d && d.classList.contains('open') && !d.contains(e.target) && e.target !== b) {
+    if (d && d.classList.contains('open') && !d.contains(e.target) && !b.contains(e.target)) {
       d.classList.remove('open');
     }
-  });
+  }
+  document.addEventListener('touchstart', _outsideHandler, { passive: true });
+  document.addEventListener('click', _outsideHandler);
 }
 
 function loadScript(src, cb) {
