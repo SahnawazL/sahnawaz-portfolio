@@ -1,7 +1,8 @@
 {
   "outputDirectory": ".",
   "rewrites": [
-    { "source": "/api/chat", "destination": "/api/chat.js" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/api/chat",    "destination": "/api/chat.js" },
+    { "source": "/api/resume",  "destination": "/api/resume.js" },
+    { "source": "/(.*)",        "destination": "/index.html" }
   ]
 }
