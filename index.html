@@ -7561,6 +7561,18 @@ function ptestiToggle(card) {
 
   /* ── Open ── */
   window.openResumePopup = function () {
+
+    /* ── Mobile: Android/iPhone can't render PDFs in iframes ──
+       Skip the popup entirely — open PDF in a new tab instead.
+       _gatedResumeOpen() fetches a fresh Firebase token and opens
+       /api/resume?mode=view in a new tab, which Chrome handles natively. */
+    var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isMobile) {
+      window._gatedResumeOpen && window._gatedResumeOpen();
+      return;
+    }
+
+    /* ── Desktop: show the iframe popup as normal ── */
     popup.classList.add('rp-visible');
     document.body.style.overflow = 'hidden';
 
