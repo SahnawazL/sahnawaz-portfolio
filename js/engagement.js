@@ -25,6 +25,7 @@
       initMpjLikes();
       initChatHistory();
       initResumeLogger();
+      initVisitorActivity();
     });
   }
 
@@ -728,28 +729,11 @@
   }
 
   function watchBotReplies() {
-    var body = document.getElementById('chatMessages') ||
-               document.getElementById('chatBody') ||
-               document.querySelector('.chat-messages, .chat-body');
-    if (!body) return;
-    new MutationObserver(function(muts){
-      muts.forEach(function(m){
-        m.addedNodes.forEach(function(node){
-          if (node.nodeType!==1) return;
-          if (node.classList && node.classList.contains('chat-msg-wrap') && node.classList.contains('bot')) {
-            var bubble = node.querySelector('.chat-msg.bot');
-            var txt = (bubble ? bubble.textContent : node.textContent || '').trim();
-            if (txt && txt.length > 5 && !txt.includes('thinking') && window._saveChatMessage) {
-              window._saveChatMessage('bot', txt.slice(0, 500));
-            }
-          }
-          if (node.classList && (node.classList.contains('bot-msg') || node.getAttribute('data-role')==='bot')) {
-            var txt = (node.textContent||'').trim();
-            if (txt && window._saveChatMessage) window._saveChatMessage('bot', txt.slice(0,500));
-          }
-        });
-      });
-    }).observe(body, {childList:true, subtree:true});
+    /* Bot replies are now saved directly from addBotTyping() in index.html
+       (after the typing-dots are replaced with the real answer text).
+       This MutationObserver approach fired too early — when only the dots
+       bubble existed — so the text was always empty and never saved.
+       Keeping this function as a no-op to avoid breaking any callers. */
   }
 
 
@@ -788,6 +772,80 @@
   }
 
   /* ══════════════════════════════════════════════════════
+     VISITOR ACTIVITY LOADER
+     Loads all user activity from Firestore and exposes it
+     as window._visitorActivity so the chatbot API call
+     can include it as context in every message.
+     ══════════════════════════════════════════════════════ */
+  function initVisitorActivity() {
+    window._visitorActivity = null;
+
+    window._loadVisitorActivity = function(cb) {
+      var visitor = getVisitor();
+      if (!visitor || !visitor.uid || !db) { if (cb) cb(null); return; }
+      var uid = visitor.uid;
+      var activity = {
+        name:             visitor.fullName || visitor.firstName || null,
+        email:            visitor.email   || null,
+        likedProjects:    [],
+        resumeDownloaded: false,
+        reviewSubmitted:  null,
+        totalChats:       0
+      };
+
+      var tasks = [];
+
+      /* 1 — Which projects did they like? */
+      tasks.push(
+        db.collection('projectLikes').get().then(function(snap) {
+          snap.forEach(function(doc) {
+            var d = doc.data();
+            if (d.likedBy && d.likedBy.includes(uid)) {
+              activity.likedProjects.push(d.name || doc.id);
+            }
+          });
+        }).catch(function(){})
+      );
+
+      /* 2 — Did they download/view the resume? */
+      tasks.push(
+        db.collection('resumeDownloads').where('uid','==',uid).limit(1).get().then(function(snap) {
+          activity.resumeDownloaded = !snap.empty;
+        }).catch(function(){})
+      );
+
+      /* 3 — Did they leave a review? What rating? */
+      tasks.push(
+        db.collection('reviews').where('uid','==',uid).limit(1).get().then(function(snap) {
+          if (!snap.empty) {
+            var d = snap.docs[0].data();
+            activity.reviewSubmitted = { stars: d.stars, text: (d.text||'').slice(0,120) };
+          }
+        }).catch(function(){})
+      );
+
+      /* 4 — Total number of chat messages they have sent across all sessions */
+      tasks.push(
+        db.collection('chatHistory').doc(uid).collection('messages')
+          .where('role','==','user').get().then(function(snap) {
+            activity.totalChats = snap.size;
+          }).catch(function(){})
+      );
+
+      Promise.all(tasks).then(function() {
+        window._visitorActivity = activity;
+        if (cb) cb(activity);
+      });
+    };
+
+    /* Pre-load as soon as Firestore is ready */
+    var visitor = getVisitor();
+    if (visitor && visitor.uid) {
+      window._loadVisitorActivity(function(){});
+    }
+  }
+
+  /* ══════════════════════════════════════════════════════
      INIT
      ══════════════════════════════════════════════════════ */
   function waitForFirebase() {
@@ -808,12 +866,14 @@
       window.applyVisitorSession = function(){
         orig.apply(this, arguments);
         setTimeout(updateReviewUI, 100);
-        /* Also refresh like button states now that visitor is known */
+        /* Refresh like button states now that visitor is known */
         setTimeout(function(){
           document.querySelectorAll('.proj-like-btn').forEach(function(btn){
             var pid = btn.getAttribute('data-pid');
             if (pid) fetchLikeCount(btn, pid);
           });
+          /* Re-load visitor activity now that we know who they are */
+          if (window._loadVisitorActivity) window._loadVisitorActivity(function(){});
         }, 200);
       };
     }
