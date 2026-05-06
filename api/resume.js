@@ -1,234 +1,250 @@
-// api/resume.js — Gmail SMTP version (no Resend)
+// api/resume.js
+// Dual-purpose resume handler:
+//
+//   GET  /api/resume?token=<firebaseIdToken>&mode=view|download
+//        — Verifies Firebase ID token, logs to Firestore, serves resume.pdf
+//
+//   POST /api/resume  { name, email }
+//        — Emails resume.pdf as attachment to the requester (chatbot flow)
+//        — Notifies Sahnawaz, logs to Firestore
+//        — No auth token needed (public chatbot flow)
 
+const path       = require('path');
+const fs         = require('fs');
 const nodemailer = require('nodemailer');
 
-const RESUME_LINK = 'https://drive.google.com/file/d/11fwGR4cjRs-to_tNpAIT1DJc2CeVq2Kg/view?usp=drivesdk';
-const OWNER_EMAIL = 'shzthedigitalalchemist@gmail.com';
+const { initializeApp, getApps, cert } = require('firebase-admin/app');
+const { getAuth }                       = require('firebase-admin/auth');
+const { getFirestore, FieldValue }      = require('firebase-admin/firestore');
 
-module.exports = async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+/* ─────────────────────────────────────────────────────────
+   Firebase Admin — init once, reuse across warm restarts
+───────────────────────────────────────────────────────── */
+function getAdmin() {
+  if (!getApps().length) {
+    initializeApp({
+      credential: cert({
+        projectId:   process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey:  process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      }),
+    });
+  }
+  return { auth: getAuth(), db: getFirestore() };
+}
 
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-
-  const { name, email } = req.body || {};
-
-  if (!name || !email) return res.status(400).json({ error: 'Name and email are required' });
-  if (!email.includes('@')) return res.status(400).json({ error: 'Invalid email address' });
-
-  const transporter = nodemailer.createTransport({
+/* ─────────────────────────────────────────────────────────
+   Nodemailer transporter — Gmail App Password
+   Env vars needed:
+     GMAIL_USER  — shzthedigitalalchemist@gmail.com
+     GMAIL_PASS  — 16-char Gmail App Password (not your real password)
+───────────────────────────────────────────────────────── */
+function getTransporter() {
+  return nodemailer.createTransport({
     service: 'gmail',
     auth: {
       user: process.env.GMAIL_USER,
       pass: process.env.GMAIL_PASS,
     },
   });
+}
 
-  const now = new Date().toLocaleString('en-IN', {
-    timeZone: 'Asia/Kolkata', dateStyle: 'long', timeStyle: 'short',
-  });
-  const refId = 'RES-' + Date.now().toString(36).toUpperCase().slice(-6);
+/* ─────────────────────────────────────────────────────────
+   Main handler
+───────────────────────────────────────────────────────── */
+module.exports = async function handler(req, res) {
 
-  const visitorHtml = `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Resume — Sahnawaz Ahmed Laskar</title></head>
-<body style="margin:0;padding:0;background:#07101a;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#07101a;padding:36px 16px 48px;">
-<tr><td align="center">
-<table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
+  /* ── CORS ── */
+  res.setHeader('Access-Control-Allow-Origin',  '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') return res.status(200).end();
 
-  <tr>
-    <td style="padding-bottom:18px;" align="center">
-      <span style="font-size:0.65rem;color:#00dcff;letter-spacing:3px;text-transform:uppercase;font-weight:700;">SAHNAWAZ AHMED LASKAR</span>
-      <span style="font-size:0.65rem;color:#1d4a5e;letter-spacing:2px;text-transform:uppercase;font-weight:600;">&nbsp;·&nbsp;FULL STACK DEVELOPER &amp; UI/UX DESIGNER</span>
-    </td>
-  </tr>
+  /* ── Route by method ── */
+  if (req.method === 'GET')  return handleGet(req, res);
+  if (req.method === 'POST') return handlePost(req, res);
 
-  <tr>
-    <td style="background:#0d1d2e;border-radius:16px;overflow:hidden;border:1px solid rgba(0,220,255,0.12);box-shadow:0 20px 60px rgba(0,0,0,0.6);">
-
-      <table width="100%" cellpadding="0" cellspacing="0">
-        <tr><td style="height:4px;background:linear-gradient(90deg,#00dcff,#0055ff,#00dcff);"></td></tr>
-      </table>
-
-      <!-- Header -->
-      <table width="100%" cellpadding="0" cellspacing="0">
-        <tr>
-          <td style="padding:36px 36px 28px;background:linear-gradient(160deg,#0d2540 0%,#0d1d2e 100%);">
-            <div style="margin-bottom:18px;">
-              <span style="display:inline-block;background:rgba(0,220,255,0.1);border:1px solid rgba(0,220,255,0.3);border-radius:4px;padding:4px 12px;font-size:0.65rem;color:#00dcff;letter-spacing:2px;text-transform:uppercase;font-weight:700;">📄 &nbsp;Resume Attached</span>
-            </div>
-            <h1 style="margin:0 0 10px;font-size:1.6rem;font-weight:800;color:#ffffff;line-height:1.15;letter-spacing:-0.3px;">Here's my Resume, ${name}</h1>
-            <p style="margin:0;font-size:0.9rem;color:#6fa8bf;line-height:1.5;">
-              Thank you for your interest. You can view or download my latest resume using the button below. Feel free to reach out if you'd like to discuss opportunities.
-            </p>
-          </td>
-        </tr>
-      </table>
-
-      <!-- Ref strip -->
-      <table width="100%" cellpadding="0" cellspacing="0">
-        <tr>
-          <td style="padding:14px 36px;background:rgba(0,0,0,0.25);">
-            <table width="100%" cellpadding="0" cellspacing="0">
-              <tr>
-                <td style="font-size:0.72rem;color:#1d4a5e;">Ref ID &nbsp;<span style="color:#00dcff;font-family:monospace;font-weight:700;letter-spacing:1px;">${refId}</span></td>
-                <td align="right" style="font-size:0.72rem;color:#1d4a5e;">Sent: ${now} IST</td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-      </table>
-
-      <table width="100%" cellpadding="0" cellspacing="0">
-        <tr><td style="height:1px;background:rgba(255,255,255,0.04);"></td></tr>
-      </table>
-
-      <!-- Resume details -->
-      <table width="100%" cellpadding="0" cellspacing="0">
-        <tr>
-          <td style="padding:28px 36px 8px;">
-            <div style="font-size:0.65rem;color:#1d4a5e;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:14px;">Resume Details</div>
-            <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid rgba(0,220,255,0.1);border-radius:10px;overflow:hidden;">
-              <tr style="background:rgba(255,255,255,0.015);">
-                <td style="padding:13px 18px;width:32%;vertical-align:top;"><span style="font-size:0.72rem;color:#2a6070;text-transform:uppercase;letter-spacing:1px;font-weight:600;">Requested By</span></td>
-                <td style="padding:13px 18px;border-left:1px solid rgba(255,255,255,0.04);"><span style="font-size:0.9rem;color:#e8f6ff;font-weight:700;">${name}</span></td>
-              </tr>
-              <tr><td colspan="2" style="height:1px;background:rgba(255,255,255,0.04);padding:0;"></td></tr>
-              <tr>
-                <td style="padding:13px 18px;vertical-align:top;"><span style="font-size:0.72rem;color:#2a6070;text-transform:uppercase;letter-spacing:1px;font-weight:600;">Sent To</span></td>
-                <td style="padding:13px 18px;border-left:1px solid rgba(255,255,255,0.04);"><span style="font-size:0.85rem;color:#00dcff;font-family:monospace;">${email}</span></td>
-              </tr>
-              <tr><td colspan="2" style="height:1px;background:rgba(255,255,255,0.04);padding:0;"></td></tr>
-              <tr style="background:rgba(255,255,255,0.015);">
-                <td style="padding:13px 18px;vertical-align:top;"><span style="font-size:0.72rem;color:#2a6070;text-transform:uppercase;letter-spacing:1px;font-weight:600;">Document</span></td>
-                <td style="padding:13px 18px;border-left:1px solid rgba(255,255,255,0.04);"><span style="font-size:0.85rem;color:#c8e8ff;">Sahnawaz Ahmed Laskar — Full Stack Developer &amp; UI/UX Designer</span></td>
-              </tr>
-              <tr><td colspan="2" style="height:1px;background:rgba(255,255,255,0.04);padding:0;"></td></tr>
-              <tr>
-                <td style="padding:13px 18px;vertical-align:middle;"><span style="font-size:0.72rem;color:#2a6070;text-transform:uppercase;letter-spacing:1px;font-weight:600;">Status</span></td>
-                <td style="padding:13px 18px;border-left:1px solid rgba(255,255,255,0.04);"><span style="display:inline-block;background:rgba(0,200,100,0.08);border:1px solid rgba(0,200,100,0.25);border-radius:5px;padding:4px 14px;font-size:0.78rem;color:#34d399;font-weight:700;letter-spacing:0.3px;">✓ Ready to View</span></td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-      </table>
-
-      <!-- CTA -->
-      <table width="100%" cellpadding="0" cellspacing="0">
-        <tr>
-          <td style="padding:28px 36px 8px;" align="center">
-            <a href="${RESUME_LINK}" target="_blank"
-               style="display:inline-block;padding:16px 40px;background:linear-gradient(135deg,#00dcff 0%,#0055ff 100%);color:#ffffff;font-weight:700;font-size:0.95rem;text-decoration:none;border-radius:8px;letter-spacing:0.4px;box-shadow:0 4px 20px rgba(0,85,255,0.35);">
-              📄 &nbsp;View / Download Resume
-            </a>
-          </td>
-        </tr>
-      </table>
-
-      <!-- What's next -->
-      <table width="100%" cellpadding="0" cellspacing="0">
-        <tr>
-          <td style="padding:24px 36px 28px;">
-            <div style="background:rgba(0,220,255,0.04);border:1px solid rgba(0,220,255,0.08);border-radius:10px;padding:18px 20px;">
-              <div style="font-size:0.65rem;color:#1d4a5e;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:12px;">Let's Connect</div>
-              <table width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="padding:5px 0;vertical-align:top;width:22px;"><span style="font-size:0.8rem;">🤝</span></td>
-                  <td style="padding:5px 0 5px 8px;"><span style="font-size:0.82rem;color:#7ab8cf;line-height:1.4;">Interested in working together? Reply to this email or reach out directly.</span></td>
-                </tr>
-                <tr>
-                  <td style="padding:5px 0;vertical-align:top;"><span style="font-size:0.8rem;">⚡</span></td>
-                  <td style="padding:5px 0 5px 8px;"><span style="font-size:0.82rem;color:#7ab8cf;line-height:1.4;">Sahnawaz is available for freelance projects, full-time roles, and collaborations.</span></td>
-                </tr>
-                <tr>
-                  <td style="padding:5px 0;vertical-align:top;"><span style="font-size:0.8rem;">⚡</span></td>
-                  <td style="padding:5px 0 5px 8px;"><span style="font-size:0.82rem;color:#7ab8cf;line-height:1.4;">Prefer something faster? <a href="https://sahnawaz-portfolio.vercel.app" style="color:#00dcff;text-decoration:none;font-weight:600;">sahnawaz-portfolio.vercel.app</a></span></td>
-                </tr>
-              </table>
-            </div>
-          </td>
-        </tr>
-      </table>
-
-      <!-- Card footer -->
-      <table width="100%" cellpadding="0" cellspacing="0">
-        <tr>
-          <td style="padding:20px 36px;background:rgba(0,0,0,0.3);">
-            <table width="100%" cellpadding="0" cellspacing="0">
-              <tr>
-                <td style="vertical-align:top;">
-                  <div style="font-size:0.75rem;color:#2a6070;font-weight:700;margin-bottom:4px;">Sahnawaz Ahmed Laskar</div>
-                  <div style="font-size:0.68rem;color:#1d3d4a;">Full Stack Developer &amp; UI/UX Designer · Silchar, Assam, India</div>
-                  <div style="margin-top:6px;"><a href="mailto:shzthedigitalalchemist@gmail.com" style="font-size:0.68rem;color:#1d4a5e;text-decoration:none;">shzthedigitalalchemist@gmail.com</a></div>
-                  <div style="margin-top:4px;"><a href="https://instagram.com/sahnawaz.ui.dev" style="font-size:0.68rem;color:#1d4a5e;text-decoration:none;">Instagram: @sahnawaz.ui.dev</a></div>
-                </td>
-                <td align="right" style="vertical-align:top;">
-                  <div style="font-size:0.65rem;color:#0e2a35;text-align:right;">Ref: <span style="font-family:monospace;">${refId}</span></div>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-      </table>
-
-      <table width="100%" cellpadding="0" cellspacing="0">
-        <tr><td style="height:4px;background:linear-gradient(90deg,#0055ff,#00dcff,#0055ff);"></td></tr>
-      </table>
-
-    </td>
-  </tr>
-
-  <!-- Legal footer -->
-  <tr>
-    <td style="padding:20px 36px 0;" align="center">
-      <p style="margin:0;font-size:0.65rem;color:#0e2030;line-height:1.6;text-align:center;">
-        Sent via AI chatbot on <a href="https://sahnawaz-portfolio.vercel.app" style="color:#0e2030;text-decoration:none;">sahnawaz-portfolio.vercel.app</a>
-        · If you did not request this, please disregard this email.
-        <br/>© 2026 Sahnawaz Ahmed Laskar. All rights reserved.
-      </p>
-    </td>
-  </tr>
-
-</table>
-</td></tr>
-</table>
-</body></html>`;
-
-  try {
-    await Promise.all([
-      // 1️⃣ Resume + official email → Visitor
-      transporter.sendMail({
-        from: '"Sahnawaz Ahmed Laskar" <' + process.env.GMAIL_USER + '>',
-        to: email,
-        replyTo: OWNER_EMAIL,
-        subject: "📄 Here's my Resume — Sahnawaz Ahmed Laskar",
-        html: visitorHtml,
-      }),
-      // 2️⃣ Lead notification → Sahnawaz (unchanged)
-      transporter.sendMail({
-        from: '"Portfolio Bot" <' + process.env.GMAIL_USER + '>',
-        to: OWNER_EMAIL,
-        subject: '🎯 Resume requested by ' + name,
-        html:
-          '<div style="font-family:sans-serif;max-width:520px;margin:auto;background:#0b1a2b;padding:2rem;border-radius:12px;color:#e2f6ff;">' +
-          '<h2 style="color:#00ffff;margin-bottom:1rem;">📄 Resume Request — New Lead!</h2>' +
-          '<p><strong style="color:#7ec8e3;">Name:</strong> ' + name + '</p>' +
-          '<p><strong style="color:#7ec8e3;">Email:</strong> ' + email + '</p>' +
-          '<p style="margin-top:1rem;color:#b0d8f0;">They requested your resume via the AI chatbot. Follow up soon! 🚀</p>' +
-          '<hr style="border:none;border-top:1px solid rgba(0,255,255,0.2);margin:1.5rem 0;">' +
-          '<p style="font-size:0.75rem;color:#4a7a8a;">Via sahnawaz-portfolio.vercel.app chatbot</p>' +
-          '</div>',
-      }),
-    ]);
-
-    return res.status(200).json({ success: true });
-
-  } catch (error) {
-    console.error('Gmail error:', error);
-    return res.status(500).json({ error: 'Failed to send email' });
-  }
+  return res.status(405).json({ error: 'Method not allowed' });
 };
+
+/* ═══════════════════════════════════════════════════════════
+   GET — Auth-gated PDF viewer / downloader
+   Requires: ?token=<firebaseIdToken>&mode=view|download
+═══════════════════════════════════════════════════════════ */
+async function handleGet(req, res) {
+  const { token, mode } = req.query;
+  const isDownload = mode === 'download';
+
+  /* 1. Require token */
+  if (!token) {
+    return res.status(401).json({
+      error: 'Authentication required. Please sign in to access the resume.',
+    });
+  }
+
+  /* 2. Verify Firebase ID token */
+  let decoded;
+  try {
+    const { auth } = getAdmin();
+    decoded = await auth.verifyIdToken(token);
+  } catch (err) {
+    console.error('Token verification failed:', err.message);
+    return res.status(403).json({
+      error: 'Invalid or expired session. Please sign in again.',
+    });
+  }
+
+  /* 3. Log to Firestore — fire-and-forget, never blocks the download */
+  try {
+    const { db } = getAdmin();
+    await db.collection('resumeDownloads').add({
+      uid:        decoded.uid,
+      email:      decoded.email   || 'unknown',
+      name:       decoded.name    || 'Unknown',
+      picture:    decoded.picture || '',
+      mode:       isDownload ? 'download' : 'view',
+      source:     'direct',                                   // vs 'email' from POST
+      country:    req.headers['x-vercel-ip-country'] || 'unknown',
+      city:       req.headers['x-vercel-ip-city']    || 'unknown',
+      accessedAt: FieldValue.serverTimestamp(),
+      time:       new Date().toISOString(),
+    });
+  } catch (err) {
+    /* Non-fatal — still serve the PDF even if logging fails */
+    console.error('Firestore log failed:', err.message);
+  }
+
+  /* 4. Serve the PDF */
+  return servePdf(res, isDownload ? 'download' : 'inline');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   POST — Email resume to chatbot visitor
+   Body: { name: string, email: string }
+═══════════════════════════════════════════════════════════ */
+async function handlePost(req, res) {
+  const { name, email } = req.body || {};
+
+  /* 1. Basic validation */
+  if (!name || !email) {
+    return res.status(400).json({ success: false, error: 'Name and email are required.' });
+  }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ success: false, error: 'Invalid email address.' });
+  }
+
+  /* 2. Load PDF from disk */
+  const pdfPath = path.join(process.cwd(), 'resume.pdf');
+  if (!fs.existsSync(pdfPath)) {
+    console.error('resume.pdf not found for email at:', pdfPath);
+    return res.status(500).json({ success: false, error: 'Resume file not found on server.' });
+  }
+  const pdfBuffer = fs.readFileSync(pdfPath);
+
+  /* 3. Send email via Gmail / Nodemailer */
+  try {
+    const transporter = getTransporter();
+
+    /* ── Email TO the visitor — resume attached ── */
+    await transporter.sendMail({
+      from:    `"Sahnawaz Ahmed" <${process.env.GMAIL_USER}>`,
+      to:      email,
+      subject: `Here's Sahnawaz's Resume, ${name}! 📄`,
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;color:#222;">
+          <h2 style="color:#0077cc;">Hi ${name}! 👋</h2>
+          <p>Thanks for your interest — Sahnawaz's resume is attached to this email.</p>
+          <p>Feel free to reach out directly:</p>
+          <ul>
+            <li>📧 <a href="mailto:shzthedigitalalchemist@gmail.com">shzthedigitalalchemist@gmail.com</a></li>
+            <li>🌐 <a href="https://sahnawaz-portfolio.vercel.app">sahnawaz-portfolio.vercel.app</a></li>
+          </ul>
+          <p style="color:#555;font-size:0.9rem;">He personally reads every message and replies fast. 🚀</p>
+          <hr style="border:none;border-top:1px solid #eee;margin:24px 0;">
+          <p style="font-size:0.8rem;color:#aaa;">
+            You received this because you requested it via the portfolio chatbot.
+          </p>
+        </div>
+      `,
+      attachments: [{
+        filename:    'Sahnawaz_Resume.pdf',
+        content:     pdfBuffer,
+        contentType: 'application/pdf',
+      }],
+    });
+
+    /* ── Notification TO Sahnawaz — who just requested the resume ── */
+    await transporter.sendMail({
+      from:    `"Portfolio Bot" <${process.env.GMAIL_USER}>`,
+      to:      process.env.GMAIL_USER,   // notify himself
+      subject: `📄 Resume requested by ${name}`,
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;color:#222;">
+          <h2 style="color:#0077cc;">Someone just requested your resume 👀</h2>
+          <table style="border-collapse:collapse;width:100%;">
+            <tr><td style="padding:6px 12px;font-weight:bold;background:#f5f5f5;">Name</td>
+                <td style="padding:6px 12px;">${name}</td></tr>
+            <tr><td style="padding:6px 12px;font-weight:bold;background:#f5f5f5;">Email</td>
+                <td style="padding:6px 12px;"><a href="mailto:${email}">${email}</a></td></tr>
+            <tr><td style="padding:6px 12px;font-weight:bold;background:#f5f5f5;">Time</td>
+                <td style="padding:6px 12px;">${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST</td></tr>
+            <tr><td style="padding:6px 12px;font-weight:bold;background:#f5f5f5;">Source</td>
+                <td style="padding:6px 12px;">Chatbot — email flow</td></tr>
+          </table>
+          <p style="margin-top:20px;">Their resume has been auto-sent. You can follow up directly. 🚀</p>
+        </div>
+      `,
+    });
+
+  } catch (err) {
+    console.error('Nodemailer error:', err.message);
+    return res.status(500).json({ success: false, error: 'Failed to send email. Please try again.' });
+  }
+
+  /* 4. Log to Firestore — same collection as GET, mode = 'email' */
+  try {
+    const { db } = getAdmin();
+    await db.collection('resumeDownloads').add({
+      uid:          null,               // no Firebase auth in chatbot flow
+      name:         name,
+      email:        email,
+      picture:      '',
+      mode:         'email',            // distinguishes from 'view' / 'download'
+      source:       'chatbot',
+      country:      req.headers['x-vercel-ip-country'] || 'unknown',
+      city:         req.headers['x-vercel-ip-city']    || 'unknown',
+      accessedAt:   FieldValue.serverTimestamp(),
+      time:         new Date().toISOString(),
+    });
+  } catch (err) {
+    /* Non-fatal — email already sent, just log the failure */
+    console.error('Firestore log failed:', err.message);
+  }
+
+  return res.status(200).json({ success: true });
+}
+
+/* ─────────────────────────────────────────────────────────
+   Shared helper — read and serve resume.pdf
+   disposition: 'inline' (view in browser) | 'download' (force save)
+───────────────────────────────────────────────────────── */
+function servePdf(res, disposition) {
+  const pdfPath = path.join(process.cwd(), 'resume.pdf');
+
+  if (!fs.existsSync(pdfPath)) {
+    console.error('resume.pdf not found at:', pdfPath);
+    return res.status(404).json({ error: 'Resume file not found.' });
+  }
+
+  const pdfBuffer  = fs.readFileSync(pdfPath);
+  const headerDisp = disposition === 'download'
+    ? 'attachment; filename="Sahnawaz_Resume.pdf"'
+    : 'inline;     filename="Sahnawaz_Resume.pdf"';
+
+  res.setHeader('Content-Type',        'application/pdf');
+  res.setHeader('Content-Disposition', headerDisp);
+  res.setHeader('Content-Length',      pdfBuffer.length);
+  res.setHeader('Cache-Control',       'private, no-store'); // always re-auth, never cache
+  return res.status(200).end(pdfBuffer);
+}
