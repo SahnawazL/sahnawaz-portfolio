@@ -35,52 +35,8 @@
   function injectStyles() {
     var s = document.createElement('style');
     s.textContent = `
-    /* ── Write Review Button ── */
-    #rvWriteBtn {
-      display: none;
-      align-items: center;
-      gap: 10px;
-      padding: 14px 32px;
-      border-radius: 50px;
-      background: linear-gradient(135deg, #00ffff 0%, #0066ff 100%);
-      color: #000;
-      font-weight: 800;
-      font-size: 0.95rem;
-      border: none;
-      cursor: pointer;
-      margin-bottom: 40px;
-      font-family: inherit;
-      position: relative;
-      overflow: hidden;
-      transition: transform 0.2s, box-shadow 0.2s;
-      box-shadow: 0 4px 20px rgba(0,255,255,0.3);
-    }
-    #rvWriteBtn::before {
-      content: '';
-      position: absolute;
-      top: 0; left: -75%;
-      width: 50%; height: 100%;
-      background: linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent);
-      transform: skewX(-20deg);
-      animation: rvBtnShine 2.5s infinite;
-    }
-    @keyframes rvBtnShine { 100% { left: 125%; } }
-    #rvWriteBtn:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(0,255,255,0.5); }
-    #rvWriteBtn:active { transform: scale(0.97); }
-
-    /* ── Average score ── */
-    #rvAvgScore {
-      font-size: 3.5rem;
-      font-weight: 900;
-      background: linear-gradient(135deg, #00ffff, #0066ff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      line-height: 1;
-      animation: rvScorePop 0.6s cubic-bezier(.34,1.56,.64,1) both;
-    }
-    @keyframes rvScorePop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-
     /* ── Review Cards ── */
+    @keyframes rvScorePop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     .rv-card {
       background: linear-gradient(145deg, rgba(0,255,255,0.04), rgba(0,50,100,0.12));
       border: 1px solid rgba(0,255,255,0.1);
@@ -464,6 +420,7 @@
     var btn  = document.getElementById('rvWriteBtn');
     var hint = document.getElementById('rvLoginHint');
     if (btn)  btn.style.display  = visitor ? 'inline-flex' : 'none';
+    /* Also update login hint visibility */
     if (hint) hint.style.display = visitor ? 'none' : 'block';
   }
 
@@ -527,7 +484,12 @@
             </div>`;
         });
         var avg = (total/cnt).toFixed(1);
-        if(score) score.textContent = avg;
+        if(score) {
+          score.textContent = avg;
+          score.style.animation = 'none';
+          void score.offsetWidth;
+          score.style.animation = 'rvScorePop 0.6s cubic-bezier(.34,1.56,.64,1) both';
+        }
         if(stars) stars.innerHTML = starsHTML(Math.round(total/cnt));
         if(count) count.textContent = cnt + ' review'+(cnt!==1?'s':'');
         grid.innerHTML = html;
