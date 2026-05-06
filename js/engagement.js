@@ -221,28 +221,30 @@
     .rm-msg.success { background: rgba(0,255,200,0.08); color: #00ffc8; border: 1px solid rgba(0,255,200,0.2); }
 
     /* ── Like Button ── */
+    /* --like-color is set per card via JS to match brand accent */
     .proj-like-btn {
       display: inline-flex; align-items: center; gap: 6px;
       background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.1);
       border-radius: 30px; padding: 6px 16px;
-      color: rgba(255,255,255,0.5);
-      font-size: 0.82rem; cursor: pointer;
+      color: rgba(255,255,255,0.45);
+      font-size: 0.75rem; cursor: pointer;
       transition: all 0.25s cubic-bezier(.34,1.56,.64,1);
-      font-family: inherit; margin-top: 12px;
+      font-family: 'DM Sans', sans-serif;
+      margin-top: 14px;
       position: relative; overflow: hidden;
     }
     .proj-like-btn:hover {
-      border-color: rgba(255,100,100,0.4);
-      color: rgba(255,150,150,0.9);
+      border-color: var(--like-color, rgba(255,100,100,0.5));
+      color: var(--like-color, rgba(255,150,150,0.9));
       transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(255,80,80,0.15);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
     .proj-like-btn.liked {
-      background: rgba(255,80,80,0.1);
-      border-color: rgba(255,80,80,0.4);
-      color: #ff6b6b;
-      box-shadow: 0 0 15px rgba(255,80,80,0.2);
+      background: rgba(255,255,255,0.06);
+      border-color: var(--like-color, #ff6b6b);
+      color: var(--like-color, #ff6b6b);
+      box-shadow: 0 0 12px rgba(0,0,0,0.2);
     }
     .proj-like-btn .like-icon {
       font-size: 1rem;
@@ -495,42 +497,57 @@
 
   /* ══════════════════════════════════════════════════════
      PROJECT LIKES
+     Targets .pwork-entry (Work Experience timeline cards)
+     Flipkart / Xiaomi / Rapido / Freelance
+     Button sits at bottom of expanded .pwork-body-inner
+     Brand color read from .pwork-node so it matches each card
+     e.stopPropagation() prevents pworkToggle() collapsing the card
      ══════════════════════════════════════════════════════ */
   function initProjectLikes() {
-    document.querySelectorAll('.project-card').forEach(function(card, idx){
+    document.querySelectorAll('.pwork-entry').forEach(function(card, idx){
       injectLikeBtn(card, idx);
     });
-    document.querySelectorAll('.filter-btns button').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        setTimeout(function(){
-          document.querySelectorAll('.project-card').forEach(function(card, idx){
-            injectLikeBtn(card, idx);
-          });
-        }, 450);
-      });
-    });
+    var projectSection = document.getElementById('pworkTimeline') ||
+                         document.querySelector('.pwork-section') || document.body;
     var observer = new MutationObserver(function(){
-      document.querySelectorAll('.project-card').forEach(function(card, idx){
+      document.querySelectorAll('.pwork-entry').forEach(function(card, idx){
         injectLikeBtn(card, idx);
       });
     });
-    var projectSection = document.getElementById('project-list') ||
-                         document.querySelector('.projects') || document.body;
     observer.observe(projectSection, { childList: true, subtree: true });
   }
 
-  function injectLikeBtn(card, idx) {
-    if (card.querySelector('.proj-like-btn')) return;
-    var nameEl = card.querySelector('h3,h4,.project-title');
-    var pid    = 'project_' + idx;
-    var pname  = nameEl ? nameEl.textContent.trim().slice(0,40) : pid;
+  function injectLikeBtn(entry, idx) {
+    /* Already injected — skip */
+    if (entry.querySelector('.proj-like-btn')) return;
+
+    /* Button lives inside expanded body, not on the card header */
+    var bodyInner = entry.querySelector('.pwork-body-inner');
+    if (!bodyInner) return;
+
+    /* Use company name as readable Firestore doc ID */
+    var nameEl = entry.querySelector('.pwork-company');
+    var pname  = nameEl ? nameEl.textContent.trim().slice(0, 40) : ('work_' + idx);
+    var pid    = 'work_' + pname.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+
+    /* Read brand color from the node dot so button matches card accent */
+    var nodeEl     = entry.querySelector('.pwork-node');
+    var brandColor = nodeEl ? (nodeEl.style.color || '#50d2ff') : '#50d2ff';
 
     var btn = document.createElement('button');
     btn.className = 'proj-like-btn';
     btn.setAttribute('data-pid', pid);
+    btn.style.setProperty('--like-color', brandColor);
     btn.innerHTML = '<span class="like-icon">🤍</span><span class="like-count">Like</span>';
-    btn.onclick = function(e){ addRipple(btn,e); handleLike(btn, pid, pname); };
-    card.appendChild(btn);
+
+    /* stopPropagation prevents pworkToggle() collapsing card on like click */
+    btn.onclick = function(e){
+      e.stopPropagation();
+      addRipple(btn, e);
+      handleLike(btn, pid, pname);
+    };
+
+    bodyInner.appendChild(btn);
     fetchLikeCount(btn, pid);
   }
 
@@ -709,6 +726,13 @@
       window.applyVisitorSession = function(){
         orig.apply(this, arguments);
         setTimeout(updateReviewUI, 100);
+        /* Also refresh like button states now that visitor is known */
+        setTimeout(function(){
+          document.querySelectorAll('.proj-like-btn').forEach(function(btn){
+            var pid = btn.getAttribute('data-pid');
+            if (pid) fetchLikeCount(btn, pid);
+          });
+        }, 200);
       };
     }
   }, 200);
