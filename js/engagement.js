@@ -22,6 +22,7 @@
       initReviewSection();
       initProjectLikes();
       initChatHistory();
+      initResumeLogger();
     });
   }
 
@@ -496,12 +497,9 @@
      PROJECT LIKES
      ══════════════════════════════════════════════════════ */
   function initProjectLikes() {
-    /* Inject like buttons on all visible project cards immediately */
     document.querySelectorAll('.project-card').forEach(function(card, idx){
       injectLikeBtn(card, idx);
     });
-
-    /* Re-inject after filter buttons are clicked (cards may be re-shown) */
     document.querySelectorAll('.filter-btns button').forEach(function(btn){
       btn.addEventListener('click', function(){
         setTimeout(function(){
@@ -511,16 +509,13 @@
         }, 450);
       });
     });
-
-    /* Also observe DOM for any dynamically added project cards */
     var observer = new MutationObserver(function(){
       document.querySelectorAll('.project-card').forEach(function(card, idx){
         injectLikeBtn(card, idx);
       });
     });
     var projectSection = document.getElementById('project-list') ||
-                         document.querySelector('.projects') ||
-                         document.body;
+                         document.querySelector('.projects') || document.body;
     observer.observe(projectSection, { childList: true, subtree: true });
   }
 
@@ -656,6 +651,41 @@
         });
       });
     }).observe(body, {childList:true, subtree:true});
+  }
+
+
+  /* ══════════════════════════════════════════════════════
+     RESUME DOWNLOAD LOGGER
+     ══════════════════════════════════════════════════════ */
+  function initResumeLogger() {
+    window._logResumeDownload = function() {
+      var visitor = getVisitor();
+      if (!visitor || !db) return;
+      db.collection('resumeDownloads').add({
+        uid:          visitor.uid,
+        name:         visitor.fullName || visitor.firstName || 'Unknown',
+        firstName:    visitor.firstName || '',
+        email:        visitor.email    || '',
+        avatar:       visitor.avatar   || '',
+        downloadedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).catch(function(err){ console.error('Resume log error:', err); });
+    };
+
+    /* Attach to download button — wait for DOM ready */
+    function attachDownloadLog() {
+      document.querySelectorAll('a[download], .rp-dl-btn[download], a[href*="export=download"]').forEach(function(el){
+        if (el._resumeLogged) return;
+        el._resumeLogged = true;
+        el.addEventListener('click', function(){
+          window._logResumeDownload && window._logResumeDownload();
+        });
+      });
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', attachDownloadLog);
+    } else {
+      attachDownloadLog();
+    }
   }
 
   /* ══════════════════════════════════════════════════════
