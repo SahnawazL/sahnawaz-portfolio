@@ -38,49 +38,41 @@
     /* ── Review Cards ── */
     @keyframes rvScorePop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     .rv-card {
-      background: linear-gradient(145deg, rgba(0,255,255,0.04), rgba(0,50,100,0.12));
-      border: 1px solid rgba(0,255,255,0.1);
-      border-radius: 20px;
-      padding: 22px;
+      background: rgba(0,255,255,0.03);
+      border: 1px solid rgba(0,255,255,0.08);
+      border-radius: 12px;
+      padding: 12px 14px;
       position: relative;
       overflow: hidden;
-      transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), border-color 0.3s, box-shadow 0.3s;
+      transition: border-color 0.25s, box-shadow 0.25s;
       cursor: default;
-      animation: rvCardIn 0.5s cubic-bezier(.34,1.56,.64,1) both;
+      animation: rvCardIn 0.4s ease both;
     }
     @keyframes rvCardIn {
-      0% { opacity: 0; transform: translateY(20px) scale(0.95); }
-      100% { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    .rv-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(0,255,255,0.4), transparent);
+      0% { opacity: 0; transform: translateY(10px); }
+      100% { opacity: 1; transform: translateY(0); }
     }
     .rv-card:hover {
-      transform: translateY(-5px) scale(1.01);
-      border-color: rgba(0,255,255,0.3);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.3), 0 0 20px rgba(0,255,255,0.08);
+      border-color: rgba(0,255,255,0.2);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
     }
-    .rv-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .rv-card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
     .rv-card-avatar {
-      width: 44px; height: 44px; border-radius: 50%;
+      width: 28px; height: 28px; border-radius: 50%;
       object-fit: cover;
-      border: 2px solid rgba(0,255,255,0.3);
+      border: 1.5px solid rgba(0,255,255,0.25);
       background: rgba(0,255,255,0.08);
-      box-shadow: 0 0 12px rgba(0,255,255,0.2);
+      flex-shrink: 0;
     }
-    .rv-card-name { font-weight: 700; color: #fff; font-size: 0.95rem; }
-    .rv-card-date { font-size: 0.72rem; color: rgba(255,255,255,0.3); margin-top: 2px; }
-    .rv-card-stars { font-size: 1.05rem; margin-bottom: 10px; letter-spacing: 2px; }
-    .rv-card-text { font-size: 0.88rem; color: rgba(255,255,255,0.65); line-height: 1.7; }
+    .rv-card-name { font-weight: 700; color: #fff; font-size: 0.8rem; }
+    .rv-card-date { font-size: 0.65rem; color: rgba(255,255,255,0.28); margin-top: 1px; }
+    .rv-card-stars { font-size: 0.75rem; margin-bottom: 5px; letter-spacing: 1px; }
+    .rv-card-text { font-size: 0.78rem; color: rgba(255,255,255,0.55); line-height: 1.55; }
     .rv-quote-icon {
       position: absolute;
-      top: 14px; right: 16px;
-      font-size: 2.5rem;
-      color: rgba(0,255,255,0.06);
+      top: 8px; right: 10px;
+      font-size: 1.4rem;
+      color: rgba(0,255,255,0.05);
       line-height: 1;
     }
     .rv-empty {
