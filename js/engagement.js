@@ -1,6 +1,7 @@
 /* ══════════════════════════════════════════════════════════
    engagement.js — Premium Firestore Features
    Reviews · Chat History · Project Likes
+   Works on: .pwork-entry (Work Experience) + .mpj-card (My Projects)
    ══════════════════════════════════════════════════════════ */
 (function () {
 
@@ -21,6 +22,7 @@
       injectReviewModal();
       initReviewSection();
       initProjectLikes();
+      initMpjLikes();
       initChatHistory();
       initResumeLogger();
     });
@@ -219,6 +221,15 @@
     }
     .rm-msg.error { background: rgba(255,80,80,0.1); color: #ff6b6b; border: 1px solid rgba(255,80,80,0.2); }
     .rm-msg.success { background: rgba(0,255,200,0.08); color: #00ffc8; border: 1px solid rgba(0,255,200,0.2); }
+
+    /* ── My Projects like wrap ── */
+    .mpj-like-wrap {
+      display: flex;
+      justify-content: center;
+      padding-top: 0.9rem;
+      margin-top: 0.6rem;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
 
     /* ── Like Button ── */
     /* --like-color is set per card via JS to match brand accent */
@@ -606,6 +617,68 @@
         console.error(err);
         fetchLikeCount(btn, pid); /* revert */
       });
+  }
+
+
+  /* ══════════════════════════════════════════════════════
+     MY PROJECTS LIKES
+     Targets .mpj-card (My Projects section)
+     Uses same Firestore projectLikes collection, getVisitor(),
+     handleLike(), fetchLikeCount() — zero duplication
+     ══════════════════════════════════════════════════════ */
+  function initMpjLikes() {
+    document.querySelectorAll('#my-projects .mpj-card').forEach(function(card, idx){
+      injectMpjLikeBtn(card, idx);
+    });
+    /* MutationObserver: handles filter show/hide re-renders */
+    var mpjSection = document.getElementById('my-projects') || document.body;
+    var obs = new MutationObserver(function(){
+      document.querySelectorAll('#my-projects .mpj-card').forEach(function(card, idx){
+        injectMpjLikeBtn(card, idx);
+      });
+    });
+    obs.observe(mpjSection, { childList: true, subtree: true });
+  }
+
+  function injectMpjLikeBtn(card, idx) {
+    /* Skip if already injected */
+    if (card.querySelector('.proj-like-btn')) return;
+
+    /* Derive readable Firestore doc ID from project name */
+    var nameEl = card.querySelector('.mpj-card-name');
+    var pname  = nameEl ? nameEl.textContent.trim().slice(0, 40) : ('mpj_' + idx);
+    var pid    = 'mpj_' + pname.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+
+    /* Accent color — read from the top-bar gradient set via inline CSS var */
+    var brandColor = '#00ffe7';
+
+    /* Wrap + button — same class as pwork like btn so styles apply identically */
+    var wrap = document.createElement('div');
+    wrap.className = 'mpj-like-wrap';
+
+    var btn = document.createElement('button');
+    btn.className = 'proj-like-btn';
+    btn.setAttribute('data-pid', pid);
+    btn.style.setProperty('--like-color', brandColor);
+    btn.innerHTML = '<span class="like-icon">\uD83E\uDD0D</span><span class="like-count">Like</span>';
+
+    btn.onclick = function(e) {
+      e.stopPropagation();
+      addRipple(btn, e);
+      handleLike(btn, pid, pname);
+    };
+
+    wrap.appendChild(btn);
+
+    /* Insert before .mpj-card-meta (the bottom links row) */
+    var meta = card.querySelector('.mpj-card-meta');
+    if (meta) {
+      card.insertBefore(wrap, meta);
+    } else {
+      card.appendChild(wrap);
+    }
+
+    fetchLikeCount(btn, pid);
   }
 
   /* ══════════════════════════════════════════════════════
