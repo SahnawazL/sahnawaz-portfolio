@@ -496,14 +496,32 @@
      PROJECT LIKES
      ══════════════════════════════════════════════════════ */
   function initProjectLikes() {
-    var attempts = 0;
-    var iv = setInterval(function(){
-      var cards = document.querySelectorAll('.project-card');
-      if (cards.length > 0) {
-        clearInterval(iv);
-        cards.forEach(function(card, idx){ injectLikeBtn(card, idx); });
-      } else if (++attempts > 60) clearInterval(iv);
-    }, 300);
+    /* Inject like buttons on all visible project cards immediately */
+    document.querySelectorAll('.project-card').forEach(function(card, idx){
+      injectLikeBtn(card, idx);
+    });
+
+    /* Re-inject after filter buttons are clicked (cards may be re-shown) */
+    document.querySelectorAll('.filter-btns button').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        setTimeout(function(){
+          document.querySelectorAll('.project-card').forEach(function(card, idx){
+            injectLikeBtn(card, idx);
+          });
+        }, 450);
+      });
+    });
+
+    /* Also observe DOM for any dynamically added project cards */
+    var observer = new MutationObserver(function(){
+      document.querySelectorAll('.project-card').forEach(function(card, idx){
+        injectLikeBtn(card, idx);
+      });
+    });
+    var projectSection = document.getElementById('project-list') ||
+                         document.querySelector('.projects') ||
+                         document.body;
+    observer.observe(projectSection, { childList: true, subtree: true });
   }
 
   function injectLikeBtn(card, idx) {
