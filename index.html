@@ -19956,22 +19956,7 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 
   /* ========== Init ========== */
-  function initChat(){
-    /* Feature 1 + Smart greeting: personalised using Google login name */
-    var _savedVisitor = null;
-    try { _savedVisitor = JSON.parse(localStorage.getItem('shnz_visitor_v1') || 'null'); } catch(e){}
-    var _firstName = (_savedVisitor && _savedVisitor.firstName) ? _savedVisitor.firstName : null;
-    var greeting = getWelcomeMsg(_firstName);
-    if (hasVisitedBefore) {
-      addMsgTypewriter(greeting);
-    } else {
-      try { localStorage.setItem('chatVisited','1'); } catch(e){}
-      addMsgTypewriter(greeting);
-    }
-    buildChips();
-    /* chips stay CLOSED on open — user can expand via "Suggested questions" */
-    setChipsOpen(false);
-
+  function wireQuickReply() {
     /* Feature 6: Wire up quick-reply CTA buttons */
     if (quickReply){
       var qrBtns = quickReply.querySelectorAll('.chat-qr-btn');
@@ -19987,6 +19972,46 @@ document.addEventListener('DOMContentLoaded', function(){
           resetIdleTimer();
         });
       });
+    }
+  }
+
+  function initChat(){
+    /* Feature 1 + Smart greeting: personalised using Google login name */
+    var _savedVisitor = null;
+    try { _savedVisitor = JSON.parse(localStorage.getItem('shnz_visitor_v1') || 'null'); } catch(e){}
+    var _firstName = (_savedVisitor && _savedVisitor.firstName) ? _savedVisitor.firstName : null;
+    var greeting = getWelcomeMsg(_firstName);
+
+    /* ── CHAT HISTORY: Load past messages from Firestore if user is logged in ── */
+    if (window._loadChatHistory && _savedVisitor) {
+      window._loadChatHistory(function(history) {
+        if (history && history.length > 0) {
+          /* Restore past messages into UI and conversationHistory */
+          history.forEach(function(m) {
+            var r = (m.role === 'bot') ? 'bot' : 'user';
+            addMsg(r, m.content);
+            conversationHistory.push({ role: r, text: m.content });
+          });
+          /* Visual separator so user knows this is a new session */
+          var sep = document.createElement('div');
+          sep.style.cssText = 'text-align:center;font-size:0.68rem;color:rgba(0,255,255,0.3);margin:10px 0 6px;letter-spacing:0.05em;';
+          sep.textContent = '── new session ──';
+          msgs.appendChild(sep);
+          scrollMsgs();
+        }
+        if (!hasVisitedBefore) { try { localStorage.setItem('chatVisited','1'); } catch(e){} }
+        addMsgTypewriter(greeting);
+        buildChips();
+        setChipsOpen(false);
+        wireQuickReply();
+      });
+    } else {
+      /* Not logged in or history not ready — show greeting immediately */
+      if (!hasVisitedBefore) { try { localStorage.setItem('chatVisited','1'); } catch(e){} }
+      addMsgTypewriter(greeting);
+      buildChips();
+      setChipsOpen(false);
+      wireQuickReply();
     }
   }
 
