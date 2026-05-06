@@ -226,6 +226,17 @@ function injectHTML() {
           '<div id="g_id_signin"></div>' +
         '</div>' +
 
+        /* Hint between the two buttons */
+        '<div id="lm-btn-hint" style="' +
+          'display:flex;align-items:center;gap:8px;margin:0 auto 14px;' +
+          'padding:9px 16px;border-radius:12px;max-width:320px;' +
+          'background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);">' +
+          '<span style="font-size:1rem;flex-shrink:0;">💡</span>' +
+          '<p style="margin:0;font-size:0.72rem;line-height:1.5;color:rgba(255,255,255,0.5);text-align:left;">' +
+            'If the button above doesn\'t redirect you, please <strong style="color:rgba(255,255,255,0.7);font-weight:600;">refresh the page</strong> and try the one below instead.' +
+          '</p>' +
+        '</div>' +
+
         /* Fallback standard button — used on desktop / iOS */
         '<div id="googleBtnWrap" style="display:flex;justify-content:center;margin-bottom:20px;">' +
           '<button id="googleSignInBtn" style="' +
