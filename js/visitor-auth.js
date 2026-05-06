@@ -67,8 +67,6 @@ function applyVisitorSession(visitor, showBanner) {
     if (av && visitor.avatar) { av.src = visitor.avatar; av.style.display = 'inline-block'; }
     var icon = btn.querySelector('.vl-icon');
     if (icon) icon.style.display = 'none';
-    var chev = btn.querySelector('.vl-chevron');
-    if (chev) chev.style.display = 'inline';
     /* Mobile fix: use touchend for instant response — prevents race with
        document click listener that was closing the dropdown immediately. */
     btn.onclick = null;
@@ -135,8 +133,6 @@ function signOut() {
     if (av) { av.src = ''; av.style.display = 'none'; }
     var icon = btn.querySelector('.vl-icon');
     if (icon) icon.style.display = 'inline';
-    var chev = btn.querySelector('.vl-chevron');
-    if (chev) chev.style.display = 'none';
     btn.onclick = openLoginModal;
   }
   var dd = document.getElementById('profileDropdown');
@@ -196,181 +192,20 @@ function promptOneTap() {
 }
 
 function injectHTML() {
-  /* ── Inject pill styles ─────────────────────────────────── */
-  if (!document.getElementById('vlStyles')) {
-    var st = document.createElement('style');
-    st.id = 'vlStyles';
-    st.textContent = `
-      /* ── Visitor pill wrapper — fixed top-right ── */
-      #vlPillWrap {
-        position: fixed;
-        top: 14px;
-        right: 16px;
-        z-index: 99999;
-      }
-
-      /* ── The pill button ── */
-      #visitorLoginBtn {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 16px 8px 10px;
-        border-radius: 50px;
-        background: rgba(0, 10, 20, 0.75);
-        border: 1.5px solid rgba(0, 255, 255, 0.45);
-        color: #00ffff;
-        font-size: 0.82rem;
-        font-weight: 600;
-        cursor: pointer;
-        font-family: inherit;
-        letter-spacing: 0.3px;
-        box-shadow: 0 0 12px rgba(0,255,255,0.12), 0 2px 12px rgba(0,0,0,0.4);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
-        min-height: 42px;
-        min-width: 42px;
-        white-space: nowrap;
-        -webkit-tap-highlight-color: transparent;
-        user-select: none;
-      }
-      #visitorLoginBtn:hover {
-        border-color: rgba(0,255,255,0.8);
-        box-shadow: 0 0 20px rgba(0,255,255,0.25), 0 4px 16px rgba(0,0,0,0.5);
-        background: rgba(0,255,255,0.06);
-      }
-      #visitorLoginBtn.logged-in {
-        padding: 6px 14px 6px 6px;
-        border-color: rgba(0,255,255,0.5);
-      }
-
-      /* Avatar inside pill */
-      #visitorLoginBtn .vl-avatar {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 1.5px solid rgba(0,255,255,0.5);
-        display: none;
-        flex-shrink: 0;
-      }
-
-      /* Key icon */
-      #visitorLoginBtn .vl-icon {
-        font-size: 0.95rem;
-        line-height: 1;
-      }
-
-      /* Name label */
-      #visitorLoginBtn .vl-label {
-        max-width: 90px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      /* Chevron shown when logged in */
-      #visitorLoginBtn .vl-chevron {
-        font-size: 0.6rem;
-        opacity: 0.6;
-        margin-left: 2px;
-        transition: transform 0.2s;
-        display: none;
-      }
-      #visitorLoginBtn.logged-in .vl-chevron { display: inline; }
-
-      /* ── Profile dropdown ── */
-      #profileDropdown {
-        position: fixed;
-        top: 64px;
-        right: 16px;
-        z-index: 99998;
-        background: linear-gradient(145deg, #0a1f35, #061020);
-        border: 1px solid rgba(0,255,255,0.2);
-        border-radius: 18px;
-        min-width: 220px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 30px rgba(0,255,255,0.06);
-        overflow: hidden;
-        opacity: 0;
-        transform: translateY(-8px) scale(0.97);
-        pointer-events: none;
-        transition: opacity 0.2s ease, transform 0.2s ease;
-      }
-      #profileDropdown.open {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-        pointer-events: all;
-      }
-      #profileDropdown::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(0,255,255,0.4), transparent);
-      }
-      .pd-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 18px 16px 14px;
-        border-bottom: 1px solid rgba(255,255,255,0.06);
-      }
-      .pd-avatar {
-        width: 42px;
-        height: 42px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 2px solid rgba(0,255,255,0.35);
-        flex-shrink: 0;
-      }
-      .pd-name {
-        font-size: 0.88rem;
-        font-weight: 700;
-        color: #fff;
-        margin-bottom: 2px;
-      }
-      .pd-email {
-        font-size: 0.72rem;
-        color: rgba(255,255,255,0.35);
-        word-break: break-all;
-      }
-      .pd-signout {
-        width: 100%;
-        padding: 13px 16px;
-        background: transparent;
-        border: none;
-        color: rgba(255,80,80,0.85);
-        font-size: 0.83rem;
-        font-weight: 600;
-        cursor: pointer;
-        font-family: inherit;
-        text-align: left;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        transition: background 0.2s, color 0.2s;
-        -webkit-tap-highlight-color: transparent;
-      }
-      .pd-signout::before { content: "⏻"; font-size: 0.9rem; }
-      .pd-signout:hover, .pd-signout:active {
-        background: rgba(255,60,60,0.08);
-        color: #ff6b6b;
-      }
-    `;
-    document.head.appendChild(st);
-  }
-
-  /* ── Inject the pill into a fixed wrapper ───────────────── */
-  if (!document.getElementById('visitorLoginBtn')) {
-    var wrap = document.createElement('div');
-    wrap.id  = 'vlPillWrap';
-    wrap.innerHTML =
-      '<button id="visitorLoginBtn">' +
-        '<img class="vl-avatar" src="" alt="">' +
+  var header = document.querySelector('header .hdr-inner') || document.querySelector('header');
+  if (header && !document.getElementById('visitorLoginBtn')) {
+    var btnWrap = document.createElement('div');
+    btnWrap.style.cssText = 'display:flex;justify-content:center;margin-top:8px;';
+    btnWrap.innerHTML =
+      '<button id="visitorLoginBtn" style="' +
+        'display:inline-flex;align-items:center;gap:8px;padding:7px 18px;' +
+        'border-radius:30px;background:transparent;border:1.5px solid #00ffff;' +
+        'color:#00ffff;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">' +
+        '<img class="vl-avatar" src="" alt="" style="width:24px;height:24px;border-radius:50%;display:none;object-fit:cover;">' +
         '<span class="vl-icon">🔑</span>' +
         '<span class="vl-label">Sign In</span>' +
-        '<span class="vl-chevron">▼</span>' +
       '</button>';
-    document.body.appendChild(wrap);
+    header.appendChild(btnWrap);
     document.getElementById('visitorLoginBtn').onclick = openLoginModal;
   }
 
