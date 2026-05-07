@@ -612,7 +612,10 @@
         } else {
           if (!likedBy.includes(visitor.uid)) { likedBy.push(visitor.uid); count++; }
         }
-        return db.collection('projectLikes').doc(pid).set({count,likedBy,name:pname},{merge:true});
+        return db.collection('projectLikes').doc(pid).set({
+          count, likedBy, name: pname,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, {merge:true});
       })
       .catch(function(err){
         console.error(err);
