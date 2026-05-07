@@ -717,7 +717,17 @@
         .orderBy('createdAt','desc').limit(20).get()
         .then(function(snap){
           var msgs = [];
-          snap.forEach(function(doc){ msgs.unshift(doc.data()); });
+          snap.forEach(function(doc){
+            var d = doc.data();
+            /* If no human-readable time saved yet, derive it from createdAt Firestore Timestamp */
+            if (!d.time && d.createdAt && typeof d.createdAt.toDate === 'function') {
+              var dt = d.createdAt.toDate();
+              var h = dt.getHours(), m = dt.getMinutes(), a = h >= 12 ? 'PM' : 'AM';
+              h = h % 12 || 12;
+              d.time = h + ':' + (m < 10 ? '0' : '') + m + ' ' + a;
+            }
+            msgs.unshift(d);
+          });
           if(cb) cb(msgs);
         }).catch(function(){ if(cb) cb([]); });
     };
