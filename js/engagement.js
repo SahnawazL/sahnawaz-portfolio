@@ -731,10 +731,10 @@
                   document.querySelector('button[id*="send"], button[class*="send"]');
       if (input && send) {
         clearInterval(iv);
-        send.addEventListener('click', function(){
-          var msg = input.value.trim();
-          if (msg && window._saveChatMessage) window._saveChatMessage('user', msg);
-        }, true);
+        /* NOTE: User messages are now saved directly inside sendMessage() in index.html
+           right after addMsg('user', val) — before input.value is cleared.
+           The click listener here was always receiving an empty input.value because
+           index.html's sendMessage() clears the input BEFORE this listener fires. */
         watchBotReplies();
       } else if (++tries > 100) clearInterval(iv);
     }, 300);
