@@ -704,7 +704,8 @@
       db.collection('chatHistory').doc(visitor.uid)
         .collection('messages').add({
           role, content: String(content).slice(0,800),
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          time: (function(){ var n=new Date(),h=n.getHours(),m=n.getMinutes(),a=h>=12?'PM':'AM'; h=h%12||12; return h+':'+(m<10?'0':'')+m+' '+a; })()
         }).catch(function(){});
     };
 
