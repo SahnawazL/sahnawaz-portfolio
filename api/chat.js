@@ -43,7 +43,9 @@ const handler = async (req, res) => {
   if (trimmed.startsWith('__GREETING__:')) {
     const va = visitorActivity || {};
     const name = visitorName || 'there';
-    const h = new Date().getHours();
+    const h = (req.body.clientHour !== undefined && req.body.clientHour >= 0 && req.body.clientHour <= 23)
+      ? req.body.clientHour
+      : new Date().getHours();
     const timeOfDay = h < 12 ? 'morning' : h < 17 ? 'afternoon' : h < 21 ? 'evening' : 'night';
 
     const greetingSystemPrompt = `You are a warm, witty personal AI assistant on Sahnawaz Ahmed Laskar's portfolio website.
