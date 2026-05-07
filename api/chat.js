@@ -35,8 +35,83 @@ const handler = async (req, res) => {
     return res.status(500).json({ reply: 'API key not configured.' });
   }
 
-  // ── UPGRADE 5: Spam / abuse filter ─────────────────────────────────────
   const trimmed = message.trim();
+
+  // ── SMART GREETING HANDLER ──────────────────────────────────────────────
+  // Bypasses lock, spam filter, knowledge base. Generates unique personalised
+  // greeting every time using visitor activity data.
+  if (trimmed.startsWith('__GREETING__:')) {
+    const va = visitorActivity || {};
+    const name = visitorName || 'there';
+    const h = new Date().getHours();
+    const timeOfDay = h < 12 ? 'morning' : h < 17 ? 'afternoon' : h < 21 ? 'evening' : 'night';
+
+    const greetingSystemPrompt = `You are a warm, witty personal AI assistant on Sahnawaz Ahmed Laskar's portfolio website.
+Your ONLY job right now is to generate a short, unique, personalised welcome-back greeting for a returning visitor.
+
+Rules:
+- 2-3 lines MAX. No long paragraphs.
+- Use their name naturally.
+- Reference their specific past activity (liked projects, resume, review, chat count) warmly and naturally.
+- Match the time of day.
+- Use 1-2 emojis naturally.
+- Every greeting must feel fresh — never repeat the same phrasing.
+- Do NOT add [CAT:] tags. Do NOT end with a question. Just greet warmly.
+- Do NOT say "How can I assist you" — too generic.
+- Sound like a friendly human assistant, not a robot.`;
+
+    const greetingUserPrompt = `Generate a welcome-back greeting for this visitor:
+- Name: ${name}
+- Time of day: ${timeOfDay}
+- Projects they liked: ${va.likedProjects && va.likedProjects.length > 0 ? va.likedProjects.join(', ') : 'none yet'}
+- Downloaded resume: ${va.resumeDownloaded ? 'Yes' : 'No'}
+- Left a review: ${va.reviewSubmitted ? 'Yes, ' + va.reviewSubmitted.stars + ' stars' : 'No'}
+- Total messages sent before: ${va.totalChats || 0}
+
+Generate ONE unique greeting now. Be creative, warm, and personal.`;
+
+    try {
+      const greetRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+          messages: [
+            { role: 'system', content: greetingSystemPrompt },
+            { role: 'user',   content: greetingUserPrompt }
+          ],
+          temperature: 0.95,
+          max_tokens: 120
+        })
+      });
+
+      if (greetRes.ok) {
+        const greetData = await greetRes.json();
+        const greetReply = greetData?.choices?.[0]?.message?.content?.trim() || null;
+        if (greetReply) {
+          isProcessing = false;
+          return res.status(200).json({ reply: greetReply });
+        }
+      }
+    } catch(e) {
+      // Fall through to fallback
+    }
+
+    // Fallback if API fails
+    isProcessing = false;
+    const fallbacks = [
+      `Welcome back, ${name}! 😊 Great to see you again — I'm here whenever you need me.`,
+      `Hey ${name}! 👋 Good ${timeOfDay} — glad you're back. What's on your mind?`,
+      `Good ${timeOfDay}, ${name}! 🌟 Always a pleasure. Ask me anything about Sahnawaz's work!`
+    ];
+    return res.status(200).json({ reply: fallbacks[Math.floor(Math.random() * fallbacks.length)] });
+  }
+  // ── END SMART GREETING HANDLER ──────────────────────────────────────────
+
+  // ── UPGRADE 5: Spam / abuse filter ─────────────────────────────────────
 
   const isGibberish = trimmed.length < 2
     || /^(.)\1{5,}$/.test(trimmed)                          // "aaaaaaa"
