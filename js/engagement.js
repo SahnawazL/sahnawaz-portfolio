@@ -689,6 +689,15 @@
     window._saveChatMessage = function(role, content) {
       var visitor = getVisitor();
       if (!visitor || !db) return;
+      /* Create/update parent document so admin can query chatHistory collection */
+      db.collection('chatHistory').doc(visitor.uid).set({
+        uid:       visitor.uid,
+        name:      visitor.fullName || visitor.firstName || '',
+        email:     visitor.email   || '',
+        avatar:    visitor.avatar  || '',
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true }).catch(function(){});
+      /* Save the message in subcollection */
       db.collection('chatHistory').doc(visitor.uid)
         .collection('messages').add({
           role, content: String(content).slice(0,800),
