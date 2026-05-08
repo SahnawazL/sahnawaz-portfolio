@@ -230,7 +230,7 @@ function injectHTML() {
           '<div id="g_id_signin"></div>' +
         '</div>' +
 
-        /* Hint between the two buttons — hidden on Android via JS after init */
+        /* Hint between the two buttons */
         '<div id="lm-btn-hint" style="' +
           'display:flex;align-items:center;gap:8px;margin:0 auto 14px;' +
           'padding:9px 16px;border-radius:12px;max-width:320px;' +
@@ -316,12 +316,10 @@ function initOneTap() {
          was POSTing to login_uri instead of using the JS credential callback. */
     });
 
-    /* Render the GSI button ONLY on desktop / iOS.
-       On Chrome Android the GSI popup gets stuck on /gsi/transform —
-       the Firebase signInWithRedirect button below handles Android instead. */
+    /* Render a standard Google Sign-In button inside the modal
+       as the primary CTA on Chrome Android */
     var signinDiv = document.getElementById('g_id_signin');
-    var oneTapWrap = document.getElementById('oneTapBtnWrap');
-    if (signinDiv && !isChromeAndroid()) {
+    if (signinDiv) {
       window.google.accounts.id.renderButton(signinDiv, {
         type:  'standard',
         shape: 'pill',
@@ -330,12 +328,6 @@ function initOneTap() {
         size:  'large',
         logo_alignment: 'left'
       });
-    } else if (oneTapWrap) {
-      /* Hide the empty GSI slot on Android so layout stays clean */
-      oneTapWrap.style.display = 'none';
-      /* Also hide the hint — it was for the GSI button, not needed on Android */
-      var hint = document.getElementById('lm-btn-hint');
-      if (hint) hint.style.display = 'none';
     }
 
     window._oneTapReady = true;
