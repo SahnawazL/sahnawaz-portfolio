@@ -22,7 +22,9 @@ var firebaseConfig = {
   appId:             "1:934946303611:web:b3dbcf9199b8aa15c13cde"
 };
 
-var VISITOR_KEY = 'shnz_visitor_v1';
+/* ── Shared flag so signOut can reset it ────────────────── */
+var _redirectHandled = false;
+window._resetRedirectFlag = function() { _redirectHandled = false; };
 
 /* ── Detect Chrome on Android ───────────────────────────── */
 function isChromeAndroid() {
@@ -115,9 +117,11 @@ function showWelcomeBanner(visitor) {
 function signOut() {
   clearVisitor();
   if (window._firebaseAuth) window._firebaseAuth.signOut().catch(function(){});
+  window._resetRedirectFlag && window._resetRedirectFlag(); /* FIX 5: reset flag so next sign-in works correctly */
   /* Cancel One Tap and revoke token so it never gets stuck post-logout */
   if (window.google && window.google.accounts && window.google.accounts.id) {
     window.google.accounts.id.disableAutoSelect();
+    window.google.accounts.id.cancel(); /* FIX 3: stops any pending One Tap prompt so it doesn't auto re-login after sign out */
     /* Revoke the Google token — prevents the gsi/tr blank page bug */
     if (window.google.accounts.oauth2) {
       try { window.google.accounts.oauth2.revoke('', function(){}); } catch(e) {}
@@ -303,10 +307,12 @@ function initOneTap() {
   /* Load Google Identity Services script */
   loadScript('https://accounts.google.com/gsi/client', function() {
     window.google.accounts.id.initialize({
-      client_id:         GOOGLE_CLIENT_ID,
-      callback:          window._handleOneTapCredential,
-      auto_select:       true,   /* Auto-sign in returning users */
-      cancel_on_tap_outside: false
+      client_id:             GOOGLE_CLIENT_ID,
+      callback:              window._handleOneTapCredential,
+      auto_select:           true,
+      cancel_on_tap_outside: false,
+      ux_mode:               'redirect',                             /* FIX 1: prevents stuck on /gsi/transform on Android */
+      login_uri:             'https://sahnawaz-portfolio.vercel.app' /* FIX 1: redirect back to portfolio after GSI login */
     });
 
     /* Render a standard Google Sign-In button inside the modal
@@ -370,29 +376,36 @@ function initFirebase() {
         };
       }
 
-      /* ── Handle redirect result (Android signInWithRedirect) ── */
+      /* ── Handle redirect result first, THEN attach auth listener ──
+         FIX 2+4: getRedirectResult must fully resolve before we attach
+         onAuthStateChanged — otherwise onAuthStateChanged fires before
+         _redirectHandled is set, causing double-trigger / reload loop. */
+      function _startAuthListener() {
+        auth.onAuthStateChanged(function(user) {
+          if (user && !_redirectHandled) {
+            var saved = loadVisitor();
+            if (!saved) {
+              var visitor = visitorFromUser(user);
+              saveVisitor(visitor);
+              applyVisitorSession(visitor, false);
+            } else {
+              applyVisitorSession(saved, false);
+            }
+          }
+        });
+      }
       auth.getRedirectResult().then(function(result) {
         if (result && result.user) {
+          _redirectHandled = true;
           onSignInSuccess(result.user, true);
         }
       }).catch(function(err) {
         if (err.code !== 'auth/no-auth-event') {
           console.error('Redirect result error:', err.code);
         }
-      });
-
-      /* ── Restore session on every page load ────────────────── */
-      auth.onAuthStateChanged(function(user) {
-        if (user) {
-          var saved = loadVisitor();
-          if (!saved) {
-            var visitor = visitorFromUser(user);
-            saveVisitor(visitor);
-            applyVisitorSession(visitor, false);
-          } else {
-            applyVisitorSession(saved, false);
-          }
-        }
+      }).then(function() {
+        /* Always start the auth listener after redirect check settles */
+        _startAuthListener();
       });
 
       /* ── Init One Tap after Firebase is ready ──────────────── */
