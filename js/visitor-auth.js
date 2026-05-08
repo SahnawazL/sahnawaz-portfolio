@@ -310,9 +310,10 @@ function initOneTap() {
       client_id:             GOOGLE_CLIENT_ID,
       callback:              window._handleOneTapCredential,
       auto_select:           true,
-      cancel_on_tap_outside: false,
-      ux_mode:               'redirect',                             /* FIX 1: prevents stuck on /gsi/transform on Android */
-      login_uri:             'https://sahnawaz-portfolio.vercel.app' /* FIX 1: redirect back to portfolio after GSI login */
+      cancel_on_tap_outside: false
+      /* ux_mode defaults to 'popup' — credential is returned via callback above.
+         'redirect' caused Error 400 redirect_uri_mismatch because the GSI button
+         was POSTing to login_uri instead of using the JS credential callback. */
     });
 
     /* Render a standard Google Sign-In button inside the modal
