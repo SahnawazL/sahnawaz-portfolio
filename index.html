@@ -21138,11 +21138,12 @@ document.addEventListener('DOMContentLoaded', function(){
     }
 
     /* ── State ── */
-    var voiceMode   = false;
-    var isListening = false;
-    var isSpeaking  = false;
-    var exitTimer   = null;
-    var overlay     = null;
+    var voiceMode     = false;
+    var isListening   = false;
+    var isSpeaking    = false;
+    var waitingForBot = false;  /* true while API call is in-flight */
+    var exitTimer     = null;
+    var overlay       = null;
 
     /* ── Speech Recognition ── */
     var recog = new SpeechRecognition();
@@ -21251,9 +21252,10 @@ document.addEventListener('DOMContentLoaded', function(){
 
     /* ── Exit voice mode ── */
     function exitVoice() {
-      voiceMode   = false;
-      isListening = false;
-      isSpeaking  = false;
+      voiceMode     = false;
+      isListening   = false;
+      isSpeaking    = false;
+      waitingForBot = false;
       clearTimeout(exitTimer);
       try { recog.abort(); } catch(e) {}
       try { window.speechSynthesis.cancel(); } catch(e) {}
@@ -21266,7 +21268,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
     /* ── STT: start listening cycle ── */
     function startListening() {
-      if (!voiceMode || isSpeaking) return;
+      if (!voiceMode || isSpeaking || waitingForBot) return;
       try { recog.start(); } catch(e) {}
     }
 
@@ -21289,7 +21291,8 @@ document.addEventListener('DOMContentLoaded', function(){
       if (!transcript) return;
       setTranscript('\u201c' + transcript + '\u201d');
       setState('thinking');
-      isListening = false;
+      isListening    = false;
+      waitingForBot  = true;   /* block onend from restarting mic */
       input.value = transcript;
       watchForBotReply();
       sendMessage();
@@ -21301,7 +21304,7 @@ document.addEventListener('DOMContentLoaded', function(){
       if (e.error === 'not-allowed') {
         setTranscript('\u26A0\uFE0F Mic permission denied.');
         setTimeout(exitVoice, 2500);
-      } else if (voiceMode && !isSpeaking) {
+      } else if (voiceMode && !isSpeaking && !waitingForBot) {
         setTimeout(startListening, 800);
       }
     };
@@ -21309,29 +21312,42 @@ document.addEventListener('DOMContentLoaded', function(){
     recog.onend = function() {
       isListening = false;
       clearTimeout(exitTimer);
-      if (voiceMode && !isSpeaking) setTimeout(startListening, 500);
+      if (voiceMode && !isSpeaking && !waitingForBot) setTimeout(startListening, 500);
     };
 
     /* ── Watch msgs container for next bot reply ── */
     function watchForBotReply() {
       if (!msgs) return;
-      var observer = new MutationObserver(function(mutations) {
-        for (var i = 0; i < mutations.length; i++) {
-          var nodes = mutations[i].addedNodes;
-          for (var j = 0; j < nodes.length; j++) {
-            var node = nodes[j];
-            if (node.nodeType !== 1) continue;
-            var isBot = !node.classList.contains('msg-user') && node.textContent.trim().length > 3;
-            if (isBot) {
-              observer.disconnect();
-              setTimeout(speakLastBotMsg, 300);
-              return;
-            }
+      var triggered = false;
+
+      function trySpeak() {
+        if (triggered) return;
+        var children = msgs.children;
+        for (var i = children.length - 1; i >= 0; i--) {
+          var el = children[i];
+          if (!el.classList.contains('chat-msg-wrap') || !el.classList.contains('bot')) continue;
+          if (el.id === 'geminiThinkBubble') continue;
+          if (el.querySelector('.typing-dots')) continue;
+          /* Read only the inner bubble text — not timestamp/reactions */
+          var bubble = el.querySelector('.chat-msg.bot');
+          var txt = bubble ? bubble.textContent.trim() : '';
+          if (txt.length > 3) {
+            triggered     = true;
+            waitingForBot = false;
+            observer.disconnect();
+            /* Small delay to ensure dots→text swap animation is complete */
+            setTimeout(speakLastBotMsg, 600);
+            return;
           }
         }
-      });
+      }
+
+      var observer = new MutationObserver(function() { trySpeak(); });
+      /* childList+subtree catches both new nodes and innerHTML swaps on children */
       observer.observe(msgs, { childList: true, subtree: true });
-      setTimeout(function() { observer.disconnect(); }, 15000);
+      setTimeout(function() {
+        if (!triggered) { waitingForBot = false; observer.disconnect(); }
+      }, 15000);
     }
 
     /* ── Find and speak last bot message ── */
@@ -21340,10 +21356,13 @@ document.addEventListener('DOMContentLoaded', function(){
       var text = '';
       for (var i = children.length - 1; i >= 0; i--) {
         var el = children[i];
-        if (!el.classList.contains('msg-user')) {
-          text = el.textContent.trim();
-          if (text.length > 3) break;
-        }
+        if (!el.classList.contains('chat-msg-wrap') || !el.classList.contains('bot')) continue;
+        if (el.id === 'geminiThinkBubble') continue;
+        if (el.querySelector('.typing-dots')) continue;
+        /* Read only the inner .chat-msg.bot div — excludes timestamp & reactions */
+        var bubble = el.querySelector('.chat-msg.bot');
+        text = bubble ? bubble.textContent.trim() : '';
+        if (text.length > 3) break;
       }
       if (!text) { if (voiceMode) setTimeout(startListening, 500); return; }
       speakText(cleanText(text));
@@ -21352,17 +21371,25 @@ document.addEventListener('DOMContentLoaded', function(){
     /* ── Strip formatting for TTS ── */
     function cleanText(t) {
       return t
-        .replace(/\[CAT:[a-z]+\]/gi, '')
+        /* Strip category badge labels that formatBotReply renders as plain text */
+        .replace(/^(💰\s*Pricing|🛠️\s*Skills|📬\s*Contact|🤝\s*Hiring|👤\s*About Sahnawaz|💬\s*Chat)\s*/i, '')
+        /* Strip raw markdown tokens (in case raw text is passed) */
+        .replace(/\[(?:CAT|CATEGORY|KAT):[a-z]+\]/gi, '')
         .replace(/##[^#]+##/g, '')
         .replace(/\*\*([^*]+)\*\*/g, '$1')
         .replace(/!!([^!]+)!!/g, '$1')
         .replace(/---/g, '. ')
         .replace(/^[-\u2022]\s*/gm, '')
+        /* Strip emojis */
         .replace(/[\u{1F300}-\u{1FFFF}]/gu, '')
         .replace(/[\u2600-\u27BF]/g, '')
+        /* Collapse whitespace */
         .replace(/\s+/g, ' ')
         .trim()
-        .slice(0, 500);
+        /* Truncate to 500 chars at a word boundary — no mid-word cuts */
+        .split(' ').reduce(function(acc, word) {
+          return (acc + ' ' + word).trim().length <= 500 ? (acc ? acc + ' ' + word : word) : acc;
+        }, '');
     }
 
     /* ── TTS: speak text ── */
@@ -21551,7 +21578,12 @@ document.addEventListener('DOMContentLoaded', function(){
 
   /* ========== Send ========== */
   function sendMessage(){
-    if (botBusy) return;
+    if (botBusy) {
+      /* Voice mode: onresult already set waitingForBot=true before calling sendMessage.
+         If botBusy blocks us, reset it so the mic isn't permanently locked. */
+      waitingForBot = false;
+      return;
+    }
     var val = input.value.trim();
     if (!val) return;
     input.value = '';
@@ -21777,6 +21809,7 @@ document.addEventListener('DOMContentLoaded', function(){
         if (bubble) bubble.parentNode.removeChild(bubble);
         setTypingStatus(false);
         setBotBusy(false);
+        waitingForBot = false;   /* unblock mic on API failure */
         var noNet = !navigator.onLine;
         var errMsg = noNet
           ? "⚠️ No internet connection. Please check your network and try again."
