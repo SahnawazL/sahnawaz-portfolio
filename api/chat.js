@@ -22,7 +22,7 @@ const handler = async (req, res) => {
   }
   isProcessing = true;
 
-  const { message, history = [], visitorName = null, visitorActivity = null } = req.body || {};
+  const { message, history = [], visitorName = null, visitorActivity = null, source = null } = req.body || {};
 
   if (!message || !message.trim()) {
     isProcessing = false;
@@ -36,6 +36,68 @@ const handler = async (req, res) => {
   }
 
   const trimmed = message.trim();
+
+  // ── WIZARD FAST-PATH ────────────────────────────────────────────────────
+  // Called by the contact form pre-screen wizard. Uses a lean system prompt
+  // (no full knowledge base), strict 2-sentence cap, strips [CAT:] tags.
+  if (source === 'wizard') {
+    const wizardSystem = `You are the AI assistant on Sahnawaz Ahmed Laskar's portfolio website.
+A visitor just answered 3 quick questions about their project. Give them an instant price estimate.
+
+Sahnawaz's pricing:
+- Website / Landing Page: ₹9,999 – ₹14,999 | delivery 2–3 weeks
+- Portfolio Website: ₹6,999 – ₹9,999 | delivery 1–2 weeks
+- E-Commerce Store: ₹14,999 – ₹24,999 | delivery 3–5 weeks
+- UI/UX Design (Figma): ₹3,999/screen | delivery 1–2 weeks
+- AI Integration: ₹2,999 – ₹7,999 | delivery 1–3 weeks
+- Something Else / Custom: Custom quote | delivery varies
+
+STRICT RULES:
+- Reply in EXACTLY 2 sentences. No more.
+- Sentence 1: State the estimated price range and delivery time for their specific project type. Be confident and specific.
+- Sentence 2: Invite them to fill the form below for a personalised quote from Sahnawaz directly.
+- Do NOT use [CAT:] tags. Do NOT use bullet points. Do NOT use headers. Plain warm text only.
+- Do NOT pad with extra sentences, disclaimers, or explanations.`;
+
+    try {
+      const wizRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+          messages: [
+            { role: 'system', content: wizardSystem },
+            { role: 'user',   content: trimmed }
+          ],
+          temperature: 0.6,
+          max_tokens: 120
+        })
+      });
+
+      if (wizRes.ok) {
+        const wizData = await wizRes.json();
+        let wizReply = wizData?.choices?.[0]?.message?.content?.trim() || null;
+        if (wizReply) {
+          // Strip any [CAT:...] tags just in case
+          wizReply = wizReply.replace(/^\[CAT:[^\]]*\]\s*/i, '').trim();
+          isProcessing = false;
+          return res.status(200).json({ reply: wizReply });
+        }
+      }
+    } catch(e) {
+      // Fall through to error response
+    }
+
+    // Wizard fallback — should rarely trigger
+    isProcessing = false;
+    return res.status(200).json({
+      reply: "Based on your selections, Sahnawaz will have an accurate quote ready for you — just fill in the form below and he'll reply within 24 hours! 🚀"
+    });
+  }
+  // ── END WIZARD FAST-PATH ────────────────────────────────────────────────
 
   // ── SMART GREETING HANDLER ──────────────────────────────────────────────
   // Bypasses lock, spam filter, knowledge base. Generates unique personalised
@@ -667,8 +729,12 @@ For WEATHER — you genuinely don't have real-time weather data, so politely say
     }
 
     const data  = await groqRes.json();
-    const reply = data?.choices?.[0]?.message?.content?.trim()
+    let reply = data?.choices?.[0]?.message?.content?.trim()
       || "Please reach Sahnawaz directly at shzthedigitalalchemist@gmail.com 😊";
+
+    // Strip [CAT:...] tag from reply — used internally for intent routing,
+    // should never be visible to visitors (safety net for all reply paths)
+    reply = reply.replace(/^\[CAT:[^\]]*\]\s*/i, '').trim();
 
     // ── UPGRADE 6: Question logging ──────────────────────────────────────
     // Logs intent + question (no personal data) for knowledge base improvement
