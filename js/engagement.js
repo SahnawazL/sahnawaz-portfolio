@@ -348,6 +348,39 @@
     setTimeout(function(){ r.remove(); }, 600);
   }
 
+  /* ── Review sounds (Web Audio API) ── */
+  function _playRvSound(type) {
+    try {
+      var ctx = new (window.AudioContext || window.webkitAudioContext)();
+      function rNote(freq, t, dur, vol) {
+        var o = ctx.createOscillator(), g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.type = 'sine';
+        o.frequency.setValueAtTime(freq, t);
+        g.gain.setValueAtTime(0.001, t);
+        g.gain.linearRampToValueAtTime(vol, t + 0.03);
+        g.gain.setValueAtTime(vol, t + dur * 0.55);
+        g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+        o.start(t); o.stop(t + dur);
+      }
+      var t = ctx.currentTime;
+      if (type === 'open') {
+        /* See reviews — soft airy double chime, gentle open feel */
+        rNote(740, t,        0.30, 0.08);
+        rNote(987, t + 0.18, 0.35, 0.07);
+        setTimeout(function(){ try { ctx.close(); } catch(e){} }, 700);
+      } else if (type === 'submit') {
+        /* Submit review — warm 4-note success arpeggio, soft and long */
+        rNote(523,  t,        0.50, 0.09);
+        rNote(659,  t + 0.16, 0.50, 0.08);
+        rNote(784,  t + 0.32, 0.50, 0.08);
+        rNote(1047, t + 0.48, 0.75, 0.10);
+        rNote(392,  t,        1.10, 0.04); /* soft low hum underneath */
+        setTimeout(function(){ try { ctx.close(); } catch(e){} }, 1400);
+      }
+    } catch(e) {}
+  }
+
   function openReviewModal() {
     if (!getVisitor()) { if(window.openLoginModal) window.openLoginModal(); return; }
     document.getElementById('reviewModal').classList.add('open');
@@ -357,6 +390,7 @@
     document.querySelectorAll('.rm-star').forEach(function(s){ s.classList.remove('active'); });
   }
   window.openReviewModal = openReviewModal;
+  window._playRvSound = _playRvSound;
 
   function closeReviewModal() {
     var m = document.getElementById('reviewModal');
@@ -393,6 +427,7 @@
       })
       .then(function(ref){
         if (!ref) return;
+        _playRvSound('submit');
         showRmMsg('success','Thank you! Your review is live 🎉');
         btn.textContent = '✓ Submitted!';
         setTimeout(function(){
