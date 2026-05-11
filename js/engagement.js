@@ -705,7 +705,7 @@
         .collection('messages').add({
           role, content: String(content).slice(0,800),
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          time: (function(){ var n=new Date(),h=n.getHours(),m=n.getMinutes(),a=h>=12?'PM':'AM'; h=h%12||12; return h+':'+(m<10?'0':'')+m+' '+a; })()
+          time: new Date().toISOString()
         }).catch(function(){});
     };
 
@@ -719,13 +719,8 @@
           var msgs = [];
           snap.forEach(function(doc){
             var d = doc.data();
-            /* If no human-readable time saved yet, derive it from createdAt Firestore Timestamp */
-            if (!d.time && d.createdAt && typeof d.createdAt.toDate === 'function') {
-              var dt = d.createdAt.toDate();
-              var h = dt.getHours(), m = dt.getMinutes(), a = h >= 12 ? 'PM' : 'AM';
-              h = h % 12 || 12;
-              d.time = h + ':' + (m < 10 ? '0' : '') + m + ' ' + a;
-            }
+            /* Pass createdAt Firestore Timestamp as time so formatTimestamp gets full date */
+            if (!d.time && d.createdAt) { d.time = d.createdAt; }
             msgs.unshift(d);
           });
           if(cb) cb(msgs);
