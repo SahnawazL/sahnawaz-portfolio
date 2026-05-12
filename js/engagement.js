@@ -754,12 +754,34 @@
           var msgs = [];
           snap.forEach(function(doc){
             var d = doc.data();
-            /* Normalise time field:
-               - If time is already an ISO string (new format) → keep it
-               - If time is a legacy "9:41 PM" string (old format) → replace with createdAt Timestamp
-               - If time is missing → use createdAt Timestamp */
-            var isIso = d.time && typeof d.time === 'string' && d.time.indexOf('T') > 0 && d.time.indexOf('Z') > 0;
-            if (!isIso && d.createdAt) { d.time = d.createdAt; }
+
+            /* Convert time to ISO string right here — handles ALL cases:
+               1. Already ISO string (new format)       → keep as-is
+               2. Legacy "9:41 PM" string (old format)  → use createdAt instead
+               3. Firestore Timestamp with .toDate()    → convert to ISO
+               4. Plain {seconds, nanoseconds} object   → convert to ISO
+               5. Missing time field                    → use createdAt */
+
+            var isoTime = null;
+
+            /* Step 1: check if d.time is already a good ISO string */
+            if (d.time && typeof d.time === 'string' &&
+                d.time.indexOf('T') > 0 && d.time.indexOf('Z') > 0) {
+              isoTime = d.time;
+            }
+
+            /* Step 2: if not ISO, try createdAt (most reliable — always server-set) */
+            if (!isoTime && d.createdAt) {
+              if (typeof d.createdAt.toDate === 'function') {
+                isoTime = d.createdAt.toDate().toISOString();
+              } else if (typeof d.createdAt.seconds === 'number') {
+                isoTime = new Date(d.createdAt.seconds * 1000).toISOString();
+              }
+            }
+
+            /* Step 3: last resort — now */
+            d.time = isoTime || new Date().toISOString();
+
             msgs.unshift(d);
           });
           if(cb) cb(msgs);
