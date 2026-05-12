@@ -754,8 +754,12 @@
           var msgs = [];
           snap.forEach(function(doc){
             var d = doc.data();
-            /* Pass createdAt Firestore Timestamp as time so formatTimestamp gets full date */
-            if (!d.time && d.createdAt) { d.time = d.createdAt; }
+            /* Normalise time field:
+               - If time is already an ISO string (new format) → keep it
+               - If time is a legacy "9:41 PM" string (old format) → replace with createdAt Timestamp
+               - If time is missing → use createdAt Timestamp */
+            var isIso = d.time && typeof d.time === 'string' && d.time.indexOf('T') > 0 && d.time.indexOf('Z') > 0;
+            if (!isIso && d.createdAt) { d.time = d.createdAt; }
             msgs.unshift(d);
           });
           if(cb) cb(msgs);
