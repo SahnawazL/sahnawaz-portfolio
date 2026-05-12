@@ -318,7 +318,7 @@ If asked something not in this knowledge base, direct them to shzthedigitalalche
 
 Your replies will be rendered with rich formatting. Use these exact markers:
 
-CRITICAL RULE: Use ONLY the markers below. Do NOT use markdown (#, ##, ###).
+CRITICAL RULE: Use ONLY the markers below. ABSOLUTELY FORBIDDEN: do NOT use standalone # ## ### as headings, or __ underscores. NOTE: ##Label## (with closing ##) is allowed as section headers. **bold** is allowed for key terms only. Never use markdown-style headings or triple hashes. Violating this breaks the UI.
 
 1. CATEGORY TAG — ALWAYS the very first thing in EVERY reply, no exceptions:
    [CAT:pricing]  for pricing questions
@@ -701,7 +701,7 @@ For WEATHER — you genuinely don't have real-time weather data, so politely say
         model,
         messages,
         temperature: 0.75,
-        max_tokens: 600   // Reduced from 900 → saves ~300 TPM per request, prevents limit hits
+        max_tokens: 900   // 900 is safe for single-user — detailed answers without hitting TPM limits
       })
     });
   };
