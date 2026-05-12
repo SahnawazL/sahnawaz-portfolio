@@ -69,6 +69,7 @@
       flex-shrink: 0;
     }
     .rv-card-name { font-weight: 700; color: #fff; font-size: 0.8rem; }
+    .rv-verified { font-size: 0.6rem; font-weight: 600; color: #00e5ff; background: rgba(0,229,255,0.1); border: 1px solid rgba(0,229,255,0.25); border-radius: 20px; padding: 1px 6px; margin-left: 5px; vertical-align: middle; letter-spacing: 0.3px; }
     .rv-card-date { font-size: 0.65rem; color: rgba(255,255,255,0.28); margin-top: 1px; }
     .rv-card-stars { font-size: 0.75rem; margin-bottom: 5px; letter-spacing: 1px; }
     .rv-card-text { font-size: 0.78rem; color: rgba(255,255,255,0.55); line-height: 1.55; }
@@ -415,15 +416,21 @@
           btn.disabled = false; btn.textContent = '✨ Submit Review';
           return Promise.resolve(null);
         }
-        return db.collection('reviews').add({
-          uid:       visitor.uid,
-          name:      visitor.fullName || visitor.firstName,
-          firstName: visitor.firstName,
-          avatar:    visitor.avatar || '',
-          stars:     stars,
-          text:      text,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        /* Check if visitor has chat history → verified badge */
+        return db.collection('chatHistory').doc(visitor.uid)
+          .collection('messages').limit(1).get()
+          .then(function(chatSnap) {
+            return db.collection('reviews').add({
+              uid:       visitor.uid,
+              name:      visitor.fullName || visitor.firstName,
+              firstName: visitor.firstName,
+              avatar:    visitor.avatar || '',
+              stars:     stars,
+              text:      text,
+              verified:  !chatSnap.empty,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+          });
       })
       .then(function(ref){
         if (!ref) return;
@@ -517,7 +524,7 @@
                 <img class="rv-card-avatar" src="${escHTML(r.avatar||'')}" alt="${escHTML(r.firstName||'V')}"
                   onerror="this.style.background='rgba(0,255,255,0.1)';this.src=''">
                 <div>
-                  <div class="rv-card-name">${escHTML(r.firstName||'Visitor')}</div>
+                  <div class="rv-card-name">${escHTML(r.firstName||'Visitor')}${r.verified ? ' <span class="rv-verified" title="Verified Visitor">✅ Verified</span>' : ''}</div>
                   <div class="rv-card-date">${timeAgo(r.createdAt)}</div>
                 </div>
               </div>
