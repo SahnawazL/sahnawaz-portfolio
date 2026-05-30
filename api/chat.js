@@ -5,9 +5,38 @@
 //           language auto-detect, spam filter, question logging
 // Knowledge: added "What he doesn't offer" + "Current Focus 2025-2026"
 // Concurrency: single-user lock (max 1 request at a time)
+// v3 UPGRADE: Tavily real-time web search for off-topic questions
 
 // ── Single-user lock (max 1 request at a time) ──────────────────────────────
 let isProcessing = false;
+
+// ── TAVILY SEARCH ─────────────────────────────────────────────────────────
+// Called only for off-topic questions — Sahnawaz questions always use knowledge base
+const tavilySearch = async (query) => {
+  const tavilyKey = process.env.TAVILY_API_KEY;
+  if (!tavilyKey) return null;
+  try {
+    const res = await fetch('https://api.tavily.com/search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${tavilyKey}`
+      },
+      body: JSON.stringify({
+        query,
+        search_depth: 'basic',
+        max_results: 3,
+        include_answer: true,
+        include_raw_content: false,
+        include_images: false
+      })
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch(e) {
+    return null;
+  }
+};
 
 const handler = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -723,8 +752,41 @@ For WEATHER — you genuinely don't have real-time weather data, so politely say
       }))
     : [];
 
+  // ── TAVILY DECISION ────────────────────────────────────────────────────
+  // If question is about Sahnawaz → use knowledge base only (fast + accurate)
+  // If question is off-topic/general → call Tavily for real-time web context
+  const isSahnawazRelated =
+    intent !== 'general' ||   // pricing, hiring, contact, skills, greeting → always KB
+    /sahnawaz|shz|digital.alchemist|bytewithsahnawaz|portfolio|studylens|yojana|flipkart|xiaomi|rapido|ienergizer|silchar|assam|mca|yenepoya|his work|your work|hire you|your price|your service|your skill|your project|your experience|your education|about you|who are you|tell me about him/i.test(msgLower);
+
+  let webContext = '';
+  if (!isSahnawazRelated) {
+    try {
+      const tavilyResult = await tavilySearch(trimmed);
+      if (tavilyResult) {
+        const answer  = tavilyResult.answer || '';
+        const results = (tavilyResult.results || []).slice(0, 3);
+
+        if (answer || results.length > 0) {
+          webContext += '\n\n--- LIVE WEB SEARCH RESULTS (Tavily) ---\n';
+          webContext += 'The visitor asked something outside Sahnawaz\'s profile. Use these real-time search results to give a helpful, accurate answer.\n\n';
+          if (answer) webContext += `Quick Answer: ${answer}\n\n`;
+          results.forEach(function(r) {
+            webContext += `Source: ${r.title || ''}\n`;
+            webContext += `${(r.content || '').slice(0, 300)}\n\n`;
+          });
+          webContext += '--- END WEB RESULTS ---\n';
+          webContext += 'After answering using these results, add a warm note:\n';
+          webContext += '"By the way, I\'m primarily Sahnawaz\'s personal assistant 😊 For more on this, check [suggest the most relevant site from the OFF-TOPIC section above]."';
+        }
+      }
+    } catch(e) {
+      // Tavily failed silently — Groq answers from its own training data
+    }
+  }
+
   const messages = [
-    { role: 'system',    content: KNOWLEDGE },
+    { role: 'system',    content: KNOWLEDGE + webContext },
     ...safeHistory,
     { role: 'user',      content: trimmed }
   ];
