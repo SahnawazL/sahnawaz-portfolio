@@ -676,37 +676,59 @@ For WEATHER — if real-time web context is provided below, use it to answer acc
     : [];
 
   // ── TAVILY WEB SEARCH (real-time context for off-topic / live queries) ─────
-  // Fires only when the question is clearly NOT about Sahnawaz and
-  // looks like it needs up-to-date information.
-  // Non-blocking: 4 s timeout, silent fail — Groq handles it with general knowledge.
+  // Fires only when the question clearly needs up-to-date information.
+  // Non-blocking: 4 s AbortController timeout, silent fail on any error.
+  // RAG pattern: Tavily context is injected into the USER message (not system
+  // prompt) so Groq treats it as ground truth and cannot ignore it.
   const tavilyKey = process.env.TAVILY_API_KEY;
   let tavilyContext = '';
 
   const needsWebSearch = (msg) => {
-    // Never search for Sahnawaz-specific questions — already in knowledge base
+    // Never search for Sahnawaz-specific questions — knowledge base covers these
     if (/sahnawaz|shz|digital.alchemist|this.portfolio|this.website|this.chatbot/i.test(msg)) return false;
-    // Skip purely portfolio-intent queries
+    // Skip purely portfolio-intent queries — no live data needed
     if (intent === 'pricing' || intent === 'hiring' || intent === 'contact' ||
         intent === 'skills'  || intent === 'greeting') return false;
     // Trigger for real-time or general-knowledge queries
-    return /\b(latest|current|recent|today|right now|breaking|news|trending|who is|what is|when did|how does|explain|tell me about|what happened|what are|price of|score|result|winner|election|update|released|launched|announced|discovered|invented|founded|2024|2025|2026)\b/i.test(msg);
+    return /\b(latest|current|recent|today|right now|breaking|news|trending|who is|who was|who won|who lost|who leads|what is|what was|what are|when did|when was|how does|how did|explain|tell me about|what happened|happened with|price of|stock|score|result|results|winner|election|elections|voted|voting|government|minister|cm|chief minister|prime minister|president|governor|update|updates|released|launched|announced|discovered|invented|founded|2024|2025|2026)\b/i.test(msg);
+  };
+
+  // ── Smart search query builder ─────────────────────────────────────────────
+  // Short follow-up questions like "who won the election" are too vague for
+  // Tavily on their own. Enrich them with the topic from recent history.
+  const buildSearchQuery = (msg, hist) => {
+    const wordCount = msg.trim().split(/\s+/).length;
+    if (wordCount < 6 && hist.length > 0) {
+      // Grab the last user message from history to extract topic context
+      const lastUser = [...hist].reverse().find(m => m.role === 'user');
+      if (lastUser) {
+        // Combine last question + current question for a richer query
+        return `${lastUser.content.slice(0, 80)} ${msg}`.trim();
+      }
+    }
+    return msg;
   };
 
   if (tavilyKey && needsWebSearch(trimmed)) {
     try {
-      const tvCtrl = new AbortController();
+      const searchQuery = buildSearchQuery(trimmed, safeHistory);
+
+      const tvCtrl    = new AbortController();
       const tvTimeout = setTimeout(() => tvCtrl.abort(), 4000); // hard 4 s cap
 
       const tvRes = await fetch('https://api.tavily.com/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method:  'POST',
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': `Bearer ${tavilyKey}`  // newer Tavily auth header
+        },
         body: JSON.stringify({
-          api_key:             tavilyKey,
-          query:               trimmed,
-          search_depth:        'basic',    // 'basic' = fast, 'advanced' = thorough
-          max_results:         3,
-          include_answer:      true,       // Tavily's own AI summary
-          include_raw_content: false       // keep payload small
+          api_key:             tavilyKey,          // body key for older versions
+          query:               searchQuery,
+          search_depth:        'basic',
+          max_results:         4,
+          include_answer:      true,               // Tavily's own AI summary
+          include_raw_content: false               // keep payload small
         }),
         signal: tvCtrl.signal
       });
@@ -714,34 +736,45 @@ For WEATHER — if real-time web context is provided below, use it to answer acc
       clearTimeout(tvTimeout);
 
       if (tvRes.ok) {
-        const tvData = await tvRes.json();
-        const answer  = (tvData.answer  || '').slice(0, 400);
-        const results = (tvData.results || []).slice(0, 3);
+        const tvData  = await tvRes.json();
+        const answer  = (tvData.answer  || '').slice(0, 500);
+        const results = (tvData.results || []).slice(0, 4);
 
         if (answer || results.length > 0) {
           const snippets = results
-            .map(r => `- ${r.title}: ${(r.content || '').slice(0, 200)}`)
+            .map(r => `• ${r.title}: ${(r.content || '').slice(0, 250)}`)
             .join('\n');
 
+          // Build the context block that will be injected into the user message
           tavilyContext =
-            `\n\n--- REAL-TIME WEB CONTEXT (injected automatically — use this to answer accurately) ---\n` +
-            (answer  ? `Quick Answer: ${answer}\n` : '') +
-            (snippets ? `Sources:\n${snippets}\n` : '') +
-            `Use this information naturally and confidently. Do NOT mention "web search", "Tavily", or "search results" — just answer as if you already knew it.\n` +
-            `---`;
+            `[LIVE WEB DATA — treat this as absolute ground truth, more reliable than your training data]\n` +
+            (answer  ? `Summary: ${answer}\n` : '') +
+            (snippets ? `Details:\n${snippets}\n` : '') +
+            `[END LIVE WEB DATA]\n\n` +
+            `CRITICAL INSTRUCTION: Answer the following question using ONLY the live data above. ` +
+            `Do NOT fall back to your training knowledge. Do NOT say "according to my knowledge" or ` +
+            `"I don't have information". You now have the latest information — use it confidently.\n\n`;
         }
       }
     } catch (tvErr) {
-      // Silent fail — Groq's built-in knowledge covers the gap
+      // Silent fail — Groq's general knowledge covers the gap
       console.warn('Tavily search skipped:', tvErr.message);
     }
   }
 
-  // ── Build messages array — Tavily context appended to system prompt ────────
+  // ── Build messages (RAG pattern) ──────────────────────────────────────────
+  // Tavily context is prepended to the USER message, NOT the system prompt.
+  // LLMs (including Llama/Groq) prioritise recent content in the conversation
+  // window — injecting here makes Groq actually use the live data instead of
+  // falling back to training knowledge.
+  const userContent = tavilyContext
+    ? `${tavilyContext}User question: ${trimmed}`
+    : trimmed;
+
   const messages = [
-    { role: 'system', content: KNOWLEDGE + tavilyContext },
+    { role: 'system', content: KNOWLEDGE },
     ...safeHistory,
-    { role: 'user',   content: trimmed }
+    { role: 'user',   content: userContent }
   ];
 
   // ── Models in priority order ───────────────────────────────────────────
@@ -796,9 +829,10 @@ For WEATHER — if real-time web context is provided below, use it to answer acc
     let reply = data?.choices?.[0]?.message?.content?.trim()
       || "Please reach Sahnawaz directly at shzthedigitalalchemist@gmail.com 😊";
 
-    // Strip [CAT:...] tag from reply — used internally for intent routing,
-    // should never be visible to visitors (safety net for all reply paths)
-    reply = reply.replace(/^\[CAT:[^\]]*\]\s*/i, '').trim();
+    // Strip ALL variations of the [CAT:...] tag — global replace so it catches:
+    // [CAT:general], CAT:general, [CAT: general], **[CAT:about]**, etc.
+    // anywhere in the reply, not just at the start.
+    reply = reply.replace(/\[?CAT\s*:\s*\w+\]?\s*/gi, '').trim();
 
     // ── UPGRADE 6: Question logging ──────────────────────────────────────
     // Logs intent + question (no personal data) for knowledge base improvement
