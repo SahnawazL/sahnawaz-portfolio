@@ -20414,8 +20414,8 @@ document.addEventListener('DOMContentLoaded', function(){
     var catMatch = raw.match(/^\[(?:CAT|CATEGORY|KAT):(\w+)\]\s*/i)
                 || raw.match(/^(?:CAT|KAT):(\w+)\s*\n?/i);
     if (catMatch) { catKey = catMatch[1].toLowerCase(); raw = raw.slice(catMatch[0].length); }
-    /* Also strip if it appears anywhere in first line as fallback */
-    raw = raw.replace(/^(?:\[)?(?:CAT|KAT|CATEGORY):[\w]+(?:\])?\s*\n?/i, '');
+    /* Strip ALL remaining CAT tag variants anywhere in text — including bold-wrapped like **CAT:about** */
+    raw = raw.replace(/\*{0,2}\[?(?:CAT|KAT|CATEGORY):[\w]+\]?\*{0,2}[\s\n]*/gi, '').trim();
     /* Normalise synonym keys AI sometimes invents */
     var catSynonyms = {services:'skills',service:'skills',tech:'skills',experience:'about',work:'about',hire:'hiring',recruitment:'hiring',general_info:'general'};
     if (catSynonyms[catKey]) catKey = catSynonyms[catKey];
