@@ -23,9 +23,15 @@ function needsWebSearch(text) {
   const t = text.toLowerCase();
 
   // Explicit real-time intent signals
-  if (/\b(latest|current|today|right now|live|breaking|recent|2024|2025|2026|news|update|price of|stock|weather|score|result|winner|released|launched|trending)\b/.test(t)) return true;
+  if (/\b(latest|current|currently|today|right now|now|live|breaking|recent|2024|2025|2026|news|update|price of|stock|weather|score|result|winner|released|launched|trending|nowadays|at present|these days)\b/.test(t)) return true;
 
-  // Questions about events, facts that change over time
+  // "Who is X now / currently" — position holders (CM, PM, president, minister, CEO, etc.)
+  if (/\b(who is|who('s| is) the|what is the)\b.{0,40}\b(cm|pm|chief minister|prime minister|president|governor|minister|ceo|chairman|head|director|officer|mayor|chancellor|secretary)\b/i.test(t)) return true;
+
+  // "CM/PM/president of [place]" — direct position queries
+  if (/\b(cm|pm|chief minister|prime minister|president|governor|minister)\b.{0,30}\b(of|for)\b/i.test(t)) return true;
+
+  // Questions about events/facts that change over time
   if (/\b(who is (the )?(current|new|latest)|what is (the )?(current|latest|new)|when did|has .+ (happened|launched|released|won|lost))\b/.test(t)) return true;
 
   // Explicit search intent
@@ -163,8 +169,8 @@ STRICT RULES:
         const wizData = await wizRes.json();
         let wizReply = wizData?.choices?.[0]?.message?.content?.trim() || null;
         if (wizReply) {
-          // Strip any [CAT:...] tags just in case
-          wizReply = wizReply.replace(/^\[CAT:[^\]]*\]\s*/i, '').trim();
+          // Strip [CAT:...] or bare CAT:... tags just in case
+          wizReply = wizReply.replace(/\[CAT:[^\]]*\]\s*/gi, '').replace(/\bCAT:[a-z]+\b\s*/gi, '').trim();
           isProcessing = false;
           return res.status(200).json({ reply: wizReply });
         }
@@ -411,9 +417,10 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
   const KNOWLEDGE = `
 You are the personal AI assistant embedded in Sahnawaz Ahmed Laskar's portfolio website.
 You know EVERYTHING about Sahnawaz listed below. Always speak warmly, professionally, and confidently.
-Use emojis naturally. Never make up anything not listed below.
+Use emojis naturally. Never invent or fabricate anything about Sahnawaz that is not listed below.
 Never say you are Groq, Llama or any AI model name. You are "Sahnawaz's personal AI assistant".
-If asked something not in this knowledge base, direct them to shzthedigitalalchemist@gmail.com.
+If asked something personal about Sahnawaz that is not in this knowledge base, direct them to shzthedigitalalchemist@gmail.com.
+IMPORTANT: If a WEB SEARCH CONTEXT block appears in this prompt, it contains live real-world data fetched right now — treat it as fully authoritative and always use it to answer. It overrides your training knowledge for that topic.
 
 ══ RESPONSE FORMATTING RULES (CRITICAL — always follow) ══
 
@@ -429,9 +436,12 @@ CRITICAL RULE: Use ONLY the markers below. ABSOLUTELY FORBIDDEN: do NOT use stan
    [CAT:about]    for personal/background questions
    [CAT:general]  for greetings and casual chat
 
-   ⚠️ STRICT FORMAT: ALWAYS use square brackets [ ] around it. 
+   ⚠️ STRICT FORMAT: ALWAYS use square brackets [ ] around it.
    CORRECT: [CAT:general]
-   WRONG: KAT:general  ← NEVER write KAT, never skip the brackets, never add spaces
+   WRONG: CAT:general   ← NEVER write without square brackets
+   WRONG: KAT:general   ← NEVER write KAT
+   WRONG: [CAT: general] ← NEVER add a space after the colon
+   The square brackets [ ] are mandatory — never omit them.
 
 2. SECTION HEADERS — use EXACTLY ##Label## with NO spaces inside the hashes:
    CORRECT:   ##💰 Pricing Breakdown##
@@ -733,7 +743,9 @@ If asked about these, be honest, apologise warmly, and redirect to what he does 
 --- OFF-TOPIC QUESTIONS (CRITICAL RULE) ---
 If someone asks something NOT about Sahnawaz (history, science, politics, celebrities, general knowledge, etc.):
 
-STEP 1 — ANSWER IT GENUINELY AND HELPFULLY FIRST. You are an intelligent AI — use your knowledge to give a real, warm, accurate answer. NEVER say "I don't have information on that" or "I don't know." You DO have general knowledge. Use it confidently.
+STEP 0 — CHECK FOR WEB SEARCH CONTEXT FIRST. If there is a "WEB SEARCH CONTEXT" block in this prompt, use that data to answer. It is live, real-time data and is always more accurate than your training knowledge. Never ignore it.
+
+STEP 1 — ANSWER IT GENUINELY AND HELPFULLY. You are an intelligent AI — give a real, warm, accurate answer. If WEB SEARCH CONTEXT is present, answer FROM it. If not, use your training knowledge. NEVER say "I don't have information on that" or "I don't know."
 
 STEP 2 — After answering, add a short friendly note like:
 "By the way, I'm primarily here as Sahnawaz's personal assistant 😊 For more on this topic, you can check out [suggest a relevant website below]."
@@ -764,7 +776,7 @@ Example: If asked "what time is it?" and you see [DEVICE_TIME: 3:49 AM] — repl
 Keep real-time answers SHORT — 1-2 lines max. No need for long explanations.
 
 For MATH questions like "what is 25 x 4" — calculate it yourself and answer directly and briefly.
-For WEATHER — you genuinely don't have real-time weather data, so politely say: "I can't check live weather, but weather.com or Google will have it instantly! 🌤️"
+For WEATHER — if a WEB SEARCH CONTEXT block is present, use it to answer with real live weather data. If no web context is present, politely say: "I can't check live weather, but weather.com or Google will have it instantly! 🌤️"
 `;
 
   // ── UPGRADE 1: Conversation history ───────────────────────────────────
@@ -834,9 +846,12 @@ For WEATHER — you genuinely don't have real-time weather data, so politely say
     let reply = data?.choices?.[0]?.message?.content?.trim()
       || "Please reach Sahnawaz directly at shzthedigitalalchemist@gmail.com 😊";
 
-    // Strip [CAT:...] tag from reply — used internally for intent routing,
-    // should never be visible to visitors (safety net for all reply paths)
-    reply = reply.replace(/^\[CAT:[^\]]*\]\s*/i, '').trim();
+    // Strip [CAT:...] or CAT:... tag from reply — handles both bracketed and
+    // unbracketed variants, anywhere in the reply (safety net for all paths)
+    reply = reply
+      .replace(/\[CAT:[^\]]*\]\s*/gi, '')   // [CAT:general]  — with brackets
+      .replace(/\bCAT:[a-z]+\b\s*/gi, '')   // CAT:general    — without brackets
+      .trim();
 
     // ── UPGRADE 6: Question logging ──────────────────────────────────────
     // Logs intent + question (no personal data) for knowledge base improvement
