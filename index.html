@@ -19606,7 +19606,7 @@ document.addEventListener('DOMContentLoaded', function(){
             .then(function(d){
               if (loadingGreet.parentNode) loadingGreet.parentNode.removeChild(loadingGreet);
               var aiGreeting = (d && d.reply && d.reply.trim())
-                ? d.reply.replace(/^\[CAT:[^\]]*\]\s*/,'').trim()
+                ? d.reply.replace(/\[CAT:[^\]]*\]\s*/gi,'').replace(/\bCAT:[a-z]+\b\s*/gi,'').trim()
                 : greeting;
               if (!hasVisitedBefore) { try { localStorage.setItem('chatVisited','1'); } catch(e){} }
               addMsgTypewriter(aiGreeting);
@@ -20404,8 +20404,8 @@ document.addEventListener('DOMContentLoaded', function(){
     var catMatch = raw.match(/^\[(?:CAT|CATEGORY|KAT):(\w+)\]\s*/i)
                 || raw.match(/^(?:CAT|KAT):(\w+)\s*\n?/i);
     if (catMatch) { catKey = catMatch[1].toLowerCase(); raw = raw.slice(catMatch[0].length); }
-    /* Also strip if it appears anywhere in first line as fallback */
-    raw = raw.replace(/^(?:\[)?(?:CAT|KAT|CATEGORY):[\w]+(?:\])?\s*\n?/i, '');
+    /* Also strip if it appears anywhere — catches both [CAT:x] and bare CAT:x in any position */
+    raw = raw.replace(/\[(?:CAT|KAT|CATEGORY):[^\]]*\]\s*/gi, '').replace(/\b(?:CAT|KAT|CATEGORY):[a-z_]+\b\s*/gi, '');
     /* Normalise synonym keys AI sometimes invents */
     var catSynonyms = {services:'skills',service:'skills',tech:'skills',experience:'about',work:'about',hire:'hiring',recruitment:'hiring',general_info:'general'};
     if (catSynonyms[catKey]) catKey = catSynonyms[catKey];
