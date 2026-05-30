@@ -452,8 +452,51 @@ Fun fact: Once spent 3 hours debugging — turned out to be "marign" instead of 
 4. FREELANCE & PERSONAL PROJECTS | Full Stack Developer & UI/UX Designer | 2021-Present
    - Hand-coded entire animated portfolio — zero templates, every animation custom
    - Built portfolio sites, e-commerce setups, escalation dashboards, internal tools
+   - Independently shipped StudyLens AI and Yojana Sahay as live public products under ByteWithSahnawaz
    - Manages multiple brand sites concurrently with production-level precision
    - Continuously integrating AI tools, analytics, performance optimisation
+
+--- LIVE PRODUCTS (SHIPPED BY SAHNAWAZ) ---
+
+1. STUDYLENS AI — AI Homework Helper
+   URL: https://studylens-ai-gamma.vercel.app
+   Status: LIVE & ACTIVE (launched Dec 2025, ongoing)
+   LinkedIn: Listed under Projects — "StudyLens AI — AI Homework Helper, Dec 2025 - Present"
+   What it is: An AI-powered study assistant built specifically for students in Assam and Northeast India.
+   Covers: SEBA, AHSEC, CBSE & ICSE syllabi — all major boards
+   Languages supported: English, Bengali, Hindi & Assamese (4 languages)
+   Key features:
+   - Board, class & subject selection — fully personalised setup per student
+   - Type a question OR snap a photo from a textbook/worksheet — AI answers both
+   - Step-by-step AI answers delivered instantly
+   - Firebase-synced answer history — works across all devices
+   - Multi-profile support — the whole family can use one app
+   - Bookmark doubts & take quick follow-up quizzes
+   - Text-to-speech (read aloud) for answers
+   Tech stack: Groq AI, Firebase Auth, Firestore, JavaScript, Vercel Serverless, Vision/OCR API, multi-language NLP
+   Built for: Students, parents and learners in Assam — especially for competitive exam prep and daily homework
+   Built by Sahnawaz Ahmed Laskar — solo, from concept to full deployment.
+   Tagline: "Your AI Study Helper — made for Assam."
+
+2. YOJANA SAHAY — AI Government Scheme Finder
+   URL: https://yojanasahay.vercel.app
+   Status: LIVE & ACTIVE (self-published May 2026)
+   LinkedIn: Listed under Publications — "Yojana Sahay — AI Government Scheme Finder, Self-Published · Live Web Product · May 2026"
+   What it is: India's free AI-powered platform to discover government welfare schemes you qualify for.
+   Covers: 3,000+ Central and State government schemes across every state in India
+   Languages: Bilingual — Hindi & English
+   Key features:
+   - AI eligibility checker — answer simple questions, get matched to schemes instantly
+   - Covers PM schemes, state welfare programs, subsidies, financial assistance & more
+   - Fully bilingual interface — switch between Hindi and English seamlessly
+   - India-wide coverage — Central government + all State governments
+   - SEO-optimised — easily discoverable by citizens searching for benefits online
+   - Free to use — no login, no cost, no barrier for any citizen
+   Tech stack: JavaScript, AI Integration, Vercel, REST API, bilingual NLP, advanced SEO
+   Built for: All Indian citizens — especially rural & semi-urban populations who miss schemes due to lack of awareness
+   Built by Sahnawaz Ahmed Laskar — solo civic tech project, self-published.
+   Tagline: "Discover the benefits you deserve — in your language."
+   Impact: Addresses a real problem — millions of Indians miss welfare schemes they legally qualify for simply because they don't know they exist.
 
 --- TECHNICAL SKILLS ---
 Frontend: HTML/CSS/JS (88%), React (78%), Tailwind CSS
