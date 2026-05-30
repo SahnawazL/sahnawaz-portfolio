@@ -81,8 +81,8 @@ STRICT RULES:
         const wizData = await wizRes.json();
         let wizReply = wizData?.choices?.[0]?.message?.content?.trim() || null;
         if (wizReply) {
-          // Strip any [CAT:...] tags just in case
-          wizReply = wizReply.replace(/^\[CAT:[^\]]*\]\s*/i, '').trim();
+          // Strip any [CAT:...] tags just in case (all variants)
+          wizReply = wizReply.replace(/\*{0,2}\[?(?:CAT|KAT|CATEGORY):[\w]+\]?\*{0,2}[\s\n]*/gi, '').trim();
           isProcessing = false;
           return res.status(200).json({ reply: wizReply });
         }
@@ -775,9 +775,10 @@ For WEATHER — you genuinely don't have real-time weather data, so politely say
     let reply = data?.choices?.[0]?.message?.content?.trim()
       || "Please reach Sahnawaz directly at shzthedigitalalchemist@gmail.com 😊";
 
-    // Strip [CAT:...] tag from reply — used internally for intent routing,
-    // should never be visible to visitors (safety net for all reply paths)
-    reply = reply.replace(/^\[CAT:[^\]]*\]\s*/i, '').trim();
+    // Strip ALL [CAT:...] tag variants from reply — used internally for intent routing,
+    // should never be visible to visitors. Handles: [CAT:x], **[CAT:x]**, **CAT:x**, CAT:x
+    // anywhere in the text (AI sometimes embeds them mid-response or wraps in bold).
+    reply = reply.replace(/\*{0,2}\[?(?:CAT|KAT|CATEGORY):[\w]+\]?\*{0,2}[\s\n]*/gi, '').trim();
 
     // ── UPGRADE 6: Question logging ──────────────────────────────────────
     // Logs intent + question (no personal data) for knowledge base improvement
