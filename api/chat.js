@@ -18,11 +18,9 @@ const tavilySearch = async (query) => {
   try {
     const res = await fetch('https://api.tavily.com/search', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${tavilyKey}`
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        api_key: tavilyKey,
         query,
         search_depth: 'basic',
         max_results: 3,
@@ -31,9 +29,14 @@ const tavilySearch = async (query) => {
         include_images: false
       })
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      console.warn('Tavily error:', res.status, errText.slice(0, 200));
+      return null;
+    }
     return await res.json();
   } catch(e) {
+    console.warn('Tavily fetch failed:', e.message);
     return null;
   }
 };
