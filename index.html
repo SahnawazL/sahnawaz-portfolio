@@ -20416,11 +20416,13 @@ document.addEventListener('DOMContentLoaded', function(){
     if (catMatch) { catKey = catMatch[1].toLowerCase(); raw = raw.slice(catMatch[0].length); }
     /* Strip ALL remaining CAT tag variants anywhere in text — including bold-wrapped like **CAT:about** */
     raw = raw.replace(/\*{0,2}\[?(?:CAT|KAT|CATEGORY):[\w]+\]?\*{0,2}[\s\n]*/gi, '').trim();
+    /* Strip stray lone # / ## / ### lines the AI sometimes outputs as an opener (e.g. "# \n") */
+    raw = raw.replace(/^#{1,3}\s*$/gm, '').trim();
     /* Normalise synonym keys AI sometimes invents */
     var catSynonyms = {services:'skills',service:'skills',tech:'skills',experience:'about',work:'about',hire:'hiring',recruitment:'hiring',general_info:'general'};
     if (catSynonyms[catKey]) catKey = catSynonyms[catKey];
 
-    var hasStructure = /#{2,3}|---|!!|>>|^\s*[-•]\s|\*\*/m.test(raw);
+    var hasStructure = /#{1,3}|---|!!|>>|^\s*[-•]\s|\*\*/m.test(raw);
     var isShort = raw.trim().length < 160;
     if (!hasStructure && isShort) {
       return { html: inlineFormat(raw), rich: false, cat: catKey };
@@ -20435,8 +20437,8 @@ document.addEventListener('DOMContentLoaded', function(){
     var rowDelay = 0;
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i];
-      /* Match: ##Label## OR ## Label## OR ###Label (all AI header variants) */
-      var secMatch = line.match(/^#{2,3}\s*(.+?)(?:##)?\s*$/);
+      /* Match: #Label OR ##Label## OR ## Label## OR ###Label (all AI header variants incl. H1) */
+      var secMatch = line.match(/^#{1,3}\s*(.+?)(?:#{1,3})?\s*$/);
       /* Also treat standalone **bold** lines as section headers */
       if (!secMatch) {
         var boldHeadMatch = line.match(/^\*\*(.+?)\*\*\s*$/);
