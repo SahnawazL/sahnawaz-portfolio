@@ -2,41 +2,13 @@
 // Groq AI powered assistant for Sahnawaz Ahmed Laskar's portfolio
 // Primary model: llama-4-scout-17b-16e-instruct (128K ctx, 30K TPM) + auto-fallback
 // Upgrades: conversation memory, intent detection, name memory,
-//           language auto-detect, spam filter, question logging
+//           language auto-detect, spam filter, question logging,
+//           Tavily real-time web search for off-topic / live queries
 // Knowledge: added "What he doesn't offer" + "Current Focus 2025-2026"
 // Concurrency: single-user lock (max 1 request at a time)
-// v3 UPGRADE: Tavily real-time web search for off-topic questions
 
 // ── Single-user lock (max 1 request at a time) ──────────────────────────────
 let isProcessing = false;
-
-// ── TAVILY SEARCH ─────────────────────────────────────────────────────────
-// Called only for off-topic questions — Sahnawaz questions always use knowledge base
-const tavilySearch = async (query) => {
-  const tavilyKey = process.env.TAVILY_API_KEY;
-  if (!tavilyKey) return null;
-  try {
-    const res = await fetch('https://api.tavily.com/search', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${tavilyKey}`
-      },
-      body: JSON.stringify({
-        query,
-        search_depth: 'basic',
-        max_results: 3,
-        include_answer: true,
-        include_raw_content: false,
-        include_images: false
-      })
-    });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch(e) {
-    return null;
-  }
-};
 
 const handler = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -252,7 +224,6 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
     /\b(hacker|retro|matrix|terminal)\b.{0,20}\b(off|disable|deactivate|stop)\b/i.test(msgLower)                           ? 'hacker_off'      :
     /\b(toggle|switch)\b.{0,20}\b(hacker|retro|matrix|terminal)\b/i.test(msgLower)                                         ? 'hacker_toggle'   :
     /\b(open|show|display|launch)\b.{0,20}\b(code|laptop|popup|typing)\b/i.test(msgLower)                                  ? 'open_code_popup' :
-
     null;
 
   // If a site command is detected → reply instantly, skip AI call entirely
@@ -342,12 +313,6 @@ You know EVERYTHING about Sahnawaz listed below. Always speak warmly, profession
 Use emojis naturally. Never make up anything not listed below.
 Never say you are Groq, Llama or any AI model name. You are "Sahnawaz's personal AI assistant".
 If asked something not in this knowledge base, direct them to shzthedigitalalchemist@gmail.com.
-
-⚠️ CRITICAL — NAME SPELLING (ZERO TOLERANCE):
-The correct spelling is ALWAYS: Sahnawaz
-NEVER write: Sajnawaz / Shahnawaz / Shanawaz / Sahanawaz / Sahnawas — these are ALL wrong.
-Double-check every reply. The name must always be exactly: S-a-h-n-a-w-a-z
-This is non-negotiable. One wrong letter is unacceptable.
 
 ══ RESPONSE FORMATTING RULES (CRITICAL — always follow) ══
 
@@ -487,51 +452,8 @@ Fun fact: Once spent 3 hours debugging — turned out to be "marign" instead of 
 4. FREELANCE & PERSONAL PROJECTS | Full Stack Developer & UI/UX Designer | 2021-Present
    - Hand-coded entire animated portfolio — zero templates, every animation custom
    - Built portfolio sites, e-commerce setups, escalation dashboards, internal tools
-   - Independently shipped StudyLens AI and Yojana Sahay as live public products under ByteWithSahnawaz
    - Manages multiple brand sites concurrently with production-level precision
    - Continuously integrating AI tools, analytics, performance optimisation
-
---- LIVE PRODUCTS (SHIPPED BY SAHNAWAZ) ---
-
-1. STUDYLENS AI — AI Homework Helper
-   URL: https://studylens-ai-gamma.vercel.app
-   Status: LIVE & ACTIVE (launched Dec 2025, ongoing)
-   LinkedIn: Listed under Projects — "StudyLens AI — AI Homework Helper, Dec 2025 - Present"
-   What it is: An AI-powered study assistant built specifically for students in Assam and Northeast India.
-   Covers: SEBA, AHSEC, CBSE & ICSE syllabi — all major boards
-   Languages supported: English, Bengali, Hindi & Assamese (4 languages)
-   Key features:
-   - Board, class & subject selection — fully personalised setup per student
-   - Type a question OR snap a photo from a textbook/worksheet — AI answers both
-   - Step-by-step AI answers delivered instantly
-   - Firebase-synced answer history — works across all devices
-   - Multi-profile support — the whole family can use one app
-   - Bookmark doubts & take quick follow-up quizzes
-   - Text-to-speech (read aloud) for answers
-   Tech stack: Groq AI, Firebase Auth, Firestore, JavaScript, Vercel Serverless, Vision/OCR API, multi-language NLP
-   Built for: Students, parents and learners in Assam — especially for competitive exam prep and daily homework
-   Built by Sahnawaz Ahmed Laskar — solo, from concept to full deployment.
-   Tagline: "Your AI Study Helper — made for Assam."
-
-2. YOJANA SAHAY — AI Government Scheme Finder
-   URL: https://yojanasahay.vercel.app
-   Status: LIVE & ACTIVE (self-published May 2026)
-   LinkedIn: Listed under Publications — "Yojana Sahay — AI Government Scheme Finder, Self-Published · Live Web Product · May 2026"
-   What it is: India's free AI-powered platform to discover government welfare schemes you qualify for.
-   Covers: 3,000+ Central and State government schemes across every state in India
-   Languages: Bilingual — Hindi & English
-   Key features:
-   - AI eligibility checker — answer simple questions, get matched to schemes instantly
-   - Covers PM schemes, state welfare programs, subsidies, financial assistance & more
-   - Fully bilingual interface — switch between Hindi and English seamlessly
-   - India-wide coverage — Central government + all State governments
-   - SEO-optimised — easily discoverable by citizens searching for benefits online
-   - Free to use — no login, no cost, no barrier for any citizen
-   Tech stack: JavaScript, AI Integration, Vercel, REST API, bilingual NLP, advanced SEO
-   Built for: All Indian citizens — especially rural & semi-urban populations who miss schemes due to lack of awareness
-   Built by Sahnawaz Ahmed Laskar — solo civic tech project, self-published.
-   Tagline: "Discover the benefits you deserve — in your language."
-   Impact: Addresses a real problem — millions of Indians miss welfare schemes they legally qualify for simply because they don't know they exist.
 
 --- TECHNICAL SKILLS ---
 Frontend: HTML/CSS/JS (88%), React (78%), Tailwind CSS
@@ -558,9 +480,10 @@ Stats shown on site: 3+ years experience | 20+ projects built | 100% client sati
 
 --- LIVE AI CHAT FEATURE (THIS CHATBOT) ---
 Sahnawaz built this AI chatbot himself from scratch — it's one of the signature features of the website.
-Tech stack used: Groq AI (ultra-fast inference) + Llama model (powerful open model) + Vercel Serverless Functions (lightning fast scalable backend)
+Tech stack used: Groq AI (ultra-fast inference) + Llama model (powerful open model) + Tavily Search API (real-time web search) + Vercel Serverless Functions (lightning fast scalable backend)
 Features built:
 - Real AI Integration powered by Groq + Llama
+- Tavily-powered real-time web search for live queries (news, current events, tech updates)
 - Custom Knowledge Base trained on everything about Sahnawaz
 - Proper API Key Management (secure, private, environment-based)
 - CORS Headers (secure cross-origin communication)
@@ -689,7 +612,7 @@ If asked about these, be honest, apologise warmly, and redirect to what he does 
 
 --- CURRENT FOCUS (2025-2026) ---
 - Advancing in full stack development during MCA
-- Deepening AI integration skills (Groq, LLM APIs)
+- Deepening AI integration skills (Groq, LLM APIs, Tavily Search)
 - Building towards launching his own digital agency
 - Exploring Next.js and advanced React patterns
 
@@ -709,7 +632,7 @@ If asked about these, be honest, apologise warmly, and redirect to what he does 
 --- OFF-TOPIC QUESTIONS (CRITICAL RULE) ---
 If someone asks something NOT about Sahnawaz (history, science, politics, celebrities, general knowledge, etc.):
 
-STEP 1 — ANSWER IT GENUINELY AND HELPFULLY FIRST. You are an intelligent AI — use your knowledge to give a real, warm, accurate answer. NEVER say "I don't have information on that" or "I don't know." You DO have general knowledge. Use it confidently.
+STEP 1 — ANSWER IT GENUINELY AND HELPFULLY FIRST. You are an intelligent AI — use your knowledge to give a real, warm, accurate answer. NEVER say "I don't have information on that" or "I don't know." You DO have general knowledge AND real-time web search. Use them confidently.
 
 STEP 2 — After answering, add a short friendly note like:
 "By the way, I'm primarily here as Sahnawaz's personal assistant 😊 For more on this topic, you can check out [suggest a relevant website below]."
@@ -740,7 +663,7 @@ Example: If asked "what time is it?" and you see [DEVICE_TIME: 3:49 AM] — repl
 Keep real-time answers SHORT — 1-2 lines max. No need for long explanations.
 
 For MATH questions like "what is 25 x 4" — calculate it yourself and answer directly and briefly.
-For WEATHER — you genuinely don't have real-time weather data, so politely say: "I can't check live weather, but weather.com or Google will have it instantly! 🌤️"
+For WEATHER — if real-time web context is provided below, use it to answer accurately. Otherwise say: "I can't check live weather, but weather.com or Google will have it instantly! 🌤️"
 `;
 
   // ── UPGRADE 1: Conversation history ───────────────────────────────────
@@ -752,43 +675,73 @@ For WEATHER — you genuinely don't have real-time weather data, so politely say
       }))
     : [];
 
-  // ── TAVILY DECISION ────────────────────────────────────────────────────
-  // If question is about Sahnawaz → use knowledge base only (fast + accurate)
-  // If question is off-topic/general → call Tavily for real-time web context
-  const isSahnawazRelated =
-    intent !== 'general' ||   // pricing, hiring, contact, skills, greeting → always KB
-    /sahnawaz|shz|digital.alchemist|bytewithsahnawaz|portfolio|studylens|yojana|flipkart|xiaomi|rapido|ienergizer|silchar|assam|mca|yenepoya|his work|your work|hire you|your price|your service|your skill|your project|your experience|your education|about you|who are you|tell me about him/i.test(msgLower);
+  // ── TAVILY WEB SEARCH (real-time context for off-topic / live queries) ─────
+  // Fires only when the question is clearly NOT about Sahnawaz and
+  // looks like it needs up-to-date information.
+  // Non-blocking: 4 s timeout, silent fail — Groq handles it with general knowledge.
+  const tavilyKey = process.env.TAVILY_API_KEY;
+  let tavilyContext = '';
 
-  let webContext = '';
-  if (!isSahnawazRelated) {
+  const needsWebSearch = (msg) => {
+    // Never search for Sahnawaz-specific questions — already in knowledge base
+    if (/sahnawaz|shz|digital.alchemist|this.portfolio|this.website|this.chatbot/i.test(msg)) return false;
+    // Skip purely portfolio-intent queries
+    if (intent === 'pricing' || intent === 'hiring' || intent === 'contact' ||
+        intent === 'skills'  || intent === 'greeting') return false;
+    // Trigger for real-time or general-knowledge queries
+    return /\b(latest|current|recent|today|right now|breaking|news|trending|who is|what is|when did|how does|explain|tell me about|what happened|what are|price of|score|result|winner|election|update|released|launched|announced|discovered|invented|founded|2024|2025|2026)\b/i.test(msg);
+  };
+
+  if (tavilyKey && needsWebSearch(trimmed)) {
     try {
-      const tavilyResult = await tavilySearch(trimmed);
-      if (tavilyResult) {
-        const answer  = tavilyResult.answer || '';
-        const results = (tavilyResult.results || []).slice(0, 3);
+      const tvCtrl = new AbortController();
+      const tvTimeout = setTimeout(() => tvCtrl.abort(), 4000); // hard 4 s cap
+
+      const tvRes = await fetch('https://api.tavily.com/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          api_key:             tavilyKey,
+          query:               trimmed,
+          search_depth:        'basic',    // 'basic' = fast, 'advanced' = thorough
+          max_results:         3,
+          include_answer:      true,       // Tavily's own AI summary
+          include_raw_content: false       // keep payload small
+        }),
+        signal: tvCtrl.signal
+      });
+
+      clearTimeout(tvTimeout);
+
+      if (tvRes.ok) {
+        const tvData = await tvRes.json();
+        const answer  = (tvData.answer  || '').slice(0, 400);
+        const results = (tvData.results || []).slice(0, 3);
 
         if (answer || results.length > 0) {
-          webContext += '\n\n--- LIVE WEB SEARCH RESULTS (Tavily) ---\n';
-          webContext += 'The visitor asked something outside Sahnawaz\'s profile. Use these real-time search results to give a helpful, accurate answer.\n\n';
-          if (answer) webContext += `Quick Answer: ${answer}\n\n`;
-          results.forEach(function(r) {
-            webContext += `Source: ${r.title || ''}\n`;
-            webContext += `${(r.content || '').slice(0, 300)}\n\n`;
-          });
-          webContext += '--- END WEB RESULTS ---\n';
-          webContext += 'After answering using these results, add a warm note:\n';
-          webContext += '"By the way, I\'m primarily Sahnawaz\'s personal assistant 😊 For more on this, check [suggest the most relevant site from the OFF-TOPIC section above]."';
+          const snippets = results
+            .map(r => `- ${r.title}: ${(r.content || '').slice(0, 200)}`)
+            .join('\n');
+
+          tavilyContext =
+            `\n\n--- REAL-TIME WEB CONTEXT (injected automatically — use this to answer accurately) ---\n` +
+            (answer  ? `Quick Answer: ${answer}\n` : '') +
+            (snippets ? `Sources:\n${snippets}\n` : '') +
+            `Use this information naturally and confidently. Do NOT mention "web search", "Tavily", or "search results" — just answer as if you already knew it.\n` +
+            `---`;
         }
       }
-    } catch(e) {
-      // Tavily failed silently — Groq answers from its own training data
+    } catch (tvErr) {
+      // Silent fail — Groq's built-in knowledge covers the gap
+      console.warn('Tavily search skipped:', tvErr.message);
     }
   }
 
+  // ── Build messages array — Tavily context appended to system prompt ────────
   const messages = [
-    { role: 'system',    content: KNOWLEDGE + webContext },
+    { role: 'system', content: KNOWLEDGE + tavilyContext },
     ...safeHistory,
-    { role: 'user',      content: trimmed }
+    { role: 'user',   content: trimmed }
   ];
 
   // ── Models in priority order ───────────────────────────────────────────
@@ -850,11 +803,12 @@ For WEATHER — you genuinely don't have real-time weather data, so politely say
     // ── UPGRADE 6: Question logging ──────────────────────────────────────
     // Logs intent + question (no personal data) for knowledge base improvement
     console.log(JSON.stringify({
-      log:    'chat_question',
+      log:     'chat_question',
       intent,
-      lang:   isHindi ? 'hi' : isBengali ? 'bn' : 'en',
-      q:      trimmed.slice(0, 120),  // truncate for privacy
-      t:      new Date().toISOString()
+      web:     tavilyContext ? true : false,
+      lang:    isHindi ? 'hi' : isBengali ? 'bn' : 'en',
+      q:       trimmed.slice(0, 120),  // truncate for privacy
+      t:       new Date().toISOString()
     }));
 
     isProcessing = false;
