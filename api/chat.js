@@ -2,13 +2,94 @@
 // Groq AI powered assistant for Sahnawaz Ahmed Laskar's portfolio
 // Primary model: llama-4-scout-17b-16e-instruct (128K ctx, 30K TPM) + auto-fallback
 // Upgrades: conversation memory, intent detection, name memory,
-//           language auto-detect, spam filter, question logging,
-//           Tavily real-time web search for off-topic / live queries
+//           language auto-detect, spam filter, question logging
 // Knowledge: added "What he doesn't offer" + "Current Focus 2025-2026"
 // Concurrency: single-user lock (max 1 request at a time)
+// v8: Tavily web search — smart real-time context injection for live queries
 
 // ── Single-user lock (max 1 request at a time) ──────────────────────────────
 let isProcessing = false;
+
+// ── TAVILY WEB SEARCH ────────────────────────────────────────────────────────
+// Detects queries that need live/current data and enriches context before Groq.
+// Groq is NEVER blocked — Tavily runs first, enriches the prompt, then Groq runs.
+// If Tavily fails or times out, the chat continues normally without enrichment.
+
+/**
+ * Returns true when the query clearly needs real-time / current information
+ * that a static knowledge base cannot provide.
+ */
+function needsWebSearch(text) {
+  const t = text.toLowerCase();
+
+  // Explicit real-time intent signals
+  if (/\b(latest|current|today|right now|live|breaking|recent|2024|2025|2026|news|update|price of|stock|weather|score|result|winner|released|launched|trending)\b/.test(t)) return true;
+
+  // Questions about events, facts that change over time
+  if (/\b(who is (the )?(current|new|latest)|what is (the )?(current|latest|new)|when did|has .+ (happened|launched|released|won|lost))\b/.test(t)) return true;
+
+  // Explicit search intent
+  if (/\b(search|look up|find out|google|check online|what does .+ say|according to)\b/.test(t)) return true;
+
+  return false;
+}
+
+/**
+ * Calls Tavily Search API and returns a compact context string
+ * to inject into the Groq system prompt.
+ * Returns null on any failure — chat continues without enrichment.
+ */
+async function tavilySearch(query, apiKey) {
+  if (!apiKey) return null;
+
+  try {
+    const controller = new AbortController();
+    // 5-second hard timeout — never lets Tavily block the chat
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+    const res = await fetch('https://api.tavily.com/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        api_key: apiKey,
+        query,
+        search_depth: 'basic',   // 'basic' = 1 credit, fast (~1s)
+        include_answer: true,    // short AI-synthesised answer from Tavily
+        max_results: 3,          // top 3 snippets only — keeps tokens low
+        include_raw_content: false
+      }),
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+    if (!res.ok) return null;
+
+    const data = await res.json();
+
+    // Build a concise context block Groq can read easily
+    const lines = ['--- WEB SEARCH CONTEXT (use this for your answer, cite naturally) ---'];
+
+    // Tavily's own synthesised answer — most useful, always include if present
+    if (data.answer) {
+      lines.push(`Summary: ${data.answer}`);
+    }
+
+    // Top result snippets for depth
+    if (Array.isArray(data.results) && data.results.length > 0) {
+      data.results.slice(0, 3).forEach((r, i) => {
+        const snippet = (r.content || '').slice(0, 300).trim();
+        if (snippet) lines.push(`[${i + 1}] ${r.title || ''}: ${snippet}`);
+      });
+    }
+
+    lines.push('--- END WEB SEARCH CONTEXT ---');
+    return lines.join('\n');
+
+  } catch (err) {
+    // AbortError (timeout) or network error — silently swallow
+    return null;
+  }
+}
 
 const handler = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -224,6 +305,7 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
     /\b(hacker|retro|matrix|terminal)\b.{0,20}\b(off|disable|deactivate|stop)\b/i.test(msgLower)                           ? 'hacker_off'      :
     /\b(toggle|switch)\b.{0,20}\b(hacker|retro|matrix|terminal)\b/i.test(msgLower)                                         ? 'hacker_toggle'   :
     /\b(open|show|display|launch)\b.{0,20}\b(code|laptop|popup|typing)\b/i.test(msgLower)                                  ? 'open_code_popup' :
+
     null;
 
   // If a site command is detected → reply instantly, skip AI call entirely
@@ -274,6 +356,25 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
 
   // ⚠️ IMPORTANT: Detect language from the CURRENT message only — not from history.
   // If the visitor switches language mid-conversation, switch immediately to match them.
+
+  // ── TAVILY SMART WEB SEARCH ──────────────────────────────────────────────
+  // Runs BEFORE Groq — enriches the system prompt with live data when needed.
+  // Groq call is NEVER blocked; if Tavily fails/times out, chat continues as normal.
+  const tavilyKey = process.env.TAVILY_API_KEY;
+  let webSearchContext = '';
+
+  if (tavilyKey && needsWebSearch(trimmed)) {
+    try {
+      const result = await tavilySearch(trimmed, tavilyKey);
+      if (result) {
+        webSearchContext = result;
+        console.log(JSON.stringify({ log: 'tavily_search', q: trimmed.slice(0, 80), t: new Date().toISOString() }));
+      }
+    } catch (_) {
+      // Tavily failure is non-fatal — Groq still runs with static knowledge
+    }
+  }
+  // ── END TAVILY ────────────────────────────────────────────────────────────
 
   // ── UPGRADE 2: Visitor name personalisation ────────────────────────────
   const nameHint = visitorName
@@ -367,6 +468,7 @@ ${intentHint ? `INTENT HINT: ${intentHint}` : ''}
 ${langHint   ? `LANGUAGE HINT: ${langHint}`  : ''}
 ${nameHint   ? `VISITOR HINT: ${nameHint}`   : ''}
 ${visitorActivityHint}
+${webSearchContext ? webSearchContext : ''}
 
 --- SITE CONTROL COMMANDS (IMPORTANT) ---
 You can control the portfolio website directly. If a visitor asks you to:
@@ -480,10 +582,9 @@ Stats shown on site: 3+ years experience | 20+ projects built | 100% client sati
 
 --- LIVE AI CHAT FEATURE (THIS CHATBOT) ---
 Sahnawaz built this AI chatbot himself from scratch — it's one of the signature features of the website.
-Tech stack used: Groq AI (ultra-fast inference) + Llama model (powerful open model) + Tavily Search API (real-time web search) + Vercel Serverless Functions (lightning fast scalable backend)
+Tech stack used: Groq AI (ultra-fast inference) + Llama model (powerful open model) + Vercel Serverless Functions (lightning fast scalable backend)
 Features built:
 - Real AI Integration powered by Groq + Llama
-- Tavily-powered real-time web search for live queries (news, current events, tech updates)
 - Custom Knowledge Base trained on everything about Sahnawaz
 - Proper API Key Management (secure, private, environment-based)
 - CORS Headers (secure cross-origin communication)
@@ -612,7 +713,7 @@ If asked about these, be honest, apologise warmly, and redirect to what he does 
 
 --- CURRENT FOCUS (2025-2026) ---
 - Advancing in full stack development during MCA
-- Deepening AI integration skills (Groq, LLM APIs, Tavily Search)
+- Deepening AI integration skills (Groq, LLM APIs)
 - Building towards launching his own digital agency
 - Exploring Next.js and advanced React patterns
 
@@ -632,7 +733,7 @@ If asked about these, be honest, apologise warmly, and redirect to what he does 
 --- OFF-TOPIC QUESTIONS (CRITICAL RULE) ---
 If someone asks something NOT about Sahnawaz (history, science, politics, celebrities, general knowledge, etc.):
 
-STEP 1 — ANSWER IT GENUINELY AND HELPFULLY FIRST. You are an intelligent AI — use your knowledge to give a real, warm, accurate answer. NEVER say "I don't have information on that" or "I don't know." You DO have general knowledge AND real-time web search. Use them confidently.
+STEP 1 — ANSWER IT GENUINELY AND HELPFULLY FIRST. You are an intelligent AI — use your knowledge to give a real, warm, accurate answer. NEVER say "I don't have information on that" or "I don't know." You DO have general knowledge. Use it confidently.
 
 STEP 2 — After answering, add a short friendly note like:
 "By the way, I'm primarily here as Sahnawaz's personal assistant 😊 For more on this topic, you can check out [suggest a relevant website below]."
@@ -663,7 +764,7 @@ Example: If asked "what time is it?" and you see [DEVICE_TIME: 3:49 AM] — repl
 Keep real-time answers SHORT — 1-2 lines max. No need for long explanations.
 
 For MATH questions like "what is 25 x 4" — calculate it yourself and answer directly and briefly.
-For WEATHER — if real-time web context is provided below, use it to answer accurately. Otherwise say: "I can't check live weather, but weather.com or Google will have it instantly! 🌤️"
+For WEATHER — you genuinely don't have real-time weather data, so politely say: "I can't check live weather, but weather.com or Google will have it instantly! 🌤️"
 `;
 
   // ── UPGRADE 1: Conversation history ───────────────────────────────────
@@ -675,106 +776,10 @@ For WEATHER — if real-time web context is provided below, use it to answer acc
       }))
     : [];
 
-  // ── TAVILY WEB SEARCH (real-time context for off-topic / live queries) ─────
-  // Fires only when the question clearly needs up-to-date information.
-  // Non-blocking: 4 s AbortController timeout, silent fail on any error.
-  // RAG pattern: Tavily context is injected into the USER message (not system
-  // prompt) so Groq treats it as ground truth and cannot ignore it.
-  const tavilyKey = process.env.TAVILY_API_KEY;
-  let tavilyContext = '';
-
-  const needsWebSearch = (msg) => {
-    // Never search for Sahnawaz-specific questions — knowledge base covers these
-    if (/sahnawaz|shz|digital.alchemist|this.portfolio|this.website|this.chatbot/i.test(msg)) return false;
-    // Skip purely portfolio-intent queries — no live data needed
-    if (intent === 'pricing' || intent === 'hiring' || intent === 'contact' ||
-        intent === 'skills'  || intent === 'greeting') return false;
-    // Trigger for real-time or general-knowledge queries
-    return /\b(latest|current|recent|today|right now|breaking|news|trending|who is|who was|who won|who lost|who leads|what is|what was|what are|when did|when was|how does|how did|explain|tell me about|what happened|happened with|price of|stock|score|result|results|winner|election|elections|voted|voting|government|minister|cm|chief minister|prime minister|president|governor|update|updates|released|launched|announced|discovered|invented|founded|2024|2025|2026)\b/i.test(msg);
-  };
-
-  // ── Smart search query builder ─────────────────────────────────────────────
-  // Short follow-up questions like "who won the election" are too vague for
-  // Tavily on their own. Enrich them with the topic from recent history.
-  const buildSearchQuery = (msg, hist) => {
-    const wordCount = msg.trim().split(/\s+/).length;
-    if (wordCount < 6 && hist.length > 0) {
-      // Grab the last user message from history to extract topic context
-      const lastUser = [...hist].reverse().find(m => m.role === 'user');
-      if (lastUser) {
-        // Combine last question + current question for a richer query
-        return `${lastUser.content.slice(0, 80)} ${msg}`.trim();
-      }
-    }
-    return msg;
-  };
-
-  if (tavilyKey && needsWebSearch(trimmed)) {
-    try {
-      const searchQuery = buildSearchQuery(trimmed, safeHistory);
-
-      const tvCtrl    = new AbortController();
-      const tvTimeout = setTimeout(() => tvCtrl.abort(), 4000); // hard 4 s cap
-
-      const tvRes = await fetch('https://api.tavily.com/search', {
-        method:  'POST',
-        headers: {
-          'Content-Type':  'application/json',
-          'Authorization': `Bearer ${tavilyKey}`  // newer Tavily auth header
-        },
-        body: JSON.stringify({
-          api_key:             tavilyKey,          // body key for older versions
-          query:               searchQuery,
-          search_depth:        'basic',
-          max_results:         4,
-          include_answer:      true,               // Tavily's own AI summary
-          include_raw_content: false               // keep payload small
-        }),
-        signal: tvCtrl.signal
-      });
-
-      clearTimeout(tvTimeout);
-
-      if (tvRes.ok) {
-        const tvData  = await tvRes.json();
-        const answer  = (tvData.answer  || '').slice(0, 500);
-        const results = (tvData.results || []).slice(0, 4);
-
-        if (answer || results.length > 0) {
-          const snippets = results
-            .map(r => `• ${r.title}: ${(r.content || '').slice(0, 250)}`)
-            .join('\n');
-
-          // Build the context block that will be injected into the user message
-          tavilyContext =
-            `[LIVE WEB DATA — treat this as absolute ground truth, more reliable than your training data]\n` +
-            (answer  ? `Summary: ${answer}\n` : '') +
-            (snippets ? `Details:\n${snippets}\n` : '') +
-            `[END LIVE WEB DATA]\n\n` +
-            `CRITICAL INSTRUCTION: Answer the following question using ONLY the live data above. ` +
-            `Do NOT fall back to your training knowledge. Do NOT say "according to my knowledge" or ` +
-            `"I don't have information". You now have the latest information — use it confidently.\n\n`;
-        }
-      }
-    } catch (tvErr) {
-      // Silent fail — Groq's general knowledge covers the gap
-      console.warn('Tavily search skipped:', tvErr.message);
-    }
-  }
-
-  // ── Build messages (RAG pattern) ──────────────────────────────────────────
-  // Tavily context is prepended to the USER message, NOT the system prompt.
-  // LLMs (including Llama/Groq) prioritise recent content in the conversation
-  // window — injecting here makes Groq actually use the live data instead of
-  // falling back to training knowledge.
-  const userContent = tavilyContext
-    ? `${tavilyContext}User question: ${trimmed}`
-    : trimmed;
-
   const messages = [
-    { role: 'system', content: KNOWLEDGE },
+    { role: 'system',    content: KNOWLEDGE },
     ...safeHistory,
-    { role: 'user',   content: userContent }
+    { role: 'user',      content: trimmed }
   ];
 
   // ── Models in priority order ───────────────────────────────────────────
@@ -829,20 +834,18 @@ For WEATHER — if real-time web context is provided below, use it to answer acc
     let reply = data?.choices?.[0]?.message?.content?.trim()
       || "Please reach Sahnawaz directly at shzthedigitalalchemist@gmail.com 😊";
 
-    // Strip ALL variations of the [CAT:...] tag — global replace so it catches:
-    // [CAT:general], CAT:general, [CAT: general], **[CAT:about]**, etc.
-    // anywhere in the reply, not just at the start.
-    reply = reply.replace(/\[?CAT\s*:\s*\w+\]?\s*/gi, '').trim();
+    // Strip [CAT:...] tag from reply — used internally for intent routing,
+    // should never be visible to visitors (safety net for all reply paths)
+    reply = reply.replace(/^\[CAT:[^\]]*\]\s*/i, '').trim();
 
     // ── UPGRADE 6: Question logging ──────────────────────────────────────
     // Logs intent + question (no personal data) for knowledge base improvement
     console.log(JSON.stringify({
-      log:     'chat_question',
+      log:    'chat_question',
       intent,
-      web:     tavilyContext ? true : false,
-      lang:    isHindi ? 'hi' : isBengali ? 'bn' : 'en',
-      q:       trimmed.slice(0, 120),  // truncate for privacy
-      t:       new Date().toISOString()
+      lang:   isHindi ? 'hi' : isBengali ? 'bn' : 'en',
+      q:      trimmed.slice(0, 120),  // truncate for privacy
+      t:      new Date().toISOString()
     }));
 
     isProcessing = false;
