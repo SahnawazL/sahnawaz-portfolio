@@ -1,6 +1,6 @@
 // api/chat.js — Vercel Serverless Function
 // Groq AI powered assistant for Sahnawaz Ahmed Laskar's portfolio
-// Primary model: llama-4-scout-17b-16e-instruct (128K ctx, 30K TPM) + auto-fallback
+// Primary model: openai/gpt-oss-120b (free tier, 8K TPM / 200K TPD) + auto-fallback
 // Upgrades: conversation memory, intent detection, name memory,
 //           language auto-detect, spam filter, question logging
 // Knowledge: added "What he doesn't offer" + "Current Focus 2025-2026"
@@ -724,13 +724,13 @@ For WEATHER — you genuinely don't have real-time weather data, so politely say
   ];
 
   // ── Models in priority order ───────────────────────────────────────────
-  // Free tier (2026): All share 30 RPM / 6K TPM / 1K RPD per model per key.
-  // gpt-oss-120b was removed — it only gets 500 RPD (half) and 3K TPM,
-  // making it the worst choice for rate limit headroom.
+  // Updated Aug 2026: llama-4-scout / llama-3.3-70b-versatile / llama-3.1-8b-instant
+  // were all deprecated by Groq (see console.groq.com/docs/deprecations).
+  // Replaced with their official recommended, free-tier successors.
   const MODELS = [
-    'meta-llama/llama-4-scout-17b-16e-instruct',      // Primary: fast, 30K TPM, great quality
-    'llama-3.3-70b-versatile',                        // Fallback 1: 70B params, excellent quality
-    'llama-3.1-8b-instant'                            // Fallback 2: 8B safety net, very high TPD
+    'openai/gpt-oss-120b',   // Primary: strong quality, 30 RPM / 8K TPM / 200K TPD (free)
+    'openai/gpt-oss-20b',    // Fallback 1: fastest (1000 TPS), 30 RPM / higher TPD (free)
+    'qwen/qwen3-32b'         // Fallback 2: safety net, 60 RPM / 6K TPM (free)
   ];
 
   const callGroq = async (model) => {
