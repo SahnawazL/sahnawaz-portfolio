@@ -9,7 +9,7 @@ const { EdgeTTS } = require('edge-tts-universal');
 
 let isSpeaking = false; // single-user lock, mirrors chat.js
 
-const DEFAULT_VOICE  = 'en-IN-NeerjaNeural';
+const DEFAULT_VOICE  = 'en-GB-SoniaNeural';
 const MAX_TOTAL_CHARS = 2000; // generous cap — Edge TTS has no per-call char limit like Orpheus did
 
 // ── Strip markdown, [CAT:] tags, links, and emoji so the voice reads clean text ──
