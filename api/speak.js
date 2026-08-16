@@ -131,8 +131,10 @@ const handler = async (req, res) => {
     const chunks   = chunkText(cleaned, MAX_CHUNK_CHARS);
     const useVoice = (voice && /^[a-z]+$/i.test(voice)) ? voice : DEFAULT_VOICE;
 
-    const wavBuffers = [];
-    for (const chunk of chunks) {
+    // Fetch all chunks in parallel — Promise.all preserves input order in the
+    // results array, so the stitched audio still plays back in the right order.
+    // This is the main latency win: N chunks now cost ~1 chunk's time, not N.
+    const fetchChunk = async (chunk) => {
       const ttsRes = await fetch('https://api.groq.com/openai/v1/audio/speech', {
         method: 'POST',
         headers: {
@@ -150,12 +152,19 @@ const handler = async (req, res) => {
       if (!ttsRes.ok) {
         const errBody = await ttsRes.text().catch(() => '');
         console.error('Groq TTS failed:', ttsRes.status, errBody);
-        isSpeaking = false;
-        return res.status(502).json({ error: 'Voice generation failed. Please try again.' });
+        throw new Error('groq_tts_failed');
       }
 
       const arrBuf = await ttsRes.arrayBuffer();
-      wavBuffers.push(Buffer.from(arrBuf));
+      return Buffer.from(arrBuf);
+    };
+
+    let wavBuffers;
+    try {
+      wavBuffers = await Promise.all(chunks.map(fetchChunk));
+    } catch (e) {
+      isSpeaking = false;
+      return res.status(502).json({ error: 'Voice generation failed. Please try again.' });
     }
 
     const finalWav = stitchWav(wavBuffers);
