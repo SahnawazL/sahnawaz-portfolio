@@ -18350,17 +18350,43 @@ function typeText(element, text, speed = 50) {
 }
 
 /* Word-by-word highlight during playback — synced to real Edge TTS
-   WordBoundary timestamps, so this tracks the actual audio precisely. */
+   WordBoundary timestamps, so this tracks the actual audio precisely.
+   The moving highlight itself is a single .tts-highlight-pill element
+   (see JS) that glides between word positions — .tts-word/.tts-active
+   here only controls the text's own color/glow, which can afford to
+   pop near-instantly since the pill underneath is what visibly moves. */
 .tts-word {
-  transition: color 0.12s ease, background 0.12s ease, text-shadow 0.12s ease;
+  position: relative;
+  z-index: 1;
+  transition: color 0.12s ease, text-shadow 0.12s ease;
   border-radius: 4px;
   padding: 0 2px;
   margin: 0 -2px;
 }
 .tts-word.tts-active {
   color: #00131a;
-  background: #00e5ff;
   text-shadow: 0 0 10px rgba(0,229,255,0.5);
+}
+
+/* The single sliding highlight — animates transform/width/height instead
+   of jumping, so it visually glides from word to word. Sits behind the
+   word text (z-index 0 vs the span's z-index 1 above). */
+.tts-highlight-pill {
+  position: absolute;
+  top: 0; left: 0;
+  width: 0; height: 0;
+  background: #00e5ff;
+  box-shadow: 0 0 14px rgba(0,229,255,0.45);
+  border-radius: 4px;
+  opacity: 0;
+  z-index: 0;
+  pointer-events: none;
+  will-change: transform, width, height;
+  transition:
+    transform 0.16s cubic-bezier(0.4,0,0.2,1),
+    width     0.16s cubic-bezier(0.4,0,0.2,1),
+    height    0.16s cubic-bezier(0.4,0,0.2,1),
+    opacity   0.12s ease;
 }
 
 /* ---- Feature 4: User typing indicator in footer ---- */
@@ -21060,6 +21086,34 @@ document.addEventListener('DOMContentLoaded', function(){
     var lastIdx = -1;
     var rafId;
 
+    // Single element that glides between word positions — this is what
+    // makes the highlight look like it *moves* rather than jumping.
+    var pill = document.createElement('div');
+    pill.className = 'tts-highlight-pill';
+    bubbleEl.appendChild(pill);
+
+    function movePillTo(span, instant){
+      if (!span) { pill.style.opacity = '0'; return; }
+      var bubbleRect = bubbleEl.getBoundingClientRect();
+      var spanRect   = span.getBoundingClientRect();
+      // Subtract clientLeft/Top too, since the containing block for an
+      // absolutely-positioned child starts at the padding box (inside
+      // the border), while getBoundingClientRect() measures from the
+      // border's outer edge.
+      var x = spanRect.left - bubbleRect.left - bubbleEl.clientLeft;
+      var y = spanRect.top  - bubbleRect.top  - bubbleEl.clientTop;
+
+      if (instant) pill.style.transition = 'none';
+      pill.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+      pill.style.width  = spanRect.width  + 'px';
+      pill.style.height = spanRect.height + 'px';
+      pill.style.opacity = '1';
+      if (instant) {
+        void pill.offsetWidth; // force layout so the 'none' transition actually applies first
+        pill.style.transition = '';
+      }
+    }
+
     function tick(){
       if (_ttsAudio !== audio) return; /* stopped or replaced */
       var t = audio.currentTime + HIGHLIGHT_LEAD_SEC;
@@ -21068,6 +21122,7 @@ document.addEventListener('DOMContentLoaded', function(){
       if (idx !== lastIdx) {
         if (spans[lastIdx]) spans[lastIdx].classList.remove('tts-active');
         if (spans[idx]) spans[idx].classList.add('tts-active');
+        movePillTo(spans[idx], lastIdx < 0); // instant only for the very first word
         lastIdx = idx;
       }
       rafId = requestAnimationFrame(tick);
@@ -21077,6 +21132,7 @@ document.addEventListener('DOMContentLoaded', function(){
     return function stopHighlight(){
       cancelAnimationFrame(rafId);
       for (var i = 0; i < spans.length; i++) spans[i].classList.remove('tts-active');
+      if (pill.parentNode) pill.parentNode.removeChild(pill);
     };
   }
 
