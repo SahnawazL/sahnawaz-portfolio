@@ -18350,8 +18350,6 @@ function typeText(element, text, speed = 50) {
 }
 
 /* Word-by-word highlight during playback */
-.tts-word { transition: color 0.12s ease, background 0.12s ease; border-radius:3px; }
-.tts-word.tts-active { color:#00131a; background:#00e5ff; padding:0 1px; }
 
 /* ---- Feature 4: User typing indicator in footer ---- */
 #chatUserTyping {
@@ -20955,8 +20953,6 @@ document.addEventListener('DOMContentLoaded', function(){
   var ttsApiUrl        = 'https://sahnawaz-portfolio.vercel.app/api/speak';
   var _ttsAudio         = null;
   var _ttsBtnActive     = null;
-  var _ttsStopHighlight = null;   // cancels the highlight animation loop
-  var _ttsRestoreBubble = null;   // restores the bubble's original formatted HTML
 
   var ttsOverlay = document.getElementById('ttsLoadingOverlay');
 
@@ -20975,100 +20971,12 @@ document.addEventListener('DOMContentLoaded', function(){
   function showTtsOverlay(){ if (ttsOverlay) ttsOverlay.classList.add('show'); }
   function hideTtsOverlay(){ if (ttsOverlay) ttsOverlay.classList.remove('show'); }
 
-  /* Same cleanup rules as the backend (api/speak.js) so the highlighted
-     words on screen match what's actually spoken. */
-  function cleanForSpeechClient(raw){
-    return String(raw)
-      .replace(/\*{0,2}\[?(?:CAT|KAT|CATEGORY):[\w]+\]?\*{0,2}/gi, '')
-      .replace(/\*{1,3}/g, '')
-      .replace(/#{1,3}/g, '')
-      .replace(/^[-•]\s+/gm, '')
-      .replace(/!!|>>|---/g, '')
-      .replace(/https?:\/\/\S+/g, '')
-      .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}]/gu, '')
-      .replace(/\s+/g, ' ')
-      .trim();
-  }
-
-  /* MUST match MAX_TOTAL_CHARS in api/speak.js — the backend silently caps
-     how much of a long reply actually gets spoken (for latency). Without
-     this, the highlighter would sweep across the FULL visible text while
-     audio only covers the first ~700 chars, badly desyncing on long replies. */
-  var TTS_SPOKEN_CHAR_CAP = 700;
-  function truncateToLimitClient(text, limit){
-    if (text.length <= limit) return text;
-    var cut = text.slice(0, limit);
-    var lastStop = Math.max(cut.lastIndexOf('.'), cut.lastIndexOf('!'), cut.lastIndexOf('?'));
-    return (lastStop > limit * 0.5 ? cut.slice(0, lastStop + 1) : cut).trim();
-  }
-
-  function escHtml(s){
-    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  }
-
-  /* Wraps each word in a span for highlighting; returns the HTML plus a
-     per-word weight (rough proxy for how long that word takes to say). */
-  function buildWordSpans(text){
-    var parts = text.split(/(\s+)/);
-    var html = '';
-    var weights = [];
-    var wi = 0;
-    parts.forEach(function(part){
-      if (part === '') return;
-      if (/^\s+$/.test(part)) { html += part; return; }
-      html += '<span class="tts-word" data-i="' + wi + '">' + escHtml(part) + '</span>';
-      var w = part.replace(/[^\w]/g, '').length || 1;
-      if (/[.!?,;:]$/.test(part)) w += 2; /* extra weight for natural pause */
-      weights.push(w);
-      wi++;
-    });
-    return { html: html, weights: weights };
-  }
-
-  /* Drives the word highlight against actual audio.currentTime */
-  function startWordHighlight(bubbleEl, weights, audio){
-    var totalWeight = weights.reduce(function(a, b){ return a + b; }, 0) || 1;
-    var spans = bubbleEl.querySelectorAll('.tts-word');
-    var cum = [];
-    var acc = 0;
-    weights.forEach(function(w){
-      acc += w;
-      cum.push(acc); /* fraction thresholds, scaled by duration at tick time */
-    });
-
-    var lastIdx = -1;
-    var rafId;
-    function tick(){
-      if (_ttsAudio !== audio) return; /* stopped or replaced */
-      var duration = audio.duration;
-      if (duration && isFinite(duration)) {
-        var t = audio.currentTime / duration * totalWeight;
-        var idx = 0;
-        while (idx < cum.length - 1 && t > cum[idx]) idx++;
-        if (idx !== lastIdx) {
-          if (spans[lastIdx]) spans[lastIdx].classList.remove('tts-active');
-          if (spans[idx]) spans[idx].classList.add('tts-active');
-          lastIdx = idx;
-        }
-      }
-      rafId = requestAnimationFrame(tick);
-    }
-    rafId = requestAnimationFrame(tick);
-
-    return function stopHighlight(){
-      cancelAnimationFrame(rafId);
-      for (var i = 0; i < spans.length; i++) spans[i].classList.remove('tts-active');
-    };
-  }
-
   function stopSpeaking(){
     if (_ttsAudio) {
       _ttsAudio.pause();
       _ttsAudio.src = '';
       _ttsAudio = null;
     }
-    if (_ttsStopHighlight) { _ttsStopHighlight(); _ttsStopHighlight = null; }
-    if (_ttsRestoreBubble) { _ttsRestoreBubble(); _ttsRestoreBubble = null; }
     hideTtsOverlay();
     if (_ttsBtnActive) {
       setBtnIdle(_ttsBtnActive);
@@ -21086,12 +20994,12 @@ document.addEventListener('DOMContentLoaded', function(){
     setBtnIdle(btn);
     btn.addEventListener('click', function(e){
       e.stopPropagation();
-      speakText(rawText, btn, bubbleEl);
+      speakText(rawText, btn);
     });
     container.appendChild(btn);
   }
 
-  function speakText(rawText, btn, bubbleEl){
+  function speakText(rawText, btn){
     /* Tapping the currently-playing/loading message again stops it */
     if (_ttsBtnActive === btn) { stopSpeaking(); return; }
     stopSpeaking();
@@ -21100,8 +21008,6 @@ document.addEventListener('DOMContentLoaded', function(){
     btn.innerHTML = '<span class="tts-spinner-sm"></span><span>Preparing</span>';
     _ttsBtnActive = btn;
     showTtsOverlay();
-
-    var cleaned = cleanForSpeechClient(rawText);
 
     fetch(ttsApiUrl, {
       method: 'POST',
@@ -21123,28 +21029,6 @@ document.addEventListener('DOMContentLoaded', function(){
       btn.classList.remove('speak-loading');
       btn.classList.add('speak-playing');
       btn.innerHTML = '<span class="tts-icon"><span class="tts-bars"><span></span><span></span><span></span></span></span><span>Playing</span>';
-
-      /* Swap in word-span markup so we can highlight as it speaks;
-         original formatted HTML is restored the moment playback stops. */
-      var origHTML = bubbleEl ? bubbleEl.innerHTML : null;
-      if (bubbleEl) {
-        var built = buildWordSpans(cleaned);
-
-        /* Only the portion actually sent to Groq gets spoken — the backend
-           applies the same cap. Cap the highlight timeline to that many
-           words so it doesn't sweep past what's actually being read. */
-        var spokenText  = truncateToLimitClient(cleaned, TTS_SPOKEN_CHAR_CAP);
-        var spokenWords = spokenText.trim() ? spokenText.trim().split(/\s+/).length : built.weights.length;
-        var spokenWeights = built.weights.slice(0, Math.min(spokenWords, built.weights.length));
-
-        bubbleEl.innerHTML = built.html;
-        _ttsRestoreBubble = function(){ bubbleEl.innerHTML = origHTML; };
-        audio.addEventListener('loadedmetadata', function(){
-          if (_ttsAudio === audio) {
-            _ttsStopHighlight = startWordHighlight(bubbleEl, spokenWeights, audio);
-          }
-        }, { once: true });
-      }
 
       audio.addEventListener('ended', function(){
         URL.revokeObjectURL(url);
