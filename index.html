@@ -20984,16 +20984,61 @@ document.addEventListener('DOMContentLoaded', function(){
   function showTtsOverlay(){ if (ttsOverlay) ttsOverlay.classList.add('show'); }
   function hideTtsOverlay(){ if (ttsOverlay) ttsOverlay.classList.remove('show'); }
 
-  /* Wraps each word (from the server's real word-timing list) in a span so
-     it can be highlighted individually. Uses the existing escHtml() helper
-     already defined earlier in this file. */
-  function buildWordSpans(words){
-    var html = '';
-    for (var i = 0; i < words.length; i++) {
-      html += '<span class="tts-word" data-i="' + i + '">' + escHtml(words[i].text) + '</span>';
-      if (i < words.length - 1) html += ' ';
+  /* Wraps each word IN PLACE inside the bubble's existing formatted HTML,
+     instead of discarding it and rebuilding plain text. Walks every text
+     node under `root` (so it reaches text inside <b>, <li>, headers,
+     colored spans, links, etc.) and wraps just the word-tokens inside
+     each one with <span class="tts-word" data-i="N">, leaving all
+     surrounding tags and whitespace exactly where they were. Tokens with
+     no letters/digits (stray punctuation, emoji left over from markdown
+     rendering) are left unwrapped and don't consume an index, since the
+     server's word-timing list only counts spoken words. Indices are
+     assigned in document (reading) order, matching the order the server's
+     `words` array was generated in — that's what makes the positional
+     lookup in startWordHighlight() line up correctly. Never throws even
+     if the two counts drift slightly (e.g. an emoji or link the TTS
+     cleaner stripped that's still visible on screen) — startWordHighlight
+     already guards every span lookup with `if (spans[idx])`. */
+  var TTS_WORD_CHAR_RE = /[\p{L}\p{N}]/u;
+  function wrapWordsInPlace(root){
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
+    var textNodes = [];
+    var n;
+    while ((n = walker.nextNode())) textNodes.push(n);
+
+    var counter = 0;
+    for (var t = 0; t < textNodes.length; t++) {
+      var textNode = textNodes[t];
+      var text = textNode.nodeValue;
+      if (!text) continue;
+
+      var parts = text.split(/(\s+)/); // keeps whitespace runs as their own entries
+      var frag = document.createDocumentFragment();
+      var changedThisNode = false;
+
+      for (var p = 0; p < parts.length; p++) {
+        var part = parts[p];
+        if (part === '') continue;
+        if (/^\s+$/.test(part)) {
+          frag.appendChild(document.createTextNode(part));
+          continue;
+        }
+        if (TTS_WORD_CHAR_RE.test(part)) {
+          var span = document.createElement('span');
+          span.className = 'tts-word';
+          span.setAttribute('data-i', counter++);
+          span.textContent = part;
+          frag.appendChild(span);
+          changedThisNode = true;
+        } else {
+          frag.appendChild(document.createTextNode(part)); // punctuation/symbol only — not a spoken word
+        }
+      }
+
+      if (changedThisNode && textNode.parentNode) {
+        textNode.parentNode.replaceChild(frag, textNode);
+      }
     }
-    return html;
   }
 
   /* Drives the word highlight against actual audio.currentTime, using the
@@ -21118,13 +21163,14 @@ document.addEventListener('DOMContentLoaded', function(){
       btn.classList.add('speak-playing');
       btn.innerHTML = '<span class="tts-icon"><span class="tts-bars"><span></span><span></span><span></span></span></span><span>Playing</span>';
 
-      // Swap in word-span markup so we can highlight as it speaks, driven
-      // by the real per-word timestamps from the server. Original formatted
-      // HTML is restored the moment playback stops.
+      // Wrap words for highlighting IN PLACE, driven by the real per-word
+      // timestamps from the server — this keeps all existing formatting
+      // (bold, headers, bullets, colored spans) intact while it speaks.
+      // Original HTML is restored the moment playback stops.
       var words = data.words || [];
       if (bubbleEl && words.length) {
         var origHTML = bubbleEl.innerHTML;
-        bubbleEl.innerHTML = buildWordSpans(words);
+        wrapWordsInPlace(bubbleEl);
         _ttsRestoreBubble = function(){ bubbleEl.innerHTML = origHTML; };
         _ttsStopHighlight = startWordHighlight(bubbleEl, words, audio);
       }
