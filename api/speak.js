@@ -98,6 +98,9 @@ function stitchWav(buffers) {
   return Buffer.concat([riffHeader, fmtChunk, dataHeader, dataPayload]);
 }
 
+// ── Small delay helper, used for staggering requests and 429 backoff ──
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
 const handler = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -131,40 +134,65 @@ const handler = async (req, res) => {
     const chunks   = chunkText(cleaned, MAX_CHUNK_CHARS);
     const useVoice = (voice && /^[a-z]+$/i.test(voice)) ? voice : DEFAULT_VOICE;
 
-    // Fetch all chunks in parallel — Promise.all preserves input order in the
-    // results array, so the stitched audio still plays back in the right order.
-    // This is the main latency win: N chunks now cost ~1 chunk's time, not N.
-    const fetchChunk = async (chunk) => {
-      const ttsRes = await fetch('https://api.groq.com/openai/v1/audio/speech', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          model: MODEL,
-          voice: useVoice,
-          input: chunk,
-          response_format: 'wav'
-        })
-      });
+    // Fetch chunks with a slight stagger — dropping in true parallel firing
+    // was tripping Groq's per-minute rate limit on bursts (e.g. a long reply
+    // with several chunks, or tapping Listen on a couple of messages close
+    // together). Chunks still overlap for most of the latency win, but a
+    // 250ms stagger plus 429 retries makes the whole thing much less brittle.
+    const fetchChunk = async (chunk, startDelay) => {
+      if (startDelay) await sleep(startDelay);
 
-      if (!ttsRes.ok) {
+      const MAX_RETRIES = 3;
+      for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+        const ttsRes = await fetch('https://api.groq.com/openai/v1/audio/speech', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: MODEL,
+            voice: useVoice,
+            input: chunk,
+            response_format: 'wav'
+          })
+        });
+
+        if (ttsRes.ok) {
+          const arrBuf = await ttsRes.arrayBuffer();
+          return Buffer.from(arrBuf);
+        }
+
         const errBody = await ttsRes.text().catch(() => '');
         console.error('Groq TTS failed:', ttsRes.status, errBody);
-        throw new Error('groq_tts_failed');
-      }
 
-      const arrBuf = await ttsRes.arrayBuffer();
-      return Buffer.from(arrBuf);
+        // Rate limited — back off and retry a few times before giving up.
+        // Any other error (bad request, auth, etc.) fails immediately since
+        // retrying won't help.
+        if (ttsRes.status === 429 && attempt < MAX_RETRIES) {
+          const retryAfter = Number(ttsRes.headers.get('retry-after')) * 1000;
+          const backoff = retryAfter || 500 * Math.pow(2, attempt); // 500ms, 1s, 2s
+          await sleep(backoff);
+          continue;
+        }
+
+        const err = new Error(ttsRes.status === 429 ? 'groq_rate_limited' : 'groq_tts_failed');
+        err.status = ttsRes.status;
+        throw err;
+      }
     };
 
     let wavBuffers;
     try {
-      wavBuffers = await Promise.all(chunks.map(fetchChunk));
+      wavBuffers = await Promise.all(chunks.map((c, i) => fetchChunk(c, i * 250)));
     } catch (e) {
       isSpeaking = false;
-      return res.status(502).json({ error: 'Voice generation failed. Please try again.' });
+      const rateLimited = e.status === 429;
+      return res.status(rateLimited ? 429 : 502).json({
+        error: rateLimited
+          ? 'Voice service is busy right now — please wait a moment and try again.'
+          : 'Voice generation failed. Please try again.'
+      });
     }
 
     const finalWav = stitchWav(wavBuffers);
