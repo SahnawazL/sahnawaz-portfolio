@@ -21015,7 +21015,11 @@ document.addEventListener('DOMContentLoaded', function(){
       body: JSON.stringify({ text: rawText })
     })
     .then(function(res){
-      if (!res.ok) throw new Error('TTS request failed (' + res.status + ')');
+      if (!res.ok) {
+        var err = new Error('TTS request failed (' + res.status + ')');
+        err.status = res.status;
+        throw err;
+      }
       return res.blob();
     })
     .then(function(blob){
@@ -21039,13 +21043,14 @@ document.addEventListener('DOMContentLoaded', function(){
         stopSpeaking();
       });
     })
-    .catch(function(){
+    .catch(function(err){
       if (_ttsBtnActive === btn) _ttsBtnActive = null;
       hideTtsOverlay();
       btn.classList.remove('speak-loading', 'speak-playing');
       btn.classList.add('speak-error');
-      btn.innerHTML = '<span class="tts-icon">' + TTS_ICON_WARN + '</span><span>Retry</span>';
-      setTimeout(function(){ setBtnIdle(btn); }, 2500);
+      var busy = err && err.status === 429;
+      btn.innerHTML = '<span class="tts-icon">' + TTS_ICON_WARN + '</span><span>' + (busy ? 'Busy — retry' : 'Retry') + '</span>';
+      setTimeout(function(){ setBtnIdle(btn); }, busy ? 4000 : 2500);
     });
   }
 
