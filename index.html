@@ -21043,7 +21043,18 @@ document.addEventListener('DOMContentLoaded', function(){
 
   /* Drives the word highlight against actual audio.currentTime, using the
      real start/end timestamps (in seconds) the voice engine reported for
-     each word — this is what makes the sync accurate rather than guessed. */
+     each word — this is what makes the sync accurate rather than guessed.
+
+     HIGHLIGHT_LEAD_SEC compensates for a small, fixed latency between the
+     <audio> element's currentTime clock and what's actually audible —
+     browsers take a moment to decode/buffer an MP3 blob before sound
+     reaches your ears, so without this the highlight consistently trails
+     the spoken word by a beat rather than drifting further out of sync
+     over time. It's a constant nudge, not a per-word guess. 150ms is a
+     reasonable starting point; if it still feels a touch early or late,
+     adjust this single number up or down. */
+  var HIGHLIGHT_LEAD_SEC = 0.15;
+
   function startWordHighlight(bubbleEl, words, audio){
     var spans = bubbleEl.querySelectorAll('.tts-word');
     var lastIdx = -1;
@@ -21051,7 +21062,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
     function tick(){
       if (_ttsAudio !== audio) return; /* stopped or replaced */
-      var t = audio.currentTime;
+      var t = audio.currentTime + HIGHLIGHT_LEAD_SEC;
       var idx = lastIdx < 0 ? 0 : lastIdx;
       while (idx + 1 < words.length && t >= words[idx + 1].start) idx++;
       if (idx !== lastIdx) {
