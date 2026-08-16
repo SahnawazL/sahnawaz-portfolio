@@ -21064,10 +21064,26 @@ document.addEventListener('DOMContentLoaded', function(){
     _ttsBtnActive = btn;
     showTtsOverlay();
 
-    // Safety net: if the server hangs for any reason, give up after 20s
-    // instead of leaving "Generating audio..." on screen forever.
+    // Safety net: give up if the request hangs, instead of leaving
+    // "Generating audio..." on screen forever. The timeout scales with
+    // message length rather than a fixed 20s — a longer bot reply means
+    // a bigger base64 (audio + word-timing) JSON payload to *download*,
+    // not necessarily slower generation. A fixed 20s was tight enough that
+    // long replies on a slow connection (a few KB/s) got aborted mid-download
+    // even though the server had already finished. BASE covers connection
+    // setup + short-message generation; MS_PER_CHAR is a generous per-character
+    // allowance for slow-link download time; MAX caps it so a runaway request
+    // still gives up eventually.
+    var TIMEOUT_BASE_MS     = 8000;
+    var TIMEOUT_MS_PER_CHAR = 45;
+    var TIMEOUT_MAX_MS      = 60000;
+    var timeoutMs = Math.min(
+      TIMEOUT_MAX_MS,
+      TIMEOUT_BASE_MS + (rawText.length * TIMEOUT_MS_PER_CHAR)
+    );
+
     var controller = new AbortController();
-    var timeoutId = setTimeout(function(){ controller.abort(); }, 20000);
+    var timeoutId = setTimeout(function(){ controller.abort(); }, timeoutMs);
 
     fetch(ttsApiUrl, {
       method: 'POST',
