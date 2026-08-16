@@ -19195,29 +19195,29 @@ document.addEventListener('DOMContentLoaded', function(){
     idleCount = 0; /* reset count so all nudges can fire again */
     if (!isOpen) return;
 
-    /* First nudge after 60 s of silence */
+    /* First nudge after 120 s of silence */
     idleTimer = setTimeout(function(){
       if (!botBusy && isOpen && idleCount === 0){
         idleCount = 1;
         addBotTyping(IDLE_MSG, null, true); /* isNudge=true — won't restart timer */
 
-        /* Second nudge — 20 s after the first (total 80s) */
+        /* Second nudge — 40 s after the first (total 160s) */
         idleTimer2 = setTimeout(function(){
           if (!botBusy && isOpen && idleCount === 1){
             idleCount = 2;
             addBotTyping(IDLE_MSG2, null, true); /* isNudge=true */
 
-            /* Third nudge — 15 s after the second (total 75s) */
+            /* Third nudge — 30 s after the second (total 190s) */
             idleTimer3 = setTimeout(function(){
               if (!botBusy && isOpen && idleCount === 2){
                 idleCount = 3;
                 addBotTyping(IDLE_MSG3, null, true); /* isNudge=true */
               }
-            }, 15000);
+            }, 30000);
           }
-        }, 20000);
+        }, 40000);
       }
-    }, 60000);
+    }, 120000);
   }
 
   /* ========== Feature 3: Emoji intent reactions ========== */
@@ -21009,12 +21009,19 @@ document.addEventListener('DOMContentLoaded', function(){
     _ttsBtnActive = btn;
     showTtsOverlay();
 
+    // Safety net: if the server hangs for any reason, give up after 20s
+    // instead of leaving "Generating audio..." on screen forever.
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function(){ controller.abort(); }, 20000);
+
     fetch(ttsApiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: rawText })
+      body: JSON.stringify({ text: rawText }),
+      signal: controller.signal
     })
     .then(function(res){
+      clearTimeout(timeoutId);
       if (!res.ok) {
         var err = new Error('TTS request failed (' + res.status + ')');
         err.status = res.status;
@@ -21044,13 +21051,16 @@ document.addEventListener('DOMContentLoaded', function(){
       });
     })
     .catch(function(err){
+      clearTimeout(timeoutId);
       if (_ttsBtnActive === btn) _ttsBtnActive = null;
       hideTtsOverlay();
       btn.classList.remove('speak-loading', 'speak-playing');
       btn.classList.add('speak-error');
       var busy = err && err.status === 429;
-      btn.innerHTML = '<span class="tts-icon">' + TTS_ICON_WARN + '</span><span>' + (busy ? 'Busy — retry' : 'Retry') + '</span>';
-      setTimeout(function(){ setBtnIdle(btn); }, busy ? 4000 : 2500);
+      var timedOut = err && err.name === 'AbortError';
+      var label = timedOut ? 'Timed out — retry' : (busy ? 'Busy — retry' : 'Retry');
+      btn.innerHTML = '<span class="tts-icon">' + TTS_ICON_WARN + '</span><span>' + label + '</span>';
+      setTimeout(function(){ setBtnIdle(btn); }, (busy || timedOut) ? 4000 : 2500);
     });
   }
 
