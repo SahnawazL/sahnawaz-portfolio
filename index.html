@@ -18268,24 +18268,90 @@ function typeText(element, text, speed = 50) {
 }
 .chat-msg-wrap { position:relative; }
 
-/* ── 🔊 Text-to-Speech button ── */
+/* ── Text-to-Speech: Read Aloud button ── */
 .chat-ts-row {
   display:flex; align-items:center; gap:6px;
 }
 .chat-msg-wrap.user .chat-ts-row { justify-content:flex-end; }
 .chat-msg-wrap.bot  .chat-ts-row { justify-content:flex-start; }
+
 .chat-speak-btn {
-  width:18px; height:18px; border-radius:50%; flex-shrink:0;
-  background:none; border:none; cursor:pointer; padding:0;
-  display:flex; align-items:center; justify-content:center;
-  font-size:0.68rem; line-height:1; color:rgba(0,255,204,0.55);
-  transition: color 0.2s ease, transform 0.15s ease;
+  display:inline-flex; align-items:center; gap:5px;
+  padding:3px 10px 3px 7px; border-radius:999px;
+  background: rgba(0,255,204,0.06);
+  border: 1px solid rgba(0,255,204,0.22);
+  cursor:pointer; -webkit-tap-highlight-color: transparent;
+  font-size:0.62rem; font-weight:600; letter-spacing:0.25px;
+  color: rgba(190,255,240,0.65);
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
 }
-.chat-speak-btn:hover  { color:rgba(0,255,204,0.9); transform:scale(1.15); }
-.chat-speak-btn:active { transform:scale(0.85); }
+.chat-speak-btn:active { transform: scale(0.94); }
+.chat-speak-btn:hover  { background: rgba(0,255,204,0.13); border-color: rgba(0,255,204,0.4); color:#bdfff0; }
+.chat-speak-btn .tts-icon { display:flex; align-items:center; justify-content:center; width:11px; height:11px; flex-shrink:0; }
+.chat-speak-btn .tts-icon svg { width:100%; height:100%; }
+
 .chat-speak-btn.speak-loading,
-.chat-speak-btn.speak-playing { color:#00e5ff; animation: speakPulse 0.9s ease-in-out infinite; }
-@keyframes speakPulse { 0%,100%{opacity:0.45;} 50%{opacity:1;} }
+.chat-speak-btn.speak-playing {
+  background: rgba(0,229,255,0.14);
+  border-color: rgba(0,229,255,0.55);
+  color:#00e5ff;
+}
+.chat-speak-btn.speak-error {
+  background: rgba(255,120,90,0.12);
+  border-color: rgba(255,120,90,0.4);
+  color: rgba(255,170,150,0.9);
+}
+
+/* Small spinner used in the loading pill state */
+.tts-spinner-sm {
+  width:10px; height:10px; border-radius:50%;
+  border:1.6px solid rgba(0,229,255,0.25);
+  border-top-color:#00e5ff;
+  animation: ttsSpin 0.7s linear infinite;
+}
+@keyframes ttsSpin { to { transform: rotate(360deg); } }
+
+/* Animated bars shown while audio is playing */
+.tts-bars { display:flex; align-items:flex-end; gap:2px; height:10px; }
+.tts-bars span {
+  width:2px; background:#00e5ff; border-radius:1px;
+  animation: ttsBar 0.9s ease-in-out infinite;
+}
+.tts-bars span:nth-child(1){ height:4px; animation-delay:0s; }
+.tts-bars span:nth-child(2){ height:9px; animation-delay:0.15s; }
+.tts-bars span:nth-child(3){ height:6px; animation-delay:0.3s; }
+@keyframes ttsBar { 0%,100%{ transform:scaleY(0.4); } 50%{ transform:scaleY(1); } }
+
+/* Centered "generating audio" overlay over the message panel */
+#ttsLoadingOverlay {
+  position:absolute; inset:0; z-index:50;
+  display:none; align-items:center; justify-content:center;
+  background: rgba(5,15,28,0.55);
+  backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+}
+#ttsLoadingOverlay.show { display:flex; }
+#ttsLoadingCard {
+  display:flex; flex-direction:column; align-items:center; gap:10px;
+  padding:16px 24px; border-radius:16px;
+  background: linear-gradient(145deg, #0d2540, #091c32);
+  border: 1px solid rgba(0,220,255,0.3);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.55);
+  animation: ttsCardIn 0.2s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes ttsCardIn { from{ opacity:0; transform:scale(0.9); } to{ opacity:1; transform:scale(1); } }
+#ttsLoadingCard .tts-spinner-lg {
+  width:26px; height:26px; border-radius:50%;
+  border: 3px solid rgba(0,220,255,0.2);
+  border-top-color: #00e5ff;
+  animation: ttsSpin 0.8s linear infinite;
+}
+#ttsLoadingCard span {
+  font-size:0.72rem; font-weight:600; color:rgba(180,240,255,0.9); letter-spacing:0.3px;
+}
+
+/* Word-by-word highlight during playback */
+.tts-word { transition: color 0.12s ease, background 0.12s ease; border-radius:3px; }
+.tts-word.tts-active { color:#00131a; background:#00e5ff; padding:0 1px; }
 
 /* ---- Feature 4: User typing indicator in footer ---- */
 #chatUserTyping {
@@ -18691,6 +18757,13 @@ document.addEventListener('DOMContentLoaded', function(){
   </div>
   <div id="chatMsgsWrapper" style="position:relative; flex:1; display:flex; flex-direction:column; min-height:0;">
     <div id="chatMessages"></div>
+    <!-- Read-aloud loading overlay -->
+    <div id="ttsLoadingOverlay">
+      <div id="ttsLoadingCard">
+        <div class="tts-spinner-lg"></div>
+        <span>Generating audio&hellip;</span>
+      </div>
+    </div>
     <!-- Feature 6: Back to bottom button -->
     <button id="chatScrollBtn" aria-label="Scroll to latest message" title="Jump to latest message">
       ↓ Latest
@@ -20558,7 +20631,7 @@ document.addEventListener('DOMContentLoaded', function(){
     ts.textContent = formatTimestamp(_msgIso);
     ts.dataset.iso = _msgIso;
     tsRow.appendChild(ts);
-    if (type === 'bot') addSpeakBtn(tsRow, text);
+    if (type === 'bot') addSpeakBtn(tsRow, text, div);
     wrap.appendChild(tsRow);
 
     /* 👍 Reactions — only on bot messages */
@@ -20597,7 +20670,7 @@ document.addEventListener('DOMContentLoaded', function(){
     ts.textContent = formatTimestamp(_isoNow);
     ts.dataset.iso = _isoNow;
     tsRow.appendChild(ts);
-    addSpeakBtn(tsRow, answer);
+    addSpeakBtn(tsRow, answer, dot);
     wrap.appendChild(tsRow);
 
     msgs.appendChild(wrap);
@@ -20871,12 +20944,110 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 
   /* ══════════════════════════════════════════════════
-     🔊 TEXT-TO-SPEECH — Groq Orpheus voice replies
-     Speaker button on every bot bubble → /api/speak
+     TEXT-TO-SPEECH — Groq Orpheus voice replies
+     Read Aloud button on every bot bubble → /api/speak
+     Includes centered loading state and estimated
+     word-by-word highlight synced to audio playback.
+     (Groq TTS returns no word timestamps, so timing is
+     estimated from word length — the standard approach
+     for APIs that don't expose real timestamps.)
   ══════════════════════════════════════════════════ */
-  var ttsApiUrl     = 'https://sahnawaz-portfolio.vercel.app/api/speak';
-  var _ttsAudio      = null;
-  var _ttsBtnActive  = null;
+  var ttsApiUrl        = 'https://sahnawaz-portfolio.vercel.app/api/speak';
+  var _ttsAudio         = null;
+  var _ttsBtnActive     = null;
+  var _ttsStopHighlight = null;   // cancels the highlight animation loop
+  var _ttsRestoreBubble = null;   // restores the bubble's original formatted HTML
+
+  var ttsOverlay = document.getElementById('ttsLoadingOverlay');
+
+  var TTS_ICON_SPEAKER =
+    '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 10v4h4l5 5V5L7 10H3z"/><path d="M16.5 12c0-1.77-.77-3.29-2-4.32v8.64c1.23-1.03 2-2.55 2-4.32z"/><path d="M18.5 4.55c2.4 1.85 3.9 4.63 3.9 7.45s-1.5 5.6-3.9 7.45l-.9-1.2c2.1-1.6 3.4-4 3.4-6.25s-1.3-4.65-3.4-6.25l.9-1.2z"/></svg>';
+  var TTS_ICON_PAUSE =
+    '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
+  var TTS_ICON_WARN =
+    '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>';
+
+  function setBtnIdle(btn){
+    btn.classList.remove('speak-loading', 'speak-playing', 'speak-error');
+    btn.innerHTML = '<span class="tts-icon">' + TTS_ICON_SPEAKER + '</span><span>Listen</span>';
+  }
+
+  function showTtsOverlay(){ if (ttsOverlay) ttsOverlay.classList.add('show'); }
+  function hideTtsOverlay(){ if (ttsOverlay) ttsOverlay.classList.remove('show'); }
+
+  /* Same cleanup rules as the backend (api/speak.js) so the highlighted
+     words on screen match what's actually spoken. */
+  function cleanForSpeechClient(raw){
+    return String(raw)
+      .replace(/\*{0,2}\[?(?:CAT|KAT|CATEGORY):[\w]+\]?\*{0,2}/gi, '')
+      .replace(/\*{1,3}/g, '')
+      .replace(/#{1,3}/g, '')
+      .replace(/^[-•]\s+/gm, '')
+      .replace(/!!|>>|---/g, '')
+      .replace(/https?:\/\/\S+/g, '')
+      .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}]/gu, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function escHtml(s){
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  /* Wraps each word in a span for highlighting; returns the HTML plus a
+     per-word weight (rough proxy for how long that word takes to say). */
+  function buildWordSpans(text){
+    var parts = text.split(/(\s+)/);
+    var html = '';
+    var weights = [];
+    var wi = 0;
+    parts.forEach(function(part){
+      if (part === '') return;
+      if (/^\s+$/.test(part)) { html += part; return; }
+      html += '<span class="tts-word" data-i="' + wi + '">' + escHtml(part) + '</span>';
+      var w = part.replace(/[^\w]/g, '').length || 1;
+      if (/[.!?,;:]$/.test(part)) w += 2; /* extra weight for natural pause */
+      weights.push(w);
+      wi++;
+    });
+    return { html: html, weights: weights };
+  }
+
+  /* Drives the word highlight against actual audio.currentTime */
+  function startWordHighlight(bubbleEl, weights, audio){
+    var totalWeight = weights.reduce(function(a, b){ return a + b; }, 0) || 1;
+    var spans = bubbleEl.querySelectorAll('.tts-word');
+    var cum = [];
+    var acc = 0;
+    weights.forEach(function(w){
+      acc += w;
+      cum.push(acc); /* fraction thresholds, scaled by duration at tick time */
+    });
+
+    var lastIdx = -1;
+    var rafId;
+    function tick(){
+      if (_ttsAudio !== audio) return; /* stopped or replaced */
+      var duration = audio.duration;
+      if (duration && isFinite(duration)) {
+        var t = audio.currentTime / duration * totalWeight;
+        var idx = 0;
+        while (idx < cum.length - 1 && t > cum[idx]) idx++;
+        if (idx !== lastIdx) {
+          if (spans[lastIdx]) spans[lastIdx].classList.remove('tts-active');
+          if (spans[idx]) spans[idx].classList.add('tts-active');
+          lastIdx = idx;
+        }
+      }
+      rafId = requestAnimationFrame(tick);
+    }
+    rafId = requestAnimationFrame(tick);
+
+    return function stopHighlight(){
+      cancelAnimationFrame(rafId);
+      for (var i = 0; i < spans.length; i++) spans[i].classList.remove('tts-active');
+    };
+  }
 
   function stopSpeaking(){
     if (_ttsAudio) {
@@ -20884,36 +21055,41 @@ document.addEventListener('DOMContentLoaded', function(){
       _ttsAudio.src = '';
       _ttsAudio = null;
     }
+    if (_ttsStopHighlight) { _ttsStopHighlight(); _ttsStopHighlight = null; }
+    if (_ttsRestoreBubble) { _ttsRestoreBubble(); _ttsRestoreBubble = null; }
+    hideTtsOverlay();
     if (_ttsBtnActive) {
-      _ttsBtnActive.classList.remove('speak-playing', 'speak-loading');
-      _ttsBtnActive.textContent = '🔊';
+      setBtnIdle(_ttsBtnActive);
       _ttsBtnActive = null;
     }
   }
 
-  function addSpeakBtn(container, rawText){
+  function addSpeakBtn(container, rawText, bubbleEl){
     if (!rawText || !rawText.trim()) return;
     var btn = document.createElement('button');
     btn.className = 'chat-speak-btn';
     btn.type = 'button';
-    btn.title = 'Listen to this reply';
-    btn.setAttribute('aria-label', 'Play voice reply');
-    btn.textContent = '🔊';
+    btn.title = 'Read this reply aloud';
+    btn.setAttribute('aria-label', 'Read reply aloud');
+    setBtnIdle(btn);
     btn.addEventListener('click', function(e){
       e.stopPropagation();
-      speakText(rawText, btn);
+      speakText(rawText, btn, bubbleEl);
     });
     container.appendChild(btn);
   }
 
-  function speakText(rawText, btn){
+  function speakText(rawText, btn, bubbleEl){
     /* Tapping the currently-playing/loading message again stops it */
     if (_ttsBtnActive === btn) { stopSpeaking(); return; }
     stopSpeaking();
 
     btn.classList.add('speak-loading');
-    btn.textContent = '⏳';
+    btn.innerHTML = '<span class="tts-spinner-sm"></span><span>Preparing</span>';
     _ttsBtnActive = btn;
+    showTtsOverlay();
+
+    var cleaned = cleanForSpeechClient(rawText);
 
     fetch(ttsApiUrl, {
       method: 'POST',
@@ -20927,12 +21103,28 @@ document.addEventListener('DOMContentLoaded', function(){
     .then(function(blob){
       /* User may have cancelled while we were waiting */
       if (_ttsBtnActive !== btn) return;
+      hideTtsOverlay();
+
       var url = URL.createObjectURL(blob);
       var audio = new Audio(url);
       _ttsAudio = audio;
       btn.classList.remove('speak-loading');
       btn.classList.add('speak-playing');
-      btn.textContent = '⏸';
+      btn.innerHTML = '<span class="tts-icon"><span class="tts-bars"><span></span><span></span><span></span></span></span><span>Playing</span>';
+
+      /* Swap in word-span markup so we can highlight as it speaks;
+         original formatted HTML is restored the moment playback stops. */
+      var origHTML = bubbleEl ? bubbleEl.innerHTML : null;
+      if (bubbleEl) {
+        var built = buildWordSpans(cleaned);
+        bubbleEl.innerHTML = built.html;
+        _ttsRestoreBubble = function(){ bubbleEl.innerHTML = origHTML; };
+        audio.addEventListener('loadedmetadata', function(){
+          if (_ttsAudio === audio) {
+            _ttsStopHighlight = startWordHighlight(bubbleEl, built.weights, audio);
+          }
+        }, { once: true });
+      }
 
       audio.addEventListener('ended', function(){
         URL.revokeObjectURL(url);
@@ -20945,9 +21137,11 @@ document.addEventListener('DOMContentLoaded', function(){
     })
     .catch(function(){
       if (_ttsBtnActive === btn) _ttsBtnActive = null;
+      hideTtsOverlay();
       btn.classList.remove('speak-loading', 'speak-playing');
-      btn.textContent = '⚠️';
-      setTimeout(function(){ btn.textContent = '🔊'; }, 2000);
+      btn.classList.add('speak-error');
+      btn.innerHTML = '<span class="tts-icon">' + TTS_ICON_WARN + '</span><span>Retry</span>';
+      setTimeout(function(){ setBtnIdle(btn); }, 2500);
     });
   }
 
