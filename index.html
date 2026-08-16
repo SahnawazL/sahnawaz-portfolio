@@ -20990,6 +20990,18 @@ document.addEventListener('DOMContentLoaded', function(){
       .trim();
   }
 
+  /* MUST match MAX_TOTAL_CHARS in api/speak.js — the backend silently caps
+     how much of a long reply actually gets spoken (for latency). Without
+     this, the highlighter would sweep across the FULL visible text while
+     audio only covers the first ~700 chars, badly desyncing on long replies. */
+  var TTS_SPOKEN_CHAR_CAP = 700;
+  function truncateToLimitClient(text, limit){
+    if (text.length <= limit) return text;
+    var cut = text.slice(0, limit);
+    var lastStop = Math.max(cut.lastIndexOf('.'), cut.lastIndexOf('!'), cut.lastIndexOf('?'));
+    return (lastStop > limit * 0.5 ? cut.slice(0, lastStop + 1) : cut).trim();
+  }
+
   function escHtml(s){
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
@@ -21117,11 +21129,19 @@ document.addEventListener('DOMContentLoaded', function(){
       var origHTML = bubbleEl ? bubbleEl.innerHTML : null;
       if (bubbleEl) {
         var built = buildWordSpans(cleaned);
+
+        /* Only the portion actually sent to Groq gets spoken — the backend
+           applies the same cap. Cap the highlight timeline to that many
+           words so it doesn't sweep past what's actually being read. */
+        var spokenText  = truncateToLimitClient(cleaned, TTS_SPOKEN_CHAR_CAP);
+        var spokenWords = spokenText.trim() ? spokenText.trim().split(/\s+/).length : built.weights.length;
+        var spokenWeights = built.weights.slice(0, Math.min(spokenWords, built.weights.length));
+
         bubbleEl.innerHTML = built.html;
         _ttsRestoreBubble = function(){ bubbleEl.innerHTML = origHTML; };
         audio.addEventListener('loadedmetadata', function(){
           if (_ttsAudio === audio) {
-            _ttsStopHighlight = startWordHighlight(bubbleEl, built.weights, audio);
+            _ttsStopHighlight = startWordHighlight(bubbleEl, spokenWeights, audio);
           }
         }, { once: true });
       }
