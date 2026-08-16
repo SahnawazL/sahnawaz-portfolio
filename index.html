@@ -18357,29 +18357,35 @@ function typeText(element, text, speed = 50) {
    pop near-instantly since the pill underneath is what visibly moves. */
 .tts-word {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   transition: color 0.12s ease, text-shadow 0.12s ease;
   border-radius: 4px;
   padding: 0 2px;
   margin: 0 -2px;
 }
 .tts-word.tts-active {
-  color: #00131a;
-  text-shadow: 0 0 10px rgba(0,229,255,0.5);
+  color: #f0ffff;
+  text-shadow: 0 0 8px rgba(0,229,255,0.9), 0 0 2px rgba(255,255,255,0.5);
 }
 
 /* The single sliding highlight — animates transform/width/height instead
-   of jumping, so it visually glides from word to word. Sits behind the
-   word text (z-index 0 vs the span's z-index 1 above). */
+   of jumping, so it visually glides from word to word. Translucent/glassy
+   on purpose (not a solid fill): a solid highlight can end up sitting on
+   top of the word text and blot it out completely rather than just
+   reducing contrast, so a soft glass wash is the safer choice as well as
+   matching the frosted-glass look of the rest of the chat bubbles. */
 .tts-highlight-pill {
   position: absolute;
   top: 0; left: 0;
   width: 0; height: 0;
-  background: #00e5ff;
-  box-shadow: 0 0 14px rgba(0,229,255,0.45);
+  background: linear-gradient(135deg, rgba(0,229,255,0.30), rgba(0,229,255,0.12));
+  border: 1px solid rgba(0,229,255,0.4);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  box-shadow: 0 0 10px rgba(0,229,255,0.3);
   border-radius: 4px;
   opacity: 0;
-  z-index: 0;
+  z-index: 1;
   pointer-events: none;
   will-change: transform, width, height;
   transition:
