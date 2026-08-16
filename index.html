@@ -18268,6 +18268,25 @@ function typeText(element, text, speed = 50) {
 }
 .chat-msg-wrap { position:relative; }
 
+/* ── 🔊 Text-to-Speech button ── */
+.chat-ts-row {
+  display:flex; align-items:center; gap:6px;
+}
+.chat-msg-wrap.user .chat-ts-row { justify-content:flex-end; }
+.chat-msg-wrap.bot  .chat-ts-row { justify-content:flex-start; }
+.chat-speak-btn {
+  width:18px; height:18px; border-radius:50%; flex-shrink:0;
+  background:none; border:none; cursor:pointer; padding:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.68rem; line-height:1; color:rgba(0,255,204,0.55);
+  transition: color 0.2s ease, transform 0.15s ease;
+}
+.chat-speak-btn:hover  { color:rgba(0,255,204,0.9); transform:scale(1.15); }
+.chat-speak-btn:active { transform:scale(0.85); }
+.chat-speak-btn.speak-loading,
+.chat-speak-btn.speak-playing { color:#00e5ff; animation: speakPulse 0.9s ease-in-out infinite; }
+@keyframes speakPulse { 0%,100%{opacity:0.45;} 50%{opacity:1;} }
+
 /* ---- Feature 4: User typing indicator in footer ---- */
 #chatUserTyping {
   font-size:0.65rem; color:rgba(0,255,255,0.4);
@@ -20531,12 +20550,16 @@ document.addEventListener('DOMContentLoaded', function(){
     wrap.appendChild(div);
 
     /* Feature 5: timestamp — store ISO so smart labels work across sessions */
+    var tsRow = document.createElement('div');
+    tsRow.className = 'chat-ts-row';
     var ts = document.createElement('div');
     ts.className = 'chat-ts';
     var _msgIso = savedTime || new Date().toISOString(); /* single ref avoids two Date() calls drifting */
     ts.textContent = formatTimestamp(_msgIso);
     ts.dataset.iso = _msgIso;
-    wrap.appendChild(ts);
+    tsRow.appendChild(ts);
+    if (type === 'bot') addSpeakBtn(tsRow, text);
+    wrap.appendChild(tsRow);
 
     /* 👍 Reactions — only on bot messages */
     if (type === 'bot') {
@@ -20566,12 +20589,16 @@ document.addEventListener('DOMContentLoaded', function(){
     dot.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
     wrap.appendChild(dot);
 
+    var tsRow = document.createElement('div');
+    tsRow.className = 'chat-ts-row';
     var ts = document.createElement('div');
     ts.className = 'chat-ts';
     var _isoNow = new Date().toISOString();
     ts.textContent = formatTimestamp(_isoNow);
     ts.dataset.iso = _isoNow;
-    wrap.appendChild(ts);
+    tsRow.appendChild(ts);
+    addSpeakBtn(tsRow, answer);
+    wrap.appendChild(tsRow);
 
     msgs.appendChild(wrap);
     scrollMsgs();
@@ -20841,6 +20868,87 @@ document.addEventListener('DOMContentLoaded', function(){
     });
     bubble.addEventListener('mouseup',    function(){ clearTimeout(holdTimer); });
     bubble.addEventListener('mouseleave', function(){ clearTimeout(holdTimer); });
+  }
+
+  /* ══════════════════════════════════════════════════
+     🔊 TEXT-TO-SPEECH — Groq Orpheus voice replies
+     Speaker button on every bot bubble → /api/speak
+  ══════════════════════════════════════════════════ */
+  var ttsApiUrl     = 'https://sahnawaz-portfolio.vercel.app/api/speak';
+  var _ttsAudio      = null;
+  var _ttsBtnActive  = null;
+
+  function stopSpeaking(){
+    if (_ttsAudio) {
+      _ttsAudio.pause();
+      _ttsAudio.src = '';
+      _ttsAudio = null;
+    }
+    if (_ttsBtnActive) {
+      _ttsBtnActive.classList.remove('speak-playing', 'speak-loading');
+      _ttsBtnActive.textContent = '🔊';
+      _ttsBtnActive = null;
+    }
+  }
+
+  function addSpeakBtn(container, rawText){
+    if (!rawText || !rawText.trim()) return;
+    var btn = document.createElement('button');
+    btn.className = 'chat-speak-btn';
+    btn.type = 'button';
+    btn.title = 'Listen to this reply';
+    btn.setAttribute('aria-label', 'Play voice reply');
+    btn.textContent = '🔊';
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      speakText(rawText, btn);
+    });
+    container.appendChild(btn);
+  }
+
+  function speakText(rawText, btn){
+    /* Tapping the currently-playing/loading message again stops it */
+    if (_ttsBtnActive === btn) { stopSpeaking(); return; }
+    stopSpeaking();
+
+    btn.classList.add('speak-loading');
+    btn.textContent = '⏳';
+    _ttsBtnActive = btn;
+
+    fetch(ttsApiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: rawText })
+    })
+    .then(function(res){
+      if (!res.ok) throw new Error('TTS request failed (' + res.status + ')');
+      return res.blob();
+    })
+    .then(function(blob){
+      /* User may have cancelled while we were waiting */
+      if (_ttsBtnActive !== btn) return;
+      var url = URL.createObjectURL(blob);
+      var audio = new Audio(url);
+      _ttsAudio = audio;
+      btn.classList.remove('speak-loading');
+      btn.classList.add('speak-playing');
+      btn.textContent = '⏸';
+
+      audio.addEventListener('ended', function(){
+        URL.revokeObjectURL(url);
+        stopSpeaking();
+      });
+      audio.play().catch(function(){
+        URL.revokeObjectURL(url);
+        stopSpeaking();
+      });
+    })
+    .catch(function(){
+      if (_ttsBtnActive === btn) _ttsBtnActive = null;
+      btn.classList.remove('speak-loading', 'speak-playing');
+      btn.textContent = '⚠️';
+      setTimeout(function(){ btn.textContent = '🔊'; }, 2000);
+    });
   }
 
   /* ========== Smart free-text matching ========== */
