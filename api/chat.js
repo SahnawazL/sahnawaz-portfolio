@@ -73,7 +73,8 @@ STRICT RULES:
             { role: 'user',   content: trimmed }
           ],
           temperature: 0.6,
-          max_tokens: 120
+          max_tokens: 400,
+          reasoning_effort: 'low'
         })
       });
 
@@ -153,7 +154,8 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
             { role: 'user',   content: greetingUserPrompt }
           ],
           temperature: 0.95,
-          max_tokens: 120
+          max_tokens: 400,
+          reasoning_effort: 'low'
         })
       });
 
