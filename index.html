@@ -4410,7 +4410,7 @@ h1.prem-name {
 <!-- ══ SOCIAL LINKS ROW ══ -->
 <div class="soc-row" id="socRow">
 
-  <a class="soc-btn" href="https://in.linkedin.com/in/sahnawaz-ahmed-laskar-021608168" target="_blank" rel="noopener" aria-label="LinkedIn" data-tip="LinkedIn">
+  <a class="soc-btn" href="https://in.linkedin.com/in/sahnawaz-ahmed-laskar-021608168" target="_blank" rel="noopener" aria-label="LinkedIn" data-tip="LinkedIn" onclick="ctOpenLi(event)">
     <span class="soc-icon">
       <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
         <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853
@@ -4425,7 +4425,7 @@ h1.prem-name {
     <span class="soc-ripple"></span>
   </a>
 
-  <a class="soc-btn" href="https://www.instagram.com/sahnawaz.ui.dev" target="_blank" rel="noopener" aria-label="Instagram" data-tip="Instagram">
+  <a class="soc-btn" href="https://www.instagram.com/sahnawaz.ui.dev" target="_blank" rel="noopener" aria-label="Instagram" data-tip="Instagram" onclick="ctOpenIg(event)">
     <span class="soc-icon">
       <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
         <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691
@@ -4446,7 +4446,7 @@ h1.prem-name {
     <span class="soc-ripple"></span>
   </a>
 
-  <a class="soc-btn" href="https://www.facebook.com/sahnawazahmed.laskar" target="_blank" rel="noopener" aria-label="Facebook" data-tip="Facebook">
+  <a class="soc-btn" href="https://www.facebook.com/sahnawazahmed.laskar" target="_blank" rel="noopener" aria-label="Facebook" data-tip="Facebook" onclick="ctOpenFb(event)">
     <span class="soc-icon">
       <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
         <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073c0
@@ -4454,6 +4454,21 @@ h1.prem-name {
         1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.971H15.83c-1.491
         0-1.956.93-1.956 1.874v2.25h3.328l-.532 3.491h-2.796v8.437C19.612
         23.104 24 18.104 24 12.073z"/>
+      </svg>
+    </span>
+    <span class="soc-ripple"></span>
+  </a>
+
+  <a class="soc-btn" href="https://github.com/sahnawazl" target="_blank" rel="noopener" aria-label="GitHub" data-tip="GitHub" onclick="ctOpenGh(event)">
+    <span class="soc-icon">
+      <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577
+        0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.333-1.754-1.333-1.754-1.089-.745.083-.729.083-.729
+        1.205.084 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.605-2.665-.303-5.466-1.332-5.466-5.93
+        0-1.31.468-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138
+        3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805
+        5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57
+        C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
       </svg>
     </span>
     <span class="soc-ripple"></span>
@@ -4551,6 +4566,17 @@ h1.prem-name {
 }
 .soc-btn[aria-label="Facebook"]:hover .soc-ripple {
   opacity: 0.12; transform: scale(1);
+}
+
+/* GitHub */
+.soc-btn[aria-label="GitHub"]:hover {
+  color: #ffffff;
+  border-color: rgba(255,255,255,0.7);
+  box-shadow: 0 0 18px rgba(255,255,255,0.3), 0 6px 20px rgba(0,0,0,0.4);
+  transform: translateY(-4px) scale(1.1);
+}
+.soc-btn[aria-label="GitHub"]:hover .soc-ripple {
+  opacity: 0.1; transform: scale(1);
 }
 
 /* Icon lifts on hover */
@@ -10914,6 +10940,11 @@ document.addEventListener('keydown', function(e) {
   transform: translateY(-2px);
   color: #fff;
 }
+.mpj-gh-icon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
 
 /* ── metric badge ── */
 .mpj-metric {
@@ -11057,7 +11088,18 @@ document.addEventListener('keydown', function(e) {
         <span class="mpj-role-tag">Solo Built · Full Stack</span>
         <div class="mpj-card-links">
           <a href="https://sahnawaz-portfolio.vercel.app" target="_blank" class="mpj-link-btn mpj-link-live">↗ Live</a>
-          <a href="https://github.com/sahnawaz" target="_blank" class="mpj-link-btn mpj-link-github">⌥ GitHub</a>
+          <a href="https://github.com/sahnawazl" target="_blank" rel="noopener" class="mpj-link-btn mpj-link-github">
+            <svg class="mpj-gh-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577
+              0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.333-1.754-1.333-1.754-1.089-.745.083-.729.083-.729
+              1.205.084 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.605-2.665-.303-5.466-1.332-5.466-5.93
+              0-1.31.468-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138
+              3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805
+              5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57
+              C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+            </svg>
+            <span>GitHub</span>
+          </a>
         </div>
       </div>
     </div>
@@ -11215,7 +11257,18 @@ document.addEventListener('keydown', function(e) {
         <span class="mpj-role-tag">Solo Built · Full Stack + AI</span>
         <div class="mpj-card-links">
           <a href="https://sahnawaz-portfolio.vercel.app" target="_blank" class="mpj-link-btn mpj-link-live">↗ See Live</a>
-          <a href="https://github.com/sahnawaz" target="_blank" class="mpj-link-btn mpj-link-github">⌥ GitHub</a>
+          <a href="https://github.com/sahnawazl" target="_blank" rel="noopener" class="mpj-link-btn mpj-link-github">
+            <svg class="mpj-gh-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577
+              0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.333-1.754-1.333-1.754-1.089-.745.083-.729.083-.729
+              1.205.084 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.605-2.665-.303-5.466-1.332-5.466-5.93
+              0-1.31.468-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138
+              3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805
+              5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57
+              C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+            </svg>
+            <span>GitHub</span>
+          </a>
         </div>
       </div>
     </div>
@@ -12061,6 +12114,66 @@ textarea.ct-field { min-height: 90px; }
 }
 #ctFormInner.ct-hide { opacity: 0; pointer-events: none; }
 
+/* Teaser state — shown in place of the form before the wizard is completed */
+.ct-form-teaser {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 14px;
+  background: rgba(0,255,231,0.035);
+  border: 1px solid rgba(0,255,231,0.14);
+  animation: ctFadeUp 0.5s cubic-bezier(0.16,1,0.3,1) both;
+  transition: opacity 0.25s ease;
+}
+.ct-form-teaser.ct-hide { display: none; }
+.ct-form-teaser-icon {
+  flex-shrink: 0;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem;
+  background: rgba(0,255,231,0.07);
+  border: 1px solid rgba(0,255,231,0.22);
+  animation: ctTeaserPulse 2.4s ease-in-out infinite;
+}
+@keyframes ctTeaserPulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(0,255,231,0.10); }
+  50%      { box-shadow: 0 0 16px rgba(0,255,231,0.30); }
+}
+.ct-form-teaser-text { text-align: left; min-width: 0; }
+.ct-form-teaser-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: rgba(210,255,250,0.9);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ct-form-teaser-body {
+  font-size: 0.66rem;
+  line-height: 1.35;
+  color: rgba(180,220,220,0.5);
+  margin-top: 1px;
+}
+.ct-form-teaser-dots {
+  display: flex;
+  gap: 4px;
+}
+.ct-form-teaser-dots span {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: rgba(0,255,231,0.25);
+  animation: ctTeaserDot 1.4s ease-in-out infinite;
+}
+.ct-form-teaser-dots span:nth-child(2) { animation-delay: 0.2s; }
+.ct-form-teaser-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes ctTeaserDot {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.4); }
+}
+
 /* Success orb with animated checkmark */
 .ct-success-orb {
   width: 72px; height: 72px;
@@ -12252,6 +12365,28 @@ textarea.ct-field { min-height: 90px; }
   color: #fff;
   box-shadow: 0 4px 18px rgba(37,211,102,0.35);
 }
+/* Paused-status pill (WhatsApp resuming soon, etc.) */
+.ct-sheet-status {
+  display: block;
+  width: fit-content;
+  margin: 0 auto 0.7rem;
+  padding: 3px 13px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,180,60,0.3);
+  background: rgba(255,180,60,0.08);
+  color: rgba(255,195,100,0.9);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  text-align: center;
+}
+/* Email fallback CTA inside WhatsApp sheet */
+.ct-sheet-wa .ct-sheet-email-btn {
+  background: linear-gradient(135deg, #ea4335, #b0281c);
+  color: #fff;
+  box-shadow: 0 4px 18px rgba(234,67,53,0.35);
+}
 /* YouTube — red */
 .ct-sheet-yt .ct-sheet-open-btn {
   background: linear-gradient(135deg, #ff0000, #cc0000);
@@ -12263,6 +12398,25 @@ textarea.ct-field { min-height: 90px; }
   background: linear-gradient(135deg, #1877f2, #0d5abf);
   color: #fff;
   box-shadow: 0 4px 18px rgba(24,119,242,0.35);
+}
+/* LinkedIn — brand blue */
+.ct-sheet-li .ct-sheet-open-btn {
+  background: linear-gradient(135deg, #0A66C2, #084b8f);
+  color: #fff;
+  box-shadow: 0 4px 18px rgba(10,102,194,0.35);
+}
+/* Instagram — signature gradient */
+.ct-sheet-ig .ct-sheet-open-btn {
+  background: linear-gradient(135deg, #f58529, #dd2a7b, #8134af, #515bd4);
+  color: #fff;
+  box-shadow: 0 4px 18px rgba(221,42,123,0.35);
+}
+/* GitHub — monochrome */
+.ct-sheet-gh .ct-sheet-open-btn {
+  background: linear-gradient(135deg, #333, #0d1117);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.15);
+  box-shadow: 0 4px 18px rgba(255,255,255,0.12);
 }
 
 /* Mobile full-width cards */
@@ -12452,16 +12606,16 @@ textarea.ct-field { min-height: 90px; }
   <!-- Bottom row: LinkedIn (locked) + YouTube (showcase) -->
   <div class="ct-cards" style="grid-template-columns: repeat(2,1fr); max-width:500px; margin:0 auto 1.4rem;">
 
-    <!-- LinkedIn — currently unavailable but still linkable -->
-    <a class="ct-card-locked" href="https://in.linkedin.com/in/sahnawaz-ahmed-laskar-021608168"
-       target="_blank" rel="noopener" title="LinkedIn — currently unavailable">
-      <span class="ct-locked-badge">Unavailable</span>
+    <!-- LinkedIn — active -->
+    <a class="ct-card" href="https://in.linkedin.com/in/sahnawaz-ahmed-laskar-021608168"
+       target="_blank" rel="noopener" title="Connect on LinkedIn"
+       style="--ct-color:#0A66C2; --ct-rgb:10,102,194;">
+      <span class="ct-card-shine"></span>
       <span class="ct-card-icon">💼</span>
       <div class="ct-card-info">
         <div class="ct-card-name">LinkedIn</div>
-        <div class="ct-card-desc">Not accessible now</div>
+        <div class="ct-card-desc">Let's connect</div>
       </div>
-      <span class="ct-locked-icon">🔒</span>
     </a>
 
     <!-- YouTube — showcase only -->
@@ -12751,6 +12905,15 @@ textarea.ct-field { min-height: 90px; }
       <button class="ct-success-again" onclick="ctResetForm()">Send Another →</button>
     </div>
 
+    <!-- Teaser State — shown until the wizard above is completed -->
+    <div class="ct-form-teaser" id="ctFormTeaser">
+      <div class="ct-form-teaser-icon">🔒</div>
+      <div class="ct-form-teaser-text">
+        <div class="ct-form-teaser-title">Quote &amp; Contact Form <span class="ct-form-teaser-dots"><span></span><span></span><span></span></span></div>
+        <div class="ct-form-teaser-body">Unlocks after the 3 quick questions above</div>
+      </div>
+    </div>
+
     <!-- Form State -->
     <div id="ctFormInner">
       <span class="ct-form-label">✦ Now, tell Sahnawaz more</span>
@@ -12970,6 +13133,10 @@ textarea.ct-field { min-height: 90px; }
           formInner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }, 100);
       }
+
+      /* Hide the teaser now that the real form is showing */
+      var teaser = document.getElementById('ctFormTeaser');
+      if (teaser) teaser.classList.add('ct-hide');
     }
 
     window.ctWizBack = function() {
@@ -13000,6 +13167,10 @@ textarea.ct-field { min-height: 90px; }
       /* Hide form */
       var formInner = document.getElementById('ctFormInner');
       if (formInner) formInner.classList.remove('ct-form-ready');
+
+      /* Bring the teaser back */
+      var teaser = document.getElementById('ctFormTeaser');
+      if (teaser) teaser.classList.remove('ct-hide');
 
       /* Clear pre-filled fields — but only if not logged in */
       try {
@@ -13043,10 +13214,11 @@ textarea.ct-field { min-height: 90px; }
     <div class="ct-sheet-handle"></div>
     <div class="ct-sheet-icon">💬</div>
     <div class="ct-sheet-title">WhatsApp</div>
-    <p class="ct-sheet-body">Reach Sahnawaz directly on WhatsApp.<br>Quick replies, real conversations — no bots.</p>
+    <div class="ct-sheet-status">⏳ Resuming Soon</div>
+    <p class="ct-sheet-body">WhatsApp replies are paused for a short while during a move to Silchar.<br>Email gets you the fastest response in the meantime.</p>
     <div class="ct-sheet-badge">+91 73392 03154</div>
-    <button class="ct-sheet-open-btn" onclick="ctGoWa()">Open WhatsApp ↗</button>
-    <button class="ct-sheet-cancel"   onclick="ctCloseSheet('ctWaOverlay')">Maybe Later</button>
+    <a class="ct-sheet-open-btn ct-sheet-email-btn" href="mailto:shzthedigitalalchemist@gmail.com">Email Instead →</a>
+    <button class="ct-sheet-cancel" onclick="ctGoWa()">Try WhatsApp Anyway ↗</button>
   </div>
 </div>
 
@@ -13076,6 +13248,45 @@ textarea.ct-field { min-height: 90px; }
   </div>
 </div>
 
+<!-- ══ LINKEDIN SHEET ══ -->
+<div class="ct-overlay" id="ctLiOverlay" onclick="ctCloseSheet('ctLiOverlay', event)">
+  <div class="ct-sheet ct-sheet-li">
+    <div class="ct-sheet-handle"></div>
+    <div class="ct-sheet-icon">💼</div>
+    <div class="ct-sheet-title">LinkedIn</div>
+    <p class="ct-sheet-body">View Sahnawaz's professional profile —<br>experience, work history & recommendations.</p>
+    <div class="ct-sheet-badge">Sahnawaz Ahmed Laskar</div>
+    <button class="ct-sheet-open-btn" onclick="ctGoLi()">View LinkedIn ↗</button>
+    <button class="ct-sheet-cancel"   onclick="ctCloseSheet('ctLiOverlay')">Maybe Later</button>
+  </div>
+</div>
+
+<!-- ══ INSTAGRAM SHEET ══ -->
+<div class="ct-overlay" id="ctIgOverlay" onclick="ctCloseSheet('ctIgOverlay', event)">
+  <div class="ct-sheet ct-sheet-ig">
+    <div class="ct-sheet-handle"></div>
+    <div class="ct-sheet-icon">📸</div>
+    <div class="ct-sheet-title">Instagram</div>
+    <p class="ct-sheet-body">Behind-the-scenes design work, UI experiments<br>& daily dev life.</p>
+    <div class="ct-sheet-badge">@sahnawaz.ui.dev</div>
+    <button class="ct-sheet-open-btn" onclick="ctGoIg()">Open Instagram ↗</button>
+    <button class="ct-sheet-cancel"   onclick="ctCloseSheet('ctIgOverlay')">Maybe Later</button>
+  </div>
+</div>
+
+<!-- ══ GITHUB SHEET ══ -->
+<div class="ct-overlay" id="ctGhOverlay" onclick="ctCloseSheet('ctGhOverlay', event)">
+  <div class="ct-sheet ct-sheet-gh">
+    <div class="ct-sheet-handle"></div>
+    <div class="ct-sheet-icon">🐙</div>
+    <div class="ct-sheet-title">GitHub</div>
+    <p class="ct-sheet-body">100+ contributions, real commits & open-source code —<br>see exactly how it's built.</p>
+    <div class="ct-sheet-badge">@sahnawazl</div>
+    <button class="ct-sheet-open-btn" onclick="ctGoGh()">View GitHub ↗</button>
+    <button class="ct-sheet-cancel"   onclick="ctCloseSheet('ctGhOverlay')">Maybe Later</button>
+  </div>
+</div>
+
 <script>
 /* ── Universal sheet close ── */
 function ctCloseSheet(id, e) {
@@ -13097,6 +13308,21 @@ function ctGoYt()     { window.open('https://youtube.com/@shzmotivation3767?si=V
 function ctOpenFb(e)  { if(e) e.preventDefault(); document.getElementById('ctFbOverlay').classList.add('open'); }
 function ctCloseFb(e) { ctCloseSheet('ctFbOverlay', e); }
 function ctGoFb()     { window.open('https://www.facebook.com/sahnawazahmed.laskar','_blank'); document.getElementById('ctFbOverlay').classList.remove('open'); }
+
+/* ── LinkedIn ── */
+function ctOpenLi(e)  { if(e) e.preventDefault(); document.getElementById('ctLiOverlay').classList.add('open'); }
+function ctCloseLi(e) { ctCloseSheet('ctLiOverlay', e); }
+function ctGoLi()     { window.open('https://in.linkedin.com/in/sahnawaz-ahmed-laskar-021608168','_blank'); document.getElementById('ctLiOverlay').classList.remove('open'); }
+
+/* ── Instagram ── */
+function ctOpenIg(e)  { if(e) e.preventDefault(); document.getElementById('ctIgOverlay').classList.add('open'); }
+function ctCloseIg(e) { ctCloseSheet('ctIgOverlay', e); }
+function ctGoIg()     { window.open('https://www.instagram.com/sahnawaz.ui.dev','_blank'); document.getElementById('ctIgOverlay').classList.remove('open'); }
+
+/* ── GitHub ── */
+function ctOpenGh(e)  { if(e) e.preventDefault(); document.getElementById('ctGhOverlay').classList.add('open'); }
+function ctCloseGh(e) { ctCloseSheet('ctGhOverlay', e); }
+function ctGoGh()     { window.open('https://github.com/sahnawazl','_blank'); document.getElementById('ctGhOverlay').classList.remove('open'); }
 
 /* ── Send Mail — premium version with success state ── */
 function ctSendMail() {
@@ -13216,7 +13442,7 @@ function ctResetForm() {
 /* ── Backwards compat ── */
 function showWhatsAppNotice(e) { ctOpenWa(e); }
 function closeModal() {
-  ['ctWaOverlay','ctYtOverlay','ctFbOverlay'].forEach(function(id){
+  ['ctWaOverlay','ctYtOverlay','ctFbOverlay','ctLiOverlay','ctIgOverlay','ctGhOverlay'].forEach(function(id){
     document.getElementById(id).classList.remove('open');
   });
 }
