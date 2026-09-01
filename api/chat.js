@@ -67,7 +67,7 @@ STRICT RULES:
           'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+          model: 'openai/gpt-oss-120b',
           messages: [
             { role: 'system', content: wizardSystem },
             { role: 'user',   content: trimmed }
@@ -85,10 +85,15 @@ STRICT RULES:
           wizReply = wizReply.replace(/\*{0,2}\[?(?:CAT|KAT|CATEGORY):[\w]+\]?\*{0,2}[\s\n]*/gi, '').trim();
           isProcessing = false;
           return res.status(200).json({ reply: wizReply });
+        } else {
+          console.error('[wizard] Groq returned no content:', JSON.stringify(wizData));
         }
+      } else {
+        const errBody = await wizRes.text().catch(() => '');
+        console.error('[wizard] Groq request failed:', wizRes.status, errBody);
       }
     } catch(e) {
-      // Fall through to error response
+      console.error('[wizard] fetch threw:', e && e.message);
     }
 
     // Wizard fallback — should rarely trigger
@@ -142,7 +147,7 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
           'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+          model: 'openai/gpt-oss-120b',
           messages: [
             { role: 'system', content: greetingSystemPrompt },
             { role: 'user',   content: greetingUserPrompt }
@@ -158,10 +163,15 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
         if (greetReply) {
           isProcessing = false;
           return res.status(200).json({ reply: greetReply });
+        } else {
+          console.error('[greeting] Groq returned no content:', JSON.stringify(greetData));
         }
+      } else {
+        const errBody = await greetRes.text().catch(() => '');
+        console.error('[greeting] Groq request failed:', greetRes.status, errBody);
       }
     } catch(e) {
-      // Fall through to fallback
+      console.error('[greeting] fetch threw:', e && e.message);
     }
 
     // Fallback if API fails
