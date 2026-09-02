@@ -134,27 +134,7 @@ Passion : Clarity · Responsiveness · Real-World Impact
 
 <div align="center">
 
-<img height="180" src="https://github-readme-stats.vercel.app/api?username=SahnawazL&show_icons=true&theme=tokyonight&hide_border=true&count_private=true&title_color=00ffff&icon_color=00ffff&text_color=c9d1d9&bg_color=0d1117&rank_icon=github&include_all_commits=true" alt="GitHub Stats"/>
-&nbsp;&nbsp;
-<img height="180" src="https://github-readme-stats.vercel.app/api/top-langs/?username=SahnawazL&layout=compact&theme=tokyonight&hide_border=true&title_color=00ffff&text_color=c9d1d9&bg_color=0d1117&langs_count=8&card_width=320" alt="Top Languages"/>
-
-<br/><br/>
-
 <img src="https://streak-stats.demolab.com/?user=SahnawazL&theme=tokyonight-duo&hide_border=true&background=0d1117&ring=00ffff&fire=ff6b6b&currStreakLabel=00ffff&sideLabels=c9d1d9&dates=c9d1d9" alt="GitHub Streak"/>
-
-<br/><br/>
-
-<img width="95%" src="https://github-readme-activity-graph.vercel.app/graph?username=SahnawazL&theme=react-dark&bg_color=0d1117&color=00ffff&line=00ffff&point=ffffff&hide_border=true&area=true&area_color=00ffff" alt="Contribution Graph"/>
-
-</div>
-
----
-
-## 🏆 GitHub Trophies
-
-<div align="center">
-
-<img src="https://github-profile-trophy.vercel.app/?username=SahnawazL&theme=tokyonight&no-frame=true&no-bg=true&margin-w=8&column=4&title=Commits,Repositories,Stars,Followers,Issues,PullRequest,Reviews,Experience" alt="GitHub Trophies"/>
 
 </div>
 
