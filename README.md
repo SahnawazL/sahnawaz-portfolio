@@ -1,21 +1,5 @@
 <div align="center">
 
-<!-- ══════════════════════════════════════════════
-     ANIMATED BANNER — Typing SVG Header
-══════════════════════════════════════════════ -->
-
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=180&section=header&text=Sahnawaz%20Ahmed%20Laskar&fontSize=42&fontColor=fff&animation=twinkling&fontAlignY=32&desc=The%20Digital%20Alchemist%20✨%20Full%20Stack%20Dev%20%26%20UI%2FUX%20Designer&descAlignY=56&descSize=16" alt="Header Banner"/>
-
-<br/>
-
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=800&size=22&duration=2500&pause=800&color=00FFFF&center=true&vCenter=true&width=600&height=55&lines=👋+Hi%2C+I'm+SHZ+—+The+Digital+Alchemist;🚀+Full+Stack+Developer+%26+UI%2FUX+Designer;⚛️+React+·+Node.js+·+Python+·+Firebase;🎨+Pixel-Perfect+Interfaces%2C+Real-World+Impact;🤖+AI+Integration+%26+Groq+%2F+Llama+Specialist;🏆+Open+to+Freelance+%26+Full-Time+Roles" alt="Typing SVG" />
-
-</div>
-
----
-
-<div align="center">
-
 <!-- ══ PROFILE PHOTO ══ -->
 
 <img src="https://raw.githubusercontent.com/SahnawazL/sahnawaz-portfolio/main/profile.jpg"
