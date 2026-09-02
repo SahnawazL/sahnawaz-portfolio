@@ -4639,1089 +4639,693 @@ h1.prem-name {
   </div>
 
 </div>
-</div></section><section data-aos="fade-up" data-aos-duration="1200" style="background: linear-gradient(135deg, #091b2f, #0c2c44);color: #ffffff;padding: 3rem 1rem;border-radius: 16px;box-shadow: 0 0 30px rgba(0,255,255,0.1);; 0; 0"><!-- ══════════ PREMIUM SKILLS — REDESIGNED ══════════ -->
+</div></section><!-- ══════════════════════════════════════════
+     SKILLS GALAXY — Premium Interactive Star Map v2.0
+     3D depth-layered stars · sphere-shaded orbs · energy-tube links
+     traveling light pulses · smooth parallax tilt · spring easing
+     ══════════════════════════════════════════ -->
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Exo+2:wght@400;500;600&display=swap');
 
-/* ── Wrapper ── */
-.skn-wrapper {
-  position: relative;
-  padding: 0.5rem 0 2.5rem;
-  overflow: hidden;
-}
+.galaxy-tech{position:relative;padding:2.6rem 1rem 2.8rem;background:transparent;overflow:hidden;text-align:center;}
+.galaxy-tech::before{content:'';position:absolute;top:0;left:12%;right:12%;height:1px;background:linear-gradient(90deg,transparent,rgba(0,200,255,0.2),transparent);}
 
-/* ── Ambient scan line ── */
-.skn-scanline {
-  position: absolute;
-  top: 0; left: -100%; width: 55%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0,255,255,0.035), transparent);
-  animation: skn-scan 5s linear infinite;
-  pointer-events: none; z-index: 0;
-}
-@keyframes skn-scan { to { left: 160%; } }
+.glx-head{margin-bottom:1.1rem;}
+.glx-eyebrow{display:inline-flex;align-items:center;gap:6px;font-family:'Exo 2',sans-serif;font-size:0.62rem;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:rgba(0,255,220,0.55);margin-bottom:0.4rem;}
+.glx-title{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(1.35rem,5.5vw,1.8rem);margin:0 0 0.35rem;letter-spacing:0.5px;background:linear-gradient(135deg,#e8fffb 0%,#00e5ff 45%,#8b5cf6 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:center;}
+.glx-sub{font-family:'Exo 2',sans-serif;font-size:0.74rem;color:rgba(170,215,240,0.5);margin:0;letter-spacing:0.2px;}
 
-/* ── Section heading ── */
-.skn-title {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 1.55rem;
-  font-weight: 700;
-  background: linear-gradient(90deg, #00ffff, #ffffff 50%, #00ccff);
-  background-size: 200% auto;
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-align: center;
-  letter-spacing: 5px;
-  text-transform: uppercase;
-  animation: skn-titleFlow 3s linear infinite;
-  margin-bottom: 0.2rem;
-}
-@keyframes skn-titleFlow { 0%{background-position:0%} 100%{background-position:200%} }
+/* ── Filter chips ── */
+.glx-filters{display:flex;flex-wrap:wrap;justify-content:center;gap:0.5rem;margin:1.15rem auto 1.1rem;max-width:520px;}
+.glx-chip{display:inline-flex;align-items:center;gap:7px;font-family:'Exo 2',sans-serif;font-size:0.78rem;font-weight:600;color:rgba(220,240,255,0.75);background:rgba(255,255,255,0.045);border:1px solid rgba(255,255,255,0.1);border-radius:999px;padding:0.42rem 0.95rem;cursor:pointer;transition:transform 0.4s cubic-bezier(.16,1,.3,1),background 0.3s ease,border-color 0.3s ease,box-shadow 0.3s ease;-webkit-tap-highlight-color:transparent;}
+.glx-chip-dot{width:8px;height:8px;border-radius:50%;box-shadow:0 0 8px currentColor;flex-shrink:0;}
+.glx-chip:active{transform:scale(0.94);}
+.glx-chip.active{background:rgba(0,229,255,0.12);border-color:rgba(0,229,255,0.45);color:#eafffd;box-shadow:0 0 16px rgba(0,229,255,0.18);}
 
-.skn-subtitle {
-  text-align: center;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.65rem;
-  color: rgba(0,255,255,0.4);
-  letter-spacing: 3px;
-  margin-bottom: 1.4rem;
-  text-transform: uppercase;
+/* ── Stage (3D perspective container) ── */
+.glx-stage-outer{max-width:640px;margin:0 auto;perspective:900px;}
+.glx-stage{
+  position:relative;border-radius:22px;overflow:hidden;
+  background:
+    radial-gradient(ellipse 120% 90% at 50% 0%,rgba(0,60,90,0.35) 0%,transparent 60%),
+    radial-gradient(ellipse 90% 70% at 85% 100%,rgba(90,0,120,0.22) 0%,transparent 65%),
+    linear-gradient(160deg,#03070f 0%,#050b16 45%,#040711 100%);
+  border:1px solid rgba(0,220,255,0.14);
+  box-shadow:0 0 0 1px rgba(255,255,255,0.02) inset,0 20px 50px rgba(0,0,0,0.45),0 0 40px rgba(0,180,255,0.06);
+  aspect-ratio:380/300;
+  transform-style:preserve-3d;
+  will-change:transform;
+  transition:transform 0.6s cubic-bezier(.16,1,.3,1);
 }
-.skn-subtitle::before { content: "[ "; }
-.skn-subtitle::after  { content: " ]"; }
+.glx-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1;}
+.glx-svg{position:absolute;inset:0;width:100%;height:100%;display:block;transform-style:preserve-3d;z-index:2;}
 
-/* ── Filter tabs ── */
-.skn-filters {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 1.6rem;
-  position: relative;
-  z-index: 2;
-}
-.skn-filter-btn {
-  padding: 5px 16px;
-  border-radius: 20px;
-  border: 1px solid rgba(0,255,255,0.25);
-  background: rgba(0,255,255,0.04);
-  color: rgba(160,255,240,0.6);
-  font-size: 0.68rem;
-  font-family: 'Share Tech Mono', monospace;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.25s ease;
-  -webkit-tap-highlight-color: transparent;
-}
-.skn-filter-btn:hover {
-  border-color: rgba(0,255,255,0.55);
-  color: #00ffff;
-  box-shadow: 0 0 12px rgba(0,255,255,0.15);
-}
-.skn-filter-btn.active {
-  background: rgba(0,255,255,0.12);
-  border-color: #00ffff;
-  color: #ffffff;
-  box-shadow: 0 0 16px rgba(0,255,255,0.25), inset 0 0 10px rgba(0,255,255,0.06);
-}
-/* ── Count badge on filter buttons ── */
-.skn-filter-btn .skn-count {
-  display: inline-block;
-  margin-left: 5px;
-  font-size: 0.58rem;
-  opacity: 0.55;
-  background: rgba(0,255,255,0.1);
-  border-radius: 20px;
-  padding: 0px 5px;
-  vertical-align: middle;
-  letter-spacing: 0;
-  transition: opacity 0.2s;
-}
-.skn-filter-btn.active .skn-count {
-  opacity: 0.9;
-  background: rgba(0,255,255,0.2);
-}
-/* ── Ripple effect on filter button tap ── */
-.skn-filter-btn {
-  position: relative;
-  overflow: hidden;
-}
-.skn-ripple {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(0,255,255,0.25);
-  transform: scale(0);
-  animation: sknRippleAnim 0.5s linear;
-  pointer-events: none;
-}
-@keyframes sknRippleAnim {
-  to { transform: scale(4); opacity: 0; }
-}
-/* ── Smooth card exit animation ── */
-.skn-node.skn-exiting {
-  animation: sknExit 0.18s ease forwards;
-}
-@keyframes sknExit {
-  to { opacity: 0; transform: translateY(10px) scale(0.92); }
-}
+/* ── Gradient nebula drift — slow breathing color clouds behind the stars ── */
+.glx-nebula{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
+.glx-nebula span{position:absolute;border-radius:50%;filter:blur(26px);will-change:transform,opacity;}
+.glx-neb-a{width:65%;height:65%;left:-15%;top:-18%;background:radial-gradient(circle,rgba(0,180,255,0.22) 0%,transparent 70%);animation:glxNebA 26s ease-in-out infinite alternate;}
+.glx-neb-b{width:70%;height:70%;right:-20%;bottom:-20%;background:radial-gradient(circle,rgba(140,60,220,0.18) 0%,transparent 70%);animation:glxNebB 32s ease-in-out infinite alternate;}
+.glx-neb-c{width:50%;height:50%;left:35%;top:30%;background:radial-gradient(circle,rgba(255,60,150,0.10) 0%,transparent 70%);animation:glxNebC 38s ease-in-out infinite alternate;}
+@keyframes glxNebA{0%{transform:translate(0,0) scale(1);opacity:0.7;}100%{transform:translate(6%,8%) scale(1.15);opacity:1;}}
+@keyframes glxNebB{0%{transform:translate(0,0) scale(1);opacity:0.6;}100%{transform:translate(-7%,-6%) scale(1.12);opacity:0.95;}}
+@keyframes glxNebC{0%{transform:translate(-4%,-3%) scale(0.95);opacity:0.5;}100%{transform:translate(5%,4%) scale(1.1);opacity:0.85;}}
 
-/* ── Grid ── */
-.skn-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
-  gap: 1rem;
-  position: relative;
-  z-index: 1;
-}
+.glx-hint{position:absolute;left:0;right:0;bottom:9px;margin:0;text-align:center;font-family:'Exo 2',sans-serif;font-size:0.62rem;letter-spacing:1.5px;text-transform:lowercase;color:rgba(160,210,240,0.32);pointer-events:none;transition:opacity 0.3s ease;z-index:5;}
 
-/* ── Node card ── */
-.skn-node {
-  position: relative;
-  cursor: pointer;
-  outline: none;
-  -webkit-tap-highlight-color: transparent;
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  border-radius: 16px;
-  isolation: isolate;
-}
-.skn-node.skn-hidden {
-  display: none !important;
-}
+/* ── Radar sweep — a slow rotating light wedge for that scanning-instrument feel ── */
+.glx-radar{position:absolute;top:50%;left:50%;width:220%;height:220%;margin-left:-110%;margin-top:-110%;z-index:3;pointer-events:none;mix-blend-mode:screen;background:conic-gradient(from 0deg,transparent 0deg,rgba(0,229,255,0.16) 5deg,transparent 22deg,transparent 360deg);animation:glxRadarSpin 15s linear infinite;}
+@keyframes glxRadarSpin{to{transform:rotate(360deg);}}
 
-.skn-node-inner {
-  position: relative;
-  border-radius: 16px;
-  padding: 1.2rem 0.8rem 1rem;
-  background: linear-gradient(145deg, rgba(0,20,38,0.9), rgba(0,8,20,0.95));
-  border: 1px solid rgba(0,255,255,0.15);
-  overflow: hidden;
-  transition: transform 0.35s cubic-bezier(.23,1.1,.32,1),
-              border-color 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: 0 2px 20px rgba(0,255,255,0.08), inset 0 0 24px rgba(0,0,0,0.35);
-  min-height: 148px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-}
+/* ── Vignette — darkened corners for a cinematic frame ── */
+.glx-vignette{position:absolute;inset:0;z-index:4;pointer-events:none;background:radial-gradient(ellipse at 50% 46%,transparent 48%,rgba(1,4,10,0.5) 100%);}
+.glx-stage.glx-touched .glx-hint{opacity:0;}
 
-/* Corner brackets */
-.skn-node-inner::before,
-.skn-node-inner::after {
-  content: '';
-  position: absolute;
-  width: 10px; height: 10px;
-  border-color: rgba(0,255,255,0.5);
-  border-style: solid;
-  transition: border-color 0.3s, width 0.3s, height 0.3s;
-}
-.skn-node-inner::before { top:5px; left:5px; border-width:2px 0 0 2px; border-radius:3px 0 0 0; }
-.skn-node-inner::after  { bottom:5px; right:5px; border-width:0 2px 2px 0; border-radius:0 0 3px 0; }
+/* corner HUD brackets — reinforce the "instrument" feel */
+.glx-bracket{position:absolute;width:16px;height:16px;border-color:rgba(0,229,255,0.35);pointer-events:none;z-index:5;}
+.glx-bracket.tl{top:10px;left:10px;border-top:1.5px solid;border-left:1.5px solid;}
+.glx-bracket.tr{top:10px;right:10px;border-top:1.5px solid;border-right:1.5px solid;}
+.glx-bracket.bl{bottom:10px;left:10px;border-bottom:1.5px solid;border-left:1.5px solid;}
+.glx-bracket.br{bottom:10px;right:10px;border-bottom:1.5px solid;border-right:1.5px solid;}
+.glx-readout{position:absolute;top:10px;left:34px;right:34px;font-family:'Exo 2',monospace;font-size:0.56rem;letter-spacing:1px;color:rgba(120,220,255,0.4);text-align:left;pointer-events:none;z-index:5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
-/* Sweep shimmer */
-.skn-node-shine {
-  position: absolute;
-  top:0; left:-120%; width:80%; height:100%;
-  background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.08) 50%, transparent 70%);
-  transform: skewX(-15deg);
-  transition: left 0.5s ease;
-  pointer-events: none;
-}
+/* ── SVG nodes (depth-shaded 3D orbs) ── */
+.glx-node{cursor:pointer;}
+.glx-hitzone{fill:transparent;}
+.glx-halo-wide{transition:opacity 0.45s ease;}
+.glx-halo{opacity:0.5;transition:opacity 0.45s cubic-bezier(.16,1,.3,1),r 0.45s cubic-bezier(.16,1,.3,1);}
+.glx-core{transition:transform 0.45s cubic-bezier(.16,1,.3,1),opacity 0.45s ease;transform-box:fill-box;transform-origin:center;}
+.glx-node.glx-dim .glx-halo-wide{opacity:0.04 !important;}
+.glx-node.glx-dim .glx-halo{opacity:0.10;}
+.glx-node.glx-dim .glx-core{opacity:0.32;}
+.glx-node.glx-active .glx-core{transform:scale(1.5);}
+.glx-node.glx-active .glx-halo{opacity:0.95;}
+.glx-node.glx-active .glx-halo-wide{opacity:0.3 !important;}
+.glx-node.glx-selected .glx-core{transform:scale(1.85);}
+.glx-twinkle{animation:glxTwinkle 3.4s ease-in-out infinite;}
+@keyframes glxTwinkle{0%,100%{opacity:0.7;}50%{opacity:1;}}
+.glx-label{font-family:'Exo 2',sans-serif;font-weight:600;fill:rgba(235,250,255,0.92);text-anchor:middle;pointer-events:none;opacity:0;transition:opacity 0.4s ease;paint-order:stroke;stroke:rgba(3,7,15,0.85);stroke-width:2.4px;stroke-linejoin:round;}
+.glx-node.glx-show-label .glx-label{opacity:1;}
 
-/* ── Progress ring ── */
-.skn-ring-wrap {
-  position: relative;
-  width: 52px;
-  height: 52px;
-  flex-shrink: 0;
-}
-.skn-ring-svg {
-  width: 52px; height: 52px;
-  transform: rotate(-90deg);
-}
-.skn-ring-bg {
-  fill: none;
-  stroke: rgba(0,255,255,0.1);
-  stroke-width: 3;
-}
-.skn-ring-fg {
-  fill: none;
-  stroke: #00ffff;
-  stroke-width: 3;
-  stroke-linecap: round;
-  stroke-dasharray: 138.23; /* 2π × 22 */
-  stroke-dashoffset: 138.23;
-  transition: stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1), stroke 0.3s ease;
-  filter: drop-shadow(0 0 4px rgba(0,255,255,0.6));
-}
-.skn-node.skn-visible .skn-ring-fg {
-  stroke-dashoffset: var(--ring-offset, 138.23);
-}
+/* energy-tube links: soft wide glow + slim bright core, two stacked paths */
+.glx-link-glow{fill:none;stroke-linecap:round;transition:opacity 0.5s ease;}
+.glx-link-core{fill:none;stroke-linecap:round;stroke:rgba(255,255,255,0.75);transition:opacity 0.5s ease;}
+.glx-link-flow{fill:none;stroke-linecap:round;stroke-dasharray:3 9;animation:glxFlow 2.6s linear infinite;transition:opacity 0.5s ease;}
+@keyframes glxFlow{to{stroke-dashoffset:-24;}}
+.glx-pulse{filter:url(#glxPulseGlow);}
 
-/* Icon inside ring */
-.skn-icon {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 1.4rem;
-  line-height: 1;
-  filter: drop-shadow(0 0 5px rgba(0,255,255,0.5));
-  transition: transform 0.3s ease, filter 0.3s ease;
-}
+/* ── Detail card ── */
+.glx-card{max-width:640px;margin:0.9rem auto 0;background:rgba(8,16,28,0.78);backdrop-filter:blur(14px) saturate(160%);-webkit-backdrop-filter:blur(14px) saturate(160%);border:1px solid rgba(0,220,255,0.18);border-radius:18px;padding:1.05rem 1.15rem 1.15rem;text-align:left;position:relative;transform:translateY(10px) scale(0.98);opacity:0;max-height:0;overflow:hidden;transition:opacity 0.4s cubic-bezier(.16,1,.3,1),transform 0.4s cubic-bezier(.16,1,.3,1),max-height 0.45s ease,padding 0.4s ease,margin 0.4s ease;}
+.glx-card.glx-open{opacity:1;transform:translateY(0) scale(1);max-height:220px;}
+.glx-card-close{position:absolute;top:10px;right:12px;background:none;border:none;color:rgba(200,230,245,0.5);font-size:0.95rem;cursor:pointer;padding:4px;line-height:1;}
+.glx-card-close:active{color:#fff;}
+.glx-card-top{display:flex;align-items:center;gap:12px;margin-bottom:0.7rem;}
+.glx-card-icon-wrap{width:44px;height:44px;border-radius:13px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.glx-card-icon-wrap img{width:26px;height:26px;object-fit:contain;}
+.glx-card-name{font-family:'Orbitron',sans-serif;font-weight:700;font-size:1rem;color:#eafffd;}
+.glx-card-cat{font-family:'Exo 2',sans-serif;font-size:0.68rem;letter-spacing:1.4px;text-transform:uppercase;margin-top:2px;font-weight:600;}
+.glx-card-bar-track{height:7px;border-radius:5px;background:rgba(255,255,255,0.07);overflow:hidden;margin-bottom:0.3rem;}
+.glx-card-bar-fill{height:100%;width:0%;border-radius:5px;transition:width 1s cubic-bezier(.16,1,.3,1);}
+.glx-card-pct{font-family:'Exo 2',sans-serif;font-size:0.7rem;font-weight:700;color:rgba(200,235,250,0.7);text-align:right;margin-bottom:0.55rem;}
+.glx-card-note{font-family:'Exo 2',sans-serif;font-size:0.8rem;line-height:1.45;color:rgba(210,230,245,0.72);margin:0;}
 
-/* Label */
-.skn-label {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: #00e5ff;
-  text-align: center;
-  line-height: 1.35;
-  text-shadow: 0 0 8px rgba(0,255,255,0.35);
-  transition: color 0.3s, text-shadow 0.3s;
-}
-
-/* Percent badge */
-.skn-pct {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.58rem;
-  color: rgba(0,255,255,0.45);
-  letter-spacing: 1px;
-  transition: color 0.3s;
-}
-
-/* Status dot */
-.skn-dot {
-  position: absolute;
-  top: 9px; right: 10px;
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: #00ff9d;
-  box-shadow: 0 0 6px #00ff9d;
-  animation: skn-dotPulse 2.4s ease-in-out infinite;
-}
-@keyframes skn-dotPulse {
-  0%,100%{ opacity:1; transform:scale(1); }
-  50%    { opacity:0.35; transform:scale(0.65); }
-}
-
-/* Burst */
-.skn-burst {
-  position: absolute;
-  top:50%; left:50%;
-  width:0; height:0;
-  border-radius:50%;
-  pointer-events:none;
-  transform:translate(-50%,-50%);
-  background: radial-gradient(circle, rgba(0,255,255,0.65) 0%, transparent 70%);
-}
-.skn-burst.pop { animation: skn-burstAnim 0.55s ease-out forwards; }
-@keyframes skn-burstAnim {
-  0%  { width:0; height:0; opacity:0.75; }
-  100%{ width:120px; height:120px; opacity:0; }
-}
-
-/* ── Hover / active ── */
-.skn-node:hover .skn-node-inner,
-.skn-node.active .skn-node-inner {
-  border-color: rgba(0,255,255,0.55);
-  box-shadow: 0 0 24px rgba(0,255,255,0.3), 0 0 6px rgba(0,255,255,0.15),
-              inset 0 0 20px rgba(0,255,255,0.06);
-  transform: translateY(-5px);
-}
-.skn-node:hover .skn-node-inner::before,
-.skn-node:hover .skn-node-inner::after,
-.skn-node.active .skn-node-inner::before,
-.skn-node.active .skn-node-inner::after {
-  border-color: #00ffff; width: 14px; height: 14px;
-}
-.skn-node:hover .skn-node-shine,
-.skn-node.active .skn-node-shine { left: 160%; }
-.skn-node:hover .skn-icon,
-.skn-node.active .skn-icon {
-  transform: translate(-50%,-50%) scale(1.2);
-  filter: drop-shadow(0 0 10px rgba(0,255,255,0.9));
-}
-.skn-node:hover .skn-label,
-.skn-node.active .skn-label { color:#fff; text-shadow: 0 0 14px #00ffff; }
-.skn-node:hover .skn-ring-fg,
-.skn-node.active .skn-ring-fg { stroke: #a0fff0; filter: drop-shadow(0 0 7px rgba(0,255,255,0.9)); }
-.skn-node:hover .skn-pct,
-.skn-node.active .skn-pct { color: rgba(160,255,240,0.8); }
-.skn-node:active .skn-node-inner {
-  transform: translateY(-2px);
-  box-shadow: 0 0 32px rgba(0,255,255,0.5), inset 0 0 24px rgba(0,255,255,0.1);
-}
-
-/* ── Entrance ── */
-.skn-node { opacity:0; transform: translateY(22px); }
-.skn-node.skn-visible {
-  animation: skn-appear 0.55s cubic-bezier(.23,1.1,.32,1) forwards;
-}
-@keyframes skn-appear { to { opacity:1; transform:translateY(0); } }
-
-/* ── Category color variants ── */
-.skn-node[data-cat="frontend"] .skn-label  { color: #00e5ff; }
-.skn-node[data-cat="frontend"] .skn-dot    { background:#00e5ff; box-shadow:0 0 6px #00e5ff; }
-.skn-node[data-cat="frontend"] .skn-ring-fg{ stroke:#00e5ff; }
-
-.skn-node[data-cat="design"] .skn-label   { color: #ff79c6; }
-.skn-node[data-cat="design"] .skn-dot     { background:#ff79c6; box-shadow:0 0 6px #ff79c6; }
-.skn-node[data-cat="design"] .skn-ring-fg { stroke:#ff79c6; filter: drop-shadow(0 0 4px rgba(255,121,198,0.6)); }
-
-.skn-node[data-cat="backend"] .skn-label  { color: #50fa7b; }
-.skn-node[data-cat="backend"] .skn-dot    { background:#50fa7b; box-shadow:0 0 6px #50fa7b; }
-.skn-node[data-cat="backend"] .skn-ring-fg{ stroke:#50fa7b; filter: drop-shadow(0 0 4px rgba(80,250,123,0.6)); }
-
-.skn-node[data-cat="tools"] .skn-label    { color: #ffb86c; }
-.skn-node[data-cat="tools"] .skn-dot      { background:#ffb86c; box-shadow:0 0 6px #ffb86c; }
-.skn-node[data-cat="tools"] .skn-ring-fg  { stroke:#ffb86c; filter: drop-shadow(0 0 4px rgba(255,184,108,0.6)); }
-
-.skn-node[data-cat="soft"] .skn-label     { color: #bd93f9; }
-.skn-node[data-cat="soft"] .skn-dot       { background:#bd93f9; box-shadow:0 0 6px #bd93f9; }
-.skn-node[data-cat="soft"] .skn-ring-fg   { stroke:#bd93f9; filter: drop-shadow(0 0 4px rgba(189,147,249,0.6)); }
-
-/* Mobile */
-@media (max-width: 480px) {
-  .skn-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
-  .skn-node-inner { min-height: 128px; padding: 1rem 0.6rem 0.85rem; }
-  .skn-ring-wrap  { width: 44px; height: 44px; }
-  .skn-ring-svg   { width: 44px; height: 44px; }
-  .skn-icon       { font-size: 1.2rem; }
-  .skn-label      { font-size: 0.64rem; }
+@media (prefers-reduced-motion: reduce){
+  .glx-stage,.glx-twinkle,.glx-chip,.glx-halo,.glx-core{animation:none !important;transition:none !important;}
 }
 </style>
 
-<!-- ═══════════════════════════════════════════════════════
-     INTERACTIVE SKILLS CONSTELLATION  v1.0
-     Canvas star-map · glowing nodes · animated edges
-     Touch + mouse · tap a star to highlight its links
-     ═══════════════════════════════════════════════════════ -->
-<style>
-#constellation-wrap {
-  position: relative;
-  width: 100%;
-  max-width: 820px;
-  margin: 0 auto 2.2rem;
-  border-radius: 18px;
-  overflow: hidden;
-  background: radial-gradient(ellipse at 50% 40%, rgba(0,40,60,0.95) 0%, rgba(8,18,30,0.98) 100%);
-  border: 1px solid rgba(0,255,255,0.12);
-  box-shadow: 0 0 40px rgba(0,255,255,0.06), inset 0 0 60px rgba(0,0,0,0.4);
-  touch-action: pan-y;
-}
-#constellation-wrap::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: repeating-linear-gradient(
-    0deg, transparent, transparent 28px,
-    rgba(0,255,255,0.018) 28px, rgba(0,255,255,0.018) 29px
-  ),
-  repeating-linear-gradient(
-    90deg, transparent, transparent 28px,
-    rgba(0,255,255,0.018) 28px, rgba(0,255,255,0.018) 29px
-  );
-  pointer-events: none;
-  z-index: 0;
-}
-#cst-canvas {
-  display: block;
-  width: 100%;
-  height: 340px;
-  position: relative;
-  z-index: 1;
-  cursor: crosshair;
-}
-#cst-tooltip {
-  position: absolute;
-  pointer-events: none;
-  z-index: 10;
-  background: rgba(5, 20, 35, 0.92);
-  border: 1px solid rgba(0,255,255,0.35);
-  border-radius: 10px;
-  padding: 7px 13px;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.72rem;
-  color: #e0ffff;
-  white-space: nowrap;
-  box-shadow: 0 0 18px rgba(0,255,255,0.25);
-  opacity: 0;
-  transform: translateY(4px);
-  transition: opacity 0.18s ease, transform 0.18s ease;
-  backdrop-filter: blur(6px);
-}
-#cst-tooltip.show { opacity: 1; transform: translateY(0); }
-#cst-tooltip .cst-tip-name {
-  font-weight: 700; font-size: 0.78rem; color: #00ffea;
-  display: block; margin-bottom: 2px;
-}
-#cst-tooltip .cst-tip-pct { color: rgba(180,255,240,0.7); font-size: 0.68rem; letter-spacing: 0.5px; }
-#cst-legend {
-  display: flex; flex-wrap: wrap; justify-content: center;
-  gap: 8px 14px; padding: 10px 14px 14px;
-  position: relative; z-index: 2;
-  border-top: 1px solid rgba(0,255,255,0.07);
-}
-.cst-legend-dot {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-size: 0.67rem; font-family: 'Inter', sans-serif;
-  color: rgba(200,230,240,0.65); letter-spacing: 0.4px;
-  cursor: pointer; transition: color 0.2s;
-}
-.cst-legend-dot:hover { color: #fff; }
-.cst-legend-pip {
-  width: 9px; height: 9px; border-radius: 50%;
-  flex-shrink: 0; box-shadow: 0 0 5px currentColor;
-}
-#cst-hint {
-  text-align: center;
-  font-size: 0.65rem;
-  color: rgba(0,255,255,0.35);
-  font-family: 'Courier New', monospace;
-  letter-spacing: 1px;
-  padding: 0 0 8px;
-  position: relative; z-index: 2;
-}
-@media (max-width: 500px) { #cst-canvas { height: 270px; } }
-</style>
+<section class="tech-stack ts-section galaxy-tech" data-aos="fade-up" id="skillsGalaxy">
 
-<div id="constellation-wrap">
-  <canvas id="cst-canvas"></canvas>
-  <div id="cst-tooltip">
-    <span class="cst-tip-name"></span>
-    <span class="cst-tip-pct"></span>
-  </div>
-  <div id="cst-hint">tap a star to illuminate its connections</div>
-  <div id="cst-legend"></div>
-</div>
-
-<script>
-(function () {
-  var SKILLS = [
-    { name:'HTML/CSS/JS',        cat:'frontend', pct:88, icon:'🌐' },
-    { name:'React',              cat:'frontend', pct:78, icon:'⚛️' },
-    { name:'UI/UX Design',       cat:'design',   pct:85, icon:'🎨' },
-    { name:'Info Architecture',  cat:'design',   pct:80, icon:'🗺️' },
-    { name:'Web Dev',            cat:'backend',  pct:72, icon:'🖥️' },
-    { name:'Firebase / Firestore', cat:'backend', pct:80, icon:'🔥' },
-    { name:'Vercel Functions',   cat:'backend',  pct:76, icon:'▲' },
-    { name:'AI / LLM Integration', cat:'backend', pct:82, icon:'🤖' },
-    { name:'Automated Verification', cat:'backend', pct:78, icon:'🔍' },
-    { name:'MS Office Suite',    cat:'tools',    pct:90, icon:'📊' },
-    { name:'Excel Analytics',    cat:'tools',    pct:88, icon:'📈' },
-    { name:'Problem Solving',    cat:'soft',     pct:95, icon:'🧩' },
-    { name:'Collab Workflow',    cat:'soft',     pct:92, icon:'🔗' },
-    { name:'Client Support',     cat:'soft',     pct:90, icon:'🎧' },
-    { name:'Agile Adaptability', cat:'soft',     pct:88, icon:'🔄' },
-    { name:'Project Ownership',  cat:'soft',     pct:85, icon:'🏗️' },
-  ];
-  var CATS = {
-    frontend:{ color:'#00e5ff', label:'Frontend'    },
-    design:  { color:'#ff79c6', label:'Design'      },
-    backend: { color:'#50fa7b', label:'Backend'     },
-    tools:   { color:'#ffb86c', label:'Tools'       },
-    soft:    { color:'#bd93f9', label:'Soft Skills' },
-  };
-
-  var wrap   = document.getElementById('constellation-wrap');
-  var canvas = document.getElementById('cst-canvas');
-  if (!canvas) return;
-  var ctx    = canvas.getContext('2d');
-  var tip    = document.getElementById('cst-tooltip');
-  var tipName = tip.querySelector('.cst-tip-name');
-  var tipPct  = tip.querySelector('.cst-tip-pct');
-  var W, H, nodes = [], activeNode = null, hoveredNode = null;
-  var dpr = Math.min(window.devicePixelRatio || 1, 2);
-  var started = false;
-
-  function layoutNodes() {
-    W = canvas.offsetWidth;
-    H = canvas.offsetHeight;
-    canvas.width  = W * dpr;
-    canvas.height = H * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    var cx = W/2, cy = H/2, rx = W*0.38, ry = H*0.36;
-    var catOrder = Object.keys(CATS);
-    var byCat = {}; catOrder.forEach(function(c){ byCat[c]=[]; });
-    SKILLS.forEach(function(s){ byCat[s.cat].push(s); });
-    nodes = [];
-    catOrder.forEach(function(cat){
-      var group = byCat[cat];
-      group.forEach(function(s, gi){
-        var catIdx  = catOrder.indexOf(cat);
-        var baseAng = (catIdx / catOrder.length) * Math.PI * 2 - Math.PI/2;
-        var spread  = group.length>1 ? (gi-(group.length-1)/2)*(0.5/group.length) : 0;
-        var angle   = baseAng + spread;
-        var r = 0.6 + (s.pct/100)*0.4;
-        nodes.push({
-          skill:s, x:cx+Math.cos(angle)*rx*r, y:cy+Math.sin(angle)*ry*r,
-          r:5+(s.pct/100)*7, pulse:Math.random()*Math.PI*2
-        });
-      });
-    });
-  }
-
-  function hex2(n){ return Math.round(n).toString(16).padStart(2,'0'); }
-
-  function draw(ts) {
-    ctx.clearRect(0,0,W,H);
-
-    /* Background nebula glow */
-    var nb = ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.min(W,H)*0.55);
-    nb.addColorStop(0,'rgba(0,60,80,0.18)'); nb.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=nb; ctx.fillRect(0,0,W,H);
-
-    /* Faint background stars */
-    if(!draw._stars){
-      draw._stars=[];
-      for(var i=0;i<55;i++) draw._stars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.1+0.3,p:Math.random()*Math.PI*2});
-    }
-    draw._stars.forEach(function(st){
-      var a=0.15+Math.sin(ts/1800+st.p)*0.1;
-      ctx.beginPath(); ctx.arc(st.x,st.y,st.r,0,Math.PI*2);
-      ctx.fillStyle='rgba(180,240,255,'+a+')'; ctx.fill();
-    });
-
-    /* Edges — same category */
-    var catGroups={};
-    nodes.forEach(function(nd){ var c=nd.skill.cat; if(!catGroups[c])catGroups[c]=[]; catGroups[c].push(nd); });
-    Object.keys(catGroups).forEach(function(cat){
-      var group=catGroups[cat], col=CATS[cat].color;
-      for(var i=0;i<group.length;i++) for(var j=i+1;j<group.length;j++){
-        var a=group[i],b=group[j];
-        var isH=activeNode&&(a===activeNode||b===activeNode);
-        var alpha=isH?0.65:(activeNode?0.05:0.2);
-        if(isH){ ctx.setLineDash([6,5]); ctx.lineDashOffset=-(ts/28); }
-        else    { ctx.setLineDash([]); }
-        ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
-        ctx.strokeStyle=col+hex2(alpha*255); ctx.lineWidth=isH?1.8:0.9; ctx.stroke();
-      }
-    });
-    ctx.setLineDash([]);
-
-    /* Cross-category edges for elite nodes */
-    nodes.forEach(function(a){
-      if(a.skill.pct<86)return;
-      nodes.forEach(function(b){
-        if(a===b||a.skill.cat===b.skill.cat||b.skill.pct<86)return;
-        var isH=activeNode&&(a===activeNode||b===activeNode);
-        ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
-        ctx.strokeStyle='rgba(180,255,255,'+(isH?0.22:(activeNode?0.02:0.07))+')';
-        ctx.lineWidth=0.5; ctx.stroke();
-      });
-    });
-
-    /* Nodes */
-    nodes.forEach(function(nd){
-      var s=nd.skill, col=CATS[s.cat].color;
-      var pulse=Math.sin(ts/950+nd.pulse)*0.5+0.5;
-      var isA=nd===activeNode, isH=nd===hoveredNode, dim=activeNode&&!isA;
-      var glowR=isA?nd.r*3.8:(isH?nd.r*2.8:nd.r*1.6+pulse*nd.r*0.9);
-
-      if(!dim){
-        var g=ctx.createRadialGradient(nd.x,nd.y,0,nd.x,nd.y,glowR*1.9);
-        g.addColorStop(0,col+'3a'); g.addColorStop(1,col+'00');
-        ctx.beginPath(); ctx.arc(nd.x,nd.y,glowR*1.9,0,Math.PI*2);
-        ctx.fillStyle=g; ctx.fill();
-      }
-
-      ctx.globalAlpha=dim?0.18:1;
-      ctx.beginPath(); ctx.arc(nd.x,nd.y,nd.r,0,Math.PI*2);
-      var cg=ctx.createRadialGradient(nd.x-nd.r*0.35,nd.y-nd.r*0.35,0,nd.x,nd.y,nd.r);
-      cg.addColorStop(0,'#ffffff'); cg.addColorStop(0.45,col); cg.addColorStop(1,col+'99');
-      ctx.fillStyle=cg; ctx.fill();
-
-      if(isA||isH){
-        ctx.beginPath(); ctx.arc(nd.x,nd.y,nd.r+5+pulse*3,0,Math.PI*2);
-        ctx.strokeStyle=col; ctx.lineWidth=1.4; ctx.globalAlpha=0.65; ctx.stroke();
-      }
-      ctx.globalAlpha=1;
-
-      var la=dim?0.12:(isA||isH?1:0.72);
-      ctx.globalAlpha=la;
-      ctx.font=(isA?'bold ':'')+'10px Inter,sans-serif';
-      ctx.textAlign='center'; ctx.textBaseline='top';
-      ctx.fillStyle=isA?'#fff':col;
-      ctx.fillText(s.icon+' '+s.name, nd.x, nd.y+nd.r+5);
-      if(isA){
-        ctx.font='bold 9px "Courier New",monospace';
-        ctx.fillStyle='#00ffea';
-        ctx.fillText(s.pct+'%', nd.x, nd.y+nd.r+18);
-      }
-      ctx.globalAlpha=1; ctx.textBaseline='alphabetic';
-    });
-
-    requestAnimationFrame(draw);
-  }
-
-  function hitTest(mx,my){
-    var hit=null,best=Infinity;
-    nodes.forEach(function(nd){
-      var dx=nd.x-mx,dy=nd.y-my,d=Math.sqrt(dx*dx+dy*dy);
-      if(d<nd.r+14&&d<best){best=d;hit=nd;}
-    });
-    return hit;
-  }
-  function showTip(nd,mx,my){
-    tipName.textContent=nd.skill.icon+'  '+nd.skill.name;
-    tipPct.textContent='Proficiency: '+nd.skill.pct+'%  ·  '+CATS[nd.skill.cat].label;
-    var tx=mx+16,ty=my-48;
-    if(tx+185>W)tx=mx-196; if(ty<4)ty=my+18;
-    tip.style.left=tx+'px'; tip.style.top=ty+'px';
-    tip.classList.add('show');
-  }
-  function hideTip(){ tip.classList.remove('show'); }
-
-  function getXY(e){
-    var rect=canvas.getBoundingClientRect();
-    var src=e.touches?e.touches[0]:e;
-    return{x:src.clientX-rect.left,y:src.clientY-rect.top};
-  }
-  canvas.addEventListener('mousemove',function(e){
-    var p=getXY(e); hoveredNode=hitTest(p.x,p.y);
-    canvas.style.cursor=hoveredNode?'pointer':'crosshair';
-    if(hoveredNode)showTip(hoveredNode,p.x,p.y); else hideTip();
-  });
-  canvas.addEventListener('mouseleave',function(){ hoveredNode=null; hideTip(); });
-  canvas.addEventListener('click',function(e){
-    var p=getXY(e),hit=hitTest(p.x,p.y);
-    activeNode=(hit&&hit!==activeNode)?hit:null;
-    if(activeNode)showTip(activeNode,p.x,p.y); else hideTip();
-  });
-  canvas.addEventListener('touchstart',function(e){
-    var p=getXY(e),hit=hitTest(p.x,p.y);
-    activeNode=(hit&&hit!==activeNode)?hit:null;
-    if(activeNode){showTip(activeNode,p.x,p.y);e.preventDefault();} else hideTip();
-  },{passive:false});
-
-  /* Legend */
-  var legend=document.getElementById('cst-legend');
-  Object.keys(CATS).forEach(function(cat){
-    var c=CATS[cat],el=document.createElement('span');
-    el.className='cst-legend-dot';
-    el.innerHTML='<span class="cst-legend-pip" style="background:'+c.color+';color:'+c.color+'"></span>'+c.label;
-    legend.appendChild(el);
-  });
-
-  function init(){
-    layoutNodes();
-    if(!started){started=true;requestAnimationFrame(draw);}
-  }
-  /* Start immediately if already visible, or on first scroll into view */
-  function tryInit() {
-    if (wrap.offsetWidth > 0) { init(); return; }
-    var io = new IntersectionObserver(function(en){
-      if(en[0].isIntersecting){init();io.disconnect();}
-    },{threshold:0});
-    io.observe(wrap);
-  }
-  if (document.readyState === 'complete') { tryInit(); }
-  else { window.addEventListener('load', tryInit); }
-  window.addEventListener('resize',function(){if(started)layoutNodes();});
-})();
-</script>
-<!-- ═══════════════════════════════════════════════════════ -->
-
-<div class="skn-wrapper">
-  <div class="skn-scanline"></div>
-
-  <div class="skn-title">Skills</div>
-  <div class="skn-subtitle">capability matrix / initialized</div>
-
-  <!-- Filter tabs -->
-  <div class="skn-filters" id="sknFilters">
-    <button class="skn-filter-btn active" data-filter="all">All</button>
-    <button class="skn-filter-btn" data-filter="frontend">Frontend</button>
-    <button class="skn-filter-btn" data-filter="design">Design</button>
-    <button class="skn-filter-btn" data-filter="backend">Backend</button>
-    <button class="skn-filter-btn" data-filter="tools">Tools</button>
-    <button class="skn-filter-btn" data-filter="soft">Soft Skills</button>
+  <div class="glx-head">
+    <span class="glx-eyebrow">✦ Built with</span>
+    <h2 class="glx-title">My Tech Stack</h2>
+    <p class="glx-sub">Tap a category, then tap a star — a live map of the tools I build with</p>
   </div>
 
-  <div class="skn-grid" id="sknGrid">
+  <div class="glx-filters" id="glxFilters">
+    <button class="glx-chip active" data-cat="all"><span class="glx-chip-dot" style="background:conic-gradient(#00e5ff,#8b5cf6,#34d399,#00e5ff);color:#00e5ff;"></span>All</button>
+    <button class="glx-chip" data-cat="frontend"><span class="glx-chip-dot" style="background:#00e5ff;color:#00e5ff;"></span>Frontend</button>
+    <button class="glx-chip" data-cat="backend"><span class="glx-chip-dot" style="background:#34d399;color:#34d399;"></span>Backend</button>
+    <button class="glx-chip" data-cat="design"><span class="glx-chip-dot" style="background:#ff5fa2;color:#ff5fa2;"></span>Design</button>
+  </div>
 
-    <!-- FRONTEND -->
-    <div class="skn-node" data-cat="frontend" data-pct="88" tabindex="0">
-      <div class="skn-node-inner">
-        <div class="skn-burst"></div><div class="skn-dot"></div><div class="skn-node-shine"></div>
-        <div class="skn-ring-wrap">
-          <svg class="skn-ring-svg" viewBox="0 0 52 52">
-            <circle class="skn-ring-bg" cx="26" cy="26" r="22"/>
-            <circle class="skn-ring-fg" cx="26" cy="26" r="22"/>
-          </svg>
-          <span class="skn-icon">🌐</span>
-        </div>
-        <div class="skn-label">HTML / CSS / JS</div>
-        <div class="skn-pct">88%</div>
+  <div class="glx-stage-outer">
+    <div class="glx-stage" id="glxStage">
+      <div class="glx-nebula">
+        <span class="glx-neb-a"></span>
+        <span class="glx-neb-b"></span>
+        <span class="glx-neb-c"></span>
+      </div>
+      <canvas class="glx-canvas" id="glxCanvas"></canvas>
+      <svg class="glx-svg" id="glxSvg" viewBox="0 0 380 300" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <filter id="glxGlow" x="-250%" y="-250%" width="600%" height="600%">
+            <feGaussianBlur stdDeviation="3" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="glxGlowWide" x="-400%" y="-400%" width="900%" height="900%">
+            <feGaussianBlur stdDeviation="7"/>
+          </filter>
+          <filter id="glxPulseGlow" x="-400%" y="-400%" width="900%" height="900%">
+            <feGaussianBlur stdDeviation="1.6"/>
+          </filter>
+          <radialGradient id="grad-frontend" cx="35%" cy="30%" r="75%">
+            <stop offset="0%" stop-color="#ffffff"/>
+            <stop offset="35%" stop-color="#7cf3ff"/>
+            <stop offset="100%" stop-color="#00a8c9"/>
+          </radialGradient>
+          <radialGradient id="grad-backend" cx="35%" cy="30%" r="75%">
+            <stop offset="0%" stop-color="#ffffff"/>
+            <stop offset="35%" stop-color="#8ff5c8"/>
+            <stop offset="100%" stop-color="#149a63"/>
+          </radialGradient>
+          <radialGradient id="grad-design" cx="35%" cy="30%" r="75%">
+            <stop offset="0%" stop-color="#ffffff"/>
+            <stop offset="35%" stop-color="#ff9cc7"/>
+            <stop offset="100%" stop-color="#c22a6f"/>
+          </radialGradient>
+        </defs>
+        <g id="glxLinks"></g>
+        <g id="glxPulses"></g>
+        <g id="glxNodes"></g>
+      </svg>
+      <div class="glx-radar"></div>
+      <div class="glx-vignette"></div>
+      <div class="glx-bracket tl"></div>
+      <div class="glx-bracket tr"></div>
+      <div class="glx-bracket bl"></div>
+      <div class="glx-bracket br"></div>
+      <div class="glx-readout" id="glxReadout">SYS.STACK // 13 NODES ONLINE</div>
+      <p class="glx-hint" id="glxHint">✦ tap a star to see details ✦</p>
+    </div>
+  </div>
+
+  <div class="glx-card" id="glxCard">
+    <button class="glx-card-close" id="glxCardClose" aria-label="Close">✕</button>
+    <div class="glx-card-top">
+      <div class="glx-card-icon-wrap"><img id="glxCardIcon" src="" alt=""></div>
+      <div>
+        <div class="glx-card-name" id="glxCardName">—</div>
+        <div class="glx-card-cat" id="glxCardCat">—</div>
       </div>
     </div>
-
-    <div class="skn-node" data-cat="frontend" data-pct="78" tabindex="0">
-      <div class="skn-node-inner">
-        <div class="skn-burst"></div><div class="skn-dot"></div><div class="skn-node-shine"></div>
-        <div class="skn-ring-wrap">
-          <svg class="skn-ring-svg" viewBox="0 0 52 52">
-            <circle class="skn-ring-bg" cx="26" cy="26" r="22"/>
-            <circle class="skn-ring-fg" cx="26" cy="26" r="22"/>
-          </svg>
-          <span class="skn-icon">⚛️</span>
-        </div>
-        <div class="skn-label">React</div>
-        <div class="skn-pct">78%</div>
-      </div>
-    </div>
-
-    <!-- DESIGN -->
-    <div class="skn-node" data-cat="design" data-pct="85" tabindex="0">
-      <div class="skn-node-inner">
-        <div class="skn-burst"></div><div class="skn-dot"></div><div class="skn-node-shine"></div>
-        <div class="skn-ring-wrap">
-          <svg class="skn-ring-svg" viewBox="0 0 52 52">
-            <circle class="skn-ring-bg" cx="26" cy="26" r="22"/>
-            <circle class="skn-ring-fg" cx="26" cy="26" r="22"/>
-          </svg>
-          <span class="skn-icon">🎨</span>
-        </div>
-        <div class="skn-label">UI / UX Design</div>
-        <div class="skn-pct">85%</div>
-      </div>
-    </div>
-
-    <div class="skn-node" data-cat="design" data-pct="80" tabindex="0">
-      <div class="skn-node-inner">
-        <div class="skn-burst"></div><div class="skn-dot"></div><div class="skn-node-shine"></div>
-        <div class="skn-ring-wrap">
-          <svg class="skn-ring-svg" viewBox="0 0 52 52">
-            <circle class="skn-ring-bg" cx="26" cy="26" r="22"/>
-            <circle class="skn-ring-fg" cx="26" cy="26" r="22"/>
-          </svg>
-          <span class="skn-icon">🗺️</span>
-        </div>
-        <div class="skn-label">Info Architecture</div>
-        <div class="skn-pct">80%</div>
-      </div>
-    </div>
-
-    <!-- BACKEND -->
-    <div class="skn-node" data-cat="backend" data-pct="72" tabindex="0">
-      <div class="skn-node-inner">
-        <div class="skn-burst"></div><div class="skn-dot"></div><div class="skn-node-shine"></div>
-        <div class="skn-ring-wrap">
-          <svg class="skn-ring-svg" viewBox="0 0 52 52">
-            <circle class="skn-ring-bg" cx="26" cy="26" r="22"/>
-            <circle class="skn-ring-fg" cx="26" cy="26" r="22"/>
-          </svg>
-          <span class="skn-icon">🖥️</span>
-        </div>
-        <div class="skn-label">Web Dev</div>
-        <div class="skn-pct">72%</div>
-      </div>
-    </div>
-
-    <div class="skn-node" data-cat="backend" data-pct="80" tabindex="0">
-      <div class="skn-node-inner">
-        <div class="skn-burst"></div><div class="skn-dot"></div><div class="skn-node-shine"></div>
-        <div class="skn-ring-wrap">
-          <svg class="skn-ring-svg" viewBox="0 0 52 52">
-            <circle class="skn-ring-bg" cx="26" cy="26" r="22"/>
-            <circle class="skn-ring-fg" cx="26" cy="26" r="22"/>
-          </svg>
-          <span class="skn-icon">🔥</span>
-        </div>
-        <div class="skn-label">Firebase / Firestore</div>
-        <div class="skn-pct">80%</div>
-      </div>
-    </div>
-
-    <div class="skn-node" data-cat="backend" data-pct="76" tabindex="0">
-      <div class="skn-node-inner">
-        <div class="skn-burst"></div><div class="skn-dot"></div><div class="skn-node-shine"></div>
-        <div class="skn-ring-wrap">
-          <svg class="skn-ring-svg" viewBox="0 0 52 52">
-            <circle class="skn-ring-bg" cx="26" cy="26" r="22"/>
-            <circle class="skn-ring-fg" cx="26" cy="26" r="22"/>
-          </svg>
-          <span class="skn-icon">▲</span>
-        </div>
-        <div class="skn-label">Vercel Functions</div>
-        <div class="skn-pct">76%</div>
-      </div>
-    </div>
-
-    <div class="skn-node" data-cat="backend" data-pct="82" tabindex="0">
-      <div class="skn-node-inner">
-        <div class="skn-burst"></div><div class="skn-dot"></div><div class="skn-node-shine"></div>
-        <div class="skn-ring-wrap">
-          <svg class="skn-ring-svg" viewBox="0 0 52 52">
-            <circle class="skn-ring-bg" cx="26" cy="26" r="22"/>
-            <circle class="skn-ring-fg" cx="26" cy="26" r="22"/>
-          </svg>
-          <span class="skn-icon">🤖</span>
-        </div>
-        <div class="skn-label">AI / LLM Integration</div>
-        <div class="skn-pct">82%</div>
-      </div>
-    </div>
-
-    <div class="skn-node" data-cat="backend" data-pct="78" tabindex="0">
-      <div class="skn-node-inner">
-        <div class="skn-burst"></div><div class="skn-dot"></div><div class="skn-node-shine"></div>
-        <div class="skn-ring-wrap">
-          <svg class="skn-ring-svg" viewBox="0 0 52 52">
-            <circle class="skn-ring-bg" cx="26" cy="26" r="22"/>
-            <circle class="skn-ring-fg" cx="26" cy="26" r="22"/>
-          </svg>
-          <span class="skn-icon">🔍</span>
-        </div>
-        <div class="skn-label">Automated Verification</div>
-        <div class="skn-pct">78%</div>
-      </div>
-    </div>
-
-    <!-- TOOLS -->
-    <div class="skn-node" data-cat="tools" data-pct="90" tabindex="0">
-      <div class="skn-node-inner">
-        <div class="skn-burst"></div><div class="skn-dot"></div><div class="skn-node-shine"></div>
-        <div class="skn-ring-wrap">
-          <svg class="skn-ring-svg" viewBox="0 0 52 52">
-            <circle class="skn-ring-bg" cx="26" cy="26" r="22"/>
-            <circle class="skn-ring-fg" cx="26" cy="26" r="22"/>
-          </svg>
-          <span class="skn-icon">📊</span>
-        </div>
-        <div class="skn-label">MS Office Suite</div>
-        <div class="skn-pct">90%</div>
-      </div>
-    </div>
-
-    <div class="skn-node" data-cat="tools" data-pct="88" tabindex="0">
-      <div class="skn-node-inner">
-        <div class="skn-burst"></div><div class="skn-dot"></div><div class="skn-node-shine"></div>
-        <div class="skn-ring-wrap">
-          <svg class="skn-ring-svg" viewBox="0 0 52 52">
-            <circle class="skn-ring-bg" cx="26" cy="26" r="22"/>
-            <circle class="skn-ring-fg" cx="26" cy="26" r="22"/>
-          </svg>
-          <span class="skn-icon">📈</span>
-        </div>
-        <div class="skn-label">Excel Analytics</div>
-        <div class="skn-pct">88%</div>
-      </div>
-    </div>
-
-    <!-- SOFT SKILLS -->
-    <div class="skn-node" data-cat="soft" data-pct="95" tabindex="0">
-      <div class="skn-node-inner">
-        <div class="skn-burst"></div><div class="skn-dot"></div><div class="skn-node-shine"></div>
-        <div class="skn-ring-wrap">
-          <svg class="skn-ring-svg" viewBox="0 0 52 52">
-            <circle class="skn-ring-bg" cx="26" cy="26" r="22"/>
-            <circle class="skn-ring-fg" cx="26" cy="26" r="22"/>
-          </svg>
-          <span class="skn-icon">🧩</span>
-        </div>
-        <div class="skn-label">Problem Solving</div>
-        <div class="skn-pct">95%</div>
-      </div>
-    </div>
-
-    <div class="skn-node" data-cat="soft" data-pct="92" tabindex="0">
-      <div class="skn-node-inner">
-        <div class="skn-burst"></div><div class="skn-dot"></div><div class="skn-node-shine"></div>
-        <div class="skn-ring-wrap">
-          <svg class="skn-ring-svg" viewBox="0 0 52 52">
-            <circle class="skn-ring-bg" cx="26" cy="26" r="22"/>
-            <circle class="skn-ring-fg" cx="26" cy="26" r="22"/>
-          </svg>
-          <span class="skn-icon">🔗</span>
-        </div>
-        <div class="skn-label">Collab Workflow</div>
-        <div class="skn-pct">92%</div>
-      </div>
-    </div>
-
-    <div class="skn-node" data-cat="soft" data-pct="90" tabindex="0">
-      <div class="skn-node-inner">
-        <div class="skn-burst"></div><div class="skn-dot"></div><div class="skn-node-shine"></div>
-        <div class="skn-ring-wrap">
-          <svg class="skn-ring-svg" viewBox="0 0 52 52">
-            <circle class="skn-ring-bg" cx="26" cy="26" r="22"/>
-            <circle class="skn-ring-fg" cx="26" cy="26" r="22"/>
-          </svg>
-          <span class="skn-icon">🎧</span>
-        </div>
-        <div class="skn-label">Client Support</div>
-        <div class="skn-pct">90%</div>
-      </div>
-    </div>
-
-    <div class="skn-node" data-cat="soft" data-pct="88" tabindex="0">
-      <div class="skn-node-inner">
-        <div class="skn-burst"></div><div class="skn-dot"></div><div class="skn-node-shine"></div>
-        <div class="skn-ring-wrap">
-          <svg class="skn-ring-svg" viewBox="0 0 52 52">
-            <circle class="skn-ring-bg" cx="26" cy="26" r="22"/>
-            <circle class="skn-ring-fg" cx="26" cy="26" r="22"/>
-          </svg>
-          <span class="skn-icon">🔄</span>
-        </div>
-        <div class="skn-label">Agile Adaptability</div>
-        <div class="skn-pct">88%</div>
-      </div>
-    </div>
-
-    <div class="skn-node" data-cat="soft" data-pct="85" tabindex="0">
-      <div class="skn-node-inner">
-        <div class="skn-burst"></div><div class="skn-dot"></div><div class="skn-node-shine"></div>
-        <div class="skn-ring-wrap">
-          <svg class="skn-ring-svg" viewBox="0 0 52 52">
-            <circle class="skn-ring-bg" cx="26" cy="26" r="22"/>
-            <circle class="skn-ring-fg" cx="26" cy="26" r="22"/>
-          </svg>
-          <span class="skn-icon">🏗️</span>
-        </div>
-        <div class="skn-label">Project Ownership</div>
-        <div class="skn-pct">85%</div>
-      </div>
-    </div>
-
-  </div><!-- /skn-grid -->
-</div><!-- /skn-wrapper -->
+    <div class="glx-card-bar-track"><div class="glx-card-bar-fill" id="glxCardFill"></div></div>
+    <div class="glx-card-pct" id="glxCardPct">0%</div>
+    <p class="glx-card-note" id="glxCardNote"></p>
+  </div>
 
 <script>
 (function(){
-  var CIRC = 2 * Math.PI * 22; // 138.23
+  var CAT_COLOR = { frontend:'#00e5ff', backend:'#34d399', design:'#ff5fa2' };
+  var CAT_LABEL = { frontend:'Frontend', backend:'Backend', design:'Design' };
+  var CAT_GRAD  = { frontend:'url(#grad-frontend)', backend:'url(#grad-backend)', design:'url(#grad-design)' };
 
-  /* ── Set ring offset from percent ── */
-  function setRing(node){
-    var pct = parseInt(node.dataset.pct, 10) || 0;
-    var offset = CIRC - (CIRC * pct / 100);
-    node.style.setProperty('--ring-offset', offset.toFixed(2));
-    var fg = node.querySelector('.skn-ring-fg');
-    if(fg) fg.style.strokeDashoffset = offset.toFixed(2);
+  /* id, name, cat, x, y, z(depth 0.55-1 closer=bigger), labelDy, icon, pct, note */
+  var SKILLS = [
+    { id:'html',   name:'HTML5',      cat:'frontend', x:48,  y:58,  z:0.95, dy:16, icon:'https://img.icons8.com/color/96/html-5--v1.png',        pct:95, note:'Semantic, accessible markup — the foundation every page is built on.' },
+    { id:'css',    name:'CSS3',       cat:'frontend', x:98,  y:38,  z:0.75, dy:24, icon:'https://img.icons8.com/color/96/css3.png',               pct:90, note:'Layouts, animations and responsive design that feel native on any screen.' },
+    { id:'js',     name:'JavaScript', cat:'frontend', x:152, y:56,  z:1.0,  dy:16, icon:'https://img.icons8.com/color/96/javascript--v1.png',     pct:85, note:'Interactive logic, DOM control, and the glue behind every feature.' },
+    { id:'react',  name:'React',      cat:'frontend', x:186, y:92,  z:0.65, dy:24, icon:'https://img.icons8.com/color/96/react-native.png',       pct:80, note:'Component-driven UIs for apps that need to scale cleanly.' },
+    { id:'tw',     name:'Tailwind',   cat:'frontend', x:120, y:100, z:0.85, dy:-14,icon:'https://img.icons8.com/color/96/tailwindcss.png',        pct:88, note:'Fast, consistent styling without fighting a stylesheet.' },
+
+    { id:'figma',  name:'Figma',      cat:'design',   x:280, y:48,  z:0.9,  dy:16, icon:'https://img.icons8.com/color/96/figma--v1.png',          pct:82, note:'Where every layout starts — wireframes, prototypes, design systems.' },
+    { id:'wp',     name:'WordPress',  cat:'design',   x:330, y:88,  z:0.6,  dy:16, icon:'https://img.icons8.com/color/96/wordpress.png',          pct:70, note:'Quick, reliable CMS builds for clients who need to self-manage content.' },
+
+    { id:'node',   name:'Node.js',    cat:'backend',  x:45,  y:198, z:0.7,  dy:16, icon:'https://img.icons8.com/fluency/96/node-js.png',          pct:75, note:'Server logic and APIs that keep the frontend fed with real data.' },
+    { id:'py',     name:'Python',     cat:'backend',  x:98,  y:232, z:0.9,  dy:16, icon:'https://img.icons8.com/color/96/python--v1.png',         pct:72, note:'Scripting, automation, and data work outside the browser.' },
+    { id:'excel',  name:'Excel',      cat:'backend',  x:158, y:206, z:0.6,  dy:-14,icon:'https://img.icons8.com/fluency/96/microsoft-excel-2019.png',pct:85, note:'Analytics, reporting and the spreadsheets that run the business side.' },
+    { id:'fb',     name:'Firebase',   cat:'backend',  x:222, y:236, z:1.0,  dy:16, icon:'https://img.icons8.com/color/96/firebase.png',           pct:80, note:'Auth, database and hosting — the backend for most of my live projects.' },
+    { id:'vercel', name:'Vercel',     cat:'backend',  x:280, y:206, z:0.65, dy:-14,icon:'https://cdn.simpleicons.org/vercel/ffffff',              pct:78, note:'One-push deployments so every update goes live in seconds.' },
+    { id:'ai',     name:'AI / LLM',   cat:'backend',  x:335, y:232, z:0.85, dy:16, icon:'https://img.icons8.com/fluency/96/chatbot.png',          pct:82, note:'Prompting and integrating AI tools like this site\u2019s own built-in chatbot.' }
+  ];
+
+  var CHAINS = {
+    frontend: ['html','css','js','react','tw','html'],
+    design:   ['figma','wp'],
+    backend:  ['node','py','excel','fb','vercel','ai']
+  };
+
+  var svgNS = 'http://www.w3.org/2000/svg';
+  var linksG = document.getElementById('glxLinks');
+  var pulsesG = document.getElementById('glxPulses');
+  var nodesG = document.getElementById('glxNodes');
+  var stage  = document.getElementById('glxStage');
+  var readout = document.getElementById('glxReadout');
+  var byId = {};
+  var linkPaths = {}; /* cat -> [{el, len}] */
+
+  function el(tag, attrs){
+    var n = document.createElementNS(svgNS, tag);
+    for (var k in attrs) n.setAttribute(k, attrs[k]);
+    return n;
   }
 
-  /* ── Staggered entrance + ring animation ── */
-  var nodes = document.querySelectorAll('.skn-node');
-  var io = new IntersectionObserver(function(entries){
-    entries.forEach(function(e){
-      if(e.isIntersecting){
-        var n = e.target;
-        var idx = Array.from(nodes).indexOf(n);
-        setTimeout(function(){
-          n.classList.add('skn-visible');
-          setTimeout(function(){ setRing(n); }, 100);
-        }, idx * 75);
-        io.unobserve(n);
-      }
-    });
-  },{ threshold: 0.15 });
-  nodes.forEach(function(n){ io.observe(n); });
+  /* ── Draw energy-tube constellation links per category ── */
+  Object.keys(CHAINS).forEach(function(cat){
+    linkPaths[cat] = [];
+    var ids = CHAINS[cat];
+    for (var i = 0; i < ids.length - 1; i++) {
+      var a = SKILLS.find(function(s){ return s.id === ids[i]; });
+      var b = SKILLS.find(function(s){ return s.id === ids[i+1]; });
+      if (!a || !b) continue;
+      var mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2 - 10;
+      var d = 'M ' + a.x + ' ' + a.y + ' Q ' + mx + ' ' + my + ' ' + b.x + ' ' + b.y;
 
-  /* ── Click burst + toggle active ── */
-  nodes.forEach(function(node){
-    function triggerBurst(){
-      node.classList.toggle('active');
-      var burst = node.querySelector('.skn-burst');
-      burst.classList.remove('pop');
-      void burst.offsetWidth;
-      burst.classList.add('pop');
-      setTimeout(function(){ burst.classList.remove('pop'); }, 600);
-    }
-    node.addEventListener('click', triggerBurst);
-    node.addEventListener('keydown', function(e){
-      if(e.key==='Enter'||e.key===' ') triggerBurst();
-    });
-  });
-
-  /* ── Category filter — upgraded ── */
-  var filterBtns = document.querySelectorAll('.skn-filter-btn');
-  var allNodes   = document.querySelectorAll('#sknGrid .skn-node');
-
-  /* Add count badges to each filter button */
-  filterBtns.forEach(function(btn) {
-    var f = btn.dataset.filter;
-    var count = 0;
-    if (f === 'all') {
-      count = allNodes.length;
-    } else {
-      allNodes.forEach(function(n) {
-        if (n.getAttribute('data-cat') === f) count++;
+      var glow = el('path', { d: d, class: 'glx-link-glow', 'data-cat': cat, stroke: CAT_COLOR[cat], 'stroke-width': '4', opacity: '0.10' });
+      var core = el('path', { d: d, class: 'glx-link-core', 'data-cat': cat, 'stroke-width': '1', opacity: '0.16' });
+      var flow = el('path', { d: d, class: 'glx-link-flow', 'data-cat': cat, stroke: CAT_COLOR[cat], 'stroke-width': '1.3', opacity: '0.35' });
+      flow.style.animationDelay = (i * 0.4) + 's';
+      var len = 90;
+      [glow, core].forEach(function(p){
+        p.style.strokeDasharray = len;
+        p.style.strokeDashoffset = len;
       });
+      linksG.appendChild(glow);
+      linksG.appendChild(core);
+      linksG.appendChild(flow);
+
+      var pathForLen = core;
+      linkPaths[cat].push(pathForLen);
     }
-    var badge = document.createElement('span');
-    badge.className = 'skn-count';
-    badge.textContent = count;
-    btn.appendChild(badge);
   });
 
-  /* Ripple helper */
-  function sknRipple(btn, e) {
-    var rect = btn.getBoundingClientRect();
-    var x = (e.clientX || rect.left + rect.width/2) - rect.left;
-    var y = (e.clientY || rect.top  + rect.height/2) - rect.top;
-    var rip = document.createElement('span');
-    rip.className = 'skn-ripple';
-    rip.style.cssText = 'width:60px;height:60px;left:'+(x-30)+'px;top:'+(y-30)+'px;';
-    btn.appendChild(rip);
-    setTimeout(function(){ rip.remove(); }, 520);
-  }
+  /* ── Draw star nodes (3D sphere-shaded orbs, depth-scaled) ── */
+  SKILLS.forEach(function(s, i){
+    var grad = CAT_GRAD[s.cat];
+    var color = CAT_COLOR[s.cat];
+    var g = el('g', { class: 'glx-node', 'data-id': s.id, 'data-cat': s.cat, transform: 'translate(' + s.x + ',' + s.y + ')' });
 
-  filterBtns.forEach(function(btn){
-    btn.addEventListener('click', function(e){
-      /* Ripple on tap */
-      sknRipple(btn, e);
+    var haloWideR = (13 + s.z * 8).toFixed(2);
+    var haloR = (7 + s.z * 5).toFixed(2);
+    var coreR = (2.6 + s.z * 2.2).toFixed(2);
 
-      /* Update active tab */
-      filterBtns.forEach(function(b){ b.classList.remove('active'); });
-      btn.classList.add('active');
+    var hit = el('circle', { class: 'glx-hitzone', r: '17' });
+    var haloWide = el('circle', { class: 'glx-halo-wide', r: haloWideR, fill: color, filter: 'url(#glxGlowWide)', opacity: (0.14 + s.z * 0.1).toFixed(2) });
+    var halo = el('circle', { class: 'glx-halo', r: haloR, fill: color, filter: 'url(#glxGlow)' });
+    var core = el('circle', { class: 'glx-core glx-twinkle', r: coreR, fill: grad });
+    core.style.animationDelay = (i * 0.35) + 's';
+    core.style.opacity = (0.55 + s.z * 0.45).toFixed(2);
+    var label = el('text', { class: 'glx-label', y: s.dy, style: 'font-size:9px;fill:#eafffd' });
+    label.textContent = s.name;
 
-      var filter = btn.dataset.filter;
-      var toShow = [], toHide = [];
+    g.appendChild(hit); g.appendChild(haloWide); g.appendChild(halo); g.appendChild(core); g.appendChild(label);
+    nodesG.appendChild(g);
+    byId[s.id] = { data: s, g: g, halo: halo, core: core };
 
-      allNodes.forEach(function(n){
-        var cat = n.getAttribute('data-cat');
-        if(filter === 'all' || cat === filter){
-          toShow.push(n);
+    g.addEventListener('click', function(){ selectStar(s.id); });
+  });
+
+  /* ── Filter chips ── */
+  var chips = document.querySelectorAll('.glx-chip');
+  var activeCat = 'all';
+
+  function applyFilter(cat, opts){
+    opts = opts || {};
+    activeCat = cat;
+    chips.forEach(function(c){ c.classList.toggle('active', c.dataset.cat === cat); });
+
+    SKILLS.forEach(function(s){
+      var node = byId[s.id].g;
+      var match = (cat === 'all') || (s.cat === cat);
+      node.classList.toggle('glx-dim', !match);
+      node.classList.toggle('glx-active', match && cat !== 'all');
+      node.classList.toggle('glx-show-label', cat !== 'all' && match);
+    });
+
+    var glows = linksG.querySelectorAll('.glx-link-glow');
+    var cores = linksG.querySelectorAll('.glx-link-core');
+    var flows = linksG.querySelectorAll('.glx-link-flow');
+    [glows, cores].forEach(function(list, idx){
+      list.forEach(function(p){
+        var match = p.dataset.cat === cat;
+        if (cat === 'all') {
+          p.style.opacity = idx === 0 ? 0.08 : 0.14;
+          p.style.strokeDashoffset = 0;
+        } else if (match) {
+          p.style.opacity = idx === 0 ? 0.55 : 0.85;
+          requestAnimationFrame(function(){
+            p.style.transition = 'stroke-dashoffset 0.8s cubic-bezier(.16,1,.3,1)';
+            p.style.strokeDashoffset = 0;
+          });
         } else {
-          toHide.push(n);
+          p.style.opacity = 0.03;
         }
       });
-
-      /* Step 1: animate out cards that are leaving */
-      toHide.forEach(function(n){
-        if (!n.classList.contains('skn-hidden')) {
-          n.classList.add('skn-exiting');
-        }
-      });
-
-      /* Step 2: after exit animation, hide them and show new ones */
-      setTimeout(function(){
-        toHide.forEach(function(n){
-          n.classList.remove('skn-exiting');
-          n.classList.add('skn-hidden');
-        });
-
-        /* Step 3: staggered entrance for visible cards */
-        toShow.forEach(function(n, i){
-          n.classList.remove('skn-hidden');
-          n.classList.remove('skn-visible');
-          n.style.animationDelay = '';
-          void n.offsetWidth;
-          setTimeout(function(){
-            n.classList.add('skn-visible');
-            setRing(n);
-          }, i * 55);
-        });
-      }, 190);
     });
+    flows.forEach(function(p){
+      var match = p.dataset.cat === cat;
+      p.style.opacity = cat === 'all' ? 0.3 : (match ? 0.55 : 0.03);
+    });
+
+    stopPulses();
+    if (cat !== 'all') startPulses(cat);
+
+    if (!opts.silent) markTouched();
+    updateReadout();
+  }
+
+  chips.forEach(function(chip){
+    chip.addEventListener('click', function(){ applyFilter(chip.dataset.cat); });
   });
+
+  /* ── Traveling light pulses along active links (real motion, GPU-cheap) ── */
+  var pulseRAF = null;
+  var pulseDots = [];
+
+  function startPulses(cat){
+    pulsesG.innerHTML = '';
+    pulseDots = [];
+    var paths = linkPaths[cat] || [];
+    paths.forEach(function(p, idx){
+      var len = p.getTotalLength();
+      var dot = el('circle', { r: '2.4', fill: '#ffffff', class: 'glx-pulse' });
+      pulsesG.appendChild(dot);
+      pulseDots.push({ path: p, len: len, dot: dot, offset: idx * 0.3, speed: 0.00035 });
+    });
+    var start = performance.now();
+    function tick(t){
+      var elapsed = t - start;
+      pulseDots.forEach(function(pd){
+        var progress = ((elapsed * pd.speed) + pd.offset) % 1;
+        var pt = pd.path.getPointAtLength(progress * pd.len);
+        pd.dot.setAttribute('cx', pt.x);
+        pd.dot.setAttribute('cy', pt.y);
+      });
+      pulseRAF = requestAnimationFrame(tick);
+    }
+    pulseRAF = requestAnimationFrame(tick);
+  }
+  function stopPulses(){
+    if (pulseRAF) cancelAnimationFrame(pulseRAF);
+    pulseRAF = null;
+    pulsesG.innerHTML = '';
+  }
+
+  /* ── HUD readout text ── */
+  function updateReadout(){
+    if (activeCat === 'all') {
+      readout.textContent = 'SYS.STACK // ' + SKILLS.length + ' NODES ONLINE';
+    } else {
+      var n = SKILLS.filter(function(s){ return s.cat === activeCat; }).length;
+      readout.textContent = 'SYS.' + activeCat.toUpperCase() + ' // ' + n + ' NODES LOCKED';
+    }
+  }
+
+  /* ── Detail card ── */
+  var card = document.getElementById('glxCard');
+  var cardIcon = document.getElementById('glxCardIcon');
+  var cardName = document.getElementById('glxCardName');
+  var cardCat = document.getElementById('glxCardCat');
+  var cardFill = document.getElementById('glxCardFill');
+  var cardPct = document.getElementById('glxCardPct');
+  var cardNote = document.getElementById('glxCardNote');
+  var closeBtn = document.getElementById('glxCardClose');
+  var selectedId = null;
+
+  function selectStar(id){
+    var s = byId[id].data;
+    if (activeCat !== s.cat) applyFilter(s.cat, { silent:true });
+
+    if (selectedId && byId[selectedId]) byId[selectedId].g.classList.remove('glx-selected');
+    selectedId = id;
+    byId[id].g.classList.add('glx-selected');
+
+    cardIcon.src = s.icon;
+    cardIcon.alt = s.name;
+    cardName.textContent = s.name;
+    cardCat.textContent = CAT_LABEL[s.cat];
+    cardCat.style.color = CAT_COLOR[s.cat];
+    cardNote.textContent = s.note;
+    cardFill.style.background = 'linear-gradient(90deg,' + CAT_COLOR[s.cat] + ',rgba(255,255,255,0.85))';
+    cardFill.style.width = '0%';
+    cardPct.textContent = '0%';
+    card.classList.add('glx-open');
+
+    readout.textContent = 'SYS.LOCK // ' + s.name.toUpperCase();
+
+    requestAnimationFrame(function(){
+      setTimeout(function(){
+        cardFill.style.width = s.pct + '%';
+        cardPct.textContent = s.pct + '%';
+      }, 60);
+    });
+
+    markTouched();
+  }
+
+  closeBtn.addEventListener('click', function(){
+    card.classList.remove('glx-open');
+    if (selectedId && byId[selectedId]) byId[selectedId].g.classList.remove('glx-selected');
+    selectedId = null;
+    updateReadout();
+  });
+
+  function markTouched(){ stage.classList.add('glx-touched'); }
+
+  applyFilter('all', { silent:true });
+
+  /* ── Smooth 3D parallax tilt — pointer & touch driven, spring-lerped ── */
+  var tiltX = 0, tiltY = 0;      /* current, lerped */
+  var targetTiltX = 0, targetTiltY = 0;
+  var MAX_TILT = 7; /* degrees */
+  var stageOuter = document.querySelector('.glx-stage-outer');
+
+  function setTargetFromPoint(clientX, clientY){
+    var rect = stage.getBoundingClientRect();
+    var px = (clientX - rect.left) / rect.width;  /* 0..1 */
+    var py = (clientY - rect.top) / rect.height;
+    targetTiltY = (px - 0.5) * MAX_TILT * 2;   /* rotateY from x */
+    targetTiltX = -(py - 0.5) * MAX_TILT * 2;  /* rotateX from y */
+  }
+
+  stageOuter.addEventListener('pointermove', function(e){
+    setTargetFromPoint(e.clientX, e.clientY);
+  });
+  stageOuter.addEventListener('pointerleave', function(){
+    targetTiltX = 0; targetTiltY = 0;
+  });
+  stageOuter.addEventListener('touchmove', function(e){
+    if (e.touches && e.touches[0]) setTargetFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: true });
+  stageOuter.addEventListener('touchend', function(){
+    targetTiltX = 0; targetTiltY = 0;
+  });
+
+  var breatheT = 0;
+  function tiltLoop(){
+    tiltX += (targetTiltX - tiltX) * 0.08;
+    tiltY += (targetTiltY - tiltY) * 0.08;
+    breatheT += 0.006;
+    var breathe = Math.sin(breatheT) * 1.1; /* gentle idle sway so it never looks static */
+    stage.style.transform = 'rotateX(' + (tiltX + breathe * 0.4).toFixed(2) + 'deg) rotateY(' + (tiltY + breathe).toFixed(2) + 'deg)';
+    requestAnimationFrame(tiltLoop);
+  }
+  requestAnimationFrame(tiltLoop);
+
+  /* ── Twinkling depth-layered starfield background ── */
+  var canvas = document.getElementById('glxCanvas');
+  var ctx = canvas.getContext('2d');
+  var stars = [];
+  var planets = [];
+  var rafId = null;
+  var running = false;
+
+  function sizeCanvas(){
+    var rect = stage.getBoundingClientRect();
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.max(1, rect.width * dpr);
+    canvas.height = Math.max(1, rect.height * dpr);
+    canvas.style.width = rect.width + 'px';
+    canvas.style.height = rect.height + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    seedStars(rect.width, rect.height);
+  }
+
+  function seedStars(w, h){
+    var count = Math.round((w * h) / 3200);
+    count = Math.max(45, Math.min(count, 95));
+    stars = [];
+    for (var i = 0; i < count; i++) {
+      var depth = Math.random(); /* 0 = far, 1 = near */
+      stars.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        depth: depth,
+        r: 0.25 + depth * 1.0,
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.35 + Math.random() * 0.75
+      });
+    }
+
+    /* Positioned in genuinely empty pockets of the 380x300 star map, well clear
+       of every constellation's hit-zone (safe clearance ~70+ viewBox units). */
+    planets = [
+      { /* pale moon — quiet middle band between the top and bottom clusters */
+        baseX: w * 0.645, baseY: h * 0.475,
+        r: Math.max(8, w * 0.034),
+        orbitRx: w * 0.045, orbitRy: h * 0.032,
+        periodMs: 19000, phase: 0.6, depth: 0.22,
+        rotMs: 26000,
+        hi: '#f2f6ff', mid: '#aab7dd', low: '#333f6e',
+        craters: [ {a:0.6, da:0.9, r:0.30}, {a:2.4, da:1.6, r:0.20}, {a:4.1, da:1.1, r:0.24} ],
+        ring: false
+      },
+      { /* ringed planet — quiet bottom-left pocket, tucked below the backend chain */
+        baseX: w * 0.145, baseY: h * 0.89,
+        r: Math.max(9, w * 0.04),
+        orbitRx: w * 0.03, orbitRy: h * 0.02,
+        periodMs: 25000, phase: 2.3, depth: 0.16,
+        rotMs: 34000,
+        hi: '#ffedd0', mid: '#dba25e', low: '#6e4720',
+        bands: [ {a:-0.5, w:0.28, alpha:0.22}, {a:0.15, w:0.22, alpha:0.16}, {a:0.7, w:0.2, alpha:0.14} ],
+        ring: true, ringColor: 'rgba(235,195,145,0.5)', ringTilt: -0.34
+      }
+    ];
+  }
+
+  function drawPlanets(t, parX, parY){
+    for (var i = 0; i < planets.length; i++) {
+      var p = planets[i];
+      var ang = (t / p.periodMs) * Math.PI * 2 + p.phase;
+      var x = p.baseX + Math.cos(ang) * p.orbitRx + parX * p.depth * 6;
+      var y = p.baseY + Math.sin(ang) * p.orbitRy + parY * p.depth * 6;
+      var rot = (t / p.rotMs) * Math.PI * 2;
+
+      /* faint dashed orbit path so the motion reads as deliberate, not random */
+      ctx.save();
+      ctx.setLineDash([2, 5]);
+      ctx.strokeStyle = 'rgba(180,210,255,0.07)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.ellipse(p.baseX + parX * p.depth * 6, p.baseY + parY * p.depth * 6, p.orbitRx, p.orbitRy, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+
+      /* ring drawn behind the sphere */
+      if (p.ring) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(p.ringTilt);
+        ctx.scale(1, 0.34);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, p.r * 1.9, p.r * 1.9, 0, 0, Math.PI * 2);
+        ctx.strokeStyle = p.ringColor;
+        ctx.lineWidth = Math.max(1.4, p.r * 0.17);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      /* base lit sphere */
+      var grad = ctx.createRadialGradient(x - p.r * 0.35, y - p.r * 0.35, p.r * 0.1, x, y, p.r);
+      grad.addColorStop(0, p.hi);
+      grad.addColorStop(0.5, p.mid);
+      grad.addColorStop(1, p.low);
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(x, y, p.r, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.clip();
+      ctx.fillStyle = grad;
+      ctx.globalAlpha = 0.9;
+      ctx.fillRect(x - p.r, y - p.r, p.r * 2, p.r * 2);
+
+      /* slowly-rotating surface texture, clipped to the sphere */
+      if (p.craters) {
+        p.craters.forEach(function(c){
+          var ca = c.a + rot;
+          var cx = x + Math.cos(ca) * p.r * 0.5;
+          var cy = y + Math.sin(ca) * p.r * 0.32;
+          ctx.beginPath();
+          ctx.fillStyle = 'rgba(20,28,50,0.22)';
+          ctx.ellipse(cx, cy, p.r * c.r, p.r * c.r * 0.75, 0, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+      if (p.bands) {
+        p.bands.forEach(function(b){
+          var by = y + Math.sin(rot * 0.5 + b.a) * p.r * 0.15 + b.a * p.r * 0.35;
+          ctx.beginPath();
+          ctx.fillStyle = 'rgba(90,55,20,' + b.alpha + ')';
+          ctx.ellipse(x, by, p.r * 1.05, p.r * b.w, 0, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      /* atmospheric rim light on the lit edge, additive for a soft glow */
+      ctx.globalCompositeOperation = 'lighter';
+      var rim = ctx.createRadialGradient(x - p.r * 0.4, y - p.r * 0.4, p.r * 0.6, x - p.r * 0.4, y - p.r * 0.4, p.r * 1.05);
+      rim.addColorStop(0, 'rgba(255,255,255,0.22)');
+      rim.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = rim;
+      ctx.fillRect(x - p.r * 1.3, y - p.r * 1.3, p.r * 2.6, p.r * 2.6);
+      ctx.restore();
+
+      /* soft ambient halo bleeding beyond the sphere, ties it into the scene's light */
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      var halo = ctx.createRadialGradient(x, y, p.r * 0.9, x, y, p.r * 2.2);
+      halo.addColorStop(0, 'rgba(180,200,255,0.10)');
+      halo.addColorStop(1, 'rgba(180,200,255,0)');
+      ctx.fillStyle = halo;
+      ctx.beginPath();
+      ctx.arc(x, y, p.r * 2.2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  function drawStars(t){
+    var rect = stage.getBoundingClientRect();
+    ctx.clearRect(0, 0, rect.width, rect.height);
+    var parX = (tiltY / MAX_TILT); /* -1..1 */
+    var parY = (tiltX / MAX_TILT);
+    drawPlanets(t, parX, parY);
+    for (var i = 0; i < stars.length; i++) {
+      var s = stars[i];
+      var tw = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(t * 0.001 * s.speed + s.phase));
+      var offX = parX * s.depth * 6;   /* near stars parallax more */
+      var offY = parY * s.depth * 6;
+      ctx.beginPath();
+      ctx.fillStyle = 'rgba(210,235,255,' + (tw * (0.35 + s.depth * 0.6)).toFixed(3) + ')';
+      ctx.arc(s.x + offX, s.y + offY, s.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    if (running) rafId = requestAnimationFrame(drawStars);
+  }
+
+  function startLoop(){
+    if (running) return;
+    running = true;
+    rafId = requestAnimationFrame(drawStars);
+  }
+  function stopLoop(){
+    running = false;
+    if (rafId) cancelAnimationFrame(rafId);
+  }
+
+  sizeCanvas();
+  updateReadout();
+
+  var resizeTimer;
+  window.addEventListener('resize', function(){
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(sizeCanvas, 150);
+  });
+
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if (entry.isIntersecting) startLoop(); else stopLoop();
+      });
+    }, { threshold: 0.05 });
+    io.observe(stage);
+  } else {
+    startLoop();
+  }
 })();
 </script>
-</section><!-- ══════════════════════════════════════════
+</section>
+
+<!-- ══════════════════════════════════════════
      PREMIUM MY TECH STACK SECTION — v3.0
      Holographic cards · Magnetic hover · Orbit ring · Particle burst
      ══════════════════════════════════════════ -->
@@ -5731,7 +5335,7 @@ h1.prem-name {
 /* ══ TECH STACK — Premium Minimal ══ */
 .ts-section {
   position: relative;
-  padding: 2.8rem 1rem 3rem;
+  padding: 0 1rem 3rem;
   background: transparent;
   overflow: hidden;
   text-align: center;
@@ -5769,6 +5373,40 @@ h1.prem-name {
 }
 .ts-title-icon { display: none; }
 .ts-subtitle, .ts-divider { display: none; }
+
+/* ── Bridge connecting the galaxy map above to this grid ── */
+.ts-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding-top: 0.4rem;
+  margin-bottom: 1.6rem;
+}
+.ts-connector-line {
+  width: 1.5px;
+  height: 30px;
+  background: linear-gradient(180deg, rgba(0,220,255,0.45), rgba(0,220,255,0.05));
+}
+.ts-connector-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #00e5ff;
+  box-shadow: 0 0 10px #00e5ff, 0 0 20px rgba(0,229,255,0.5);
+  animation: tsConnectorPulse 2.2s ease-in-out infinite;
+}
+@keyframes tsConnectorPulse {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.5); opacity: 1; }
+}
+.ts-connector-text {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 2.2px;
+  text-transform: uppercase;
+  color: rgba(160,215,240,0.4);
+}
 
 /* ── Category tabs ── */
 .ts-tabs {
@@ -5945,10 +5583,11 @@ h1.prem-name {
 <!-- TECH STACK SECTION -->
 <section class="ts-section tech-stack" data-aos="fade-up">
 
-  <!-- Header -->
-  <div class="ts-head">
-    <span class="ts-eyebrow">Built with</span>
-    <span class="ts-title">My Tech Stack</span>
+  <!-- Connector bridging the galaxy map above -->
+  <div class="ts-connector">
+    <span class="ts-connector-line"></span>
+    <span class="ts-connector-dot"></span>
+    <span class="ts-connector-text">Full stack, listed</span>
   </div>
 
   <!-- Category tabs -->
@@ -6009,13 +5648,25 @@ h1.prem-name {
         <span class="ts-card-label">Excel</span>
       </div>
     </div>
-    <div class="ts-card" data-cat="design" style="--card-glow:#ff7262; animation-delay:0.36s">
+    <div class="ts-card" data-cat="backend" style="--card-glow:#ffa611; animation-delay:0.36s">
+      <div class="ts-card-inner">
+        <img loading="lazy" src="https://img.icons8.com/color/96/firebase.png" alt="Firebase"/>
+        <span class="ts-card-label">Firebase</span>
+      </div>
+    </div>
+    <div class="ts-card" data-cat="backend" style="--card-glow:#ffffff; animation-delay:0.40s">
+      <div class="ts-card-inner">
+        <img loading="lazy" src="https://cdn.simpleicons.org/vercel/ffffff" alt="Vercel"/>
+        <span class="ts-card-label">Vercel</span>
+      </div>
+    </div>
+    <div class="ts-card" data-cat="design" style="--card-glow:#ff7262; animation-delay:0.44s">
       <div class="ts-card-inner">
         <img loading="lazy" src="https://img.icons8.com/color/96/figma--v1.png" alt="Figma"/>
         <span class="ts-card-label">Figma</span>
       </div>
     </div>
-    <div class="ts-card" data-cat="design" style="--card-glow:#21759b; animation-delay:0.40s">
+    <div class="ts-card" data-cat="design" style="--card-glow:#21759b; animation-delay:0.48s">
       <div class="ts-card-inner">
         <img loading="lazy" src="https://img.icons8.com/color/96/wordpress.png" alt="WordPress"/>
         <span class="ts-card-label">WordPress</span>
@@ -6056,6 +5707,8 @@ h1.prem-name {
     { label:'Node.js',  pct:75, c1:'#22c55e', c2:'#4ade80' },
     { label:'Python',   pct:72, c1:'#ec4899', c2:'#f472b6' },
     { label:'Figma',    pct:82, c1:'#00d4ff', c2:'#66ffdd' },
+    { label:'Firebase', pct:80, c1:'#ffa611', c2:'#ffcc33' },
+    { label:'AI / LLM', pct:82, c1:'#8b5cf6', c2:'#c084fc' },
   ];
   var cont = document.getElementById('tsBars');
   var barData = [];
