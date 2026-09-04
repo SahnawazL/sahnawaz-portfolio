@@ -49,8 +49,9 @@
       position: relative;
       overflow: hidden;
       transition: border-color 0.25s, box-shadow 0.25s;
-      cursor: default;
+      cursor: pointer;
       animation: rvCardIn 0.4s ease both;
+      -webkit-tap-highlight-color: transparent;
     }
     @keyframes rvCardIn {
       0% { opacity: 0; transform: translateY(10px); }
@@ -70,7 +71,8 @@
     }
     .rv-card-name { font-weight: 700; color: #fff; font-size: 0.8rem; }
     .rv-verified { font-size: 0.6rem; font-weight: 600; color: #00e5ff; background: rgba(0,229,255,0.1); border: 1px solid rgba(0,229,255,0.25); border-radius: 20px; padding: 1px 6px; margin-left: 5px; vertical-align: middle; letter-spacing: 0.3px; }
-    .rv-card-date { font-size: 0.65rem; color: rgba(255,255,255,0.28); margin-top: 1px; }
+    .rv-card-date { font-size: 0.65rem; color: rgba(255,255,255,0.28); margin-top: 0; max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.3s ease, opacity 0.25s ease, margin-top 0.3s ease; }
+    .rv-card.rv-date-open .rv-card-date { max-height: 20px; opacity: 1; margin-top: 1px; }
     .rv-card-stars { font-size: 0.75rem; margin-bottom: 5px; letter-spacing: 1px; }
     .rv-card-text { font-size: 0.78rem; color: rgba(255,255,255,0.55); line-height: 1.55; }
     .rv-quote-icon {
@@ -518,7 +520,7 @@
           var r = doc.data();
           total += r.stars; cnt++;
           html += `
-            <div class="rv-card" style="animation-delay:${i*0.07}s">
+            <div class="rv-card" style="animation-delay:${i*0.07}s" onclick="this.classList.toggle('rv-date-open')">
               <div class="rv-quote-icon">"</div>
               <div class="rv-card-header">
                 <img class="rv-card-avatar" src="${escHTML(r.avatar||'')}" alt="${escHTML(r.firstName||'V')}"
