@@ -551,7 +551,7 @@ img {
   50%  { background-position: 100% center; }
   100% { background-position: 0%   center; }
 }
- @keyframes glowLoop { 0% { text-shadow: 0 0 10px #00ffff; transform: scale(1); } 50% { text-shadow: 0 0 20px #66ffff, 0 0 30px #00f0ff; transform: scale(1.05); } 100% { text-shadow: 0 0 10px #00ffff; transform: scale(1); }} @keyframes glowPulse { 0% { text-shadow: none; transform: scale(1); } 50% { text-shadow: 0 0 20px #ff69b4, 0 0 30px #ffa500; transform: scale(1.1); } 100% { text-shadow: 0 0 10px #00ffff; transform: scale(1); }}  .name-line.clicked { animation: glowPulse 1s ease-in-out;} @keyframes rainbowTextFlow { 0% { color: #ff4d4d; text-shadow: 0 0 5px #ff4d4d; } 20% { color: #ff944d; text-shadow: 0 0 8px #ff944d; } 40% { color: #ffff4d; text-shadow: 0 0 8px #ffff4d; } 60% { color: #4dff4d; text-shadow: 0 0 8px #4dff4d; } 80% { color: #4dd2ff; text-shadow: 0 0 8px #4dd2ff; } 100% { color: #b84dff; text-shadow: 0 0 8px #b84dff; }}  .name-line.clicked { animation: glowPulse 1s ease-in-out !important;} @keyframes mirrorReflectFlow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; }}  .name-line.clicked { animation: glowPulse 1s ease-in-out !important;} html { scroll-behavior: smooth; } /* section:hover background removed - was causing repaints during scroll */ /* scrollProgress removed */ /* scrollToTop removed */ .typing { font-size: 1.2em; font-family: 'Courier New', monospace; border-right: 2px solid #00ffff; white-space: nowrap; overflow: hidden; width: 0; animation: typing 4s steps(40, end) infinite, blink 0.75s step-end infinite alternate; contain: layout; display: inline-block;} @keyframes typing { 0% { width: 0 } 50% { width: 100% } 100% { width: 0 }}@keyframes blink { 0%, 100% { border-color: transparent } 50% { border-color: #00ffff }} .skill-progress { background: #0d3b4c; border-radius: 8px; auto; width: 90%; max-width: 600px; overflow: hidden; box-shadow: 0 0 10px rgba(0,255,255,0.2);}.skill-bar { height: 24px; background: linear-gradient(to right, #00ffff, #00ccff); width: 0%; line-height: 24px; color: #001a22; font-weight: bold; transition: width 2s ease-in-out;} .theme-toggle { position: fixed; top: 20px; right: 20px; background: #00ffff; color: #001a22; border: none; border-radius: 20px; padding: 4px 10px; font-size: 0.9rem; font-weight: bold; cursor: pointer; z-index: 10000; box-shadow: 0 0 12px rgba(0,255,255,0.5);} body.light-mode { background: #f0f0f0; color: #111;} body.light-mode header h1,body.light-mode  body.light-mode .skill-bar { background: linear-gradient(to right, #0077cc, #00ccff); color: #fff;} body.light-mode .theme-toggle { background: #0077cc; color: white;} .contact-form { max-width: 600px; margin: 2rem auto; padding: 2rem; background: rgba(255, 255, 255, 0.03); border-radius: 12px; box-shadow: 0 0 20px rgba(0,255,255,0.1);}.contact-form input, .contact-form textarea { width: 100%; background: #1c2b3a; color: #fff; border: none; border-radius: 6px;}.contact-form button { background: #00ffff; color: #001a22; 20px; border: none; font-weight: bold; border-radius: 6px; cursor: pointer; box-shadow: 0 0 10px rgba(0,255,255,0.5);}.contact-form button:hover { background: #00ccff;} /* Testimonials */.testimonials { background: #0a1727; padding: 3rem 1rem; text-align: center;}.testimonial-card { max-width: 400px; margin: 1rem auto; background: #122b3a; border-radius: 10px; padding: 1.5rem; color: #66ffff; box-shadow: 0 0 12px rgba(0,255,255,0.2);}.testimonial-card p { font-style: italic;}.testimonial-card span { display: block; font-weight: bold; color: #00ccff;} /* Stats */.stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; background: #091c2f; padding: 2rem 0;}.stat-box { color: #00ffff; text-align: center;}.stat-number { font-size: 2.5rem; font-weight: bold; animation: countUp 3s ease forwards;}.stat-label { font-size: 1.1rem; margin-top: 1rem;} @keyframes countUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); }} .certifications { background: #0d1a29; text-align: center; padding: 3rem 1rem;}.certification-badge { display: inline-block; margin: 1rem; padding: 1rem 1.5rem; background: #122b3a; color: #00ffff; font-weight: bold; border-radius: 10px; box-shadow: 0 0 12px rgba(0,255,255,0.2); transition: transform 0.3s ease;}.certification-badge:hover { transform: scale(1.05);} @keyframes celebrationGlow { 0% { color: #00ffff; text-shadow: 0 0 8px #00ffff; } 25% { color: #ff66cc; text-shadow: 0 0 10px #ff66cc; } 50% { color: #66ff66; text-shadow: 0 0 12px #66ff66; } 75% { color: #ffcc00; text-shadow: 0 0 14px #ffcc00; } 100% { color: #00ffff; text-shadow: 0 0 8px #00ffff; }}h2.animated-cert { animation: celebrationGlow 2s infinite;} @keyframes professionalReflect { 0% { color: #00ffff; text-shadow: 0 0 5px #00ffff; transform: scale(1); } 25% { color: #4dd2ff; text-shadow: 0 0 10px #4dd2ff; transform: scale(1.03); } 50% { color: #66ffcc; text-shadow: 0 0 12px #66ffcc; transform: scale(1.05); } 75% { color: #ffffff; text-shadow: 0 0 15px #ffffff; transform: scale(1.03); } 100% { color: #00ffff; text-shadow: 0 0 5px #00ffff; transform: scale(1); }}h2.animated-cert { text-transform: uppercase; animation: professionalReflect 4s ease-in-out infinite; background: linear-gradient(90deg, #00ffff, #ffffff, #00ffff); background-size: 200% auto; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;} .certification-container { display: inline-block; padding: 1rem 2rem; border: 3px solid #00ffff; border-radius: 16px; box-shadow: 0 0 25px rgba(0, 255, 255, 0.5), 0 8px 16px rgba(0, 0, 0, 0.3); animation: borderGlow 3s ease-in-out infinite alternate; margin-bottom: 2rem;} @keyframes borderGlow { 0% { box-shadow: 0 0 10px rgba(0,255,255,0.3), 0 4px 10px rgba(0,0,0,0.2); transform: translateY(0); } 50% { box-shadow: 0 0 25px rgba(255,255,255,0.6), 0 8px 24px rgba(0,0,0,0.3); transform: translateY(-3px); } 100% { box-shadow: 0 0 10px rgba(0,255,255,0.3), 0 4px 10px rgba(0,0,0,0.2); transform: translateY(0); }} header { position: sticky; top: 0; background: rgba(11, 30, 45, 0.95); z-index: 9999; box-shadow: 0 2px 10px rgba(0,255,255,0.2); backdrop-filter: blur(6px); padding: 0.4rem 1rem 0.3rem; } /* Custom cursor and button hover effect */body { cursor: url('https://cur.cursors-4u.net/others/oth-7/oth638.cur'), auto;}a:hover, button:hover, .skill-bar:hover, .certification-badge:hover { transform: scale(1.03); box-shadow: 0 0 15px rgba(0,255,255,0.5); transition: all 0.3s ease-in-out;} .projects { padding: 3rem 1rem; background: #081c2c; text-align: center;}.filter-btns { margin: 1rem auto;}.filter-btns button { margin: 0.3rem; padding: 0.5rem 1rem; background: #00ffff; color: #001a22; border: none; border-radius: 6px; cursor: pointer;}.project-card { display: inline-block; width: 280px; margin: 1rem; background: #122b3a; color: white; padding: 1rem; border-radius: 10px; transition: transform 0.3s ease;}.project-card:hover { transform: scale(1.05); box-shadow: 0 0 15px rgba(0,255,255,0.4);}.hidden { display: none; } .language-switch { position: fixed; bottom: 80px; right: 25px; z-index: 9999;}.language-switch button { margin: 4px; padding: 6px 12px; border-radius: 6px; border: none; background: #00ffff; color: #001a22; font-weight: bold; cursor: pointer; box-shadow: 0 0 10px rgba(0,255,255,0.3);} /* Resume Flipbook Modal */#resumeModal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85);}.resume-content { background-color: #122b3a; margin: 5% auto; padding: 2rem; width: 80%; max-width: 600px; border-radius: 12px; box-shadow: 0 0 15px rgba(0,255,255,0.3); color: white; text-align: center;}#resumeModal iframe { width: 100%; height: 500px; border: none;}.close-resume { color: #fff; font-size: 24px; float: right; cursor: pointer;} html { scroll-behavior: smooth;}img { max-width: 100%; height: auto; display: block;} .tilt-effect { transform-style: preserve-3d; transition: transform 0.2s ease;}.tilt-effect:hover { transform: rotateY(6deg) rotateX(6deg) translateZ(0); box-shadow: 0 10px 30px rgba(0,255,255,0.3);} #particles-js { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -10; background: #0b1a2b;}body { position: relative; background-color: transparent;} body.glass-mode { background: rgba(11, 25, 41, 0.7); backdrop-filter: blur(8px);}.theme-toggle { background: linear-gradient(to right, #00ffff, #4dffcc); font-size: 0.85rem;} .project-card { transition: all 0.4s ease; opacity: 1; transform: scale(1);}.project-card.hidden { opacity: 0; transform: scale(0.95); pointer-events: none; height: 0; margin: 0; padding: 0; overflow: hidden;} .project-card { transition: all 0.4s ease; opacity: 1; transform: scale(1);}.project-card.hidden { opacity: 0; transform: scale(0.85); pointer-events: none; height: 0; margin: 0; padding: 0; overflow: hidden;} html, body { max-width: 100vw; overflow-x: hidden;} section, .contact-form, .resume-content, .project-card, .testimonial-card { width: 100%; box-sizing: border-box; padding-left: 1rem; padding-right: 1rem;} .skills-grid, .projects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; justify-content: center;} h1, h2, p, .name-line, .hi-line, .project-card, .testimonial-card { word-wrap: break-word; overflow-wrap: break-word;} header h1, header p, .intro-line, .btn-group, .tech-stack h2, .blog-section h2, footer p { text-align: center;} #project-list { display: flex; flex-direction: column; align-items: center; flex-wrap: wrap; overflow-x: hidden;}.project-card { max-width: 95vw; box-sizing: border-box;} /* Smooth transition for filtering */.project-card { transition: all 0.5s ease-in-out; opacity: 1;} .project-card.hide { opacity: 0; transform: scale(0.9); pointer-events: none; position: absolute;} /* Smooth filter transition animation */.project-card { transition: all 0.5s ease; opacity: 1; transform: scale(1); pointer-events: auto; position: relative;} .project-card.fade-out { opacity: 0; transform: scale(0.8); pointer-events: none; position: absolute;} /* Smooth filtering animation */.project-card { transition: all 0.4s ease-in-out; opacity: 1; transform: scale(1); display: block;} .project-card.hide { opacity: 0; transform: scale(0.95); pointer-events: none; height: 0; margin: 0; padding: 0; overflow: hidden;} .header-shine { font-size: 2.8rem; font-weight: bold; background: linear-gradient(90deg, #FFD700, #FF8C00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; position: relative; text-align: center; margin-bottom: 0.3em; overflow: hidden;} .header-shine::after { content: ""; position: absolute; top: 0; left: -75%; width: 50%; height: 100%; background: linear-gradient(120deg, transparent, rgba(255,255,255,0.6), transparent); animation: shine 2.5s infinite;} @keyframes shine { 100% { left: 125%; }} /* Reflective shimmer animation */@keyframes shimmer { 0% { background-position: -500px 0; } 100% { background-position: 500px 0; }}.shiny-text { display: inline-block; position: relative; background: linear-gradient(90deg, currentColor 0%, #ffffff 50%, currentColor 100%); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shimmer 2.5s infinite linear;} /* Smooth fade and slight move animation */@keyframes smoothFadeUp { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); }}.professional-text span { display: block; opacity: 0; animation: smoothFadeUp 1s ease forwards;}.professional-text span:nth-child(1) { animation-delay: 0.2s; }.professional-text span:nth-child(2) { animation-delay: 0.6s; }.professional-text span:nth-child(3) { animation-delay: 1s; }.professional-text span:nth-child(4) { animation-delay: 1.4s; } /* Elegant typing-style entrance with subtle fade */@keyframes fadeSlideIn { 0% { opacity: 0; transform: translateX(-10px); letter-spacing: 2px; } 100% { opacity: 1; transform: translateX(0); letter-spacing: normal; }}.elegant-intro span { display: block; opacity: 0; animation: fadeSlideIn 1.4s ease forwards;}.elegant-intro span:nth-child(1) { animation-delay: 0.2s; }.elegant-intro span:nth-child(2) { animation-delay: 0.7s; }.elegant-intro span:nth-child(3) { animation-delay: 1.2s; }.elegant-intro span:nth-child(4) { animation-delay: 1.7s; } @keyframes brandPulse { 0% { transform: scale(1); text-shadow: 0 0 5px rgba(255,255,255,0.3); } 50% { transform: scale(1.05); text-shadow: 0 0 20px rgba(255,255,255,0.8); } 100% { transform: scale(1); text-shadow: 0 0 5px rgba(255,255,255,0.3); }}.brand-animate { display: inline-block; animation: brandPulse 2s infinite ease-in-out; transition: transform 0.3s ease;} @keyframes shadowGlow { 0% { text-shadow: 0 0 4px rgba(255,255,255,0.4); } 50% { text-shadow: 0 0 12px rgba(255,255,255,0.85), 0 0 20px rgba(255,255,255,0.5); } 100% { text-shadow: 0 0 4px rgba(255,255,255,0.4); }}.brand-shadow { animation: shadowGlow 2s ease-in-out infinite; display: inline-block;} @keyframes neonGlow { 0%, 100% { text-shadow: 0 0 5px #fff, 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor, 0 0 40px currentColor; transform: scale(1); } 50% { text-shadow: 0 0 10px #fff, 0 0 20px currentColor, 0 0 30px currentColor, 0 0 40px currentColor, 0 0 50px currentColor; transform: scale(1.03); }}.brand-neon { animation: neonGlow 2s infinite ease-in-out; font-weight: bold; display: inline-block;} .brand-neon-3d { font-weight: bold; display: inline-block; text-shadow: 1px 1px 0 #000, 2px 2px 0 #000, 3px 3px 5px currentColor, 0 0 10px currentColor, 0 0 20px currentColor;} .brand-band { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }.brand-band .brand-neon-3d { 20px; border-radius: 8px; background-color: rgba(255, 255, 255, 0.05); box-shadow: inset 0 0 8px currentColor, 0 0 12px currentColor; font-size: 1.1rem;} .name-shadow-unique { font-size: 2.8rem; font-weight: 800; text-align: center; auto 20px; display: block; color: #ffffff; letter-spacing: 1.5px; text-shadow: 1px 1px 0 #ccc, 2px 2px 0 #bbb, 3px 3px 0 #aaa, 4px 4px 2px rgba(0, 0, 0, 0.3), 6px 6px 6px rgba(0, 0, 0, 0.5);} .name-shadow-attractive { font-size: 3rem; font-weight: 900; text-align: center; auto 20px; display: block; letter-spacing: 2px; color: #ffffff; background: linear-gradient(90deg, #ffffff, #d1d1d1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 1px 0 #ccc, 0 2px 0 #bbb, 0 3px 0 #aaa, 0 4px 0 #999, 0 5px 0 #888, 0 6px 1px rgba(0, 0, 0, 0.1), 0 0 5px rgba(255, 255, 255, 0.3), 0 0 10px rgba(255, 255, 255, 0.2); transition: transform 0.3s ease;}.name-shadow-attractive:hover { transform: scale(1.02); text-shadow: 0 1px 0 #ccc, 0 2px 0 #bbb, 0 3px 0 #aaa, 0 4px 0 #999, 0 5px 0 #888, 0 6px 1px rgba(0, 0, 0, 0.2), 0 0 8px rgba(255, 255, 255, 0.5), 0 0 15px rgba(255, 255, 255, 0.3);} @keyframes slideLeft { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); }} @keyframes glassPulse { 0% { transform: scaleX(1); opacity: 0.7; } 100% { transform: scaleX(1.1); opacity: 1; }} @keyframes spinBorder { 0% { transform: rotate(0deg); opacity: 1; } 100% { transform: rotate(360deg); opacity: 0; }} @keyframes bounceArrow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); } } html { scroll-behavior: smooth; } .brand-badge { padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 500; backdrop-filter: blur(6px) saturate(180%); -webkit-backdrop-filter: blur(6px) saturate(180%); background-color: rgba(255, 255, 255, 0.1); transition: all 0.4s ease; transform-style: preserve-3d; box-shadow: inset 0 0 0.5px rgba(255,255,255,0.3), 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; position: relative; overflow: hidden;} .brand-badge::before { content: ""; position: absolute; top: 0; left: -75%; width: 150%; height: 100%; background: linear-gradient(120deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.0) 60%); transform: skewX(-30deg); transition: all 0.8s ease-in-out; z-index: 0;} .brand-badge:hover::before { left: 125%;} .brand-badge:hover { transform: translateY(-2px) scale(1.05); box-shadow: 0 0 15px currentColor;} .brand-badge:active { transform: scale(0.96);} /* Brand-specific overrides */.brand-xiaomi { color: #f36c21; border: 1px solid #f36c21;} .brand-flipkart { color: #2874f0; border: 1px solid #2874f0;} .brand-rapido { color: #ffcc00; border: 1px solid #ffcc00;} /* removed broken orphan CSS */ /* Apply animated glow based on brand */.brand-xiaomi { color: #f36c21; border: 1px solid #f36c21; box-shadow: 0 4px 12px rgba(243, 108, 33, 0.2);} .brand-flipkart { color: #2874f0; border: 1px solid #2874f0; box-shadow: 0 4px 12px rgba(40, 116, 240, 0.2);} .brand-rapido { color: #ffcc00; border: 1px solid #ffcc00; box-shadow: 0 4px 12px rgba(255, 204, 0, 0.2);} .star-rating-3d { display: inline-flex; gap: 10px; perspective: 600px; } .star-rating-3d .star { font-size: 2rem; color: #555; transition: transform 0.3s, color 0.3s, text-shadow 0.3s; transform-style: preserve-3d; cursor: pointer; } .star-rating-3d .star:hover, .star-rating-3d .star.hovered { color: #00f2ff; transform: rotateY(20deg) scale(1.3); text-shadow: 0 0 10px #00f2ff; } .star-rating-3d .star.selected { color: #00ffd0; text-shadow: 0 0 8px #00ffd0; transform: rotateY(-15deg) scale(1.2); } .tool-card.flipped .card-inner { transform: rotateY(180deg);} .grouped-cards { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;} .flip-card { background: transparent; width: 140px; height: 100px; perspective: 1000px;} .flip-inner { width: 100%; height: 100%; text-align: center; transition: transform 0.8s; transform-style: preserve-3d; position: relative;} .flip-card:hover .flip-inner { transform: rotateX(180deg);} .flip-front, .flip-back { position: absolute; width: 100%; height: 100%; border-radius: 10px; padding: 0.7rem; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.85rem;} .flip-front { background: rgba(255,255,255,0.05); color: #00ffff; box-shadow: 0 0 8px #00ffff66;} .flip-back { background: #00ffff; color: #000; transform: rotateX(180deg); box-shadow: 0 0 8px #00ffffaa;} @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(10px); } } @keyframes floatGlow { 0% { transform: translateY(0px); box-shadow: 0 0 10px rgba(0,255,255,0.1); } 100% { transform: translateY(-5px); box-shadow: 0 0 20px rgba(0,255,255,0.4); }} .cube-box { width: 160px; height: 160px; perspective: 1000px; } .cube { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.6s ease; } .cube-box:hover .cube { transform: rotateY(180deg); } .cube div { position: absolute; width: 100%; height: 100%; border-radius: 12px; display: flex; justify-content: center; align-items: center; background: rgba(0,255,255,0.08); border: 2px solid rgba(0,255,255,0.3); box-shadow: 0 0 12px rgba(0,255,255,0.2); font-weight: bold; font-size: 0.9rem; color: #00ffff; backface-visibility: hidden; text-align: center; padding: 1rem; } .cube .back { transform: rotateY(180deg); background: rgba(255,255,255,0.05); color: #ffffff; } .tool-box { background: rgba(0, 255, 170, 0.05); border: 1px solid #00ffaa; color: #00ffaa; font-size: 0.9rem; text-align: center; border-radius: 8px; box-shadow: 0 0 8px rgba(0, 255, 170, 0.2); transition: transform 0.3s ease, box-shadow 0.3s ease;}.tool-box:hover { transform: translateY(-6px) scale(1.03); box-shadow: 0 0 20px #00ffaa; background: rgba(0, 255, 170, 0.08);} .project-card { background: rgba(255, 255, 255, 0.05); border-radius: 15px; width: 280px; box-shadow: 0 0 10px #00ffff; border: 1px solid #00ffff; transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer; backdrop-filter: blur(4px); } .project-card h3 { color: #00ffff; font-size: 1rem; } .project-card p { color: #ccc; font-size: 0.8rem; } .project-card:hover { transform: scale(1.05); box-shadow: 0 0 20px #00ffff; } .project-card.clicked { animation: glowClick 0.6s ease-out; } @keyframes glowClick { 0% { box-shadow: 0 0 10px #00ffff; } 50% { box-shadow: 0 0 25px #00ffff; } 100% { box-shadow: 0 0 10px #00ffff; } } .brand-xiaomi { color: #f36c21; border: none; box-shadow: 0 3px 5px rgba(243, 108, 33, 0.5);}.brand-flipkart { color: #2874f0; border: none; box-shadow: 0 3px 5px rgba(40, 116, 240, 0.5);}.brand-rapido { color: #ffcc00; border: none; box-shadow: 0 3px 5px rgba(255, 204, 0, 0.5);} .typing-hacker-box { font-family: 'Courier New', monospace; font-size: 1rem; color: #00ffff; padding: 0.6rem 1.3rem; background: rgba(0, 255, 255, 0.05); border: 1.5px dashed #00ffff; border-radius: 14px; box-shadow: 0 0 12px rgba(0,255,255,0.3); animation: glowPulse 2s infinite alternate; text-align: center;}@keyframes glowPulse { from { box-shadow: 0 0 5px rgba(0,255,255,0.2); } to { box-shadow: 0 0 18px rgba(0,255,255,0.6); }} @keyframes pulse { 0% { opacity: 0.8; transform: scale(1); } 50% { opacity: 1; transform: scale(1.03); } 100% { opacity: 0.8; transform: scale(1); }} @keyframes neon-glow { 0% { filter: brightness(1); transform: scale(1); } 100% { filter: brightness(1.3); transform: scale(1.02); }}
+ @keyframes glowLoop { 0% { text-shadow: 0 0 10px #00ffff; transform: scale(1); } 50% { text-shadow: 0 0 20px #66ffff, 0 0 30px #00f0ff; transform: scale(1.05); } 100% { text-shadow: 0 0 10px #00ffff; transform: scale(1); }} @keyframes rainbowTextFlow { 0% { color: #ff4d4d; text-shadow: 0 0 5px #ff4d4d; } 20% { color: #ff944d; text-shadow: 0 0 8px #ff944d; } 40% { color: #ffff4d; text-shadow: 0 0 8px #ffff4d; } 60% { color: #4dff4d; text-shadow: 0 0 8px #4dff4d; } 80% { color: #4dd2ff; text-shadow: 0 0 8px #4dd2ff; } 100% { color: #b84dff; text-shadow: 0 0 8px #b84dff; }} @keyframes mirrorReflectFlow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; }} /* section:hover background removed - was causing repaints during scroll */ /* scrollProgress removed */ /* scrollToTop removed */ .typing { font-size: 1.2em; font-family: 'Courier New', monospace; border-right: 2px solid #00ffff; white-space: nowrap; overflow: hidden; width: 0; animation: typing 4s steps(40, end) infinite, blink 0.75s step-end infinite alternate; contain: layout; display: inline-block;} @keyframes typing { 0% { width: 0 } 50% { width: 100% } 100% { width: 0 }}@keyframes blink { 0%, 100% { border-color: transparent } 50% { border-color: #00ffff }} .skill-progress { background: #0d3b4c; border-radius: 8px; auto; width: 90%; max-width: 600px; overflow: hidden; box-shadow: 0 0 10px rgba(0,255,255,0.2);}.skill-bar { height: 24px; background: linear-gradient(to right, #00ffff, #00ccff); width: 0%; line-height: 24px; color: #001a22; font-weight: bold; transition: width 2s ease-in-out;} body.light-mode { background: #f0f0f0; color: #111;} body.light-mode header h1,body.light-mode body.light-mode .skill-bar { background: linear-gradient(to right, #0077cc, #00ccff); color: #fff;} body.light-mode .theme-toggle { background: #0077cc; color: white;} .contact-form { max-width: 600px; margin: 2rem auto; padding: 2rem; background: rgba(255, 255, 255, 0.03); border-radius: 12px; box-shadow: 0 0 20px rgba(0,255,255,0.1);}.contact-form input, .contact-form textarea { width: 100%; background: #1c2b3a; color: #fff; border: none; border-radius: 6px;}.contact-form button { background: #00ffff; color: #001a22; 20px; border: none; font-weight: bold; border-radius: 6px; cursor: pointer; box-shadow: 0 0 10px rgba(0,255,255,0.5);}.contact-form button:hover { background: #00ccff;} /* Testimonials */.testimonials { background: #0a1727; padding: 3rem 1rem; text-align: center;}.testimonial-card { max-width: 400px; margin: 1rem auto; background: #122b3a; border-radius: 10px; padding: 1.5rem; color: #66ffff; box-shadow: 0 0 12px rgba(0,255,255,0.2);}.testimonial-card p { font-style: italic;}.testimonial-card span { display: block; font-weight: bold; color: #00ccff;} /* Stats */.stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; background: #091c2f; padding: 2rem 0;}.stat-box { color: #00ffff; text-align: center;}.stat-number { font-size: 2.5rem; font-weight: bold; animation: countUp 3s ease forwards;}.stat-label { font-size: 1.1rem; margin-top: 1rem;} @keyframes countUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); }} .certifications { background: #0d1a29; text-align: center; padding: 3rem 1rem;}.certification-badge { display: inline-block; margin: 1rem; padding: 1rem 1.5rem; background: #122b3a; color: #00ffff; font-weight: bold; border-radius: 10px; box-shadow: 0 0 12px rgba(0,255,255,0.2); transition: transform 0.3s ease;}.certification-badge:hover { transform: scale(1.05);} @keyframes celebrationGlow { 0% { color: #00ffff; text-shadow: 0 0 8px #00ffff; } 25% { color: #ff66cc; text-shadow: 0 0 10px #ff66cc; } 50% { color: #66ff66; text-shadow: 0 0 12px #66ff66; } 75% { color: #ffcc00; text-shadow: 0 0 14px #ffcc00; } 100% { color: #00ffff; text-shadow: 0 0 8px #00ffff; }} @keyframes professionalReflect { 0% { color: #00ffff; text-shadow: 0 0 5px #00ffff; transform: scale(1); } 25% { color: #4dd2ff; text-shadow: 0 0 10px #4dd2ff; transform: scale(1.03); } 50% { color: #66ffcc; text-shadow: 0 0 12px #66ffcc; transform: scale(1.05); } 75% { color: #ffffff; text-shadow: 0 0 15px #ffffff; transform: scale(1.03); } 100% { color: #00ffff; text-shadow: 0 0 5px #00ffff; transform: scale(1); }} .certification-container { display: inline-block; padding: 1rem 2rem; border: 3px solid #00ffff; border-radius: 16px; box-shadow: 0 0 25px rgba(0, 255, 255, 0.5), 0 8px 16px rgba(0, 0, 0, 0.3); animation: borderGlow 3s ease-in-out infinite alternate; margin-bottom: 2rem;} @keyframes borderGlow { 0% { box-shadow: 0 0 10px rgba(0,255,255,0.3), 0 4px 10px rgba(0,0,0,0.2); transform: translateY(0); } 50% { box-shadow: 0 0 25px rgba(255,255,255,0.6), 0 8px 24px rgba(0,0,0,0.3); transform: translateY(-3px); } 100% { box-shadow: 0 0 10px rgba(0,255,255,0.3), 0 4px 10px rgba(0,0,0,0.2); transform: translateY(0); }} header { position: sticky; top: 0; background: rgba(11, 30, 45, 0.95); z-index: 9999; box-shadow: 0 2px 10px rgba(0,255,255,0.2); backdrop-filter: blur(6px); padding: 0.4rem 1rem 0.3rem; } /* Custom cursor and button hover effect */body { cursor: url('https://cur.cursors-4u.net/others/oth-7/oth638.cur'), auto;}a:hover, button:hover, .skill-bar:hover, .certification-badge:hover { transform: scale(1.03); box-shadow: 0 0 15px rgba(0,255,255,0.5); transition: all 0.3s ease-in-out;} .projects { padding: 3rem 1rem; background: #081c2c; text-align: center;}.filter-btns { margin: 1rem auto;}.filter-btns button { margin: 0.3rem; padding: 0.5rem 1rem; background: #00ffff; color: #001a22; border: none; border-radius: 6px; cursor: pointer;}.hidden { display: none; } .language-switch { position: fixed; bottom: 80px; right: 25px; z-index: 9999;}.language-switch button { margin: 4px; padding: 6px 12px; border-radius: 6px; border: none; background: #00ffff; color: #001a22; font-weight: bold; cursor: pointer; box-shadow: 0 0 10px rgba(0,255,255,0.3);} /* Resume Flipbook Modal */#resumeModal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85);}.resume-content { background-color: #122b3a; margin: 5% auto; padding: 2rem; width: 80%; max-width: 600px; border-radius: 12px; box-shadow: 0 0 15px rgba(0,255,255,0.3); color: white; text-align: center;}#resumeModal iframe { width: 100%; height: 500px; border: none;}.close-resume { color: #fff; font-size: 24px; float: right; cursor: pointer;} img { max-width: 100%; height: auto; display: block;} .tilt-effect { transform-style: preserve-3d; transition: transform 0.2s ease;}.tilt-effect:hover { transform: rotateY(6deg) rotateX(6deg) translateZ(0); box-shadow: 0 10px 30px rgba(0,255,255,0.3);} #particles-js { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -10; background: #0b1a2b;}body { position: relative; background-color: transparent;} body.glass-mode { background: rgba(11, 25, 41, 0.7); backdrop-filter: blur(8px);} html, body { max-width: 100vw; overflow-x: hidden;} section, .contact-form, .resume-content, .project-card, .testimonial-card { width: 100%; box-sizing: border-box; padding-left: 1rem; padding-right: 1rem;} .skills-grid, .projects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; justify-content: center;} h1, h2, p, .name-line, .hi-line, .project-card, .testimonial-card { word-wrap: break-word; overflow-wrap: break-word;} header h1, header p, .intro-line, .btn-group, .tech-stack h2, .blog-section h2, footer p { text-align: center;} #project-list { display: flex; flex-direction: column; align-items: center; flex-wrap: wrap; overflow-x: hidden;} .project-card.fade-out { opacity: 0; transform: scale(0.8); pointer-events: none; position: absolute;} .header-shine { font-size: 2.8rem; font-weight: bold; background: linear-gradient(90deg, #FFD700, #FF8C00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; position: relative; text-align: center; margin-bottom: 0.3em; overflow: hidden;} .header-shine::after { content: ""; position: absolute; top: 0; left: -75%; width: 50%; height: 100%; background: linear-gradient(120deg, transparent, rgba(255,255,255,0.6), transparent); animation: shine 2.5s infinite;} @keyframes shine { 100% { left: 125%; }} /* Reflective shimmer animation */@keyframes shimmer { 0% { background-position: -500px 0; } 100% { background-position: 500px 0; }}.shiny-text { display: inline-block; position: relative; background: linear-gradient(90deg, currentColor 0%, #ffffff 50%, currentColor 100%); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shimmer 2.5s infinite linear;} /* Smooth fade and slight move animation */@keyframes smoothFadeUp { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); }}.professional-text span { display: block; opacity: 0; animation: smoothFadeUp 1s ease forwards;}.professional-text span:nth-child(1) { animation-delay: 0.2s; }.professional-text span:nth-child(2) { animation-delay: 0.6s; }.professional-text span:nth-child(3) { animation-delay: 1s; }.professional-text span:nth-child(4) { animation-delay: 1.4s; } /* Elegant typing-style entrance with subtle fade */@keyframes fadeSlideIn { 0% { opacity: 0; transform: translateX(-10px); letter-spacing: 2px; } 100% { opacity: 1; transform: translateX(0); letter-spacing: normal; }}.elegant-intro span { display: block; opacity: 0; animation: fadeSlideIn 1.4s ease forwards;}.elegant-intro span:nth-child(1) { animation-delay: 0.2s; }.elegant-intro span:nth-child(2) { animation-delay: 0.7s; }.elegant-intro span:nth-child(3) { animation-delay: 1.2s; }.elegant-intro span:nth-child(4) { animation-delay: 1.7s; } @keyframes brandPulse { 0% { transform: scale(1); text-shadow: 0 0 5px rgba(255,255,255,0.3); } 50% { transform: scale(1.05); text-shadow: 0 0 20px rgba(255,255,255,0.8); } 100% { transform: scale(1); text-shadow: 0 0 5px rgba(255,255,255,0.3); }}.brand-animate { display: inline-block; animation: brandPulse 2s infinite ease-in-out; transition: transform 0.3s ease;} @keyframes shadowGlow { 0% { text-shadow: 0 0 4px rgba(255,255,255,0.4); } 50% { text-shadow: 0 0 12px rgba(255,255,255,0.85), 0 0 20px rgba(255,255,255,0.5); } 100% { text-shadow: 0 0 4px rgba(255,255,255,0.4); }}.brand-shadow { animation: shadowGlow 2s ease-in-out infinite; display: inline-block;} @keyframes neonGlow { 0%, 100% { text-shadow: 0 0 5px #fff, 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor, 0 0 40px currentColor; transform: scale(1); } 50% { text-shadow: 0 0 10px #fff, 0 0 20px currentColor, 0 0 30px currentColor, 0 0 40px currentColor, 0 0 50px currentColor; transform: scale(1.03); }}.brand-neon { animation: neonGlow 2s infinite ease-in-out; font-weight: bold; display: inline-block;} .brand-neon-3d { font-weight: bold; display: inline-block; text-shadow: 1px 1px 0 #000, 2px 2px 0 #000, 3px 3px 5px currentColor, 0 0 10px currentColor, 0 0 20px currentColor;} .brand-band { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }.brand-band .brand-neon-3d { 20px; border-radius: 8px; background-color: rgba(255, 255, 255, 0.05); box-shadow: inset 0 0 8px currentColor, 0 0 12px currentColor; font-size: 1.1rem;} .name-shadow-unique { font-size: 2.8rem; font-weight: 800; text-align: center; auto 20px; display: block; color: #ffffff; letter-spacing: 1.5px; text-shadow: 1px 1px 0 #ccc, 2px 2px 0 #bbb, 3px 3px 0 #aaa, 4px 4px 2px rgba(0, 0, 0, 0.3), 6px 6px 6px rgba(0, 0, 0, 0.5);} .name-shadow-attractive { font-size: 3rem; font-weight: 900; text-align: center; auto 20px; display: block; letter-spacing: 2px; color: #ffffff; background: linear-gradient(90deg, #ffffff, #d1d1d1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 1px 0 #ccc, 0 2px 0 #bbb, 0 3px 0 #aaa, 0 4px 0 #999, 0 5px 0 #888, 0 6px 1px rgba(0, 0, 0, 0.1), 0 0 5px rgba(255, 255, 255, 0.3), 0 0 10px rgba(255, 255, 255, 0.2); transition: transform 0.3s ease;}.name-shadow-attractive:hover { transform: scale(1.02); text-shadow: 0 1px 0 #ccc, 0 2px 0 #bbb, 0 3px 0 #aaa, 0 4px 0 #999, 0 5px 0 #888, 0 6px 1px rgba(0, 0, 0, 0.2), 0 0 8px rgba(255, 255, 255, 0.5), 0 0 15px rgba(255, 255, 255, 0.3);} @keyframes slideLeft { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); }} @keyframes glassPulse { 0% { transform: scaleX(1); opacity: 0.7; } 100% { transform: scaleX(1.1); opacity: 1; }} @keyframes spinBorder { 0% { transform: rotate(0deg); opacity: 1; } 100% { transform: rotate(360deg); opacity: 0; }} @keyframes bounceArrow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); } } html { scroll-behavior: smooth; } .brand-badge { padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 500; backdrop-filter: blur(6px) saturate(180%); -webkit-backdrop-filter: blur(6px) saturate(180%); background-color: rgba(255, 255, 255, 0.1); transition: all 0.4s ease; transform-style: preserve-3d; box-shadow: inset 0 0 0.5px rgba(255,255,255,0.3), 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; position: relative; overflow: hidden;} .brand-badge::before { content: ""; position: absolute; top: 0; left: -75%; width: 150%; height: 100%; background: linear-gradient(120deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.0) 60%); transform: skewX(-30deg); transition: all 0.8s ease-in-out; z-index: 0;} .brand-badge:hover::before { left: 125%;} .brand-badge:hover { transform: translateY(-2px) scale(1.05); box-shadow: 0 0 15px currentColor;} .brand-badge:active { transform: scale(0.96);} .star-rating-3d { display: inline-flex; gap: 10px; perspective: 600px; } .star-rating-3d .star { font-size: 2rem; color: #555; transition: transform 0.3s, color 0.3s, text-shadow 0.3s; transform-style: preserve-3d; cursor: pointer; } .star-rating-3d .star:hover, .star-rating-3d .star.hovered { color: #00f2ff; transform: rotateY(20deg) scale(1.3); text-shadow: 0 0 10px #00f2ff; } .star-rating-3d .star.selected { color: #00ffd0; text-shadow: 0 0 8px #00ffd0; transform: rotateY(-15deg) scale(1.2); } .tool-card.flipped .card-inner { transform: rotateY(180deg);} .grouped-cards { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;} .flip-card { background: transparent; width: 140px; height: 100px; perspective: 1000px;} .flip-inner { width: 100%; height: 100%; text-align: center; transition: transform 0.8s; transform-style: preserve-3d; position: relative;} .flip-card:hover .flip-inner { transform: rotateX(180deg);} .flip-front, .flip-back { position: absolute; width: 100%; height: 100%; border-radius: 10px; padding: 0.7rem; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.85rem;} .flip-front { background: rgba(255,255,255,0.05); color: #00ffff; box-shadow: 0 0 8px #00ffff66;} .flip-back { background: #00ffff; color: #000; transform: rotateX(180deg); box-shadow: 0 0 8px #00ffffaa;} @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(10px); } } @keyframes floatGlow { 0% { transform: translateY(0px); box-shadow: 0 0 10px rgba(0,255,255,0.1); } 100% { transform: translateY(-5px); box-shadow: 0 0 20px rgba(0,255,255,0.4); }} .cube-box { width: 160px; height: 160px; perspective: 1000px; } .cube { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.6s ease; } .cube-box:hover .cube { transform: rotateY(180deg); } .cube div { position: absolute; width: 100%; height: 100%; border-radius: 12px; display: flex; justify-content: center; align-items: center; background: rgba(0,255,255,0.08); border: 2px solid rgba(0,255,255,0.3); box-shadow: 0 0 12px rgba(0,255,255,0.2); font-weight: bold; font-size: 0.9rem; color: #00ffff; backface-visibility: hidden; text-align: center; padding: 1rem; } .cube .back { transform: rotateY(180deg); background: rgba(255,255,255,0.05); color: #ffffff; } .tool-box { background: rgba(0, 255, 170, 0.05); border: 1px solid #00ffaa; color: #00ffaa; font-size: 0.9rem; text-align: center; border-radius: 8px; box-shadow: 0 0 8px rgba(0, 255, 170, 0.2); transition: transform 0.3s ease, box-shadow 0.3s ease;}.tool-box:hover { transform: translateY(-6px) scale(1.03); box-shadow: 0 0 20px #00ffaa; background: rgba(0, 255, 170, 0.08);} .project-card h3 { color: #00ffff; font-size: 1rem; } .project-card p { color: #ccc; font-size: 0.8rem; } .project-card.clicked { animation: glowClick 0.6s ease-out; } @keyframes glowClick { 0% { box-shadow: 0 0 10px #00ffff; } 50% { box-shadow: 0 0 25px #00ffff; } 100% { box-shadow: 0 0 10px #00ffff; } } .typing-hacker-box { font-family: 'Courier New', monospace; font-size: 1rem; color: #00ffff; padding: 0.6rem 1.3rem; background: rgba(0, 255, 255, 0.05); border: 1.5px dashed #00ffff; border-radius: 14px; box-shadow: 0 0 12px rgba(0,255,255,0.3); animation: glowPulse 2s infinite alternate; text-align: center;} @keyframes pulse { 0% { opacity: 0.8; transform: scale(1); } 50% { opacity: 1; transform: scale(1.03); } 100% { opacity: 0.8; transform: scale(1); }} @keyframes neon-glow { 0% { filter: brightness(1); transform: scale(1); } 100% { filter: brightness(1.3); transform: scale(1.02); }}
 /* ── Premium Code Popup ── */
 /* ═══════════════════════════════════════════════════
    💻 ULTRA-PREMIUM LAPTOP POPUP — MacBook Pro aesthetic
@@ -14263,187 +14263,13 @@ body.hacker-mode #retro-terminal { display:block; }
 </div>
 <audio id="beep" preload="auto" src="typing.mp3"></audio>
 <script>
-    const form = document.getElementById('form');
-    const input = document.getElementById('in');
-    const out = document.getElementById('out');
-    const hint = document.getElementById('hint');
-    const beep = document.getElementById('beep');
-
-    let history = []; let histIdx = -1;
-
-    // --- Helpers ---
-    function shell() { return out.parentElement; }
-    function autoscroll(){
-  const s = shell();
-  s.scrollTop = s.scrollHeight; // internal scroll if terminal is scrollable
-  try {
-    const term = document.getElementById('terminal');
-    if (term) {
-      const bottom = term.getBoundingClientRect().bottom + window.scrollY;
-      const target = Math.max(0, bottom - window.innerHeight + 24);
-      window.scrollTo(0, target);
-    } else {
-      const h = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
-      window.scrollTo(0, h);
-    }
-  } catch(e){}
-}
-    function playKey(){
-      try { beep.currentTime = 0; const p = beep.play(); if (p && p.catch) p.catch(()=>{}); } catch(e){}
-    }
-    function typeLine(text, cb){
-      let i=0; const div = document.createElement('div'); out.appendChild(div);
-      (function tick(){
-        if(i<text.length){
-          div.textContent += text.charAt(i);
-          if(i%2===0) playKey();
-          i++;
-          const d = 18 + Math.random()*54;
-          setTimeout(tick,d); autoscroll();
-        } else { if(cb) cb(); }
-      })();
-    }
-    function printSeq(lines, i=0){ if(i<lines.length) typeLine(lines[i], ()=>printSeq(lines, i+1)); }
-    function rand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-
-    // --- Light animations ---
-    function hackAnim(done){
-      let c=0, total=22; const chars="0123456789ABCDEF";
-      const tags=["[AUTH]","[TRACE]","[PORT]","[SQLi]","[TOKEN]"];
-      const t = setInterval(()=>{
-        let s=''; for(let i=0;i<40;i++) s += chars[Math.floor(Math.random()*chars.length)];
-        const div=document.createElement('div');
-        div.textContent = rand(tags)+" "+s;
-        out.appendChild(div); autoscroll();
-        if(++c>=total){ clearInterval(t); typeLine("💀 Hack simulation complete."); if(done) done(); }
-      },80);
-    }
-    function matrixAnim(done){
-      const cv=document.createElement('canvas'); cv.className='matrix';
-      cv.width = out.clientWidth-20; cv.height=160; out.appendChild(cv);
-      const ctx=cv.getContext('2d'); const glyphs="ｱｶｻﾀﾅﾊﾏﾔﾗﾜ0123456789";
-      const f=14, cols=Math.floor(cv.width/f); const drops=Array(cols).fill(1);
-      let raf;
-      function draw(){
-        ctx.fillStyle="rgba(0,0,0,0.08)"; ctx.fillRect(0,0,cv.width,cv.height);
-        ctx.fillStyle="#00ff88"; ctx.font=f+"px monospace";
-        for(let i=0;i<drops.length;i++){
-          const ch=glyphs[Math.floor(Math.random()*glyphs.length)];
-          ctx.fillText(ch,i*f,drops[i]*f);
-          if(drops[i]*f>cv.height && Math.random()>0.975) drops[i]=0;
-          drops[i]++;
-        }
-        raf=requestAnimationFrame(draw);
-      }
-      draw();
-      setTimeout(()=>{ cancelAnimationFrame(raf); typeLine("Matrix simulation ended."); if(done) done(); },6000);
-    }
-
-    // --- Random pools ---
-    const pool = {
-      about: [
-        "Portfolio by Sahnawaz Ahmed Laskar.",
-        "Sahnawaz Ahmed Laskar – Full Stack Developer & Designer.",
-        "Creator: Sahnawaz Ahmed Laskar. Passionate about code & design."
-      ],
-      joke: [
-      "Visitor: 'How secure is your portfolio?' — Terminal: 'So secure, even hackers bookmarked it 🔒'",
-      "Why did the bug leave my portfolio? Because it couldn’t handle my retro hacker mode 🐞➡️🚪",
-      "My portfolio is like a virus… once you open it, you can’t stop exploring 😎",
-      "404 Joke not found… oh wait, found it in my footer 👾"
-],
-      fortune: [
-        "You will debug successfully today.",
-        "A new framework will appear; you will master it.",
-        "Beware of semicolons; they hide in shadows."
-      ],
-      quote: [
-        "'Talk is cheap. Show me the code.' - Linus Torvalds",
-        "'Programs must be written for people to read.' - Harold Abelson",
-        "'First, solve the problem. Then, write the code.' - John Johnson"
-      ]
-    };
-
-    // --- Medical Easter eggs (randomized each run) ---
-    function cmdDiagnose(){
-      const variants = [
-        [
-          "[LOADING: Patient profile]",
-          "[ANALYZING: Vitals, Labs, Smile Index]",
-          "Case: Suraiya A. Mazumder – JRRMCH MBBS",
-          "Dx: Acute Brilliance Syndrome (ABS) 🧠",
-          "Rx: Hydration, deep sleep, and unlimited love doses 💘"
-        ],
-        [
-          "[Connecting to JRRMCH console 🏥]",
-          "[Fetching academic metrics…]",
-          "Report: Beautiful soul + razor-sharp mind",
-          "Dx: Hyper‑Intelligent Scholar Status",
-          "Rx: Confidence 100mg b.i.d, Avoid overthinking"
-        ],
-        [
-          "[Scan complete 🧠]",
-          "Finding: Exceptional neuron density",
-          "Dx: Chronic Cuteness with Complications of Perfection",
-          "Rx: 1 hug q6h, 1 smile t.i.d, PRN for stress"
-        ],
-        [
-          "[Case Simulation Running]",
-          "Symptoms: Kindness, dedication, unstoppable grit",
-          "Dx: Future Doctor in Progress",
-          "Rx: Celebrate small wins daily; love overdose permitted"
-        ]
-      ];
-      printSeq(rand(variants));
-    }
-
-    function cmdHeartbeat(){
-      const waves = [
-        ["Initializing ECG monitor…",
-         "▁▁▂▃▄▅▆▇ █ ▇▆▅▄▃▂▁   78 BPM – Calm but excited"],
-        ["Initializing ECG monitor…",
-         "▁▁▂▃▄▅▆▇ █ █ ▇▆▅▄▃▂▁  96 BPM – Heart races near me 💓"],
-        ["Initializing ECG monitor…",
-         "▁▁▂▃▄▅▆▇   █ ▇▆▅▄▃▂▁  82 BPM – Steady & strong"],
-        ["Initializing ECG monitor…",
-         "▁▁▂▃▄▅▆▇ █   ▇▆▅▄▃▂▁  88 BPM – Love arrhythmia detected 💘"]
-      ];
-      printSeq(rand(waves));
-    }
-
-    function cmdPrescription(){
-      const scripts = [
-        [
-          "🧾 Prescription #SRY-001",
-          "Tab. Happiness 500mg — 1-0-1 with meals",
-          "Cap. Confidence 100mg — b.i.d",
-          "Note: Long calls q.d | Refills: Infinite"
-        ],
-        [
-          "🧾 Prescription #MBBS-STAR",
-          "Syrup: Motivation — 10ml t.i.d",
-          "Inj: Appreciation IM — stat",
-          "Advice: Sleep 8h, eat well, and keep shining ✨"
-        ],
-        [
-          "🧾 Prescription #HEART",
-          "Rx: Hugs — t.i.d, Smiles — q.i.d",
-          "PRN: Chocolate for stress",
-          "Prognosis: Lifelong happiness together ❤️"
-        ]
-      ];
-      printSeq(rand(scripts));
-    }
-
-    // --- Core command handler ---
-    
 function suraiyaFinalEffect() {
   // Final glowing message
   let msg = document.createElement("div");
   msg.className = "final-message";
   msg.innerText = "✦ End of Transmission — Heart Overloaded ✦";
-  out.appendChild(msg);
-  out.scrollTop = out.scrollHeight;
+  const outEl = document.getElementById('out');
+  if (outEl) { outEl.appendChild(msg); outEl.scrollTop = outEl.scrollHeight; }
 
   // Heartbeat pulse effect
   document.body.style.animation = "pulse 1.5s ease";
@@ -14465,8 +14291,6 @@ function suraiyaFinalEffect() {
     document.body.appendChild(el);
     setTimeout(() => el.remove(), 1200);
   }
-
-  
 }
 
 function waitForFinaleAnchor(retries=600){
@@ -14483,398 +14307,7 @@ function waitForFinaleAnchor(retries=600){
     }
   }, 200);
 }
-
-function handle(cmdRaw){
-      const cmd = cmdRaw.trim();
-      if(!cmd) return;
-      const lower = cmd.toLowerCase();
-
-      history.push(cmd); histIdx = history.length;
-      typeLine("> "+cmd, ()=>{
-        switch(lower){
-          
-        
-        case "help":
-          typeLine("==========[ GENERAL ]==========");
-          typeLine("help, about, clear, secret, date, ping");
-          typeLine(" → your name : Type your first name");
-          typeLine("               as a command to see");
-          typeLine("               who you are to me.");
-          typeLine("               If not found, maybe");
-          typeLine("               you’re not part of my");
-          typeLine("               close circle — but you’re");
-          typeLine("               still welcome. 💙");
-          typeLine("");
-          typeLine("============[ FUN ]=============");
-          typeLine("joke, fortune, quote, banner, matrix, easteregg");
-          typeLine("");
-          typeLine("=========== [ SYSTEM ]===========");
-          typeLine("whoami, sysinfo, ipconfig, hack,");
-          typeLine("weather, website, social, projects");
-          typeLine("");
-          typeLine("==========[ PREMIUM ]============");
-          typeLine("reboot, selfdestruct, earthquake,");
-          typeLine("timewarp, blackout, scan, warpdrive");
-          typeLine("=================================");
-          break;
-
-          case "about": typeLine(rand(pool.about)); break;
-          case "joke": typeLine(rand(pool.joke)); break;
-          case "matrix": typeLine("Booting glyph rain...", ()=>matrixAnim()); break;
-          case "clear": out.innerHTML=""; if (typeof resetSuraiyaEffects==="function") resetSuraiyaEffects(); break;
-          
-        case "secret":
-          printSeq([
-            "[Decrypting hidden secret 🔐...]",
-            "Truth: Behind every smile of mine, she’s the reason 🌸",
-            "System cannot hide it anymore ❤️"
-          ]);
-          break;
-
-          case "date": typeLine(new Date().toString()); break;
-          case "ping": typeLine("Pinging server...\nReply from 127.0.0.1: time<1ms TTL=64"); break;
-          case "fortune": typeLine(rand(pool.fortune)); break;
-          case "whoami": typeLine("guest@retro-terminal:~$ You are an anonymous visitor"); break;
-          case "sysinfo": typeLine("System Info:\nCPU: Quantum i9 9th Gen\nRAM: 64GB HyperSpeed\nOS: RetroOS v3.1.4"); break;
-          case "hack": typeLine("Initializing hack...", ()=>hackAnim()); break;
-          case "weather": typeLine("Current Weather: 22°C, Clear Sky ☀️, Windspeed: 2km/h"); break;
-          case "quote": typeLine(rand(pool.quote)); break;
-          case "ipconfig": typeLine("Ethernet adapter:\n IPv4: 192.168.0.42\n Mask: 255.255.255.0\n Gateway: 192.168.0.1"); break;
-          case "banner": typeLine("Welcome to the Retro Terminal. Enjoy your stay!"); break;
-
-          // Hidden Easter eggs (NOT in help)
-          
-        
-case "suraiya":
-  // Ignored entry — archived command (final)
-  typeSeqSmart([
-    "Unknown command: 'suraiya'.",
-    "",
-    "No active record found.",
-    "This identifier has been archived due to irrelevance.",
-    "",
-    "Some stories fade from the system — intentionally.",
-    "Moving forward with cleaner code and clearer purpose.",
-    "",
-    "Autoclean: performative affection detected and purged.",
-    "System note: identity updated — operating as THE DIGITAL ALCHEMIST.",
-    "",
-    "— End of log —"
-  ], 40, function(){ });
-  waitForFinaleAnchor();
-  break;
-
-          
-        case "diagnose":
-          printSeq([
-            "[Running full system scan 🩺...]",
-            "Diagnosis Result:",
-            "- Heart skipping beats",
-            "- Mind distracted by one special person",
-            "- Soul completely attached",
-            "",
-            "Prescription: Unlimited love + care from Admin 💕"
-          ]);
-          break;
-
-          
-        case "heartbeat":
-          printSeq([
-            "[Connecting to biometric monitor ❤️...]",
-            "Beep... Beep... 💓",
-            "Reading: Heart rate spikes only when she smiles",
-            "Stable only when she’s near 🌸",
-            "",
-            "Conclusion: This system runs on her presence ✨"
-          ]);
-          break;
-
-          
-        case "prescription":
-          printSeq([
-            "[Accessing medical notes 📜...]",
-            "Prescription Issued:",
-            "- 1 dose of happiness daily 🌞",
-            "- Plenty of rest & sweet dreams 😴",
-            "- Smiles three times a day 💕",
-            "- Overdose Warning: Too much love can cause forever attachment ❤️",
-            "",
-            "Signed: Admin who can’t stop caring 🫶"
-          ]);
-          break;
-
-          
-        case "website": printLink("🌐 Portfolio", "https://sahnawaz-portfolio.vercel.app/"); break;
-        case "social": printLink("📸 Instagram", "https://www.instagram.com/sahnawaz.ui.dev"); break;
-        case "projects":
-          typeLine("📂 Projects:\n- Retro Hacker Mode Terminal\n- Portfolio Showcase\n- Fun Easter Eggs 🚀"); 
-          break;
-
-        
-        case "easteregg":
-          typeLine("🐇 You found the rabbit hole! Hidden fun commands: 'matrix', 'diagnose', 'heartbeat', 'prescription', 'stethoscope', 'galaxy', 'key', 'secret' 😉"); 
-          break;
-
-    
-        
-        case "reboot":
-          typeLine("[System reboot initiated...]");
-          document.body.classList.add("flicker");
-          setTimeout(()=>{
-            document.body.classList.remove("flicker");
-            location.reload();
-          }, 2000);
-          break;
-
-        case "selfdestruct":
-          let countdown = 5;
-          document.body.classList.add("selfdestructing","shake");
-          let timer = setInterval(()=>{
-            typeLine("💣 Self-destruct in " + countdown + "...");
-            countdown--;
-            if(countdown < 0){
-              clearInterval(timer);
-              typeLine("💥 BOOM! Just kidding 😉");
-              document.body.classList.remove("selfdestructing","shake");
-            }
-          }, 1000);
-          break;
-
-        case "earthquake":
-          typeLine("⚡ System Unstable... Earthquake detected!");
-          document.body.style.animation = "shake 0.2s infinite";
-          setTimeout(()=>{document.body.style.animation="";}, 4000);
-          break;
-
-        case "timewarp":
-          typeLine("[Initializing Time Travel Protocol ⏳...]");
-          document.body.classList.add("timewarpfx");
-          setTimeout(()=>document.body.classList.remove("timewarpfx"), 4000);
-          printSeq([
-            "Year → 3025",
-            "Civilization → Unknown",
-            "Note: You don’t belong here 👀"
-          ]);
-          break;
-
-        case "blackout":
-          typeLine("⚠️ System blackout triggered...");
-          document.body.classList.add("blackoutfx");
-          setTimeout(()=>{document.body.classList.remove("blackoutfx"); typeLine("System restored ✅");}, 4000);
-          break;
-
-        case "scan":
-          typeLine("🔍 Initiating deep scan...");
-          document.body.classList.add("scanfx");
-          setTimeout(()=>document.body.classList.remove("scanfx"), 3000);
-          setTimeout(()=>typeLine("Browser: " + navigator.userAgent), 1000);
-          setTimeout(()=>typeLine("Platform: " + navigator.platform), 2000);
-          setTimeout(()=>typeLine("Location: ACCESS DENIED 🔒"), 3000);
-          break;
-
-        case "warpdrive":
-          typeLine("[Engaging Warp Drive ⚡...]");
-          document.body.classList.add("warpdrivefx");
-          setTimeout(()=>document.body.classList.remove("warpdrivefx"), 3000);
-          printSeq([
-            "Speed: Light Speed++ ✨",
-            "Destination: Unknown Galaxy 🌌",
-            "Status: You’re not supposed to be here 👽"
-          ]);
-          break;
-
-        // ===== Family & Relatives (Hidden Commands) =====
-        case "jamal":
-          typeLine("------------------------------");
-          typeLine("Jamal is my beloved father —");
-          typeLine("the root of our family tree,");
-          typeLine("my strength and guidance. 💙");
-          typeLine("------------------------------");
-          break;
-
-        case "momotaz":
-          typeLine("💙 My beloved mother, Momotaz —");
-          typeLine("the angel of my life.");
-          typeLine("She left us in 2019, but her love,");
-          typeLine("prayers, and blessings stay forever");
-          typeLine("in my heart. May Allah grant her Jannah. 💙");
-          break;
-
-        case "afiya":
-          typeLine("Afiya is my eldest sister —");
-          typeLine("always protective, caring,");
-          typeLine("and a second mother to me. ❤️");
-          break;
-
-        case "fayaz":
-          typeLine("Fayaz is my elder brother — strong,");
-          typeLine("wise, and always guiding me forward. 🤝");
-          break;
-
-        case "afaz":
-          typeLine("Afaz is my elder brother — loving,");
-          typeLine("supportive, and my true companion. 🤝");
-          break;
-
-        case "chufiya":
-          typeLine("Chufiya is my sister — sweet,");
-          typeLine("kind, and full of love for the family. 🌸");
-          break;
-
-        case "nahaz":
-          typeLine("Nahaz is my brother — energetic, fun,");
-          typeLine("and always close to my heart. ⚡");
-          break;
-
-        case "rajiya":
-          typeLine("Rajiya is my sister — caring and graceful,");
-          typeLine("a pillar of warmth in our family. 🌹");
-          break;
-
-        case "rejina":
-          typeLine("Rejina is my sister — loving, cheerful,");
-          typeLine("and a true blessing to us all. 🌼");
-          break;
-
-        case "minhaz":
-          typeLine("Minhaz is my youngest brother —");
-          typeLine("the most adorable, and deeply loved by everyone. 💙");
-          break;
-
-        case "nurun":
-          typeLine("Nurun is my beloved aunt —");
-          typeLine("a guiding figure full of love. 🌷");
-          break;
-
-        case "athikur":
-          typeLine("Athikur is my uncle — kind, wise,");
-          typeLine("and always respected. 🤲");
-          break;
-
-        case "papiya":
-          typeLine("Papiya is my cousin sister — elder to me,");
-          typeLine("like a friend and guide at the same time. 🌟");
-          break;
-
-        case "sabaz":
-          typeLine("Sabaz is my cousin brother — younger than me,");
-          typeLine("lively and full of energy. 🔥");
-          break;
-
-        case "jabir":
-          typeLine("Jabir is my cousin brother — cheerful,");
-          typeLine("playful, and dearly loved. 😊");
-          break;
-
-        case "azad":
-          typeLine("Azad is my brother-in-law (Afiya’s husband) —");
-          typeLine("respected and part of our family bond. 🤝");
-          break;
-
-        case "afreen":
-          typeLine("Afreen is Afiya’s daughter — sweet and lovely,");
-          typeLine("a little star in our family. 🌟");
-          break;
-
-        case "khaleda":
-          typeLine("Khaleda is my sister-in-law (Fayaz’s wife) —");
-          typeLine("caring and kind, adding joy to our home. 💐");
-          break;
-
-        case "tashfiya":
-          typeLine("Tashfiya is Fayaz’s daughter —");
-          typeLine("a little princess, bright and loved by everyone. 👑");
-          break;
-
-        case "mampi":
-          typeLine("Mampi is my sister-in-law (Afaz’s wife) —");
-          typeLine("warm, graceful, and part of our family love. 🌺");
-          break;
-
-        case "faizan":
-          typeLine("Faizan is Afaz’s son — small, innocent,");
-          typeLine("and the heart of joy for us all. 🍼");
-          break;
-
-        case "rushon":
-          typeLine("Rushon is my brother-in-law (Chufiya’s husband) —");
-          typeLine("respected and part of our close family circle. 🤝");
-          break;
-
-        case "sabana":
-          typeLine("Sabana is Chufiya’s daughter — sweet and playful,");
-          typeLine("bringing smiles always. 🌼");
-          break;
-
-        case "saddik":
-          typeLine("Saddik is Chufiya’s son — little, bright,");
-          typeLine("and a treasure of happiness. 🧸");
-          break;
-
-        case "komoi":
-          typeLine("Komoi is my brother-in-law (Rajiya’s husband) —");
-          typeLine("a valued and respected part of our family. 🙏");
-          break;
-
-        case "ridwan":
-          typeLine("Ridwan is Rajiya’s son — smart, cheerful,");
-          typeLine("and deeply loved. 😇");
-          break;
-
-        case "enaya":
-          typeLine("Enaya is Rajiya’s daughter — tiny, lovely,");
-          typeLine("and the soul of joy in our family. 💕");
-          break;
-
-        case "akbar":
-          typeLine("Akbar is my brother-in-law (Rejina’s husband) —");
-          typeLine("respected with love, making our family stronger. 🤝");
-          break;
-
-
-        // Family & Relatives Commands (first names)
-        case "amir":
-          typeLine("Amir is my elder brother, always supportive.");
-          break;
-        case "fatima":
-          typeLine("Fatima is my lovely sister, caring and kind.");
-          break;
-        // Add more names and relations here...
-
-default: typeLine("Unknown command. Type 'help' to see available commands.");
-        }
-        /* no auto-focus on mobile */
-  // Append clickable link without typing effect
-  function printLink(label, href){
-    const div = document.createElement('div');
-    const a = document.createElement('a');
-    a.href = href;
-    a.target = "_blank";
-    a.rel = "noopener noreferrer";
-    a.textContent = label + " → " + href;
-    div.appendChild(a);
-    out.appendChild(div);
-    autoscroll();
-  }
-      });
-    }
-
-    // --- Form submit catches Enter/Go on all keyboards ---
-    form.addEventListener('submit', e=>{
-      e.preventDefault();
-      const cmd = input.value;
-      input.value='';
-      handle(cmd);
-    });
-
-    // --- History navigation ---
-    input.addEventListener('keydown', e=>{
-      if(e.key==='ArrowUp'){ if(histIdx>0){ histIdx--; input.value=history[histIdx]; } e.preventDefault(); }
-      else if(e.key==='ArrowDown'){ if(histIdx<history.length-1){ histIdx++; input.value=history[histIdx]; } else { histIdx=history.length; input.value=''; } e.preventDefault(); }
-    });
-
-    // No autofocus to avoid opening keyboard until user taps.
-  </script>
+</script>
 </div>
 <!-- /Retro Hacker Mode Terminal -->
 <script>
@@ -15476,7 +14909,7 @@ default:
   // Play sounds immediately in the keydown gesture context (before any async delay)
   function _playTerminalSuccess(){
     try {
-      var a = document.getElementById('errorSound');
+      var a = document.getElementById('successSound');
       if (!a) return;
       var node = a.cloneNode(true);
       node.volume = 1;
@@ -16724,13 +16157,7 @@ function typeText(element, text, speed = 50) {
 }
 </script>
 <!-- old sound dispatch script removed: sound now handled directly inside handle() -->
-<!-- Success and Error Sounds -->
-<audio id="successSound" preload="auto">
-<source src="success.mp3" type="audio/mpeg"/>
-</audio>
-<audio id="errorSound" preload="auto">
-<source src="error.mp3" type="audio/mpeg"/>
-</audio>
+<!-- Success/Error <audio> elements live in the #retro-terminal container above; duplicate pair removed -->
 <!-- Click sound for retro hacker toggle (minified, non-intrusive) -->
 <script id="hacker-toggle-click-sound">document.addEventListener("DOMContentLoaded",function(){let e=document.getElementById("hackerClick");if(!e){e=document.createElement("audio"),e.id="hackerClick",e.preload="auto";const t=document.createElement("source");t.src="click.mp3",t.type="audio/mpeg",e.appendChild(t),e.style.display="none",document.body.appendChild(e)}const t=()=>{try{const t=e.cloneNode(!0);t.muted=!0,document.body.appendChild(t),(t.play()||Promise.resolve()).finally(()=>setTimeout(()=>t.remove(),300))}catch(e){}window.removeEventListener("pointerdown",t,!0),window.removeEventListener("keydown",t,!0)};function n(){try{const t=e.cloneNode(!0);document.body.appendChild(t);const n=t.play();n&&"function"==typeof n.then?n.then(()=>setTimeout(()=>t.remove(),800)).catch(()=>t.remove()):setTimeout(()=>t.remove(),800)}catch(e){}}window.addEventListener("pointerdown",t,{once:!0,capture:!0}),window.addEventListener("keydown",t,{once:!0,capture:!0}),document.addEventListener("click",function(e){const t=e.target&&e.target.closest&&e.target.closest("#hacker-toggle");t&&n()},!0)});</script>
 <style id="glassy-small-style">
@@ -18156,6 +17583,35 @@ function typeText(element, text, speed = 50) {
 @keyframes pillIn { 0%{opacity:0;transform:translateY(12px) scale(0.88);} 100%{opacity:1;transform:translateY(0) scale(1);} }
 @keyframes pillOut { 0%{opacity:1;transform:scale(1);} 100%{opacity:0;transform:scale(0.85);} }
 
+/* Manual dismiss badge on the pill */
+#pillClose {
+  position: absolute;
+  top: -6px; right: -6px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(15,30,50,0.96);
+  border: 1px solid rgba(0,200,255,0.35);
+  color: rgba(200,235,255,0.75);
+  font-size: 12px; line-height: 1;
+  cursor: pointer;
+  opacity: 0.85;
+  transition: transform 0.15s ease, opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+  z-index: 1;
+}
+#pillClose:hover,
+#pillClose:active {
+  opacity: 1;
+  transform: scale(1.12);
+  background: rgba(255,70,70,0.18);
+  border-color: rgba(255,90,90,0.55);
+  color: rgba(255,150,150,0.95);
+}
+@keyframes pillDismiss {
+  0%   { opacity:1; transform: scale(1) translateY(0); }
+  100% { opacity:0; transform: scale(0.7) translateY(6px); }
+}
+
 /* Option 5 — Time-based avatar ring color */
 #chatWidget.time-morning .chat-avatar img { border-color:rgba(255,200,80,0.75); box-shadow:0 0 8px rgba(255,180,0,0.4); }
 #chatWidget.time-day     .chat-avatar img { border-color:rgba(0,200,255,0.75);  box-shadow:0 0 8px rgba(0,200,255,0.35); }
@@ -18714,6 +18170,7 @@ document.addEventListener('DOMContentLoaded', function(){
   <img src="https://raw.githubusercontent.com/SahnawazL/sahnawaz-portfolio/main/favicon-32x32.png" alt="Sahnawaz"/>
   <span class="pill-dot"></span>
   <span>💬 Ask Sahnawaz</span>
+  <span id="pillClose" title="Dismiss" aria-label="Dismiss">×</span>
 </div>
 <div aria-modal="true" id="chatWidget" role="dialog">
   <div id="chatHeader">
@@ -19793,7 +19250,11 @@ document.addEventListener('DOMContentLoaded', function(){
     var cmdOpen = false;
     cmdToggleEl.addEventListener('click', function(){
       if (window._helpFlowActive && window._helpFlowActive()) return;
-      var opening = !cmdOpen;
+      /* Read the real DOM state, not the local flag — another panel's
+         closeAllPanels() call can close this panel without ever touching
+         cmdOpen, which used to leave it stale and require a double-click
+         to reopen. */
+      var opening = !cmdPanelEl.classList.contains('cmd-open');
       closeAllPanels();
       if (opening) {
         cmdOpen = true;
@@ -19867,7 +19328,9 @@ document.addEventListener('DOMContentLoaded', function(){
 
     /* Toggle help panel */
     helpToggleEl.addEventListener('click', function(){
-      var opening = !helpOpen;
+      /* Read the real DOM state — see matching note in the Commands panel
+         toggle above; a stale local flag caused the same double-click bug. */
+      var opening = !helpPanelEl.classList.contains('help-open');
       closeAllPanels();
       if (opening) {
         helpOpen = true;
@@ -21489,6 +20952,17 @@ document.addEventListener('DOMContentLoaded', function(){
   /* Option 3 — pill click opens chat */
   var pill = document.getElementById('chatPill');
   if (pill) pill.addEventListener('click', function(){ window.openChat && window.openChat(); });
+
+  /* Manual dismiss — small × badge on the pill */
+  var pillCloseBtn = document.getElementById('pillClose');
+  if (pillCloseBtn && pill) {
+    pillCloseBtn.addEventListener('click', function(e){
+      e.stopPropagation(); /* don't trigger openChat */
+      clearTimeout(pill._hideTimer); /* cancel the 30s auto-hide, we're closing now */
+      pill.style.animation = 'pillDismiss 0.3s cubic-bezier(0.4,0,0.2,1) both';
+      setTimeout(function(){ pill.style.display = 'none'; }, 300);
+    });
+  }
 
   /* Option 7 — haptic flash on send */
   if (sendBtn){
