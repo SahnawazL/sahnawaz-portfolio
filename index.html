@@ -11331,6 +11331,9 @@ document.addEventListener('keydown', function(e) {
     .gp-score-badge:hover { border-color: rgba(0,255,180,0.6); }
     .gp-score-badge:focus-visible { outline: 2px solid rgba(0,255,180,0.65); outline-offset: 2px; }
     .gp-score-num { color: #00ffb4; }
+    .gp-score-trend { font-size: 0.56rem; font-weight: 700; letter-spacing: 0.01em; opacity: 0.9; }
+    .gp-trend-up { color: #00ffb4; }
+    .gp-trend-down { color: rgba(255, 185, 120, 0.85); }
     .gp-score-caret { width: 8px; height: 8px; opacity: 0.65; transition: transform 0.2s ease; flex-shrink: 0; }
     .gp-score-badge[aria-expanded="true"] .gp-score-caret { transform: rotate(180deg); }
 
@@ -11365,7 +11368,7 @@ document.addEventListener('keydown', function(e) {
     .gp-score-note { margin-top: 0.6rem; font-size: 0.55rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.32); }
 
     /* ══ Contribution heatmap ══ */
-    .hm-panel { margin-bottom: 0.9rem; }
+    .hm-panel { margin-bottom: 0.9rem; position: relative; }
     .hm-scroll { overflow-x: auto; padding-bottom: 2px; }
     .hm-grid { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 10px); grid-auto-columns: 10px; gap: 2.5px; width: max-content; }
     .hm-cell { width: 10px; height: 10px; border-radius: 2px; background: rgba(255,255,255,0.045); }
@@ -11376,6 +11379,36 @@ document.addEventListener('keydown', function(e) {
     .hm-legend { display: flex; align-items: center; justify-content: flex-end; gap: 0.3rem; margin-top: 0.4rem; font-size: 0.56rem; color: rgba(200,220,215,0.4); font-family: 'Courier New', monospace; }
     .hm-legend .hm-cell { width: 8px; height: 8px; }
     .hm-skel { height: 74px; border-radius: 8px; }
+
+    /* Tappable day cells — a native title="" tooltip never shows on
+       touch, so cells with real data become real buttons with an
+       enlarged (invisible) hit area, wired to the popover below. */
+    button.hm-cell {
+      all: unset; box-sizing: border-box; display: block;
+      width: 10px; height: 10px; border-radius: 2px;
+      cursor: pointer; position: relative;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button.hm-cell::before { content: ''; position: absolute; inset: -3px; }
+    button.hm-cell:focus-visible { outline: 2px solid rgba(0,255,180,0.65); outline-offset: 2px; z-index: 2; }
+
+    .hm-day-pop {
+      position: absolute; z-index: 5; min-width: 148px; max-width: 210px;
+      padding: 0.55rem 0.7rem; border-radius: 10px;
+      border: 1px solid rgba(0,255,180,0.35);
+      background: linear-gradient(160deg, rgba(10,32,28,0.98), rgba(6,20,18,0.98));
+      box-shadow: 0 10px 26px rgba(0,0,0,0.45), 0 0 14px rgba(0,255,180,0.12);
+      font-family: 'Courier New', monospace;
+      opacity: 0; transform: translateY(4px) scale(0.97); pointer-events: none;
+      transition: opacity 0.16s ease, transform 0.16s ease;
+    }
+    .hm-day-pop.hm-open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+    .hm-day-pop-date { font-size: 0.62rem; font-weight: 700; color: rgba(220,245,238,0.92); margin-bottom: 0.3rem; }
+    .hm-day-pop-count { font-size: 0.58rem; color: #00ffb4; margin-bottom: 0.4rem; }
+    .hm-day-pop-repo { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; font-size: 0.56rem; color: rgba(200,220,215,0.7); margin-bottom: 0.2rem; }
+    .hm-day-pop-repo:last-child { margin-bottom: 0; }
+    .hm-day-pop-repo b { color: rgba(220,245,238,0.88); font-weight: 700; }
+    .hm-day-pop-empty { font-size: 0.56rem; color: rgba(200,220,215,0.42); font-style: italic; }
 
     /* ══ Language + Coding Hours row ══ */
     .lh-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1.1rem; align-items: stretch; }
@@ -11624,6 +11657,7 @@ document.addEventListener('keydown', function(e) {
       .rd-card, .rd-surface::before, .rd-word, .rd-caret, .rd-cta-btn, .rd-cta-arrow, .rd-loading-label,
       .gp-score-badge, .gp-score-caret, .gp-score-detail, .gp-score-fill { animation: none !important; transition: none !important; opacity: 1; filter: none !important; transform: none !important; }
       .gp-score-ping { display: none !important; }
+      .hm-day-pop { transition: none !important; transform: none !important; }
     }
   </style>
 
@@ -11792,7 +11826,47 @@ document.addEventListener('keydown', function(e) {
     return { score: score, streakPct: streakPct, freqPct: freqPct, spreadPct: spreadPct };
   }
 
-  function scoreDetailHtml(shipScore) {
+  // Trend delta — reconstructs what the score would have read exactly 7
+  // days ago from data already on hand: the heatmap's daily counts give
+  // us the streak as it stood then, and each activity item's own
+  // timestamp lets us refilter frequency/spread to that same cutoff. No
+  // stored history, no backend change — just the same data, read twice.
+  function streakEndingOn(heatmap, dateStr) {
+    var byDate = {};
+    heatmap.forEach(function (d) { byDate[d.date] = d.count; });
+    var streak = 0;
+    var cursor = new Date(dateStr + 'T00:00:00Z');
+    while (byDate[cursor.toISOString().slice(0, 10)] > 0) {
+      streak++;
+      cursor.setUTCDate(cursor.getUTCDate() - 1);
+    }
+    return streak;
+  }
+
+  function scoreAsOfLastWeek(pulse, activity) {
+    var heatmap = pulse && pulse.heatmap;
+    if (!heatmap || !heatmap.length) return null;
+
+    var cutoff = new Date();
+    cutoff.setUTCDate(cutoff.getUTCDate() - 7);
+    var cutoffStr = cutoff.toISOString().slice(0, 10);
+    if (cutoffStr < heatmap[0].date) return null; // not enough history yet
+
+    var cutoffEnd = new Date(cutoffStr + 'T23:59:59Z');
+    var list = (activity || []).filter(function (a) {
+      return a && a.time && new Date(a.time) <= cutoffEnd;
+    });
+
+    var pastStreakPct = Math.round(Math.min(streakEndingOn(heatmap, cutoffStr) / 14, 1) * 100);
+    var pastFreqPct = Math.round(Math.min(list.length / 20, 1) * 100);
+    var pastRepos = new Set();
+    list.forEach(function (a) { if (a.repo) pastRepos.add(a.repo); });
+    var pastSpreadPct = Math.round(Math.min(pastRepos.size / 4, 1) * 100);
+
+    return Math.round(pastStreakPct * 0.4 + pastFreqPct * 0.35 + pastSpreadPct * 0.25);
+  }
+
+  function scoreDetailHtml(shipScore, delta) {
     function row(label, pct) {
       return '<div class="gp-score-row">'
         + '<span class="gp-score-label">' + label + '</span>'
@@ -11800,10 +11874,15 @@ document.addEventListener('keydown', function(e) {
         + '<span class="gp-score-pct">' + pct + '%</span>'
         + '</div>';
     }
+    var trendNote = '';
+    if (delta !== null) {
+      trendNote = '<div class="gp-score-note">// ' + (delta > 0 ? '+' + delta : delta) + ' vs 7 days ago</div>';
+    }
     return row('Streak', shipScore.streakPct)
       + row('Frequency', shipScore.freqPct)
       + row('Repo spread', shipScore.spreadPct)
-      + '<div class="gp-score-note">// weighted 40 \u00b7 35 \u00b7 25 across streak, frequency, spread</div>';
+      + '<div class="gp-score-note">// weighted 40 \u00b7 35 \u00b7 25 across streak, frequency, spread</div>'
+      + trendNote;
   }
 
   function wireScoreToggle(el) {
@@ -11843,15 +11922,30 @@ document.addEventListener('keydown', function(e) {
       : '';
 
     var shipScore = computeShippingScore(pulse, activity);
+    var pastScore = scoreAsOfLastWeek(pulse, activity);
+    var delta = pastScore === null ? null : shipScore.score - pastScore;
+
+    var trendHtml = '';
+    var trendAria = '';
+    if (delta !== null && delta !== 0) {
+      var up = delta > 0;
+      trendHtml = '<span class="gp-score-trend ' + (up ? 'gp-trend-up' : 'gp-trend-down') + '" aria-hidden="true">'
+        + (up ? '\u25b2' : '\u25bc') + Math.abs(delta) + '</span>';
+      trendAria = ', ' + (up ? 'up ' : 'down ') + Math.abs(delta) + ' from last week';
+    } else if (delta === 0) {
+      trendAria = ', unchanged from last week';
+    }
+
     var scoreSeen = false;
     try { scoreSeen = localStorage.getItem('gpScoreSeen') === '1'; } catch (e) {}
     var scoreBadge =
-        '<button type="button" class="gp-score-badge" id="gpScoreBadge" aria-expanded="false" aria-controls="gpScoreDetail" aria-label="Shipping score ' + shipScore.score + ' out of 100 — tap for breakdown">'
+        '<button type="button" class="gp-score-badge" id="gpScoreBadge" aria-expanded="false" aria-controls="gpScoreDetail" aria-label="Shipping score ' + shipScore.score + ' out of 100' + trendAria + ' — tap for breakdown">'
       +   (scoreSeen ? '' : '<span class="gp-score-ping" aria-hidden="true"></span>')
       +   '<span class="gp-score-num">' + shipScore.score + '</span><span>score</span>'
+      +   trendHtml
       +   '<svg class="gp-score-caret" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>'
       + '</button>';
-    var scoreDetail = '<div class="gp-score-detail" id="gpScoreDetail">' + scoreDetailHtml(shipScore) + '</div>';
+    var scoreDetail = '<div class="gp-score-detail" id="gpScoreDetail">' + scoreDetailHtml(shipScore, delta) + '</div>';
 
     el.innerHTML =
         '<div class="ra-label-row"><span class="ra-label">GitHub Pulse</span><span class="ra-label-sub">// since ' + monthYear(pulse.since) + '</span></div>'
@@ -11890,7 +11984,100 @@ document.addEventListener('keydown', function(e) {
     wireScoreToggle(el);
   }
 
-  function renderHeatmap(pulse) {
+  function formatFriendlyDate(dateStr) {
+    var p = dateStr.split('-');
+    var d = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2]));
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
+  }
+
+  // Groups raw activity events by the UTC calendar day they happened on,
+  // so a tapped heatmap cell can show what was actually touched that
+  // day instead of just the count already visible in its color.
+  function buildDayBreakdown(activity) {
+    var byDate = {};
+    (activity || []).forEach(function (a) {
+      if (!a || !a.time || !a.repo) return;
+      var d = new Date(a.time);
+      if (isNaN(d)) return;
+      var key = d.toISOString().slice(0, 10);
+      if (!byDate[key]) byDate[key] = {};
+      byDate[key][a.repo] = (byDate[key][a.repo] || 0) + 1;
+    });
+    var out = {};
+    Object.keys(byDate).forEach(function (key) {
+      out[key] = Object.keys(byDate[key])
+        .map(function (repo) { return { repo: repo, count: byDate[key][repo] }; })
+        .sort(function (a, b) { return b.count - a.count; });
+    });
+    return out;
+  }
+
+  function wireHeatmapPopover(el, dayBreakdown) {
+    var scrollBox = el.querySelector('.hm-scroll');
+    var pop = document.createElement('div');
+    pop.className = 'hm-day-pop';
+    pop.setAttribute('role', 'status');
+    el.appendChild(pop);
+    var openBtn = null;
+
+    function closePop() {
+      pop.classList.remove('hm-open');
+      if (openBtn) { openBtn.setAttribute('aria-expanded', 'false'); openBtn = null; }
+    }
+
+    el.querySelectorAll('button.hm-cell').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (openBtn === btn) { closePop(); return; }
+
+        var date = btn.getAttribute('data-date');
+        var count = parseInt(btn.getAttribute('data-count'), 10) || 0;
+        var breakdown = dayBreakdown[date] || [];
+
+        var html = '<div class="hm-day-pop-date">' + formatFriendlyDate(date) + '</div>'
+          + '<div class="hm-day-pop-count">' + count + (count === 1 ? ' contribution' : ' contributions') + '</div>';
+        if (breakdown.length) {
+          html += breakdown.slice(0, 5).map(function (r) {
+            return '<div class="hm-day-pop-repo"><span>' + escapeHtml(r.repo) + '</span><b>' + r.count + '</b></div>';
+          }).join('');
+        } else if (count > 0) {
+          html += '<div class="hm-day-pop-empty">Repo breakdown unavailable for this day.</div>';
+        } else {
+          html += '<div class="hm-day-pop-empty">No public activity.</div>';
+        }
+        pop.innerHTML = html;
+        pop.classList.add('hm-open');
+
+        var cRect = el.getBoundingClientRect();
+        var bRect = btn.getBoundingClientRect();
+        var popW = pop.offsetWidth, popH = pop.offsetHeight;
+
+        var below = bRect.top < (popH + 24);
+        var top = below
+          ? (bRect.bottom - cRect.top) + 10
+          : (bRect.top - cRect.top) - popH - 10;
+
+        var left = (bRect.left - cRect.left) + (bRect.width / 2) - (popW / 2);
+        var maxLeft = el.clientWidth - popW - 6;
+        left = Math.max(6, Math.min(left, maxLeft));
+
+        pop.style.top = top + 'px';
+        pop.style.left = left + 'px';
+
+        if (openBtn) openBtn.setAttribute('aria-expanded', 'false');
+        openBtn = btn;
+        btn.setAttribute('aria-expanded', 'true');
+      });
+    });
+
+    document.addEventListener('click', function (e) {
+      if (openBtn && !pop.contains(e.target) && e.target !== openBtn) closePop();
+    });
+    if (scrollBox) scrollBox.addEventListener('scroll', closePop);
+    window.addEventListener('resize', closePop);
+  }
+
+  function renderHeatmap(pulse, activity) {
     var el = document.getElementById('raHeatmap');
     var days = pulse && pulse.heatmap;
     if (!days || !days.length) { el.innerHTML = ''; return; }
@@ -11917,7 +12104,9 @@ document.addEventListener('keydown', function(e) {
     var gridHtml = cells.map(function (d) {
       if (!d) return '<div class="hm-cell"></div>';
       var title = d.date + ' · ' + d.count + (d.count === 1 ? ' contribution' : ' contributions');
-      return '<div class="hm-cell' + levelClass(d.count) + '" title="' + title + '"></div>';
+      var aria = title + ' — tap for details';
+      return '<button type="button" class="hm-cell' + levelClass(d.count) + '" data-date="' + d.date + '" data-count="' + d.count
+        + '" title="' + title + '" aria-label="' + aria + '" aria-haspopup="true" aria-expanded="false"></button>';
     }).join('');
 
     el.innerHTML =
@@ -11926,6 +12115,8 @@ document.addEventListener('keydown', function(e) {
       + '<div class="hm-legend">Less'
       +   '<span class="hm-cell"></span><span class="hm-cell hm-l1"></span><span class="hm-cell hm-l2"></span><span class="hm-cell hm-l3"></span><span class="hm-cell hm-l4"></span>'
       +   'More</div>';
+
+    wireHeatmapPopover(el, buildDayBreakdown(activity));
   }
 
   function renderLanguagesAndHours(languages, codingHours) {
@@ -12033,7 +12224,7 @@ document.addEventListener('keydown', function(e) {
       renderFreshness(items);
       renderProjectStats(data.projectStats || null);
       renderPulse(data.pulse || null, data.stats || null, data.activity || []);
-      renderHeatmap(data.pulse || null);
+      renderHeatmap(data.pulse || null, data.activity || []);
       renderLanguagesAndHours(data.languages || null, data.codingHours || null);
     })
     .catch(function () {
