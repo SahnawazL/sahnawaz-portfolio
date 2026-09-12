@@ -4,9 +4,27 @@
 // Takes the same real activity data /api/github-activity already computes,
 // hands it to Groq (same provider + same GROQ_API_KEY as api/chat.js — no
 // second AI provider, no second key, no second billing setup) and asks for
-// a 1-2 sentence human summary of what Sahnawaz has actually been shipping —
-// e.g. "This week: shipped the GitHub Pulse redesign to the portfolio, plus
-// two fixes to YojanaSahay's admin dashboard."
+// a short, technical, numbers-forward summary of what Sahnawaz has actually
+// been shipping — e.g. "Signal spike this window: 9 pushes and 2 PRs landed
+// across YojanaSahay and the portfolio, extending a 6-day streak against a
+// 340-commit YTD baseline."
+//
+// v2 — STAT-DENSE / PREMIUM PASS:
+//   - Every count in the recap is computed HERE, in plain JS, straight off
+//     the same /api/github-activity payload the rest of the section renders
+//     from (events by type, distinct repos touched, streak, YTD totals,
+//     top language). Groq never invents or derives a number — it only gets
+//     to phrase the ones it's handed. This is what lets the system prompt
+//     safely demand specific figures without risking hallucinated stats.
+//   - The prompt now asks for a terse, technical, "release-note" register
+//     instead of a soft caption — the premium feel comes from precision and
+//     restraint, not adjectives.
+//   - The non-AI fallback (used when Groq/GROQ_API_KEY is unavailable) was
+//     upgraded to the same stat-dense format, so even a total AI outage
+//     still reads like a real status line instead of a placeholder.
+//   - Fingerprinting now covers the computed signal block (not just the
+//     first few raw messages), so the cache correctly busts when streaks/
+//     YTD counters move even if the latest messages haven't changed.
 //
 // Kept as its OWN function (not folded into api/chat.js) because:
 //   - api/chat.js enforces a single-user lock (isProcessing) for live
@@ -50,39 +68,111 @@ const MODELS = [
   'qwen/qwen3-32b'
 ];
 
-const DIGEST_SYSTEM_PROMPT = `You write a short "Weekly Recap" caption for a developer's portfolio website, summarizing their real recent GitHub activity.
+const DIGEST_SYSTEM_PROMPT = `You write a "Weekly Recap" status line for a developer's portfolio website, summarizing their real recent GitHub activity.
+
+VOICE: Premium engineering status line — think a terse release note or a CI build summary, not a casual caption. Confident, precise, third person. No fluff adjectives standing in for substance; let the numbers do the work.
 
 STRICT RULES:
-- Write EXACTLY 1-2 sentences. Never more, never a list.
-- Third person, confident, friendly tone — like a portfolio caption, not a commit log.
-- Mention specific repo names and the KIND of work (feature, fix, new repo, docs, etc.) only when the data below actually supports it.
-- NEVER invent details, numbers, or repo names that are not present in the activity list you are given.
+- Write EXACTLY 1-2 sentences. Never more, never a list, never a heading.
+- You will be given a SIGNAL block with exact pre-computed counts (events by type, repos touched, streak, YTD totals, top language) and a list of raw activity messages. Ground the recap in that SIGNAL block — reference at least one concrete number from it (a count, a streak length, or a repo tally) rather than writing only in vague terms like "several updates."
+- NEVER invent, round differently, or derive a number that is not explicitly present in the SIGNAL block or activity list. If a figure isn't given to you, don't state it.
+- Mention specific repo names and the KIND of work (feature, fix, new repo, docs, release, etc.) only when the data actually supports it.
 - NO emojis, NO hashtags, NO markdown formatting, NO surrounding quotation marks.
-- If the activity list is empty or very thin, write one honest, low-key sentence acknowledging a quieter stretch — do not fabricate activity to fill space.`;
+- If the SIGNAL block shows zero or near-zero recent events, write one honest, low-key sentence acknowledging a quieter stretch — you may still cite the streak/YTD numbers if given, but do not fabricate activity to fill space.`;
 
 function buildActivityPrompt(activity) {
   if (!activity || !activity.length) return 'No recent public GitHub activity was found.';
   return activity.slice(0, 12).map((a) => `- ${a.message}`).join('\n');
 }
 
+// ── Signal block: every number Groq is allowed to use, computed here in
+// plain JS from the same payload the page itself renders from. Nothing in
+// this block is AI-derived, so the model can be told to quote it directly.
+function buildSignalBlock(activityData) {
+  const activity = (activityData && activityData.activity) || [];
+  const pulse = activityData && activityData.pulse;
+  const stats = activityData && activityData.stats;
+  const languages = activityData && activityData.languages;
+
+  const lines = [];
+
+  if (activity.length) {
+    const counts = { push: 0, pull_request: 0, issue: 0, release: 0, create_repo: 0 };
+    const repos = new Set();
+    activity.forEach((a) => {
+      if (a.type && Object.prototype.hasOwnProperty.call(counts, a.type)) counts[a.type] += 1;
+      if (a.repo) repos.add(a.repo);
+    });
+    const parts = [];
+    if (counts.push) parts.push(`${counts.push} push${counts.push === 1 ? '' : 'es'}`);
+    if (counts.pull_request) parts.push(`${counts.pull_request} PR update${counts.pull_request === 1 ? '' : 's'}`);
+    if (counts.issue) parts.push(`${counts.issue} issue update${counts.issue === 1 ? '' : 's'}`);
+    if (counts.release) parts.push(`${counts.release} release${counts.release === 1 ? '' : 's'}`);
+    if (counts.create_repo) parts.push(`${counts.create_repo} new repo${counts.create_repo === 1 ? '' : 's'}`);
+    lines.push(`WINDOW: ${activity.length} event${activity.length === 1 ? '' : 's'} across ${repos.size} repo${repos.size === 1 ? '' : 's'} (${repos.size ? Array.from(repos).slice(0, 5).join(', ') : 'none'})${parts.length ? ' — ' + parts.join(', ') : ''}.`);
+  } else {
+    lines.push('WINDOW: 0 events in the current window.');
+  }
+
+  if (pulse && (typeof pulse.currentStreak === 'number' || typeof pulse.totalContributions === 'number')) {
+    const streakBits = [];
+    if (typeof pulse.currentStreak === 'number') streakBits.push(`current streak ${pulse.currentStreak} day${pulse.currentStreak === 1 ? '' : 's'}`);
+    if (typeof pulse.longestStreak === 'number') streakBits.push(`longest ${pulse.longestStreak} day${pulse.longestStreak === 1 ? '' : 's'}`);
+    if (typeof pulse.totalContributions === 'number') streakBits.push(`${pulse.totalContributions} all-time contributions`);
+    if (streakBits.length) lines.push(`STREAK: ${streakBits.join(', ')}.`);
+  }
+
+  if (stats && (stats.commits || stats.pullRequests || stats.issues || stats.repos)) {
+    const y = new Date().getFullYear();
+    lines.push(`YTD ${y}: ${stats.commits || 0} commits, ${stats.pullRequests || 0} PRs, ${stats.issues || 0} issues, ${stats.repos || 0} repos.`);
+  }
+
+  if (languages && languages.length) {
+    const top = languages[0];
+    lines.push(`TOP LANGUAGE: ${top.name} at ${top.percent}% of recent code.`);
+  }
+
+  return lines.join('\n');
+}
+
 // Cheap fingerprint (no hashing library needed) so we can tell "nothing new
-// happened" apart from "something changed" between requests.
-function fingerprintActivity(activity) {
-  if (!activity || !activity.length) return 'empty';
-  return activity.slice(0, 5).map((a) => a.message).join('|');
+// happened" apart from "something changed" between requests. Covers both
+// the raw messages AND the computed signal block, since the recap now
+// depends on streak/YTD counters that can move independently of the
+// latest messages.
+function fingerprintActivity(activity, signalBlock) {
+  const msgPart = (!activity || !activity.length) ? 'empty' : activity.slice(0, 5).map((a) => a.message).join('|');
+  return `${msgPart}::${signalBlock}`;
 }
 
 // Non-AI fallback — used only if Groq itself is unreachable or misconfigured,
-// so the card never shows a raw error or goes blank for a visitor.
-function buildFallbackDigest(activity) {
-  if (!activity || !activity.length) {
+// so the card never shows a raw error or goes blank for a visitor. Kept in
+// the same stat-dense register as the AI output so a Groq outage doesn't
+// visibly downgrade the card.
+function buildFallbackDigest(activityData) {
+  const activity = (activityData && activityData.activity) || [];
+
+  if (!activity.length) {
+    // Still surface streak/all-time numbers if we have them, instead of a
+    // bare "no activity" placeholder.
+    const pulse = activityData && activityData.pulse;
+    if (pulse && typeof pulse.currentStreak === 'number' && typeof pulse.totalContributions === 'number') {
+      return `No new public GitHub events in the current window — streak holding at ${pulse.currentStreak} day${pulse.currentStreak === 1 ? '' : 's'} against ${pulse.totalContributions} all-time contributions.`;
+    }
     return 'No new public GitHub activity in the latest window — check back soon.';
   }
+
   const repos = [...new Set(activity.map((a) => a.repo).filter(Boolean))].slice(0, 3);
   const repoList = repos.length > 1
     ? `${repos.slice(0, -1).join(', ')} and ${repos[repos.length - 1]}`
     : (repos[0] || 'a few projects');
-  return `Recent activity includes ${activity.length} update${activity.length === 1 ? '' : 's'} across ${repoList}.`;
+
+  const stats = activityData && activityData.stats;
+  const ytd = stats && (stats.commits || stats.pullRequests || stats.issues || stats.repos)
+    ? ` YTD: ${stats.commits || 0} commits, ${stats.pullRequests || 0} PRs across ${stats.repos || 0} repos.`
+    : '';
+
+  return `${activity.length} event${activity.length === 1 ? '' : 's'} logged this window across ${repoList}.${ytd}`;
 }
 
 async function fetchActivitySnapshot() {
@@ -93,10 +183,13 @@ async function fetchActivitySnapshot() {
   return res.json();
 }
 
-async function callGroq(apiKey, activity) {
+async function callGroq(apiKey, activity, signalBlock) {
   const messages = [
     { role: 'system', content: DIGEST_SYSTEM_PROMPT },
-    { role: 'user', content: `Here is the recent GitHub activity:\n${buildActivityPrompt(activity)}\n\nWrite the Weekly Recap now.` }
+    {
+      role: 'user',
+      content: `SIGNAL (pre-computed, exact — use these numbers, invent none):\n${signalBlock}\n\nRAW ACTIVITY MESSAGES (for repo/work context only, not for extra counting):\n${buildActivityPrompt(activity)}\n\nWrite the Weekly Recap now.`
+    }
   ];
 
   let lastErr;
@@ -112,7 +205,7 @@ async function callGroq(apiKey, activity) {
           model,
           messages,
           temperature: 0.6,
-          max_tokens: 150,
+          max_tokens: 180,
           reasoning_effort: 'low'
         }),
         signal: AbortSignal.timeout(8000)
@@ -136,7 +229,8 @@ async function callGroq(apiKey, activity) {
 async function generateDigest() {
   const activityData = await fetchActivitySnapshot();
   const activity = activityData?.activity || [];
-  const fingerprint = fingerprintActivity(activity);
+  const signalBlock = buildSignalBlock(activityData);
+  const fingerprint = fingerprintActivity(activity, signalBlock);
 
   // Nothing new since the last generation — reuse the existing text and
   // just refresh the cache's timestamp. Skips Groq entirely.
@@ -148,13 +242,13 @@ async function generateDigest() {
   const apiKey = process.env.GROQ_API_KEY;
   let text;
   if (!apiKey) {
-    text = buildFallbackDigest(activity);
+    text = buildFallbackDigest(activityData);
   } else {
     try {
-      text = await callGroq(apiKey, activity);
+      text = await callGroq(apiKey, activity, signalBlock);
     } catch (err) {
       console.warn('[github-digest] Groq generation failed, using fallback:', err && err.message);
-      text = buildFallbackDigest(activity);
+      text = buildFallbackDigest(activityData);
     }
   }
 
