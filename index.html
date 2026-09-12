@@ -11385,6 +11385,17 @@ document.addEventListener('keydown', function(e) {
     .hm-l4 { background: #00ffb4; box-shadow: 0 0 4px rgba(0,255,180,0.7); }
     .hm-legend { display: flex; align-items: center; justify-content: flex-end; gap: 0.3rem; margin-top: 0.4rem; font-size: 0.56rem; color: rgba(200,220,215,0.4); font-family: 'Courier New', monospace; }
     .hm-legend .hm-cell { width: 8px; height: 8px; }
+
+    /* Stats filling the dead space beside the small 12-week grid — real
+       numbers derived from the same heatmap data, not new API calls. */
+    .hm-body { display: flex; align-items: center; gap: 1rem; }
+    .hm-scroll { flex: 0 0 auto; }
+    .hm-side { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.42rem; }
+    .hm-side-row { display: flex; align-items: baseline; gap: 0.4rem; }
+    .hm-side-num { font-family: 'Courier New', monospace; font-weight: 700; font-size: 0.85rem; color: #00ffb4; text-shadow: 0 0 8px rgba(0,255,180,0.35); }
+    .hm-side-num small { font-weight: 400; color: rgba(200,220,215,0.4); font-size: 0.62rem; }
+    .hm-side-label { font-size: 0.56rem; color: rgba(200,220,215,0.45); text-transform: uppercase; letter-spacing: 0.4px; }
+    @media (max-width: 400px) { .hm-side { display: none; } }
     .hm-skel { height: 74px; border-radius: 8px; }
 
     /* Tappable day cells — a native title="" tooltip never shows on
@@ -11455,6 +11466,18 @@ document.addEventListener('keydown', function(e) {
     .hrs-caption { font-size: 0.6rem; color: rgba(200,220,215,0.5); margin-top: 0.5rem; text-align: center; }
     .hrs-caption b { color: #00ffb4; font-family: 'Courier New', monospace; }
     .hrs-sub { font-size: 0.52rem; color: rgba(200,220,215,0.32); text-align: center; margin-top: 0.1rem; }
+
+    /* Morning/afternoon/evening/night split of the same hour histogram —
+       fills the leftover space this card gets from stretching to match
+       the taller Languages card, with a real derived breakdown instead
+       of empty air. */
+    .hrs-buckets { margin-top: 0.65rem; padding-top: 0.55rem; border-top: 1px dashed rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 0.3rem; }
+    .hrs-bucket-row { display: flex; align-items: center; gap: 0.4rem; font-family: 'Courier New', monospace; font-size: 0.58rem; color: rgba(200,220,215,0.55); }
+    .hrs-bucket-icon { width: 14px; text-align: center; flex-shrink: 0; }
+    .hrs-bucket-name { flex: 1; min-width: 0; }
+    .hrs-bucket-track { width: 40px; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.07); overflow: hidden; flex-shrink: 0; }
+    .hrs-bucket-fill { display: block; height: 100%; background: #00ffb4; border-radius: 2px; }
+    .hrs-bucket-pct { width: 28px; text-align: right; color: rgba(200,220,215,0.45); flex-shrink: 0; }
 
     /* ══ Project Stats ══ */
     .rp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.45rem; margin-bottom: 1.1rem; }
@@ -12139,6 +12162,22 @@ document.addEventListener('keydown', function(e) {
       return ' hm-l1';
     }
 
+    var activeDays = 0, windowTotal = 0, peakDay = null;
+    days.forEach(function (d) {
+      if (d.count > 0) activeDays++;
+      windowTotal += d.count;
+      if (!peakDay || d.count > peakDay.count) peakDay = d;
+    });
+    var avgPerActiveDay = activeDays ? Math.round((windowTotal / activeDays) * 10) / 10 : 0;
+
+    var sideHtml = '<div class="hm-side">'
+      + '<div class="hm-side-row"><span class="hm-side-num">' + activeDays + ' <small>/' + days.length + '</small></span><span class="hm-side-label">active days</span></div>'
+      + (peakDay && peakDay.count > 0
+          ? '<div class="hm-side-row"><span class="hm-side-num">' + peakDay.count + '</span><span class="hm-side-label">peak \u00b7 ' + shortDate(peakDay.date) + '</span></div>'
+          : '')
+      + '<div class="hm-side-row"><span class="hm-side-num">' + avgPerActiveDay + '</span><span class="hm-side-label">avg / active day</span></div>'
+      + '</div>';
+
     var gridHtml = cells.map(function (d) {
       if (!d) return '<div class="hm-cell"></div>';
       var title = d.date + ' · ' + d.count + (d.count === 1 ? ' contribution' : ' contributions');
@@ -12149,7 +12188,10 @@ document.addEventListener('keydown', function(e) {
 
     el.innerHTML =
         '<div class="ra-label-row"><span class="ra-label">Contribution Map</span><span class="ra-label-sub">// last 12 weeks</span></div>'
-      + '<div class="hm-scroll"><div class="hm-grid">' + gridHtml + '</div></div>'
+      + '<div class="hm-body">'
+      +   '<div class="hm-scroll"><div class="hm-grid">' + gridHtml + '</div></div>'
+      +   sideHtml
+      + '</div>'
       + '<div class="hm-legend">Less'
       +   '<span class="hm-cell"></span><span class="hm-cell hm-l1"></span><span class="hm-cell hm-l2"></span><span class="hm-cell hm-l3"></span><span class="hm-cell hm-l4"></span>'
       +   'More</div>';
@@ -12185,6 +12227,24 @@ document.addEventListener('keydown', function(e) {
     }).join('');
 
     return '<svg class="lang-drift-svg" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none">' + paths + '</svg>';
+  }
+
+  // Splits the 24-hour IST histogram into 4 dayparts. Returns null (no
+  // buckets shown) if the histogram is empty rather than dividing by zero.
+  function timeOfDayBuckets(hist) {
+    var total = hist.reduce(function (a, b) { return a + b; }, 0);
+    if (!total) return null;
+    var defs = [
+      { name: 'Night', icon: '\ud83c\udf19', from: 0, to: 5 },
+      { name: 'Morning', icon: '\ud83c\udf05', from: 6, to: 11 },
+      { name: 'Afternoon', icon: '\u2600\ufe0f', from: 12, to: 17 },
+      { name: 'Evening', icon: '\ud83c\udf06', from: 18, to: 23 }
+    ];
+    return defs.map(function (b) {
+      var sum = 0;
+      for (var h = b.from; h <= b.to; h++) sum += hist[h];
+      return { name: b.name, icon: b.icon, pct: Math.round((sum / total) * 100) };
+    });
   }
 
   function renderLanguagesAndHours(languages, codingHours, languageHistory) {
@@ -12236,11 +12296,21 @@ document.addEventListener('keydown', function(e) {
         return '<div class="hrs-bar' + (isPeak ? ' hrs-peak' : '') + '" style="height:' + Math.max(pct, 4) + '%" title="' + h + ':00 IST · ' + v + '"></div>';
       }).join('');
 
+      var buckets = timeOfDayBuckets(hist);
+      var bucketsHtml = buckets
+        ? '<div class="hrs-buckets">' + buckets.map(function (b) {
+            return '<div class="hrs-bucket-row"><span class="hrs-bucket-icon">' + b.icon + '</span><span class="hrs-bucket-name">' + b.name + '</span>'
+              + '<span class="hrs-bucket-track"><span class="hrs-bucket-fill" style="width:' + b.pct + '%"></span></span>'
+              + '<span class="hrs-bucket-pct">' + b.pct + '%</span></div>';
+          }).join('') + '</div>'
+        : '';
+
       hoursHtml =
           '<div class="ra-label-row"><span class="ra-label">Coding Hours</span></div>'
         + '<div class="hrs-bars">' + bars + '</div>'
         + '<div class="hrs-caption">Most active <b>' + codingHours.label + '</b></div>'
-        + '<div class="hrs-sub">// based on recent activity</div>';
+        + '<div class="hrs-sub">// based on recent activity</div>'
+        + bucketsHtml;
     } else {
       hoursHtml = '<div class="ra-label-row"><span class="ra-label">Coding Hours</span></div><div class="ra-empty" style="padding:0.4rem 0;">Not enough data yet.</div>';
     }
