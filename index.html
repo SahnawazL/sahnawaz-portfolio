@@ -11409,45 +11409,90 @@ document.addEventListener('keydown', function(e) {
     .ra-goto svg { width: 11px; height: 11px; display: block; }
     .rp-goto { position: absolute; top: 0.4rem; right: 0.4rem; }
 
-    /* ══ Weekly Recap (AI-generated digest) ══ */
+    /* ══ Weekly Recap (AI-generated digest) ══
+       Thin-glass treatment: a 1px gradient hairline doubles as the card
+       border (padding-box trick, no extra markup needed), the actual
+       surface underneath is real backdrop-filter glass, and a slow
+       specular sweep gives it the one "premium, alive" motion moment for
+       this section — everything else nearby stays quiet on purpose. */
     .rd-panel { margin-bottom: 0.9rem; }
     .rd-card {
       position: relative;
-      border: 1px solid rgba(0,255,180,0.18);
-      border-radius: 14px;
-      padding: 0.85rem 0.95rem 0.9rem;
-      background:
-        radial-gradient(circle at 85% 0%, rgba(0,255,180,0.08), transparent 60%),
-        linear-gradient(160deg, rgba(255,255,255,0.035), rgba(0,255,180,0.015));
+      border-radius: 18px;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(0,255,180,0.5), rgba(255,255,255,0.07) 42%, rgba(0,255,180,0.22) 100%);
+      box-shadow: 0 14px 34px -18px rgba(0,255,180,0.35);
       overflow: hidden;
+      animation: rdCardIn 0.7s cubic-bezier(.2,.8,.2,1) both;
+    }
+    @keyframes rdCardIn {
+      from { opacity: 0; transform: translateY(6px) scale(0.985); filter: blur(6px); }
+      to   { opacity: 1; transform: none; filter: blur(0); }
+    }
+    .rd-surface {
+      position: relative;
+      border-radius: 17px;
+      padding: 0.9rem 1rem 0.95rem;
+      background:
+        radial-gradient(circle at 88% -12%, rgba(0,255,180,0.16), transparent 55%),
+        linear-gradient(160deg, rgba(16,26,24,0.68), rgba(7,13,12,0.78));
+      backdrop-filter: blur(18px) saturate(160%);
+      -webkit-backdrop-filter: blur(18px) saturate(160%);
+      overflow: hidden;
+      isolation: isolate;
+    }
+    .rd-surface::before {
+      content: '';
+      position: absolute; top: 0; left: -60%; width: 40%; height: 100%;
+      background: linear-gradient(75deg, transparent, rgba(255,255,255,0.10), transparent);
+      transform: skewX(-16deg);
+      opacity: 0;
+      animation: rdSheen 6.5s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 1;
+    }
+    @keyframes rdSheen {
+      0%   { left: -60%; opacity: 0; }
+      6%   { opacity: 1; }
+      34%  { left: 130%; opacity: 0; }
+      100% { left: 130%; opacity: 0; }
     }
     .rd-badge {
-      display: inline-flex; align-items: center; gap: 0.35rem;
-      font-size: 0.58rem; font-weight: 800; letter-spacing: 0.4px;
-      text-transform: uppercase;
-      color: rgba(0,255,180,0.85);
-      background: rgba(0,255,180,0.09);
-      border: 1px solid rgba(0,255,180,0.28);
+      position: relative; z-index: 2;
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      font-size: 0.62rem; font-weight: 700; letter-spacing: 0.15px;
+      color: rgba(215,255,242,0.95);
+      background: linear-gradient(135deg, rgba(0,255,180,0.18), rgba(0,255,180,0.04));
+      border: 1px solid rgba(0,255,180,0.32);
       border-radius: 20px;
-      padding: 0.18rem 0.6rem;
-      margin-bottom: 0.55rem;
+      padding: 0.24rem 0.65rem 0.24rem 0.55rem;
+      margin-bottom: 0.6rem;
     }
+    .rd-badge-icon { width: 11px; height: 11px; flex-shrink: 0; color: #00ffb4; filter: drop-shadow(0 0 4px rgba(0,255,180,0.6)); }
     .rd-badge-dot {
       width: 4px; height: 4px; border-radius: 50%; flex-shrink: 0;
       background: #00ffb4; box-shadow: 0 0 5px rgba(0,255,180,0.85);
-      animation: raPulse 1.8s ease-in-out infinite;
+      animation: raPulse 2.2s ease-in-out infinite;
     }
     .rd-text {
-      font-size: 0.82rem; line-height: 1.55;
-      color: rgba(230,245,240,0.92);
-      min-height: 1.6em;
+      position: relative; z-index: 2;
+      font-size: 0.86rem; line-height: 1.62;
+      color: rgba(232,247,242,0.95);
+      min-height: 1.7em;
     }
-    .rd-cursor {
-      display: inline-block; width: 2px; height: 1em; vertical-align: text-bottom;
-      background: #00ffb4; margin-left: 1px;
-      animation: rdBlink 0.85s step-end infinite;
+    .rd-word {
+      display: inline-block;
+      opacity: 0; filter: blur(4px); transform: translateY(4px);
+      animation: rdWordIn 0.55s cubic-bezier(.2,.7,.2,1) forwards;
     }
-    @keyframes rdBlink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+    @keyframes rdWordIn { to { opacity: 1; filter: blur(0); transform: none; } }
+    .rd-caret {
+      display: inline-block; width: 2px; height: 0.95em; vertical-align: text-bottom;
+      background: linear-gradient(180deg, #00ffb4, rgba(0,255,180,0.25));
+      border-radius: 1px; margin-left: 2px;
+      animation: rdCaretBreathe 1.15s ease-in-out infinite;
+    }
+    @keyframes rdCaretBreathe { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
     .rd-skel { height: 3.4rem; border-radius: 10px; }
 
     .ra-skel, .rp-skel, .gp-skel, .hm-skel, .lh-skel, .rd-skel {
@@ -11459,6 +11504,58 @@ document.addEventListener('keydown', function(e) {
     .ra-skel:last-child { border-bottom: none; }
     @keyframes raSkel { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
+    /* Weekly Recap loading state gets its own glass-bone treatment, layered
+       inside the same .rd-surface so the skeleton reads as "the card,
+       still loading" rather than a generic grey placeholder swapped in. */
+    .rd-skel-surface { display: flex; flex-direction: column; gap: 0.55rem; }
+    .rd-card .rd-skel {
+      background: linear-gradient(100deg, rgba(255,255,255,0.025) 20%, rgba(0,255,180,0.13) 50%, rgba(255,255,255,0.025) 80%);
+      background-size: 200% 100%;
+      animation: raSkel 1.5s ease-in-out infinite;
+    }
+    .rd-skel-badge { width: 108px; height: 19px; border-radius: 20px; }
+    .rd-skel-line { height: 12px; border-radius: 6px; }
+
+    /* Weekly Recap is generated on demand, not on load/scroll — this is
+       the tap CTA shown until the visitor asks for it. Deliberately looks
+       like an invitation (dashed hairline, quiet fill) rather than a
+       fully-lit button, so it doesn't compete with the recap text it
+       becomes once tapped. */
+    .rd-cta-surface { display: flex; flex-direction: column; }
+    .rd-cta-btn {
+      all: unset;
+      box-sizing: border-box;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: space-between; gap: 0.6rem;
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      border-radius: 12px;
+      border: 1px dashed rgba(0,255,180,0.3);
+      background: linear-gradient(135deg, rgba(0,255,180,0.055), rgba(255,255,255,0.02));
+      color: rgba(226,247,241,0.88);
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 600;
+      transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+    }
+    .rd-cta-btn:hover {
+      border-color: rgba(0,255,180,0.6);
+      background: linear-gradient(135deg, rgba(0,255,180,0.11), rgba(255,255,255,0.03));
+    }
+    .rd-cta-btn:active { transform: scale(0.985); }
+    .rd-cta-btn:focus-visible { outline: 2px solid rgba(0,255,180,0.65); outline-offset: 2px; }
+    .rd-cta-arrow { flex-shrink: 0; width: 15px; height: 15px; color: rgba(0,255,180,0.8); transition: transform 0.2s ease; }
+    .rd-cta-btn:hover .rd-cta-arrow { transform: translateX(2px); }
+    .rd-cta-note {
+      font-size: 0.58rem; font-family: 'Courier New', monospace;
+      color: rgba(200,220,215,0.35); margin-top: 0.5rem;
+    }
+    .rd-loading-label {
+      font-size: 0.68rem; color: rgba(0,255,180,0.7); margin-bottom: 0.55rem;
+      animation: rdLoadingPulse 1.3s ease-in-out infinite;
+    }
+    @keyframes rdLoadingPulse { 0%,100% { opacity: 0.55; } 50% { opacity: 1; } }
+
     .ra-empty, .ra-error {
       font-size: 0.72rem; font-family: 'Courier New', monospace;
       color: rgba(200,220,215,0.5); padding: 0.75rem 0.65rem;
@@ -11467,7 +11564,8 @@ document.addEventListener('keydown', function(e) {
     .ra-footer a { font-size: 0.72rem; color: rgba(0,255,180,0.7); text-decoration: none; border-bottom: 1px dotted rgba(0,255,180,0.4); }
     .ra-footer a:hover { border-bottom-style: solid; }
     @media (prefers-reduced-motion: reduce) {
-      .ra-live-dot, .ra-row, .ra-skel, .rp-skel, .gp-skel, .hm-skel, .lh-skel, .rd-skel, .rd-cursor, .rd-badge-dot, .gp-panel::after, .gp-ring-fg, .hrs-bar { animation: none !important; transition: none !important; opacity: 1; }
+      .ra-live-dot, .ra-row, .ra-skel, .rp-skel, .gp-skel, .hm-skel, .lh-skel, .rd-skel, .rd-badge-dot, .gp-panel::after, .gp-ring-fg, .hrs-bar,
+      .rd-card, .rd-surface::before, .rd-word, .rd-caret, .rd-cta-btn, .rd-cta-arrow, .rd-loading-label { animation: none !important; transition: none !important; opacity: 1; filter: none !important; transform: none !important; }
     }
   </style>
 
@@ -11478,7 +11576,14 @@ document.addEventListener('keydown', function(e) {
 
   <div id="raDigest" class="rd-panel">
     <div class="rd-card" id="raDigestCard">
-      <div class="rd-skel"></div>
+      <div class="rd-surface rd-cta-surface">
+        <div class="rd-badge"><svg class="rd-badge-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2l2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2z"/></svg><span class="rd-badge-dot" aria-hidden="true"></span>AI Weekly Recap</div>
+        <button type="button" class="rd-cta-btn" id="raDigestCta" aria-label="Generate this week's AI recap of recent GitHub activity">
+          <span class="rd-cta-text">Tap to generate this week's recap</span>
+          <svg class="rd-cta-arrow" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </button>
+        <div class="rd-cta-note">// generated on demand — nothing runs until you tap</div>
+      </div>
     </div>
   </div>
 
@@ -11824,42 +11929,101 @@ document.addEventListener('keydown', function(e) {
   var card = document.getElementById('raDigestCard');
   if (!card) return;
 
-  function typeOut(el, text) {
+  var SPARK_ICON = '<svg class="rd-badge-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2l2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2z"/></svg>';
+  var ARROW_ICON = '<svg class="rd-cta-arrow" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>';
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function badgeHtml() {
+    return '<div class="rd-badge">' + SPARK_ICON + '<span class="rd-badge-dot" aria-hidden="true"></span>AI Weekly Recap</div>';
+  }
+
+  // Reveals the recap a word at a time with a soft blur/fade-up motion —
+  // reads as a considered, premium reveal rather than a terminal typing
+  // effect. A thin breathing caret trails the last word while it settles,
+  // then disappears once the reveal is done.
+  function revealWords(el, text) {
     var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduceMotion) { el.textContent = text; return; }
 
-    var i = 0;
-    var speed = Math.max(12, Math.min(28, 1400 / text.length)); // caps total reveal time around ~1.4s regardless of length
-    var cursor = document.createElement('span');
-    cursor.className = 'rd-cursor';
+    var words = text.split(' ');
+    var perWordDelay = Math.max(0.028, Math.min(0.065, 1.1 / words.length));
 
-    function step() {
-      el.textContent = text.slice(0, i);
-      el.appendChild(cursor);
-      i++;
-      if (i <= text.length) {
-        setTimeout(step, speed);
-      } else {
-        cursor.remove();
-      }
-    }
-    step();
+    el.innerHTML = words.map(function (w, i) {
+      return '<span class="rd-word" style="animation-delay:' + (i * perWordDelay).toFixed(3) + 's">' + escapeHtml(w) + '</span>';
+    }).join(' ');
+
+    var caret = document.createElement('span');
+    caret.className = 'rd-caret';
+    el.appendChild(caret);
+    var totalMs = (words.length * perWordDelay + 0.6) * 1000;
+    setTimeout(function () { caret.remove(); }, totalMs);
   }
 
-  fetch('/api/github-digest')
-    .then(function (res) {
-      if (!res.ok) throw new Error('bad response');
-      return res.json();
-    })
-    .then(function (data) {
-      var text = (data && data.digest) ? data.digest.trim() : '';
-      if (!text) throw new Error('empty digest');
-      card.innerHTML = '<div class="rd-badge"><span class="rd-badge-dot" aria-hidden="true"></span>AI Weekly Recap</div><div class="rd-text" id="raDigestText"></div>';
-      typeOut(document.getElementById('raDigestText'), text);
-    })
-    .catch(function () {
-      card.innerHTML = '<div class="rd-badge"><span class="rd-badge-dot" aria-hidden="true"></span>AI Weekly Recap</div><div class="rd-text">Recap is warming up \u2014 the live activity feed below always has the latest.</div>';
-    });
+  function renderLoading() {
+    card.innerHTML =
+      '<div class="rd-surface rd-skel-surface">'
+      + badgeHtml()
+      + '<div class="rd-loading-label">Generating recap\u2026</div>'
+      + '<div class="rd-skel rd-skel-line"></div>'
+      + '<div class="rd-skel rd-skel-line" style="width:70%"></div>'
+      + '</div>';
+  }
+
+  function renderResult(text) {
+    card.innerHTML = '<div class="rd-surface">' + badgeHtml() + '<div class="rd-text" id="raDigestText"></div></div>';
+    revealWords(document.getElementById('raDigestText'), text);
+  }
+
+  // Error state doubles as a retry affordance — tapping it tries again,
+  // it doesn't leave the visitor stuck on a dead end.
+  function renderError() {
+    card.innerHTML =
+      '<div class="rd-surface rd-cta-surface">'
+      + badgeHtml()
+      + '<button type="button" class="rd-cta-btn" id="raDigestRetry" aria-label="Retry generating the AI recap">'
+      + '<span class="rd-cta-text">Recap didn\u2019t load \u2014 tap to retry</span>'
+      + ARROW_ICON
+      + '</button>'
+      + '</div>';
+    var retryBtn = document.getElementById('raDigestRetry');
+    if (retryBtn) retryBtn.addEventListener('click', requestDigest, { once: true });
+  }
+
+  // The whole point: nothing below ever runs on page load or on scrolling
+  // this section into view. /api/github-digest (and the Groq call behind
+  // it) only fires once the visitor deliberately taps the CTA button —
+  // `requestDigest` is wired up purely to click events, never to an
+  // IntersectionObserver, a timer, or the initial page-load flow above.
+  var requested = false; // guards against a double-fire from a fast double-click/double-Enter
+
+  function requestDigest() {
+    if (requested) return;
+    requested = true;
+    renderLoading();
+
+    fetch('/api/github-digest')
+      .then(function (res) {
+        if (!res.ok) throw new Error('bad response');
+        return res.json();
+      })
+      .then(function (data) {
+        var text = (data && data.digest) ? data.digest.trim() : '';
+        if (!text) throw new Error('empty digest');
+        renderResult(text);
+      })
+      .catch(function () {
+        requested = false; // allow a genuine retry tap to try again
+        renderError();
+      });
+  }
+
+  var ctaBtn = document.getElementById('raDigestCta');
+  if (ctaBtn) ctaBtn.addEventListener('click', requestDigest, { once: true });
 })();
 </script>
 
