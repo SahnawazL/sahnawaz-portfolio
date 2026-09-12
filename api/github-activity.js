@@ -22,6 +22,101 @@
 
 const GITHUB_USER = process.env.GITHUB_USER || 'SahnawazL';
 
+// ── Language drift snapshotting (Firestore) ──
+// fetchLanguageBreakdown() below only ever returns a live snapshot — no
+// dates attached. To draw a real "language drift over the last few
+// months" sparkline on the front end, something has to persist that
+// snapshot over time. This does the smallest version of that: once a
+// day (per UTC date), write the current breakdown to Firestore; on
+// every request, read back whatever history exists so far.
+//
+// Deliberately NOT backfilled or seeded — there is no historical data
+// to backfill from (GitHub doesn't expose past language-byte snapshots),
+// so this starts genuinely empty and fills in for real as days pass.
+// That's slower than faking a few months of history, but it means the
+// sparkline is never showing invented numbers.
+//
+// Env vars (Vercel → Settings → Environment Variables), same trio the
+// project's other Firebase Admin usage should already need:
+//   FIREBASE_PROJECT_ID
+//   FIREBASE_CLIENT_EMAIL
+//   FIREBASE_PRIVATE_KEY   (with literal \n escapes — replaced below)
+// If these aren't set, snapshotting/history are silently skipped and
+// `languageHistory` comes back null — the Languages ring still works
+// exactly as before, it just has no drift sparkline under it yet.
+const admin = require('firebase-admin');
+const LANGUAGE_HISTORY_COLLECTION = 'languageSnapshots';
+const LANGUAGE_HISTORY_RETENTION_DAYS = 200; // ~6-7 months of daily docs, then pruned
+
+function getDb() {
+  if (admin.apps.length) return admin.firestore();
+  const projectId = process.env.FIREBASE_PROJECT_ID;
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+  if (!projectId || !clientEmail || !privateKey) return null;
+  try {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId,
+        clientEmail,
+        privateKey: privateKey.replace(/\\n/g, '\n')
+      })
+    });
+    return admin.firestore();
+  } catch (err) {
+    console.warn('[github-activity] Firebase Admin init failed:', err && err.message);
+    return null;
+  }
+}
+
+// Writes today's breakdown (merge:true, so re-runs the same UTC day
+// overwrite instead of piling up duplicates), then prunes anything past
+// the retention window. Both steps are best-effort — a failure here
+// never affects the rest of the response.
+async function snapshotLanguages(db, languages, todayStr) {
+  if (!db || !languages || !languages.length) return;
+  try {
+    await db.collection(LANGUAGE_HISTORY_COLLECTION).doc(todayStr).set({
+      date: todayStr,
+      languages,
+      capturedAt: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    const cutoff = new Date();
+    cutoff.setUTCDate(cutoff.getUTCDate() - LANGUAGE_HISTORY_RETENTION_DAYS);
+    const cutoffStr = cutoff.toISOString().slice(0, 10);
+    const stale = await db.collection(LANGUAGE_HISTORY_COLLECTION)
+      .where('date', '<', cutoffStr)
+      .limit(10)
+      .get();
+    if (!stale.empty) {
+      const batch = db.batch();
+      stale.forEach((doc) => batch.delete(doc.ref));
+      await batch.commit();
+    }
+  } catch (err) {
+    console.warn('[github-activity] language snapshot failed:', err && err.message);
+  }
+}
+
+async function fetchLanguageHistory(db) {
+  if (!db) return null;
+  try {
+    const snap = await db.collection(LANGUAGE_HISTORY_COLLECTION)
+      .orderBy('date', 'asc')
+      .limit(200)
+      .get();
+    if (snap.empty) return null;
+    return snap.docs.map((doc) => {
+      const d = doc.data();
+      return { date: d.date, languages: d.languages };
+    });
+  } catch (err) {
+    console.warn('[github-activity] language history fetch failed:', err && err.message);
+    return null;
+  }
+}
+
 function describeEvent(event) {
   const repo = event.repo && event.repo.name ? event.repo.name.split('/')[1] : 'a repo';
   const repoUrl = event.repo ? `https://github.com/${event.repo.name}` : null;
@@ -490,12 +585,22 @@ module.exports = async (req, res) => {
       fetchLanguageBreakdown(headers)
     ]);
 
+    // Sequential (not Promise.all'd with the above) so a same-day first
+    // request writes today's snapshot BEFORE reading history back — the
+    // freshest point is then always present in the same response instead
+    // of lagging one request behind.
+    const db = getDb();
+    const todayStr = new Date().toISOString().slice(0, 10);
+    await snapshotLanguages(db, languages, todayStr);
+    const languageHistory = await fetchLanguageHistory(db);
+
     res.status(200).json({
       activity: activityResult.activity,
       stats: stats,
       projectStats: projectStats,
       pulse: pulse,
       languages: languages,
+      languageHistory: languageHistory,
       codingHours: describePeakWindow(activityResult.hourHistogram),
       fetchedAt: new Date().toISOString()
     });
