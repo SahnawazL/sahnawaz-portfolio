@@ -10690,6 +10690,61 @@ document.addEventListener('keydown', function(e) {
   margin-bottom: 0.5rem;
 }
 
+/* ══ YojanaSahay live-stat pill — techy/premium upgrade ══
+   Three data-state values on #yojanasahay-live-metric drive the look:
+     connecting → dim dot, faint shimmer sweep, static fallback numbers
+     live       → green pulsing dot, numbers count up, brief glow flash
+     cached     → amber dim dot (fetch failed, showing safe static text)
+   This element only — case study modal sync is untouched. */
+.ys-live-metric { position: relative; overflow: hidden; transition: box-shadow 0.4s ease, border-color 0.4s ease; }
+.ys-live-count, .ys-live-health { font-variant-numeric: tabular-nums; }
+.ys-live-count { transition: color 0.3s ease; }
+.ys-live-plus { opacity: 0.7; margin-right: 0.15rem; }
+.ys-live-sep { opacity: 0.4; margin: 0 0.05rem; }
+
+.ys-live-dot { display: inline-flex; align-items: center; justify-content: center; width: 8px; height: 8px; margin-right: 0.15rem; flex-shrink: 0; }
+.ys-live-dot-core { transition: fill 0.4s ease; }
+.ys-live-dot-ping { transition: stroke 0.4s ease; opacity: 0; transform-origin: center; }
+
+/* connecting: dim static dot + faint shimmer sweep across the pill */
+.ys-live-metric[data-state="connecting"] .ys-live-dot-core { fill: rgba(0,255,180,0.35); }
+.ys-live-metric[data-state="connecting"]::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(100deg, transparent 30%, rgba(0,255,180,0.16) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: ysShimmerSweep 1.6s ease-in-out infinite;
+}
+@keyframes ysShimmerSweep { 0% { background-position: 150% 0; } 100% { background-position: -50% 0; } }
+
+/* live: bright core + expanding/fading ping ring, radar-style */
+.ys-live-metric[data-state="live"] .ys-live-dot-core { fill: #00ffb4; }
+.ys-live-metric[data-state="live"] .ys-live-dot-ping {
+  stroke: #00ffb4; stroke-width: 1.4; fill: none; opacity: 0.55;
+  animation: ysDotPing 2.2s cubic-bezier(0,0,0.2,1) infinite;
+}
+@keyframes ysDotPing {
+  0%   { transform: scale(0.4); opacity: 0.6; }
+  70%  { transform: scale(1.4); opacity: 0; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+/* one-shot border/glow flash the instant fresh numbers land */
+.ys-live-metric.ys-flash { animation: ysFlash 0.9s ease; }
+@keyframes ysFlash {
+  0%   { box-shadow: 0 0 0 rgba(0,255,180,0); border-color: rgba(0,255,180,0.15); }
+  30%  { box-shadow: 0 0 14px rgba(0,255,180,0.55); border-color: rgba(0,255,180,0.6); }
+  100% { box-shadow: 0 0 0 rgba(0,255,180,0); border-color: rgba(0,255,180,0.15); }
+}
+
+/* cached: fetch failed, static fallback shown — quiet amber dot, no motion */
+.ys-live-metric[data-state="cached"] .ys-live-dot-core { fill: rgba(255,180,80,0.55); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ys-live-metric[data-state="connecting"]::after,
+  .ys-live-metric[data-state="live"] .ys-live-dot-ping,
+  .ys-live-metric.ys-flash { animation: none; }
+}
+
 /* ── "what I'd do differently" note ── */
 .mpj-hindsight {
   font-size: 0.68rem;
@@ -10871,7 +10926,20 @@ document.addEventListener('keydown', function(e) {
       <div class="mpj-card-name">Yojana Sahay — AI Government Scheme Finder</div>
       <div class="mpj-card-tagline">India's free AI-powered platform to discover Central and State government welfare schemes. Bilingual (Hindi &amp; English) with an AI eligibility checker — built for every Indian citizen who deserves to know their benefits.</div>
       <div class="mpj-problem">Problem → Millions of Indians miss welfare schemes they qualify for due to lack of awareness and complex eligibility rules. Built a single AI-powered discovery engine covering the entire scheme database.</div>
-      <div class="mpj-metric" id="yojanasahay-live-metric">⚡ 1,116+ Schemes · Bilingual AI · India-wide Coverage · Self-Published</div>
+      <div class="mpj-metric ys-live-metric" id="yojanasahay-live-metric" data-state="connecting">
+        <span class="ys-live-dot" aria-hidden="true">
+          <svg viewBox="0 0 16 16" width="8" height="8">
+            <circle class="ys-live-dot-ping" cx="8" cy="8" r="6"></circle>
+            <circle class="ys-live-dot-core" cx="8" cy="8" r="3"></circle>
+          </svg>
+        </span>
+        <span class="ys-live-count" id="ys-live-count">1,116</span><span class="ys-live-plus">+</span>
+        <span class="ys-live-label">Schemes</span>
+        <span class="ys-live-sep">·</span>
+        <span class="ys-live-health" id="ys-live-health">Bilingual AI</span>
+        <span class="ys-live-sep">·</span>
+        <span class="ys-live-status" id="ys-live-status">India-wide Coverage</span>
+      </div>
       <div class="mpj-stack">
         <span class="mpj-pill">JavaScript</span>
         <span class="mpj-pill">AI Integration</span>
@@ -11094,12 +11162,44 @@ function mpjFilter(cat, btn) {
   var el = document.getElementById('yojanasahay-live-metric');
   if (!el) return;
 
+  var countEl  = document.getElementById('ys-live-count');
+  var healthEl = document.getElementById('ys-live-health');
+  var statusEl = document.getElementById('ys-live-status');
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* Counts up from whatever number is currently shown to `target`, using
+     an ease-out curve so it settles rather than stopping abruptly — a
+     ticking-dashboard feel instead of a flat text swap. Skips straight to
+     the target if the visitor has reduced motion on. */
+  function animateCount(target) {
+    if (!countEl) return;
+    var start = parseInt((countEl.textContent || '0').replace(/,/g, ''), 10) || 0;
+    if (reduceMotion || start === target) { countEl.textContent = target.toLocaleString('en-IN'); return; }
+    var duration = 900, startTime = null;
+    function tick(ts) {
+      if (startTime === null) startTime = ts;
+      var p = Math.min((ts - startTime) / duration, 1);
+      var eased = 1 - Math.pow(1 - p, 3); // ease-out cubic
+      var val = Math.round(start + (target - start) * eased);
+      countEl.textContent = val.toLocaleString('en-IN');
+      if (p < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
   fetch('https://yojanasahay.vercel.app/api/stats', { cache: 'no-store' })
     .then(function(r) { if (!r.ok) throw new Error('bad status'); return r.json(); })
     .then(function(data) {
       if (typeof data.schemeCount === 'number' && typeof data.linkHealthPercent === 'number') {
-        el.textContent = '⚡ ' + data.schemeCount.toLocaleString('en-IN') +
-          '+ Schemes Tracked · ' + data.linkHealthPercent + '% Link Health · Live Data';
+        animateCount(data.schemeCount);
+        if (healthEl) healthEl.textContent = data.linkHealthPercent + '% Link Health';
+        if (statusEl) statusEl.textContent = 'Live Data';
+        el.setAttribute('data-state', 'live');
+        if (data.lastVerifiedAt) {
+          var d = new Date(data.lastVerifiedAt);
+          if (!isNaN(d.getTime())) el.title = 'Last verified ' + d.toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+        }
+        el.classList.remove('ys-flash'); void el.offsetWidth; el.classList.add('ys-flash');
 
         /* Also refresh the case study's stats grid so both places agree.
            The modal (CASE_STUDIES → renderCaseStudy) rebuilds its HTML
@@ -11123,11 +11223,12 @@ function mpjFilter(cat, btn) {
           if (ys.diagram) ys.diagram = ys.diagram.replace('1,116 schemes', liveCount + ' schemes');
           if (ys.metrics && ys.metrics[0]) ys.metrics[0] = ys.metrics[0].replace('1,116', liveCount);
         }
+      } else {
+        el.setAttribute('data-state', 'cached'); // fields missing/null — dot goes quiet amber
       }
-      /* if fields are missing/null, silently keep the static fallback text */
     })
     .catch(function() {
-      /* keep the static fallback text already in the DOM */
+      el.setAttribute('data-state', 'cached'); // fetch failed — static fallback text stays, dot signals it's not live
     });
 })();
 </script>
