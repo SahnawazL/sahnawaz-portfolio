@@ -10690,59 +10690,100 @@ document.addEventListener('keydown', function(e) {
   margin-bottom: 0.5rem;
 }
 
-/* ══ YojanaSahay live-stat pill — techy/premium upgrade ══
-   Three data-state values on #yojanasahay-live-metric drive the look:
-     connecting → dim dot, faint shimmer sweep, static fallback numbers
-     live       → green pulsing dot, numbers count up, brief glow flash
-     cached     → amber dim dot (fetch failed, showing safe static text)
-   This element only — case study modal sync is untouched. */
-.ys-live-metric { position: relative; overflow: hidden; transition: box-shadow 0.4s ease, border-color 0.4s ease; }
-.ys-live-count, .ys-live-health { font-variant-numeric: tabular-nums; }
-.ys-live-count { transition: color 0.3s ease; }
-.ys-live-plus { opacity: 0.7; margin-right: 0.15rem; }
-.ys-live-sep { opacity: 0.4; margin: 0 0.05rem; }
-
-.ys-live-dot { display: inline-flex; align-items: center; justify-content: center; width: 8px; height: 8px; margin-right: 0.15rem; flex-shrink: 0; }
-.ys-live-dot-core { transition: fill 0.4s ease; }
-.ys-live-dot-ping { transition: stroke 0.4s ease; opacity: 0; transform-origin: center; }
-
-/* connecting: dim static dot + faint shimmer sweep across the pill */
-.ys-live-metric[data-state="connecting"] .ys-live-dot-core { fill: rgba(0,255,180,0.35); }
-.ys-live-metric[data-state="connecting"]::after {
-  content: ""; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(100deg, transparent 30%, rgba(0,255,180,0.16) 50%, transparent 70%);
-  background-size: 200% 100%;
-  animation: ysShimmerSweep 1.6s ease-in-out infinite;
+/* ══ YojanaSahay live data console — the one bold treatment on this
+   card, deliberately unlike the plain .mpj-metric pill every other
+   project uses. A small HUD readout: a link-health ring, a tweened
+   scheme count, a ticking status line, and a hover-reveal detail row.
+   data-state cycles connecting → live (or cached on failure). ══ */
+.ys-console {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  column-gap: 0.6rem;
+  margin-bottom: 0.6rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 10px;
+  border: 1px solid rgba(0,255,180,0.18);
+  background:
+    repeating-linear-gradient(115deg, rgba(0,255,180,0.035) 0px, rgba(0,255,180,0.035) 1px, transparent 1px, transparent 7px),
+    rgba(6,20,24,0.55);
+  overflow: hidden;
+  cursor: default;
+  transition: box-shadow 1.8s ease, border-color 0.5s ease, padding-bottom 0.35s ease;
 }
-@keyframes ysShimmerSweep { 0% { background-position: 150% 0; } 100% { background-position: -50% 0; } }
-
-/* live: bright core + expanding/fading ping ring, radar-style */
-.ys-live-metric[data-state="live"] .ys-live-dot-core { fill: #00ffb4; }
-.ys-live-metric[data-state="live"] .ys-live-dot-ping {
-  stroke: #00ffb4; stroke-width: 1.4; fill: none; opacity: 0.55;
-  animation: ysDotPing 2.2s cubic-bezier(0,0,0.2,1) infinite;
-}
-@keyframes ysDotPing {
-  0%   { transform: scale(0.4); opacity: 0.6; }
-  70%  { transform: scale(1.4); opacity: 0; }
-  100% { transform: scale(1.4); opacity: 0; }
+.ys-console[data-state="live"] { animation: ysBreathe 3.6s ease-in-out infinite; }
+@keyframes ysBreathe {
+  0%, 100% { box-shadow: 0 0 0 rgba(0,255,180,0); }
+  50%      { box-shadow: 0 0 16px rgba(0,255,180,0.22); }
 }
 
-/* one-shot border/glow flash the instant fresh numbers land */
-.ys-live-metric.ys-flash { animation: ysFlash 0.9s ease; }
-@keyframes ysFlash {
-  0%   { box-shadow: 0 0 0 rgba(0,255,180,0); border-color: rgba(0,255,180,0.15); }
-  30%  { box-shadow: 0 0 14px rgba(0,255,180,0.55); border-color: rgba(0,255,180,0.6); }
-  100% { box-shadow: 0 0 0 rgba(0,255,180,0); border-color: rgba(0,255,180,0.15); }
+/* corner LIVE badge — small rec-dot, only reads "live" while state=live */
+.ys-console-badge {
+  position: absolute; top: 0.45rem; right: 0.6rem;
+  display: inline-flex; align-items: center; gap: 0.25rem;
+  font-family: 'Courier New', monospace; font-size: 0.55rem; letter-spacing: 0.05em;
+  color: rgba(0,255,180,0.4); opacity: 0; transition: opacity 0.4s ease, color 0.4s ease;
+}
+.ys-console[data-state="live"] .ys-console-badge { opacity: 1; color: rgba(0,255,180,0.75); }
+.ys-console[data-state="cached"] .ys-console-badge { opacity: 1; color: rgba(255,180,80,0.7); }
+.ys-console[data-state="cached"] .ys-console-badge::after { content: " (cached)"; }
+.ys-console-rec { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.ys-console[data-state="live"] .ys-console-rec { animation: ysRecBlink 1.6s ease-in-out infinite; }
+@keyframes ysRecBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+
+/* health ring — stroke-dashoffset animates in once data lands, hue
+   shifts by value (amber below ~60%, green at high health) */
+.ys-ring-wrap { position: relative; width: 34px; height: 34px; flex-shrink: 0; }
+.ys-ring { transform: rotate(-90deg); }
+.ys-ring-track { fill: none; stroke: rgba(0,255,180,0.12); stroke-width: 3; cx: 20; cy: 20; r: 16; }
+.ys-ring-fill {
+  fill: none; stroke: #00ffb4; stroke-width: 3; stroke-linecap: round;
+  stroke-dasharray: 100.5; stroke-dashoffset: 100.5;
+  transition: stroke-dashoffset 1.1s cubic-bezier(0.22,1,0.36,1), stroke 0.6s ease;
+}
+.ys-ring-pct {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-family: 'Courier New', monospace; font-size: 0.52rem; color: rgba(0,255,180,0.85);
+  font-variant-numeric: tabular-nums;
 }
 
-/* cached: fetch failed, static fallback shown — quiet amber dot, no motion */
-.ys-live-metric[data-state="cached"] .ys-live-dot-core { fill: rgba(255,180,80,0.55); }
+.ys-console-main { min-width: 0; }
+.ys-console-count {
+  font-family: 'Courier New', monospace; font-size: 0.78rem; font-weight: 700;
+  color: #6dffd6; line-height: 1.2; white-space: nowrap;
+}
+.ys-console-count span:first-child { font-variant-numeric: tabular-nums; transition: color 0.3s ease; }
+.ys-console-plus { opacity: 0.6; font-weight: 400; margin-right: 0.3em; }
+.ys-console-label { font-weight: 400; font-size: 0.62rem; color: rgba(0,255,180,0.55); }
+.ys-console-sub {
+  font-family: 'Courier New', monospace; font-size: 0.58rem; color: rgba(0,255,180,0.4);
+  margin-top: 0.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ys-ellipsis span { animation: ysEllipsis 1.4s infinite; opacity: 0; }
+.ys-ellipsis span:nth-child(2) { animation-delay: 0.2s; }
+.ys-ellipsis span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes ysEllipsis { 0%, 20% { opacity: 0; } 50%, 80% { opacity: 1; } 100% { opacity: 0; } }
+.ys-console[data-state="live"] .ys-ellipsis,
+.ys-console[data-state="cached"] .ys-ellipsis { display: none; }
+
+/* hover/focus reveal — a second detail line slides open beneath the
+   readout; single interaction-triggered moment, not idle motion */
+.ys-console-reveal {
+  grid-column: 1 / -1;
+  font-family: 'Courier New', monospace; font-size: 0.56rem; color: rgba(0,255,180,0.5);
+  max-height: 0; opacity: 0; overflow: hidden;
+  transition: max-height 0.35s ease, opacity 0.3s ease, margin-top 0.35s ease;
+}
+.ys-console[data-state="live"]:hover .ys-console-reveal,
+.ys-console[data-state="live"]:focus-visible .ys-console-reveal {
+  max-height: 1.4em; opacity: 1; margin-top: 0.35rem;
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .ys-live-metric[data-state="connecting"]::after,
-  .ys-live-metric[data-state="live"] .ys-live-dot-ping,
-  .ys-live-metric.ys-flash { animation: none; }
+  .ys-console[data-state="live"],
+  .ys-console-rec,
+  .ys-ellipsis span { animation: none; }
 }
 
 /* ── "what I'd do differently" note ── */
@@ -10926,19 +10967,25 @@ document.addEventListener('keydown', function(e) {
       <div class="mpj-card-name">Yojana Sahay — AI Government Scheme Finder</div>
       <div class="mpj-card-tagline">India's free AI-powered platform to discover Central and State government welfare schemes. Bilingual (Hindi &amp; English) with an AI eligibility checker — built for every Indian citizen who deserves to know their benefits.</div>
       <div class="mpj-problem">Problem → Millions of Indians miss welfare schemes they qualify for due to lack of awareness and complex eligibility rules. Built a single AI-powered discovery engine covering the entire scheme database.</div>
-      <div class="mpj-metric ys-live-metric" id="yojanasahay-live-metric" data-state="connecting">
-        <span class="ys-live-dot" aria-hidden="true">
-          <svg viewBox="0 0 16 16" width="8" height="8">
-            <circle class="ys-live-dot-ping" cx="8" cy="8" r="6"></circle>
-            <circle class="ys-live-dot-core" cx="8" cy="8" r="3"></circle>
+      <div class="ys-console" id="yojanasahay-live-metric" data-state="connecting" tabindex="0">
+        <div class="ys-console-badge" aria-hidden="true"><span class="ys-console-rec"></span>LIVE</div>
+        <div class="ys-ring-wrap">
+          <svg class="ys-ring" viewBox="0 0 40 40" width="34" height="34">
+            <circle class="ys-ring-track" cx="20" cy="20" r="16"></circle>
+            <circle class="ys-ring-fill" id="ys-ring-fill" cx="20" cy="20" r="16"></circle>
           </svg>
-        </span>
-        <span class="ys-live-count" id="ys-live-count">1,116</span><span class="ys-live-plus">+</span>
-        <span class="ys-live-label">Schemes</span>
-        <span class="ys-live-sep">·</span>
-        <span class="ys-live-health" id="ys-live-health">Bilingual AI</span>
-        <span class="ys-live-sep">·</span>
-        <span class="ys-live-status" id="ys-live-status">India-wide Coverage</span>
+          <span class="ys-ring-pct" id="ys-ring-pct">··</span>
+        </div>
+        <div class="ys-console-main">
+          <div class="ys-console-count">
+            <span id="ys-live-count">1,116</span><span class="ys-console-plus">+</span>
+            <span class="ys-console-label">schemes tracked</span>
+          </div>
+          <div class="ys-console-sub" id="ys-console-sub">connecting to live data<span class="ys-ellipsis"><span>.</span><span>.</span><span>.</span></span></div>
+        </div>
+        <div class="ys-console-reveal" id="ys-console-reveal" aria-hidden="true">
+          <span id="ys-console-reveal-text">—</span>
+        </div>
       </div>
       <div class="mpj-stack">
         <span class="mpj-pill">JavaScript</span>
@@ -11162,10 +11209,14 @@ function mpjFilter(cat, btn) {
   var el = document.getElementById('yojanasahay-live-metric');
   if (!el) return;
 
-  var countEl  = document.getElementById('ys-live-count');
-  var healthEl = document.getElementById('ys-live-health');
-  var statusEl = document.getElementById('ys-live-status');
+  var countEl    = document.getElementById('ys-live-count');
+  var subEl      = document.getElementById('ys-console-sub');
+  var ringFillEl = document.getElementById('ys-ring-fill');
+  var ringPctEl  = document.getElementById('ys-ring-pct');
+  var revealEl   = document.getElementById('ys-console-reveal-text');
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var RING_CIRC = 100.5; // 2π × r(16), matches stroke-dasharray in CSS
+  var lastVerifiedAt = null;
 
   /* Counts up from whatever number is currently shown to `target`, using
      an ease-out curve so it settles rather than stopping abruptly — a
@@ -11175,7 +11226,7 @@ function mpjFilter(cat, btn) {
     if (!countEl) return;
     var start = parseInt((countEl.textContent || '0').replace(/,/g, ''), 10) || 0;
     if (reduceMotion || start === target) { countEl.textContent = target.toLocaleString('en-IN'); return; }
-    var duration = 900, startTime = null;
+    var duration = 1000, startTime = null;
     function tick(ts) {
       if (startTime === null) startTime = ts;
       var p = Math.min((ts - startTime) / duration, 1);
@@ -11187,19 +11238,59 @@ function mpjFilter(cat, btn) {
     requestAnimationFrame(tick);
   }
 
+  /* Draws the health ring in via stroke-dashoffset (CSS transition does
+     the easing) and hue-shifts it — amber under ~60%, green above — so
+     the ring itself communicates "healthy" vs "needs attention" at a
+     glance, not just a number. */
+  function setRing(pct) {
+    if (!ringFillEl) return;
+    var offset = RING_CIRC - (RING_CIRC * Math.max(0, Math.min(100, pct)) / 100);
+    ringFillEl.style.strokeDashoffset = offset;
+    ringFillEl.style.stroke = pct >= 60 ? '#00ffb4' : '#ffb454';
+    if (ringPctEl) ringPctEl.textContent = pct + '%';
+  }
+
+  /* Relative-time string ("just now", "12m ago", "3h ago") — recomputed
+     on an interval so the status line keeps ticking forward on its own
+     rather than freezing at whatever it said when the page loaded. */
+  function relativeTime(date) {
+    var diffMin = Math.round((Date.now() - date.getTime()) / 60000);
+    if (diffMin < 1) return 'just now';
+    if (diffMin < 60) return diffMin + 'm ago';
+    var diffHr = Math.round(diffMin / 60);
+    if (diffHr < 24) return diffHr + 'h ago';
+    return Math.round(diffHr / 24) + 'd ago';
+  }
+
+  function tickStatusLine() {
+    if (!subEl || !lastVerifiedAt) return;
+    subEl.textContent = 'verified ' + relativeTime(lastVerifiedAt);
+  }
+
   fetch('https://yojanasahay.vercel.app/api/stats', { cache: 'no-store' })
     .then(function(r) { if (!r.ok) throw new Error('bad status'); return r.json(); })
     .then(function(data) {
       if (typeof data.schemeCount === 'number' && typeof data.linkHealthPercent === 'number') {
         animateCount(data.schemeCount);
-        if (healthEl) healthEl.textContent = data.linkHealthPercent + '% Link Health';
-        if (statusEl) statusEl.textContent = 'Live Data';
+        setRing(data.linkHealthPercent);
         el.setAttribute('data-state', 'live');
+
         if (data.lastVerifiedAt) {
           var d = new Date(data.lastVerifiedAt);
-          if (!isNaN(d.getTime())) el.title = 'Last verified ' + d.toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+          if (!isNaN(d.getTime())) {
+            lastVerifiedAt = d;
+            tickStatusLine();
+            if (!reduceMotion) setInterval(tickStatusLine, 30000);
+          }
         }
-        el.classList.remove('ys-flash'); void el.offsetWidth; el.classList.add('ys-flash');
+        if (!lastVerifiedAt && subEl) subEl.textContent = 'synced from live data';
+
+        /* Hover/focus reveal — the % ring only shows a bare number, so
+           the reveal spells out what it actually measures (checked
+           links, not the whole catalog) rather than leaving it ambiguous. */
+        if (revealEl) {
+          revealEl.textContent = data.linkHealthPercent + '% of checked links are live · rest offline-only (bank/CSC/in-person)';
+        }
 
         /* Also refresh the case study's stats grid so both places agree.
            The modal (CASE_STUDIES → renderCaseStudy) rebuilds its HTML
@@ -11224,11 +11315,13 @@ function mpjFilter(cat, btn) {
           if (ys.metrics && ys.metrics[0]) ys.metrics[0] = ys.metrics[0].replace('1,116', liveCount);
         }
       } else {
-        el.setAttribute('data-state', 'cached'); // fields missing/null — dot goes quiet amber
+        el.setAttribute('data-state', 'cached'); // fields missing/null — badge goes quiet amber
+        if (subEl) subEl.textContent = 'showing cached data';
       }
     })
     .catch(function() {
-      el.setAttribute('data-state', 'cached'); // fetch failed — static fallback text stays, dot signals it's not live
+      el.setAttribute('data-state', 'cached'); // fetch failed — static fallback numbers stay, badge signals it's not live
+      if (subEl) subEl.textContent = 'showing cached data';
     });
 })();
 </script>
