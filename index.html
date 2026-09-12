@@ -11409,7 +11409,48 @@ document.addEventListener('keydown', function(e) {
     .ra-goto svg { width: 11px; height: 11px; display: block; }
     .rp-goto { position: absolute; top: 0.4rem; right: 0.4rem; }
 
-    .ra-skel, .rp-skel, .gp-skel, .hm-skel, .lh-skel {
+    /* ══ Weekly Recap (AI-generated digest) ══ */
+    .rd-panel { margin-bottom: 0.9rem; }
+    .rd-card {
+      position: relative;
+      border: 1px solid rgba(0,255,180,0.18);
+      border-radius: 14px;
+      padding: 0.85rem 0.95rem 0.9rem;
+      background:
+        radial-gradient(circle at 85% 0%, rgba(0,255,180,0.08), transparent 60%),
+        linear-gradient(160deg, rgba(255,255,255,0.035), rgba(0,255,180,0.015));
+      overflow: hidden;
+    }
+    .rd-badge {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      font-size: 0.58rem; font-weight: 800; letter-spacing: 0.4px;
+      text-transform: uppercase;
+      color: rgba(0,255,180,0.85);
+      background: rgba(0,255,180,0.09);
+      border: 1px solid rgba(0,255,180,0.28);
+      border-radius: 20px;
+      padding: 0.18rem 0.6rem;
+      margin-bottom: 0.55rem;
+    }
+    .rd-badge-dot {
+      width: 4px; height: 4px; border-radius: 50%; flex-shrink: 0;
+      background: #00ffb4; box-shadow: 0 0 5px rgba(0,255,180,0.85);
+      animation: raPulse 1.8s ease-in-out infinite;
+    }
+    .rd-text {
+      font-size: 0.82rem; line-height: 1.55;
+      color: rgba(230,245,240,0.92);
+      min-height: 1.6em;
+    }
+    .rd-cursor {
+      display: inline-block; width: 2px; height: 1em; vertical-align: text-bottom;
+      background: #00ffb4; margin-left: 1px;
+      animation: rdBlink 0.85s step-end infinite;
+    }
+    @keyframes rdBlink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+    .rd-skel { height: 3.4rem; border-radius: 10px; }
+
+    .ra-skel, .rp-skel, .gp-skel, .hm-skel, .lh-skel, .rd-skel {
       background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(0,255,180,0.07) 50%, rgba(255,255,255,0.03) 75%);
       background-size: 200% 100%;
       animation: raSkel 1.4s ease-in-out infinite;
@@ -11426,13 +11467,19 @@ document.addEventListener('keydown', function(e) {
     .ra-footer a { font-size: 0.72rem; color: rgba(0,255,180,0.7); text-decoration: none; border-bottom: 1px dotted rgba(0,255,180,0.4); }
     .ra-footer a:hover { border-bottom-style: solid; }
     @media (prefers-reduced-motion: reduce) {
-      .ra-live-dot, .ra-row, .ra-skel, .rp-skel, .gp-skel, .hm-skel, .lh-skel, .gp-panel::after, .gp-ring-fg, .hrs-bar { animation: none !important; transition: none !important; opacity: 1; }
+      .ra-live-dot, .ra-row, .ra-skel, .rp-skel, .gp-skel, .hm-skel, .lh-skel, .rd-skel, .rd-cursor, .rd-badge-dot, .gp-panel::after, .gp-ring-fg, .hrs-bar { animation: none !important; transition: none !important; opacity: 1; }
     }
   </style>
 
   <div class="ra-header">
     <h2 class="ra-title"><span class="ra-live-dot" aria-hidden="true"></span>Recently Shipped</h2>
     <p class="ra-sub" id="raFreshness">// live from GitHub</p>
+  </div>
+
+  <div id="raDigest" class="rd-panel">
+    <div class="rd-card" id="raDigestCard">
+      <div class="rd-skel"></div>
+    </div>
   </div>
 
   <div id="raPulse">
@@ -11759,6 +11806,59 @@ document.addEventListener('keydown', function(e) {
       document.getElementById('raPulse').innerHTML = '';
       document.getElementById('raHeatmap').innerHTML = '';
       document.getElementById('raLangHours').innerHTML = '';
+    });
+})();
+</script>
+
+<script>
+/* ── AI WEEKLY RECAP — "Recently Shipped" digest ──
+   Fetches a short AI-generated summary of recent GitHub activity from
+   /api/github-digest (a separate serverless function from
+   /api/github-activity — see that file's own header comment for why it's
+   kept separate: different lifecycle, different lock, different job).
+
+   This fetch is completely independent from the main activity/pulse/
+   heatmap fetch above — if this fails, the rest of the Recently Shipped
+   section is entirely unaffected, and vice versa. */
+(function () {
+  var card = document.getElementById('raDigestCard');
+  if (!card) return;
+
+  function typeOut(el, text) {
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) { el.textContent = text; return; }
+
+    var i = 0;
+    var speed = Math.max(12, Math.min(28, 1400 / text.length)); // caps total reveal time around ~1.4s regardless of length
+    var cursor = document.createElement('span');
+    cursor.className = 'rd-cursor';
+
+    function step() {
+      el.textContent = text.slice(0, i);
+      el.appendChild(cursor);
+      i++;
+      if (i <= text.length) {
+        setTimeout(step, speed);
+      } else {
+        cursor.remove();
+      }
+    }
+    step();
+  }
+
+  fetch('/api/github-digest')
+    .then(function (res) {
+      if (!res.ok) throw new Error('bad response');
+      return res.json();
+    })
+    .then(function (data) {
+      var text = (data && data.digest) ? data.digest.trim() : '';
+      if (!text) throw new Error('empty digest');
+      card.innerHTML = '<div class="rd-badge"><span class="rd-badge-dot" aria-hidden="true"></span>AI Weekly Recap</div><div class="rd-text" id="raDigestText"></div>';
+      typeOut(document.getElementById('raDigestText'), text);
+    })
+    .catch(function () {
+      card.innerHTML = '<div class="rd-badge"><span class="rd-badge-dot" aria-hidden="true"></span>AI Weekly Recap</div><div class="rd-text">Recap is warming up \u2014 the live activity feed below always has the latest.</div>';
     });
 })();
 </script>
