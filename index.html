@@ -11395,7 +11395,7 @@ document.addEventListener('keydown', function(e) {
     .hm-side-num { font-family: 'Courier New', monospace; font-weight: 700; font-size: 0.85rem; color: #00ffb4; text-shadow: 0 0 8px rgba(0,255,180,0.35); }
     .hm-side-num small { font-weight: 400; color: rgba(200,220,215,0.4); font-size: 0.62rem; }
     .hm-side-label { font-size: 0.56rem; color: rgba(200,220,215,0.45); text-transform: uppercase; letter-spacing: 0.4px; }
-    @media (max-width: 400px) { .hm-side { display: none; } }
+    @media (max-width: 320px) { .hm-side { display: none; } }
     .hm-skel { height: 74px; border-radius: 8px; }
 
     /* Tappable day cells — a native title="" tooltip never shows on
@@ -12113,7 +12113,13 @@ document.addEventListener('keydown', function(e) {
         var bRect = btn.getBoundingClientRect();
         var popW = pop.offsetWidth, popH = pop.offsetHeight;
 
-        var below = bRect.top < (popH + 24);
+        // Room ABOVE the cell within the panel itself (not the viewport) —
+        // a cell in the grid's top row has almost no panel space above it
+        // even when the panel sits mid-page, so checking viewport room
+        // alone let the popup overflow past the panel into whatever card
+        // sits above it. Flip below whenever it wouldn't actually fit.
+        var spaceAbove = bRect.top - cRect.top;
+        var below = spaceAbove < (popH + 14);
         var top = below
           ? (bRect.bottom - cRect.top) + 10
           : (bRect.top - cRect.top) - popH - 10;
