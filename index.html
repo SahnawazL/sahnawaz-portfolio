@@ -11334,6 +11334,23 @@ document.addEventListener('keydown', function(e) {
     .gp-score-caret { width: 8px; height: 8px; opacity: 0.65; transition: transform 0.2s ease; flex-shrink: 0; }
     .gp-score-badge[aria-expanded="true"] .gp-score-caret { transform: rotate(180deg); }
 
+    /* One-time discoverability cue: a soft ring breathes twice around the
+       badge on a visitor's first-ever render, then removes itself for
+       good (localStorage-gated) — quiet, not a nag, gone the instant
+       they tap it or after its two cycles finish. */
+    .gp-score-ping {
+      position: absolute; inset: -4px;
+      border-radius: 22px;
+      border: 1px solid rgba(0,255,180,0.55);
+      pointer-events: none;
+      animation: gpScorePing 1.7s cubic-bezier(.3,.7,.4,1) 2;
+    }
+    @keyframes gpScorePing {
+      0%   { transform: scale(0.94); opacity: 0.7; }
+      70%  { transform: scale(1.32); opacity: 0; }
+      100% { transform: scale(1.32); opacity: 0; }
+    }
+
     .gp-score-detail {
       max-height: 0; overflow: hidden; opacity: 0;
       transition: max-height 0.35s ease, opacity 0.25s ease, margin-top 0.35s ease;
@@ -11606,6 +11623,7 @@ document.addEventListener('keydown', function(e) {
       .ra-live-dot, .ra-row, .ra-skel, .rp-skel, .gp-skel, .hm-skel, .lh-skel, .rd-skel, .rd-badge-dot, .gp-panel::after, .gp-ring-fg, .hrs-bar,
       .rd-card, .rd-surface::before, .rd-word, .rd-caret, .rd-cta-btn, .rd-cta-arrow, .rd-loading-label,
       .gp-score-badge, .gp-score-caret, .gp-score-detail, .gp-score-fill { animation: none !important; transition: none !important; opacity: 1; filter: none !important; transform: none !important; }
+      .gp-score-ping { display: none !important; }
     }
   </style>
 
@@ -11785,7 +11803,7 @@ document.addEventListener('keydown', function(e) {
     return row('Streak', shipScore.streakPct)
       + row('Frequency', shipScore.freqPct)
       + row('Repo spread', shipScore.spreadPct)
-      + '<div class="gp-score-note">// 40 / 35 / 25 weighted blend \u2014 not an official GitHub metric</div>';
+      + '<div class="gp-score-note">// weighted 40 \u00b7 35 \u00b7 25 across streak, frequency, spread</div>';
   }
 
   function wireScoreToggle(el) {
@@ -11804,6 +11822,9 @@ document.addEventListener('keydown', function(e) {
           });
         });
       }
+      var ping = badge.querySelector('.gp-score-ping');
+      if (ping) ping.remove();
+      try { localStorage.setItem('gpScoreSeen', '1'); } catch (e) {}
     });
   }
 
@@ -11822,8 +11843,11 @@ document.addEventListener('keydown', function(e) {
       : '';
 
     var shipScore = computeShippingScore(pulse, activity);
+    var scoreSeen = false;
+    try { scoreSeen = localStorage.getItem('gpScoreSeen') === '1'; } catch (e) {}
     var scoreBadge =
         '<button type="button" class="gp-score-badge" id="gpScoreBadge" aria-expanded="false" aria-controls="gpScoreDetail" aria-label="Shipping score ' + shipScore.score + ' out of 100 — tap for breakdown">'
+      +   (scoreSeen ? '' : '<span class="gp-score-ping" aria-hidden="true"></span>')
       +   '<span class="gp-score-num">' + shipScore.score + '</span><span>score</span>'
       +   '<svg class="gp-score-caret" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>'
       + '</button>';
