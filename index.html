@@ -11263,7 +11263,7 @@ document.addEventListener('keydown', function(e) {
       position: relative;
       border: 1px solid rgba(0,255,180,0.16);
       border-radius: 14px;
-      padding: 1rem 0.85rem 0.8rem;
+      padding: 2.3rem 0.85rem 0.8rem;
       margin-bottom: 0.9rem;
       background:
         radial-gradient(circle at 15% 0%, rgba(0,255,180,0.07), transparent 60%),
@@ -11307,6 +11307,45 @@ document.addEventListener('keydown', function(e) {
 
     .gp-ytd { margin-top: 0.75rem; padding-top: 0.65rem; border-top: 1px dashed rgba(255,255,255,0.08); font-family: 'Courier New', monospace; font-size: 0.62rem; color: rgba(200,220,215,0.5); text-align: center; }
     .gp-ytd b { color: #00ffb4; font-weight: 700; }
+
+    /* ══ Shipping Score — a derived 0–100 "momentum" badge built into the
+       Pulse panel's corner. Kept deliberately quiet next to the streak
+       ring (that's still the panel's one bold moment) — tapping it is
+       what earns the number, by showing exactly what it's made of, so it
+       reads as data-driven rather than a made-up vanity metric. ══ */
+    .gp-score-badge {
+      all: unset;
+      box-sizing: border-box;
+      position: absolute; top: 0.65rem; right: 0.65rem; z-index: 2;
+      display: inline-flex; align-items: center; gap: 0.32rem;
+      padding: 0.22rem 0.5rem 0.22rem 0.55rem;
+      border-radius: 20px;
+      border: 1px solid rgba(0,255,180,0.3);
+      background: linear-gradient(135deg, rgba(0,255,180,0.1), rgba(255,255,255,0.02));
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-size: 0.6rem; font-weight: 700;
+      color: rgba(220,245,238,0.88);
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+    .gp-score-badge:hover { border-color: rgba(0,255,180,0.6); }
+    .gp-score-badge:focus-visible { outline: 2px solid rgba(0,255,180,0.65); outline-offset: 2px; }
+    .gp-score-num { color: #00ffb4; }
+    .gp-score-caret { width: 8px; height: 8px; opacity: 0.65; transition: transform 0.2s ease; flex-shrink: 0; }
+    .gp-score-badge[aria-expanded="true"] .gp-score-caret { transform: rotate(180deg); }
+
+    .gp-score-detail {
+      max-height: 0; overflow: hidden; opacity: 0;
+      transition: max-height 0.35s ease, opacity 0.25s ease, margin-top 0.35s ease;
+    }
+    .gp-score-detail.gp-open { max-height: 150px; opacity: 1; margin-top: 0.8rem; }
+    .gp-score-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.42rem; }
+    .gp-score-row:last-child { margin-bottom: 0; }
+    .gp-score-label { width: 78px; flex-shrink: 0; font-size: 0.6rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.55); }
+    .gp-score-track { flex: 1; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.08); overflow: hidden; }
+    .gp-score-fill { display: block; height: 100%; width: 0%; border-radius: 2px; background: linear-gradient(90deg, rgba(0,255,180,0.55), #00ffb4); transition: width 0.8s cubic-bezier(.3,.9,.3,1); }
+    .gp-score-pct { width: 28px; flex-shrink: 0; text-align: right; font-size: 0.58rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.45); }
+    .gp-score-note { margin-top: 0.6rem; font-size: 0.55rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.32); }
 
     /* ══ Contribution heatmap ══ */
     .hm-panel { margin-bottom: 0.9rem; }
@@ -11565,7 +11604,8 @@ document.addEventListener('keydown', function(e) {
     .ra-footer a:hover { border-bottom-style: solid; }
     @media (prefers-reduced-motion: reduce) {
       .ra-live-dot, .ra-row, .ra-skel, .rp-skel, .gp-skel, .hm-skel, .lh-skel, .rd-skel, .rd-badge-dot, .gp-panel::after, .gp-ring-fg, .hrs-bar,
-      .rd-card, .rd-surface::before, .rd-word, .rd-caret, .rd-cta-btn, .rd-cta-arrow, .rd-loading-label { animation: none !important; transition: none !important; opacity: 1; filter: none !important; transform: none !important; }
+      .rd-card, .rd-surface::before, .rd-word, .rd-caret, .rd-cta-btn, .rd-cta-arrow, .rd-loading-label,
+      .gp-score-badge, .gp-score-caret, .gp-score-detail, .gp-score-fill { animation: none !important; transition: none !important; opacity: 1; filter: none !important; transform: none !important; }
     }
   </style>
 
@@ -11712,7 +11752,62 @@ document.addEventListener('keydown', function(e) {
     el.textContent = 'Last shipped ' + timeAgo(items[0].time);
   }
 
-  function renderPulse(pulse, stats) {
+  // Shipping Score — a derived 0–100 "momentum" number blending three
+  // ingredients already available from /api/github-activity. Nothing here
+  // is a real GitHub metric; it's a transparent, client-side-only blend
+  // so the badge can be tapped open to show exactly what it's made of
+  // instead of landing as an unexplained vanity number.
+  //   • Streak    (40%) — current streak against a 14-day full-score cap.
+  //   • Frequency (35%) — recent event volume against a 20-event cap.
+  //   • Spread    (25%) — distinct repos touched recently, capped at 4.
+  function computeShippingScore(pulse, activity) {
+    var streakPct = pulse ? Math.round(Math.min((pulse.currentStreak || 0) / 14, 1) * 100) : 0;
+
+    var list = activity || [];
+    var freqPct = Math.round(Math.min(list.length / 20, 1) * 100);
+
+    var repos = new Set();
+    list.forEach(function (a) { if (a && a.repo) repos.add(a.repo); });
+    var spreadPct = Math.round(Math.min(repos.size / 4, 1) * 100);
+
+    var score = Math.round(streakPct * 0.4 + freqPct * 0.35 + spreadPct * 0.25);
+    return { score: score, streakPct: streakPct, freqPct: freqPct, spreadPct: spreadPct };
+  }
+
+  function scoreDetailHtml(shipScore) {
+    function row(label, pct) {
+      return '<div class="gp-score-row">'
+        + '<span class="gp-score-label">' + label + '</span>'
+        + '<span class="gp-score-track"><span class="gp-score-fill" data-fill="' + pct + '"></span></span>'
+        + '<span class="gp-score-pct">' + pct + '%</span>'
+        + '</div>';
+    }
+    return row('Streak', shipScore.streakPct)
+      + row('Frequency', shipScore.freqPct)
+      + row('Repo spread', shipScore.spreadPct)
+      + '<div class="gp-score-note">// 40 / 35 / 25 weighted blend \u2014 not an official GitHub metric</div>';
+  }
+
+  function wireScoreToggle(el) {
+    var badge = el.querySelector('.gp-score-badge');
+    var detail = el.querySelector('.gp-score-detail');
+    if (!badge || !detail) return;
+    var filled = false;
+    badge.addEventListener('click', function () {
+      var open = detail.classList.toggle('gp-open');
+      badge.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open && !filled) {
+        filled = true;
+        requestAnimationFrame(function () {
+          detail.querySelectorAll('.gp-score-fill').forEach(function (fill) {
+            fill.style.width = fill.getAttribute('data-fill') + '%';
+          });
+        });
+      }
+    });
+  }
+
+  function renderPulse(pulse, stats, activity) {
     var el = document.getElementById('raPulse');
     if (!pulse) { el.innerHTML = ''; return; }
 
@@ -11726,9 +11821,19 @@ document.addEventListener('keydown', function(e) {
       ? '<div class="gp-ytd">// ' + new Date().getFullYear() + ' → <b>' + stats.commits + '</b> commits · <b>' + stats.pullRequests + '</b> PRs · <b>' + stats.issues + '</b> issues · <b>' + stats.repos + '</b> repos</div>'
       : '';
 
+    var shipScore = computeShippingScore(pulse, activity);
+    var scoreBadge =
+        '<button type="button" class="gp-score-badge" id="gpScoreBadge" aria-expanded="false" aria-controls="gpScoreDetail" aria-label="Shipping score ' + shipScore.score + ' out of 100 — tap for breakdown">'
+      +   '<span class="gp-score-num">' + shipScore.score + '</span><span>score</span>'
+      +   '<svg class="gp-score-caret" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>'
+      + '</button>';
+    var scoreDetail = '<div class="gp-score-detail" id="gpScoreDetail">' + scoreDetailHtml(shipScore) + '</div>';
+
     el.innerHTML =
         '<div class="ra-label-row"><span class="ra-label">GitHub Pulse</span><span class="ra-label-sub">// since ' + monthYear(pulse.since) + '</span></div>'
-      + '<div class="gp-panel"><div class="gp-grid">'
+      + '<div class="gp-panel">'
+      +   scoreBadge
+      +   '<div class="gp-grid">'
       +   '<div class="gp-block">'
       +     '<span class="gp-num ra-accent" id="gpTotal">' + pulse.totalContributions + '</span>'
       +     '<div class="gp-caption">Contributions</div>'
@@ -11750,6 +11855,7 @@ document.addEventListener('keydown', function(e) {
       +   '</div>'
       + '</div>'
       + ytd
+      + scoreDetail
       + '</div>';
 
     animateCount(document.getElementById('gpTotal'), 1000);
@@ -11757,6 +11863,7 @@ document.addEventListener('keydown', function(e) {
       var ring = el.querySelector('.gp-ring-fg');
       if (ring) ring.style.strokeDashoffset = ring.getAttribute('data-offset');
     });
+    wireScoreToggle(el);
   }
 
   function renderHeatmap(pulse) {
@@ -11901,7 +12008,7 @@ document.addEventListener('keydown', function(e) {
       render(items);
       renderFreshness(items);
       renderProjectStats(data.projectStats || null);
-      renderPulse(data.pulse || null, data.stats || null);
+      renderPulse(data.pulse || null, data.stats || null, data.activity || []);
       renderHeatmap(data.pulse || null);
       renderLanguagesAndHours(data.languages || null, data.codingHours || null);
     })
