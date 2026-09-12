@@ -10690,6 +10690,74 @@ document.addEventListener('keydown', function(e) {
   margin-bottom: 0.5rem;
 }
 
+/* ── module note — YojanaSahay card only, pointing at the Case Study
+   button, which is where the embedded eligibility-checker module
+   actually lives. Frosted-glass panel: blurred translucent fill, a
+   soft inner top highlight like light catching glass, and a slow
+   diagonal sheen that drifts across on a loop — smooth and understated,
+   not a flashy shimmer. ── */
+.mpj-demo-hint {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  font-size: 0.72rem;
+  font-family: 'Courier New', monospace;
+  line-height: 1.55;
+  color: rgba(215,238,245,0.88);
+  background: linear-gradient(160deg, rgba(255,255,255,0.09), rgba(34,211,238,0.05) 55%, rgba(255,255,255,0.02));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 10px;
+  padding: 0.6rem 0.85rem;
+  margin-bottom: 0.75rem;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.14);
+}
+.mpj-demo-hint b { color: #7ff0ff; font-weight: 700; }
+.mpj-demo-hint::before {
+  /* slow glass-reflection sweep */
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,0.14) 47%, rgba(255,255,255,0.22) 50%, rgba(255,255,255,0.14) 53%, transparent 70%);
+  background-size: 260% 100%;
+  background-position: 130% 0;
+  animation: mpjGlassSheen 6s ease-in-out infinite;
+}
+.mpj-demo-hint::after {
+  /* faint top edge highlight, like light catching the top of glass */
+  content: '';
+  position: absolute;
+  top: 0; left: 8%; right: 8%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+}
+@keyframes mpjGlassSheen {
+  0%, 15% { background-position: 130% 0; }
+  65%, 100% { background-position: -30% 0; }
+}
+.mpj-link-case-demo { position: relative; }
+.mpj-link-case-demo::after {
+  content: '';
+  position: absolute;
+  top: -3px; right: -3px;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #22d3ee;
+  box-shadow: 0 0 0 rgba(34,211,238,0.6);
+  animation: mpjDemoDotPing 1.8s ease-out infinite;
+}
+@keyframes mpjDemoDotPing {
+  0% { box-shadow: 0 0 0 0 rgba(34,211,238,0.55); }
+  70% { box-shadow: 0 0 0 7px rgba(34,211,238,0); }
+  100% { box-shadow: 0 0 0 0 rgba(34,211,238,0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mpj-link-case-demo::after, .mpj-demo-hint::before { animation: none; }
+}
+
+
 /* ══ YojanaSahay live data console — the one bold treatment on this
    card, deliberately unlike the plain .mpj-metric pill every other
    project uses. A small HUD readout: a link-health ring, a tweened
@@ -10996,11 +11064,12 @@ document.addEventListener('keydown', function(e) {
         <span class="mpj-pill">SEO</span>
       </div>
       <div class="mpj-hindsight">🔮 Would add state-level filtering and WhatsApp bot integration so citizens can check eligibility without even opening a browser.</div>
+      <div class="mpj-demo-hint">// <b>Scheme Eligibility Checker</b> — a live module of this app, embedded in the Case Study below. Open it to test the actual checker.</div>
       <div class="mpj-card-meta">
         <span class="mpj-role-tag">Solo Built · Civic Tech + AI</span>
         <div class="mpj-card-links">
           <a href="https://yojanasahay.vercel.app" target="_blank" class="mpj-link-btn mpj-link-live">↗ Live</a>
-          <button type="button" class="mpj-link-btn mpj-link-case" onclick="openCaseStudy('yojanasahay')">🔍 Case Study</button>
+          <button type="button" class="mpj-link-btn mpj-link-case mpj-link-case-demo" onclick="openCaseStudy('yojanasahay')">🔍 Case Study</button>
         </div>
       </div>
     </div>
@@ -11433,6 +11502,54 @@ function mpjFilter(cat, btn) {
 }
 .cs-stat-value { font-size: 1.15rem; font-weight: 800; font-family: 'Courier New', monospace; }
 .cs-stat-label { font-size: 0.66rem; color: rgba(200,220,225,0.65); margin-top: 0.15rem; line-height: 1.3; }
+/* ── Live embedded product demo inside a case study ── */
+.cs-embed-wrap {
+  position: relative;
+  width: 100%;
+  height: 640px;
+  max-height: 78vh;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.02);
+}
+.cs-embed-frame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  position: relative;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.cs-embed-frame.cs-embed-loaded { opacity: 1; }
+.cs-embed-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.72rem;
+  color: rgba(200,220,225,0.6);
+  letter-spacing: 0.5px;
+  z-index: 0;
+}
+.cs-embed-loading::before {
+  content: '';
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.15);
+  border-top-color: #22d3ee;
+  animation: csEmbedSpin 0.8s linear infinite;
+}
+@keyframes csEmbedSpin { to { transform: rotate(360deg); } }
+.cs-embed-note { font-size: 0.76rem; color: rgba(180,200,210,0.6); margin-top: 0.6rem; line-height: 1.5; }
+.cs-embed-note a { color: #22d3ee; text-decoration: none; border-bottom: 1px dotted rgba(34,211,238,0.5); }
+.cs-embed-note a:hover { border-bottom-style: solid; }
 .cs-bug-title code, .cs-bug p code {
   background: rgba(255,255,255,0.08);
   border-radius: 4px;
@@ -11601,6 +11718,11 @@ function mpjFilter(cat, btn) {
         + '<text x="507" y="250" text-anchor="middle" fill="#eafffb" font-size="10.5" font-weight="700">Firestore</text>'
         + '<text x="507" y="265" text-anchor="middle" fill="rgba(220,240,245,0.65)" font-size="8.3">1,116 schemes · Admin Control Centre</text>'
         + '</svg>',
+      embed: {
+        title: 'Scheme Eligibility Checker — Live Module',
+        src: 'https://yojanasahay.vercel.app/embed',
+        note: 'This is one module of the deployed app, embedded directly \u2014 not a screenshot or a mockup. Answer the questions and see real scheme matches.'
+      },
       bugs: [
         {
           title: 'The 432 that wasn\u2019t a quota problem',
@@ -11707,6 +11829,20 @@ function mpjFilter(cat, btn) {
           }).join('')
         + '</div>'
       : '';
+    // Lazily embedded, loaded only when this case study is opened (never on
+    // initial page load). The iframe starts at opacity:0 with a spinner
+    // behind it; its onload flips .cs-embed-loaded so it fades in once the
+    // checker has actually rendered, instead of popping in blank/white.
+    var embedHtml = d.embed
+      ? '<div class="cs-h">' + d.embed.title + '</div>'
+        + '<div class="cs-embed-wrap">'
+        + '<div class="cs-embed-loading">loading live checker…</div>'
+        + '<iframe class="cs-embed-frame" src="' + d.embed.src + '" title="' + d.embed.title + '" loading="lazy" referrerpolicy="no-referrer-when-downgrade" onload="this.classList.add(\'cs-embed-loaded\')"></iframe>'
+        + '</div>'
+        + (d.embed.note
+            ? '<p class="cs-embed-note">' + d.embed.note + ' <a href="' + d.embed.src + '" target="_blank" rel="noopener">Open full screen ↗</a></p>'
+            : '')
+      : '';
     return ''
       + '<div class="cs-icon">' + d.icon + '</div>'
       + '<h2 id="csTitle" class="cs-title">' + d.title + '</h2>'
@@ -11714,6 +11850,7 @@ function mpjFilter(cat, btn) {
       + '<p class="cs-lede">' + d.lede + '</p>'
       + stackHtml
       + statsHtml
+      + embedHtml
       + '<div class="cs-h">Architecture</div>'
       + d.diagram
       + '<div class="cs-h">Engineering Deep-Dive</div>'
