@@ -9,6 +9,43 @@
 // ── Single-user lock (max 1 request at a time) ──────────────────────────────
 let isProcessing = false;
 
+// ── LIVE YOJANASAHAY STATS ───────────────────────────────────────────────────
+// The knowledge base used to hardcode "3,000+ schemes" for YojanaSahay, which
+// drifted out of date as the real catalog (and its verification data) grew
+// and changed. This fetches the same public /api/stats endpoint the portfolio
+// site's project card uses, so the chatbot always cites the current real
+// numbers instead of a stale guess.
+//
+// Cached at module scope for YOJANA_STATS_TTL_MS so a burst of chat messages
+// in the same warm Vercel instance doesn't refetch on every single message —
+// the underlying numbers only change roughly once a day anyway (daily cron).
+// A short fetch timeout + try/catch means a slow or dead endpoint NEVER
+// delays or breaks a chat reply — it just falls back to a safe static line.
+let yojanaStatsCache = { data: null, fetchedAt: 0 };
+const YOJANA_STATS_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
+async function getYojanaSahayLiveStats() {
+  const now = Date.now();
+  if (yojanaStatsCache.data && (now - yojanaStatsCache.fetchedAt) < YOJANA_STATS_TTL_MS) {
+    return yojanaStatsCache.data;
+  }
+  try {
+    const res = await fetch('https://yojanasahay.vercel.app/api/stats', {
+      signal: AbortSignal.timeout(2500) // never let a slow endpoint delay a chat reply for long
+    });
+    if (!res.ok) throw new Error(`bad status ${res.status}`);
+    const data = await res.json();
+    if (typeof data.schemeCount === 'number' && typeof data.linkHealthPercent === 'number') {
+      yojanaStatsCache = { data, fetchedAt: now };
+      return data;
+    }
+    throw new Error('missing expected fields');
+  } catch (err) {
+    console.warn('[chat] YojanaSahay live stats fetch failed, using static fallback:', err && err.message);
+    return null; // caller falls back to a fixed, still-accurate static line
+  }
+}
+
 const handler = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -318,6 +355,12 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
     visitorActivityHint = lines.join('\n');
   }
 
+  // ── Live YojanaSahay stats — fetched once here, used in KNOWLEDGE below ──
+  const yojanaStats = await getYojanaSahayLiveStats();
+  const yojanaSchemesLine = yojanaStats
+    ? `Covers: ${yojanaStats.schemeCount.toLocaleString('en-IN')}+ Central and State government schemes tracked (${yojanaStats.linkHealthPercent}% of links currently verified live) across every state in India`
+    : 'Covers: 1,116+ Central and State government schemes across every state in India';
+
   // ── KNOWLEDGE BASE ─────────────────────────────────────────────────────
   const KNOWLEDGE = `
 You are the personal AI assistant embedded in Sahnawaz Ahmed Laskar's portfolio website.
@@ -495,7 +538,7 @@ Fun fact: Once spent 3 hours debugging — turned out to be "marign" instead of 
    Status: LIVE & ACTIVE (self-published May 2026)
    LinkedIn: Listed under Publications — "Yojana Sahay — AI Government Scheme Finder, Self-Published · Live Web Product · May 2026"
    What it is: India's free AI-powered platform to discover government welfare schemes you qualify for.
-   Covers: 3,000+ Central and State government schemes across every state in India
+   ${yojanaSchemesLine}
    Languages: Bilingual — Hindi & English
    Key features:
    - AI eligibility checker — answer simple questions, get matched to schemes instantly
