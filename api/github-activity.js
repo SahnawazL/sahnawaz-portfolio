@@ -233,6 +233,144 @@ async function fetchProjectStats(headers, token) {
   return cleaned.length ? cleaned : null;
 }
 
+// ── GitHub Pulse: total contributions + current/longest streak, from
+// the real daily contribution calendar (the same data behind the green
+// squares on a profile) — not an estimate. GraphQL's contributionsCollection
+// only allows <=1yr windows, so this walks backward in yearly chunks from
+// now to (at most) 3 years back or the account's creation date, whichever
+// is more recent, to keep the function fast.
+async function fetchContributionDays(token, sinceIso) {
+  if (!token) return null;
+  const cap = new Date();
+  cap.setUTCFullYear(cap.getUTCFullYear() - 3);
+  const since = new Date(Math.max(new Date(sinceIso).getTime(), cap.getTime()));
+  const now = new Date();
+
+  const windows = [];
+  let windowEnd = now;
+  while (windowEnd > since) {
+    let windowStart = new Date(windowEnd);
+    windowStart.setUTCFullYear(windowStart.getUTCFullYear() - 1);
+    windowStart.setUTCDate(windowStart.getUTCDate() + 1);
+    if (windowStart < since) windowStart = since;
+    windows.push([windowStart, windowEnd]);
+    windowEnd = new Date(windowStart);
+    windowEnd.setUTCDate(windowEnd.getUTCDate() - 1);
+  }
+
+  const query = `
+    query($login: String!, $from: DateTime!, $to: DateTime!) {
+      user(login: $login) {
+        contributionsCollection(from: $from, to: $to) {
+          contributionCalendar {
+            totalContributions
+            weeks { contributionDays { date contributionCount } }
+          }
+        }
+      }
+    }
+  `;
+
+  try {
+    const results = await Promise.all(windows.map(([from, to]) =>
+      fetch('https://api.github.com/graphql', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          'User-Agent': `${GITHUB_USER}-portfolio`
+        },
+        body: JSON.stringify({ query, variables: { login: GITHUB_USER, from: from.toISOString(), to: to.toISOString() } })
+      }).then((r) => (r.ok ? r.json() : null)).catch(() => null)
+    ));
+
+    const dayMap = new Map();
+    let totalContributions = 0;
+    results.forEach((json) => {
+      if (!json || json.errors || !json.data || !json.data.user) return;
+      const cal = json.data.user.contributionsCollection.contributionCalendar;
+      totalContributions += cal.totalContributions;
+      cal.weeks.forEach((w) => w.contributionDays.forEach((d) => {
+        dayMap.set(d.date, d.contributionCount);
+      }));
+    });
+
+    const days = Array.from(dayMap.entries())
+      .map(([date, count]) => ({ date, count }))
+      .sort((a, b) => (a.date < b.date ? -1 : 1));
+
+    return { days, totalContributions, since: since.toISOString() };
+  } catch (err) {
+    return null;
+  }
+}
+
+function computeStreaks(days) {
+  if (!days.length) return null;
+
+  let longest = { length: 0, start: null, end: null };
+  let run = { length: 0, start: null };
+  days.forEach((d) => {
+    if (d.count > 0) {
+      if (run.length === 0) run.start = d.date;
+      run.length += 1;
+      if (run.length > longest.length) {
+        longest = { length: run.length, start: run.start, end: d.date };
+      }
+    } else {
+      run = { length: 0, start: null };
+    }
+  });
+
+  // Current streak: walk back from the most recent day. If the very last
+  // day has no contributions yet (it may just not be over), skip it once
+  // rather than treating it as a broken streak.
+  let i = days.length - 1;
+  if (days[i].count === 0) i -= 1;
+  const currentEnd = i >= 0 ? days[i].date : null;
+  let currentLength = 0;
+  let currentStart = null;
+  while (i >= 0 && days[i].count > 0) {
+    currentLength += 1;
+    currentStart = days[i].date;
+    i -= 1;
+  }
+
+  return {
+    currentStreak: currentLength,
+    currentStart,
+    currentEnd: currentLength ? currentEnd : null,
+    longestStreak: longest.length,
+    longestStart: longest.start,
+    longestEnd: longest.end
+  };
+}
+
+async function fetchGithubPulse(headers, token) {
+  if (!token) return null;
+  try {
+    const userRes = await fetch(`https://api.github.com/users/${GITHUB_USER}`, { headers });
+    if (!userRes.ok) return null;
+    const userJson = await userRes.json();
+
+    const data = await fetchContributionDays(token, userJson.created_at);
+    if (!data) return null;
+    const streaks = computeStreaks(data.days);
+    if (!streaks) return null;
+
+    return {
+      totalContributions: data.totalContributions,
+      since: data.since,
+      currentStreak: streaks.currentStreak,
+      currentRange: streaks.currentStreak ? [streaks.currentStart, streaks.currentEnd] : null,
+      longestStreak: streaks.longestStreak,
+      longestRange: streaks.longestStreak ? [streaks.longestStart, streaks.longestEnd] : null
+    };
+  } catch (err) {
+    return null;
+  }
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=1800');
 
@@ -245,16 +383,18 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const [activityResult, stats, projectStats] = await Promise.all([
+    const [activityResult, stats, projectStats, pulse] = await Promise.all([
       fetchActivity(headers),
       fetchYearStats(process.env.GITHUB_TOKEN),
-      fetchProjectStats(headers, process.env.GITHUB_TOKEN)
+      fetchProjectStats(headers, process.env.GITHUB_TOKEN),
+      fetchGithubPulse(headers, process.env.GITHUB_TOKEN)
     ]);
 
     res.status(200).json({
       activity: activityResult.activity,
       stats: stats,
       projectStats: projectStats,
+      pulse: pulse,
       fetchedAt: new Date().toISOString()
     });
   } catch (err) {
