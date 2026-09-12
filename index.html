@@ -11384,7 +11384,9 @@ document.addEventListener('keydown', function(e) {
        touch, so cells with real data become real buttons with an
        enlarged (invisible) hit area, wired to the popover below. */
     button.hm-cell {
-      all: unset; box-sizing: border-box; display: block;
+      appearance: none; -webkit-appearance: none; -moz-appearance: none;
+      border: none; margin: 0; padding: 0; font: inherit; color: inherit;
+      box-sizing: border-box; display: block;
       width: 10px; height: 10px; border-radius: 2px;
       cursor: pointer; position: relative;
       -webkit-tap-highlight-color: transparent;
@@ -11430,6 +11432,15 @@ document.addEventListener('keydown', function(e) {
     .lang-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
     .lang-legend-name { color: rgba(220,240,235,0.75); font-family: 'Courier New', monospace; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .lang-legend-pct { color: rgba(200,220,215,0.45); font-family: 'Courier New', monospace; }
+
+    /* ── Language drift — a real day-over-day history, not a snapshot.
+       Built from Firestore-backed daily snapshots taken by the API; see
+       that file's own header comment for why there's no seeded/backfilled
+       history. Starts sparse, fills in genuinely over time. ── */
+    .lang-drift { margin-top: 0.6rem; padding-top: 0.55rem; border-top: 1px dashed rgba(255,255,255,0.08); }
+    .lang-drift-svg { display: block; width: 100%; height: 30px; }
+    .lang-drift-caption { margin-top: 0.3rem; text-align: center; font-size: 0.54rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.4); }
+    .lang-drift-empty { text-align: center; padding: 0.25rem 0 0.1rem; font-size: 0.56rem; font-style: italic; color: rgba(200,220,215,0.42); }
 
     .hrs-bars { display: flex; align-items: flex-end; gap: 1.5px; height: 46px; margin-top: 0.3rem; }
     .hrs-bar { flex: 1; background: rgba(0,255,180,0.18); border-radius: 1.5px 1.5px 0 0; min-height: 2px; transition: height 0.6s ease; }
@@ -12119,7 +12130,37 @@ document.addEventListener('keydown', function(e) {
     wireHeatmapPopover(el, buildDayBreakdown(activity));
   }
 
-  function renderLanguagesAndHours(languages, codingHours) {
+  // Thin multi-line sparkline for up to 3 languages' share over time,
+  // drawn from real daily snapshots (data.languageHistory). Returns null
+  // if there isn't a real value to plot yet — callers show an honest
+  // "still collecting" message instead in that case.
+  function buildLanguageDriftSvg(history, topLanguages) {
+    var names = topLanguages.slice(0, 3).map(function (l) { return l.name; });
+    var w = 200, h = 30, padX = 2, padY = 3, n = history.length;
+    var maxVal = 0;
+    var series = names.map(function (name) {
+      return history.map(function (entry) {
+        var found = (entry.languages || []).filter(function (l) { return l.name === name; })[0];
+        var v = found ? found.percent : 0;
+        if (v > maxVal) maxVal = v;
+        return v;
+      });
+    });
+    if (maxVal <= 0) return null;
+    maxVal *= 1.15;
+
+    function xAt(i) { return n > 1 ? padX + (i / (n - 1)) * (w - padX * 2) : w / 2; }
+    function yAt(v) { return h - padY - (v / maxVal) * (h - padY * 2); }
+
+    var paths = series.map(function (vals, idx) {
+      var d = vals.map(function (v, i) { return (i === 0 ? 'M' : 'L') + xAt(i).toFixed(1) + ',' + yAt(v).toFixed(1); }).join(' ');
+      return '<path d="' + d + '" fill="none" stroke="' + langColor(names[idx]) + '" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" opacity="' + (idx === 0 ? '0.95' : '0.55') + '"></path>';
+    }).join('');
+
+    return '<svg class="lang-drift-svg" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none">' + paths + '</svg>';
+  }
+
+  function renderLanguagesAndHours(languages, codingHours, languageHistory) {
     var el = document.getElementById('raLangHours');
     var langHtml = '';
     var hoursHtml = '';
@@ -12137,11 +12178,24 @@ document.addEventListener('keydown', function(e) {
         return '<div class="lang-legend-row"><span class="lang-dot" style="background:' + langColor(l.name) + '"></span><span class="lang-legend-name">' + escapeHtml(l.name) + '</span><span class="lang-legend-pct">' + l.percent + '%</span></div>';
       }).join('');
 
+      var driftHtml = '';
+      var driftSvg = (languageHistory && languageHistory.length >= 2)
+        ? buildLanguageDriftSvg(languageHistory, languages)
+        : null;
+      if (driftSvg) {
+        var days = languageHistory.length;
+        driftHtml = '<div class="lang-drift">' + driftSvg
+          + '<div class="lang-drift-caption">// ' + days + (days === 1 ? ' day' : ' days') + ' tracked \u00b7 ' + escapeHtml(top.name) + ' share over time</div></div>';
+      } else {
+        driftHtml = '<div class="lang-drift"><div class="lang-drift-empty">Tracking started \u2014 drift trend fills in over the next few weeks.</div></div>';
+      }
+
       langHtml =
           '<div class="ra-label-row"><span class="ra-label">Languages</span></div>'
         + '<div class="lang-ring-wrap"><svg viewBox="0 0 76 76" width="76" height="76" style="transform:rotate(-90deg)">' + segs + '</svg>'
         + '<div class="lang-ring-center"><span class="lang-ring-pct">' + top.percent + '%</span><span class="lang-ring-name">' + escapeHtml(top.name) + '</span></div></div>'
-        + '<div class="lang-legend">' + legend + '</div>';
+        + '<div class="lang-legend">' + legend + '</div>'
+        + driftHtml;
     } else {
       langHtml = '<div class="ra-label-row"><span class="ra-label">Languages</span></div><div class="ra-empty" style="padding:0.4rem 0;">Not enough data yet.</div>';
     }
@@ -12225,7 +12279,7 @@ document.addEventListener('keydown', function(e) {
       renderProjectStats(data.projectStats || null);
       renderPulse(data.pulse || null, data.stats || null, data.activity || []);
       renderHeatmap(data.pulse || null, data.activity || []);
-      renderLanguagesAndHours(data.languages || null, data.codingHours || null);
+      renderLanguagesAndHours(data.languages || null, data.codingHours || null, data.languageHistory || null);
     })
     .catch(function () {
       document.getElementById('raList').innerHTML = '<div class="ra-error">Couldn\u2019t load activity right now \u2014 <a href="https://github.com/SahnawazL" target="_blank" rel="noopener" style="color:rgba(0,255,180,0.7);">view on GitHub</a> instead.</div>';
