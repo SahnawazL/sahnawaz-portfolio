@@ -88,16 +88,65 @@ function describeEvent(event) {
   }
 }
 
+// Converts a UTC ISO timestamp to an hour-of-day (0-23) in IST (UTC+5:30),
+// since that's the timezone the portfolio's owner actually codes in.
+function toISTHour(iso) {
+  const d = new Date(iso);
+  const utcMinutes = d.getUTCHours() * 60 + d.getUTCMinutes();
+  const istMinutes = (utcMinutes + 330) % 1440;
+  return Math.floor(istMinutes / 60);
+}
+
 async function fetchActivity(headers) {
   const ghRes = await fetch(
     `https://api.github.com/users/${GITHUB_USER}/events/public?per_page=100`,
     { headers }
   );
-  if (!ghRes.ok) return { activity: [], error: `events:${ghRes.status}` };
+  if (!ghRes.ok) return { activity: [], hourHistogram: null, error: `events:${ghRes.status}` };
 
   const events = await ghRes.json();
   const activity = events.map(describeEvent).filter(Boolean).slice(0, 15);
-  return { activity };
+
+  const histogram = new Array(24).fill(0);
+  events.forEach((e) => {
+    if (!e.created_at) return;
+    histogram[toISTHour(e.created_at)] += 1;
+  });
+  const hasData = histogram.some((c) => c > 0);
+
+  return { activity, hourHistogram: hasData ? histogram : null };
+}
+
+// Finds the 3-hour rolling window with the most events, and describes it
+// like "1–4 AM IST". Based on the last ~100 public events (up to 90 days),
+// so this is a "recent" signal, not an all-time one.
+function describePeakWindow(histogram) {
+  if (!histogram) return null;
+  const windowSize = 3;
+  let bestStart = 0;
+  let bestSum = -1;
+  for (let h = 0; h < 24; h++) {
+    let sum = 0;
+    for (let k = 0; k < windowSize; k++) sum += histogram[(h + k) % 24];
+    if (sum > bestSum) { bestSum = sum; bestStart = h; }
+  }
+  if (bestSum <= 0) return null;
+
+  const fmt = (h) => {
+    const period = h < 12 ? 'AM' : 'PM';
+    let hh = h % 12;
+    if (hh === 0) hh = 12;
+    return hh + period;
+  };
+  const endHour = (bestStart + windowSize) % 24;
+  const peakHours = [];
+  for (let k = 0; k < windowSize; k++) peakHours.push((bestStart + k) % 24);
+
+  return {
+    label: `${fmt(bestStart)}–${fmt(endHour)} IST`,
+    peakHours,
+    histogram
+  };
 }
 
 async function fetchYearStats(token) {
@@ -233,7 +282,56 @@ async function fetchProjectStats(headers, token) {
   return cleaned.length ? cleaned : null;
 }
 
-// ── GitHub Pulse: total contributions + current/longest streak, from
+// Aggregate bytes-per-language across all owned (non-fork) repos, using
+// GitHub's per-repo languages endpoint, then reduce to a top-5 + "Other"
+// breakdown by percentage. Colors are assigned client-side.
+async function fetchLanguageBreakdown(headers) {
+  try {
+    const reposRes = await fetch(
+      `https://api.github.com/users/${GITHUB_USER}/repos?type=owner&per_page=100&sort=pushed`,
+      { headers }
+    );
+    if (!reposRes.ok) return null;
+    const repos = await reposRes.json();
+    if (!Array.isArray(repos)) return null;
+    const owned = repos.filter((r) => !r.fork);
+    if (!owned.length) return null;
+
+    const langResults = await Promise.all(owned.map((r) =>
+      fetch(r.languages_url, { headers })
+        .then((res) => (res.ok ? res.json() : {}))
+        .catch(() => ({}))
+    ));
+
+    const totals = {};
+    langResults.forEach((langs) => {
+      Object.entries(langs).forEach(([lang, bytes]) => {
+        totals[lang] = (totals[lang] || 0) + bytes;
+      });
+    });
+
+    const totalBytes = Object.values(totals).reduce((a, b) => a + b, 0);
+    if (!totalBytes) return null;
+
+    const sorted = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+    const top = sorted.slice(0, 5).map(([name, bytes]) => ({
+      name,
+      percent: Math.round((bytes / totalBytes) * 1000) / 10
+    }));
+
+    const topSum = top.reduce((a, l) => a + l.percent, 0);
+    const otherPercent = Math.round((100 - topSum) * 10) / 10;
+    if (sorted.length > 5 && otherPercent > 0.4) {
+      top.push({ name: 'Other', percent: otherPercent });
+    }
+
+    return top;
+  } catch (err) {
+    return null;
+  }
+}
+
+
 // the real daily contribution calendar (the same data behind the green
 // squares on a profile) — not an estimate. GraphQL's contributionsCollection
 // only allows <=1yr windows, so this walks backward in yearly chunks from
@@ -364,7 +462,8 @@ async function fetchGithubPulse(headers, token) {
       currentStreak: streaks.currentStreak,
       currentRange: streaks.currentStreak ? [streaks.currentStart, streaks.currentEnd] : null,
       longestStreak: streaks.longestStreak,
-      longestRange: streaks.longestStreak ? [streaks.longestStart, streaks.longestEnd] : null
+      longestRange: streaks.longestStreak ? [streaks.longestStart, streaks.longestEnd] : null,
+      heatmap: data.days.slice(-84) // last 12 weeks, for the mini heatmap
     };
   } catch (err) {
     return null;
@@ -383,11 +482,12 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const [activityResult, stats, projectStats, pulse] = await Promise.all([
+    const [activityResult, stats, projectStats, pulse, languages] = await Promise.all([
       fetchActivity(headers),
       fetchYearStats(process.env.GITHUB_TOKEN),
       fetchProjectStats(headers, process.env.GITHUB_TOKEN),
-      fetchGithubPulse(headers, process.env.GITHUB_TOKEN)
+      fetchGithubPulse(headers, process.env.GITHUB_TOKEN),
+      fetchLanguageBreakdown(headers)
     ]);
 
     res.status(200).json({
@@ -395,6 +495,8 @@ module.exports = async (req, res) => {
       stats: stats,
       projectStats: projectStats,
       pulse: pulse,
+      languages: languages,
+      codingHours: describePeakWindow(activityResult.hourHistogram),
       fetchedAt: new Date().toISOString()
     });
   } catch (err) {
