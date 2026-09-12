@@ -10869,9 +10869,9 @@ document.addEventListener('keydown', function(e) {
         <span class="mpj-card-status mpj-status-live">● LIVE</span>
       </div>
       <div class="mpj-card-name">Yojana Sahay — AI Government Scheme Finder</div>
-      <div class="mpj-card-tagline">India's free AI-powered platform to discover 3,000+ Central and State government welfare schemes. Bilingual (Hindi &amp; English) with an AI eligibility checker — built for every Indian citizen who deserves to know their benefits.</div>
+      <div class="mpj-card-tagline">India's free AI-powered platform to discover Central and State government welfare schemes. Bilingual (Hindi &amp; English) with an AI eligibility checker — built for every Indian citizen who deserves to know their benefits.</div>
       <div class="mpj-problem">Problem → Millions of Indians miss welfare schemes they qualify for due to lack of awareness and complex eligibility rules. Built a single AI-powered discovery engine covering the entire scheme database.</div>
-      <div class="mpj-metric" id="yojanasahay-live-metric">⚡ 3,000+ Schemes · Bilingual AI · India-wide Coverage · Self-Published</div>
+      <div class="mpj-metric" id="yojanasahay-live-metric">⚡ 1,116+ Schemes · Bilingual AI · India-wide Coverage · Self-Published</div>
       <div class="mpj-stack">
         <span class="mpj-pill">JavaScript</span>
         <span class="mpj-pill">AI Integration</span>
@@ -11100,6 +11100,29 @@ function mpjFilter(cat, btn) {
       if (typeof data.schemeCount === 'number' && typeof data.linkHealthPercent === 'number') {
         el.textContent = '⚡ ' + data.schemeCount.toLocaleString('en-IN') +
           '+ Schemes Tracked · ' + data.linkHealthPercent + '% Link Health · Live Data';
+
+        /* Also refresh the case study's stats grid so both places agree.
+           The modal (CASE_STUDIES → renderCaseStudy) rebuilds its HTML
+           fresh from this object every time it's opened, so updating the
+           two matching values here — without touching their labels — is
+           enough to keep it in sync, whether the modal was opened before
+           or after this fetch resolves. */
+        if (window.CASE_STUDIES && window.CASE_STUDIES.yojanasahay && window.CASE_STUDIES.yojanasahay.stats) {
+          var ys = window.CASE_STUDIES.yojanasahay;
+          var liveCount = data.schemeCount.toLocaleString('en-IN');
+          var s = ys.stats;
+          if (s[0]) s[0].value = liveCount;
+          if (s[1]) s[1].value = data.linkHealthPercent + '%';
+          /* These three fields each state the total scheme count once in
+             plain prose/labels — replacing that one substring keeps them
+             in sync with the live number without touching anything else
+             in the surrounding sentence (e.g. the separate "569 verifiable
+             / 544 offline-only" breakdown, which isn't derived from this
+             API and is left untouched). */
+          if (ys.lede) ys.lede = ys.lede.replace('1,116', liveCount);
+          if (ys.diagram) ys.diagram = ys.diagram.replace('1,116 schemes', liveCount + ' schemes');
+          if (ys.metrics && ys.metrics[0]) ys.metrics[0] = ys.metrics[0].replace('1,116', liveCount);
+        }
       }
       /* if fields are missing/null, silently keep the static fallback text */
     })
@@ -11505,6 +11528,12 @@ function mpjFilter(cat, btn) {
       + '<div class="cs-metrics">' + metricsHtml + '</div>'
       + (d.note ? '<p class="cs-note">' + d.note + '</p>' : '');
   }
+
+  // Exposed so the live-stat fetch script can update stats.value fields
+  // in place — the modal re-renders from this object fresh every time
+  // it opens, so mutating it here is enough to keep both the card AND
+  // the case study showing the same live numbers.
+  window.CASE_STUDIES = CASE_STUDIES;
 
   window.openCaseStudy = function(key) {
     var modal = document.getElementById('caseStudyModal');
