@@ -11230,15 +11230,20 @@ document.addEventListener('keydown', function(e) {
      style block so it doesn't depend on hunting through the main
      stylesheet; fetches /api/github-activity once on load.
 
-     Three tiers:
-       1. GitHub Pulse   — account-wide total contributions + current/
-                            longest streak, computed from the real daily
-                            contribution calendar (not an estimate).
-       2. Project Stats  — per-repo all-time commit totals + first-commit
-                            date. Cards are inert (no full-card link) —
-                            only the small arrow button navigates out.
-       3. Activity feed  — compact single panel, thin-divider rows, same
-                            inert-row / arrow-to-open pattern.
+     Tiers, top to bottom:
+       1. GitHub Pulse     — total contributions, current/longest streak
+                              (animated ring), and a "this year" PR/issue
+                              line — all real, computed from the daily
+                              contribution calendar.
+       2. Contribution map — 12-week mini heatmap of the same calendar.
+       3. Language + Hours — a segmented donut of language bytes across
+                              owned repos, and a 24-hr bar of when
+                              (IST) recent commits tend to land.
+       4. Project Stats    — per-repo all-time commit totals. Cards are
+                              inert; only the small arrow button opens
+                              the repo.
+       5. Activity feed    — compact single panel, thin-divider rows,
+                              same inert-row / arrow-to-open pattern.
      ══ -->
 <section id="recent-activity" class="ra-section" data-aos="fade-up">
   <style>
@@ -11247,21 +11252,19 @@ document.addEventListener('keydown', function(e) {
     .ra-title { font-size: 1.05rem; font-weight: 800; color: #eafff7; margin: 0; display: flex; align-items: center; gap: 0.5rem; }
     .ra-live-dot { width: 7px; height: 7px; border-radius: 50%; background: #00ffb4; box-shadow: 0 0 8px 2px rgba(0,255,180,0.7); animation: raPulse 1.8s ease-in-out infinite; flex-shrink: 0; }
     @keyframes raPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
-    .ra-sub { font-size: 0.72rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.5); margin: 0; }
-    .ra-mono { font-family: 'Courier New', monospace; }
+    .ra-sub { font-size: 0.72rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.5); margin: 0; transition: opacity 0.3s ease; }
 
-    /* shared section label row (used above pulse / project stats) */
     .ra-label-row { display: flex; align-items: baseline; justify-content: space-between; margin: 0 0 0.55rem; }
     .ra-label { font-size: 0.76rem; font-weight: 700; color: rgba(230,245,240,0.82); letter-spacing: 0.3px; }
     .ra-label-sub { font-size: 0.6rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.38); }
 
-    /* ══ GitHub Pulse — techy glass panel with a scanning top edge ══ */
+    /* ══ GitHub Pulse ══ */
     .gp-panel {
       position: relative;
       border: 1px solid rgba(0,255,180,0.16);
       border-radius: 14px;
-      padding: 1rem 0.85rem 0.85rem;
-      margin-bottom: 1.1rem;
+      padding: 1rem 0.85rem 0.8rem;
+      margin-bottom: 0.9rem;
       background:
         radial-gradient(circle at 15% 0%, rgba(0,255,180,0.07), transparent 60%),
         linear-gradient(160deg, rgba(255,255,255,0.035), rgba(0,255,180,0.015));
@@ -11269,7 +11272,6 @@ document.addEventListener('keydown', function(e) {
       isolation: isolate;
     }
     .gp-panel::before {
-      /* faint tech grid backdrop */
       content: ''; position: absolute; inset: 0; z-index: -1;
       background-image:
         linear-gradient(rgba(0,255,180,0.05) 1px, transparent 1px),
@@ -11280,7 +11282,6 @@ document.addEventListener('keydown', function(e) {
       opacity: 0.6;
     }
     .gp-panel::after {
-      /* scanning edge */
       content: ''; position: absolute; top: 0; left: -30%; width: 30%; height: 2px;
       background: linear-gradient(90deg, transparent, #00ffb4, transparent);
       animation: gpScan 3.2s linear infinite;
@@ -11304,8 +11305,51 @@ document.addEventListener('keydown', function(e) {
     .gp-ring-flame { font-size: 0.68rem; margin-top: 0.1rem; }
     .gp-skel { height: 82px; border-radius: 10px; }
 
-    /* ══ Project Stats — minimal, inert cards; arrow button is the
-       only clickable escape hatch ══ */
+    .gp-ytd { margin-top: 0.75rem; padding-top: 0.65rem; border-top: 1px dashed rgba(255,255,255,0.08); font-family: 'Courier New', monospace; font-size: 0.62rem; color: rgba(200,220,215,0.5); text-align: center; }
+    .gp-ytd b { color: #00ffb4; font-weight: 700; }
+
+    /* ══ Contribution heatmap ══ */
+    .hm-panel { margin-bottom: 0.9rem; }
+    .hm-scroll { overflow-x: auto; padding-bottom: 2px; }
+    .hm-grid { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 10px); grid-auto-columns: 10px; gap: 2.5px; width: max-content; }
+    .hm-cell { width: 10px; height: 10px; border-radius: 2px; background: rgba(255,255,255,0.045); }
+    .hm-l1 { background: rgba(0,255,180,0.25); }
+    .hm-l2 { background: rgba(0,255,180,0.48); }
+    .hm-l3 { background: rgba(0,255,180,0.72); }
+    .hm-l4 { background: #00ffb4; box-shadow: 0 0 4px rgba(0,255,180,0.7); }
+    .hm-legend { display: flex; align-items: center; justify-content: flex-end; gap: 0.3rem; margin-top: 0.4rem; font-size: 0.56rem; color: rgba(200,220,215,0.4); font-family: 'Courier New', monospace; }
+    .hm-legend .hm-cell { width: 8px; height: 8px; }
+    .hm-skel { height: 74px; border-radius: 8px; }
+
+    /* ══ Language + Coding Hours row ══ */
+    .lh-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1.1rem; align-items: stretch; }
+    .lh-card {
+      border: 1px solid rgba(0,255,180,0.13);
+      border-radius: 12px;
+      padding: 0.6rem 0.6rem 0.65rem;
+      background: linear-gradient(160deg, rgba(255,255,255,0.03), rgba(0,255,180,0.015));
+    }
+    .lh-skel { min-height: 130px; border-radius: 12px; }
+
+    .lang-ring-wrap { position: relative; width: 76px; height: 76px; margin: 0.2rem auto 0.5rem; }
+    .lang-ring-wrap svg { transform: rotate(-90deg); }
+    .lang-ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+    .lang-ring-pct { font-family: 'Courier New', monospace; font-weight: 800; font-size: 0.95rem; color: #eafff7; line-height: 1; }
+    .lang-ring-name { font-size: 0.52rem; color: rgba(200,220,215,0.55); margin-top: 0.12rem; max-width: 54px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .lang-legend { display: flex; flex-direction: column; gap: 0.22rem; }
+    .lang-legend-row { display: flex; align-items: center; gap: 0.35rem; font-size: 0.6rem; }
+    .lang-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .lang-legend-name { color: rgba(220,240,235,0.75); font-family: 'Courier New', monospace; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .lang-legend-pct { color: rgba(200,220,215,0.45); font-family: 'Courier New', monospace; }
+
+    .hrs-bars { display: flex; align-items: flex-end; gap: 1.5px; height: 46px; margin-top: 0.3rem; }
+    .hrs-bar { flex: 1; background: rgba(0,255,180,0.18); border-radius: 1.5px 1.5px 0 0; min-height: 2px; transition: height 0.6s ease; }
+    .hrs-bar.hrs-peak { background: #00ffb4; box-shadow: 0 0 5px rgba(0,255,180,0.6); }
+    .hrs-caption { font-size: 0.6rem; color: rgba(200,220,215,0.5); margin-top: 0.5rem; text-align: center; }
+    .hrs-caption b { color: #00ffb4; font-family: 'Courier New', monospace; }
+    .hrs-sub { font-size: 0.52rem; color: rgba(200,220,215,0.32); text-align: center; margin-top: 0.1rem; }
+
+    /* ══ Project Stats ══ */
     .rp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.45rem; margin-bottom: 1.1rem; }
     .rp-card {
       position: relative;
@@ -11322,8 +11366,7 @@ document.addEventListener('keydown', function(e) {
     .rp-since { font-size: 0.56rem; color: rgba(200,220,215,0.42); }
     .rp-skel { height: 3.6rem; border-radius: 9px; }
 
-    /* ══ Activity feed — one bordered panel, thin dividers, inert
-       rows (no full-row link) ══ */
+    /* ══ Activity feed ══ */
     .ra-panel {
       border: 1px solid rgba(0,255,180,0.13);
       border-radius: 12px;
@@ -11353,7 +11396,6 @@ document.addEventListener('keydown', function(e) {
     .ra-detail { font-size: 0.62rem; color: rgba(200,220,215,0.48); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .ra-time { font-family: 'Courier New', monospace; font-size: 0.58rem; color: rgba(0,255,180,0.45); flex-shrink: 0; white-space: nowrap; }
 
-    /* ── shared tiny "open" arrow button — the only click-through ── */
     .ra-goto {
       flex-shrink: 0;
       display: inline-flex; align-items: center; justify-content: center;
@@ -11367,8 +11409,7 @@ document.addEventListener('keydown', function(e) {
     .ra-goto svg { width: 11px; height: 11px; display: block; }
     .rp-goto { position: absolute; top: 0.4rem; right: 0.4rem; }
 
-    /* ── loading skeletons ── */
-    .ra-skel, .rp-skel, .gp-skel {
+    .ra-skel, .rp-skel, .gp-skel, .hm-skel, .lh-skel {
       background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(0,255,180,0.07) 50%, rgba(255,255,255,0.03) 75%);
       background-size: 200% 100%;
       animation: raSkel 1.4s ease-in-out infinite;
@@ -11385,18 +11426,28 @@ document.addEventListener('keydown', function(e) {
     .ra-footer a { font-size: 0.72rem; color: rgba(0,255,180,0.7); text-decoration: none; border-bottom: 1px dotted rgba(0,255,180,0.4); }
     .ra-footer a:hover { border-bottom-style: solid; }
     @media (prefers-reduced-motion: reduce) {
-      .ra-live-dot, .ra-row, .ra-skel, .rp-skel, .gp-skel, .gp-panel::after, .gp-ring-fg { animation: none !important; transition: none !important; opacity: 1; }
+      .ra-live-dot, .ra-row, .ra-skel, .rp-skel, .gp-skel, .hm-skel, .lh-skel, .gp-panel::after, .gp-ring-fg, .hrs-bar { animation: none !important; transition: none !important; opacity: 1; }
     }
   </style>
 
   <div class="ra-header">
     <h2 class="ra-title"><span class="ra-live-dot" aria-hidden="true"></span>Recently Shipped</h2>
-    <p class="ra-sub">// live from GitHub</p>
+    <p class="ra-sub" id="raFreshness">// live from GitHub</p>
   </div>
 
   <div id="raPulse">
     <div class="ra-label-row"><span class="ra-label">GitHub Pulse</span><span class="ra-label-sub">// all-time</span></div>
     <div class="gp-panel"><div class="gp-skel"></div></div>
+  </div>
+
+  <div id="raHeatmap" class="hm-panel">
+    <div class="ra-label-row"><span class="ra-label">Contribution Map</span><span class="ra-label-sub">// last 12 weeks</span></div>
+    <div class="hm-skel"></div>
+  </div>
+
+  <div id="raLangHours" class="lh-row">
+    <div class="lh-skel"></div>
+    <div class="lh-skel"></div>
   </div>
 
   <div id="raProjectStats">
@@ -11421,6 +11472,21 @@ document.addEventListener('keydown', function(e) {
 <script>
 (function () {
   var GOTO_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M9 7h8v8"/></svg>';
+
+  var LANG_COLORS = {
+    JavaScript: '#f1e05a', TypeScript: '#3178c6', Python: '#3572A5',
+    HTML: '#e34c26', CSS: '#563d7c', Java: '#b07219', 'C++': '#f34b7d',
+    C: '#555555', Shell: '#89e051', Dart: '#00B4AB', Kotlin: '#A97BFF',
+    Swift: '#F05138', Go: '#00ADD8', Ruby: '#701516', PHP: '#4F5D95',
+    Vue: '#41b883', 'Jupyter Notebook': '#DA5B0B', Dockerfile: '#384d54',
+    JSON: '#7dc4ff', EJS: '#a91e50', SCSS: '#c6538c', Other: 'rgba(200,220,215,0.35)'
+  };
+  function langColor(name) {
+    if (LANG_COLORS[name]) return LANG_COLORS[name];
+    var hash = 0;
+    for (var i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    return 'hsl(' + (hash % 360) + ', 55%, 60%)';
+  }
 
   function timeAgo(iso) {
     var diffMs = Date.now() - new Date(iso).getTime();
@@ -11451,9 +11517,6 @@ document.addEventListener('keydown', function(e) {
     return div.innerHTML;
   }
 
-  // Animated count-up for any element whose full numeric text is already
-  // in the DOM — reads the target from textContent, then re-renders it
-  // counting up from 0 over ~900ms with an ease-out curve.
   function animateCount(el, duration) {
     var target = parseInt((el.textContent || '0').replace(/[^0-9]/g, ''), 10);
     if (!target || isNaN(target)) return;
@@ -11491,7 +11554,13 @@ document.addEventListener('keydown', function(e) {
     return '';
   }
 
-  function renderPulse(pulse) {
+  function renderFreshness(items) {
+    var el = document.getElementById('raFreshness');
+    if (!items || !items.length) return;
+    el.textContent = 'Last shipped ' + timeAgo(items[0].time);
+  }
+
+  function renderPulse(pulse, stats) {
     var el = document.getElementById('raPulse');
     if (!pulse) { el.innerHTML = ''; return; }
 
@@ -11500,6 +11569,10 @@ document.addEventListener('keydown', function(e) {
       : (pulse.currentStreak > 0 ? 1 : 0);
     var r = 35, c = 2 * Math.PI * r;
     var offset = c * (1 - ratio);
+
+    var ytd = stats
+      ? '<div class="gp-ytd">// ' + new Date().getFullYear() + ' → <b>' + stats.commits + '</b> commits · <b>' + stats.pullRequests + '</b> PRs · <b>' + stats.issues + '</b> issues · <b>' + stats.repos + '</b> repos</div>'
+      : '';
 
     el.innerHTML =
         '<div class="ra-label-row"><span class="ra-label">GitHub Pulse</span><span class="ra-label-sub">// since ' + monthYear(pulse.since) + '</span></div>'
@@ -11523,13 +11596,103 @@ document.addEventListener('keydown', function(e) {
       +     '<div class="gp-caption">Longest streak</div>'
       +     (pulse.longestRange ? '<div class="gp-range">' + shortDate(pulse.longestRange[0]) + ' – ' + shortDate(pulse.longestRange[1]) + '</div>' : '')
       +   '</div>'
-      + '</div></div>';
+      + '</div>'
+      + ytd
+      + '</div>';
 
     animateCount(document.getElementById('gpTotal'), 1000);
     requestAnimationFrame(function () {
       var ring = el.querySelector('.gp-ring-fg');
       if (ring) ring.style.strokeDashoffset = ring.getAttribute('data-offset');
     });
+  }
+
+  function renderHeatmap(pulse) {
+    var el = document.getElementById('raHeatmap');
+    var days = pulse && pulse.heatmap;
+    if (!days || !days.length) { el.innerHTML = ''; return; }
+
+    var first = new Date(days[0].date + 'T00:00:00Z');
+    var pad = first.getUTCDay();
+    var cells = [];
+    for (var p = 0; p < pad; p++) cells.push(null);
+    days.forEach(function (d) { cells.push(d); });
+    while (cells.length % 7 !== 0) cells.push(null);
+
+    var max = 0;
+    days.forEach(function (d) { if (d.count > max) max = d.count; });
+
+    function levelClass(count) {
+      if (!count) return '';
+      var ratio = max > 0 ? count / max : 0;
+      if (ratio > 0.75) return ' hm-l4';
+      if (ratio > 0.45) return ' hm-l3';
+      if (ratio > 0.15) return ' hm-l2';
+      return ' hm-l1';
+    }
+
+    var gridHtml = cells.map(function (d) {
+      if (!d) return '<div class="hm-cell"></div>';
+      var title = d.date + ' · ' + d.count + (d.count === 1 ? ' contribution' : ' contributions');
+      return '<div class="hm-cell' + levelClass(d.count) + '" title="' + title + '"></div>';
+    }).join('');
+
+    el.innerHTML =
+        '<div class="ra-label-row"><span class="ra-label">Contribution Map</span><span class="ra-label-sub">// last 12 weeks</span></div>'
+      + '<div class="hm-scroll"><div class="hm-grid">' + gridHtml + '</div></div>'
+      + '<div class="hm-legend">Less'
+      +   '<span class="hm-cell"></span><span class="hm-cell hm-l1"></span><span class="hm-cell hm-l2"></span><span class="hm-cell hm-l3"></span><span class="hm-cell hm-l4"></span>'
+      +   'More</div>';
+  }
+
+  function renderLanguagesAndHours(languages, codingHours) {
+    var el = document.getElementById('raLangHours');
+    var langHtml = '';
+    var hoursHtml = '';
+
+    if (languages && languages.length) {
+      var r = 30, c = 2 * Math.PI * r, cumulative = 0;
+      var segs = languages.map(function (l) {
+        var arcLen = c * (l.percent / 100);
+        var seg = '<circle cx="38" cy="38" r="' + r + '" fill="none" stroke="' + langColor(l.name) + '" stroke-width="9" stroke-dasharray="' + arcLen.toFixed(1) + ' ' + (c - arcLen).toFixed(1) + '" stroke-dashoffset="' + (-cumulative).toFixed(1) + '"></circle>';
+        cumulative += arcLen;
+        return seg;
+      }).join('');
+      var top = languages[0];
+      var legend = languages.slice(0, 5).map(function (l) {
+        return '<div class="lang-legend-row"><span class="lang-dot" style="background:' + langColor(l.name) + '"></span><span class="lang-legend-name">' + escapeHtml(l.name) + '</span><span class="lang-legend-pct">' + l.percent + '%</span></div>';
+      }).join('');
+
+      langHtml =
+          '<div class="ra-label-row"><span class="ra-label">Languages</span></div>'
+        + '<div class="lang-ring-wrap"><svg viewBox="0 0 76 76" width="76" height="76" style="transform:rotate(-90deg)">' + segs + '</svg>'
+        + '<div class="lang-ring-center"><span class="lang-ring-pct">' + top.percent + '%</span><span class="lang-ring-name">' + escapeHtml(top.name) + '</span></div></div>'
+        + '<div class="lang-legend">' + legend + '</div>';
+    } else {
+      langHtml = '<div class="ra-label-row"><span class="ra-label">Languages</span></div><div class="ra-empty" style="padding:0.4rem 0;">Not enough data yet.</div>';
+    }
+
+    if (codingHours && codingHours.histogram) {
+      var hist = codingHours.histogram;
+      var maxH = Math.max.apply(null, hist);
+      var bars = hist.map(function (v, h) {
+        var pct = maxH > 0 ? Math.round((v / maxH) * 100) : 0;
+        var isPeak = codingHours.peakHours && codingHours.peakHours.indexOf(h) !== -1;
+        return '<div class="hrs-bar' + (isPeak ? ' hrs-peak' : '') + '" style="height:' + Math.max(pct, 4) + '%" title="' + h + ':00 IST · ' + v + '"></div>';
+      }).join('');
+
+      hoursHtml =
+          '<div class="ra-label-row"><span class="ra-label">Coding Hours</span></div>'
+        + '<div class="hrs-bars">' + bars + '</div>'
+        + '<div class="hrs-caption">Most active <b>' + codingHours.label + '</b></div>'
+        + '<div class="hrs-sub">// based on recent activity</div>';
+    } else {
+      hoursHtml = '<div class="ra-label-row"><span class="ra-label">Coding Hours</span></div><div class="ra-empty" style="padding:0.4rem 0;">Not enough data yet.</div>';
+    }
+
+    el.innerHTML =
+        '<div class="lh-card">' + langHtml + '</div>'
+      + '<div class="lh-card">' + hoursHtml + '</div>';
   }
 
   function renderProjectStats(list) {
@@ -11582,14 +11745,20 @@ document.addEventListener('keydown', function(e) {
       return res.json();
     })
     .then(function (data) {
-      render(data.activity || []);
+      var items = data.activity || [];
+      render(items);
+      renderFreshness(items);
       renderProjectStats(data.projectStats || null);
-      renderPulse(data.pulse || null);
+      renderPulse(data.pulse || null, data.stats || null);
+      renderHeatmap(data.pulse || null);
+      renderLanguagesAndHours(data.languages || null, data.codingHours || null);
     })
     .catch(function () {
       document.getElementById('raList').innerHTML = '<div class="ra-error">Couldn\u2019t load activity right now \u2014 <a href="https://github.com/SahnawazL" target="_blank" rel="noopener" style="color:rgba(0,255,180,0.7);">view on GitHub</a> instead.</div>';
       document.getElementById('raProjectStats').innerHTML = '';
       document.getElementById('raPulse').innerHTML = '';
+      document.getElementById('raHeatmap').innerHTML = '';
+      document.getElementById('raLangHours').innerHTML = '';
     });
 })();
 </script>
