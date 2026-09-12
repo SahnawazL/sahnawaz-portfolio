@@ -11305,6 +11305,13 @@ document.addEventListener('keydown', function(e) {
     .gp-ring-flame { font-size: 0.68rem; margin-top: 0.1rem; }
     .gp-skel { height: 82px; border-radius: 10px; }
 
+    /* Streak-at-risk — evening (IST) + today's contribution still at zero,
+       with an existing streak that would break. A quiet amber shift on the
+       ring itself, no alarming text; anyone can see it, but it only really
+       registers as a nudge to whoever's streak it actually is. */
+    .gp-ring-wrap.gp-ring-risk .gp-ring-fg { stroke: #ffb020; filter: drop-shadow(0 0 5px rgba(255,176,32,0.55)); }
+    .gp-ring-wrap.gp-ring-risk .gp-ring-num { color: #ffd699; }
+
     .gp-ytd { margin-top: 0.75rem; padding-top: 0.65rem; border-top: 1px dashed rgba(255,255,255,0.08); font-family: 'Courier New', monospace; font-size: 0.62rem; color: rgba(200,220,215,0.5); text-align: center; }
     .gp-ytd b { color: #00ffb4; font-weight: 700; }
 
@@ -11918,6 +11925,25 @@ document.addEventListener('keydown', function(e) {
     });
   }
 
+  // True from 6 PM IST onward — same UTC+5:30 conversion the API uses for
+  // coding-hours, done client-side so it reflects whoever's looking right
+  // now rather than needing a round trip.
+  function isEveningIST() {
+    var d = new Date();
+    var istMinutes = (d.getUTCHours() * 60 + d.getUTCMinutes() + 330) % 1440;
+    return Math.floor(istMinutes / 60) >= 18;
+  }
+
+  // True only if there's an actual streak worth protecting, and today (UTC,
+  // matching how the API stamps heatmap dates) is the most recent heatmap
+  // entry with zero contributions logged so far.
+  function streakAtRisk(pulse) {
+    if (!pulse || !pulse.currentStreak || !pulse.heatmap || !pulse.heatmap.length) return false;
+    var last = pulse.heatmap[pulse.heatmap.length - 1];
+    var todayStr = new Date().toISOString().slice(0, 10);
+    return last.date === todayStr && last.count === 0 && isEveningIST();
+  }
+
   function renderPulse(pulse, stats, activity) {
     var el = document.getElementById('raPulse');
     if (!pulse) { el.innerHTML = ''; return; }
@@ -11927,6 +11953,7 @@ document.addEventListener('keydown', function(e) {
       : (pulse.currentStreak > 0 ? 1 : 0);
     var r = 35, c = 2 * Math.PI * r;
     var offset = c * (1 - ratio);
+    var atRisk = streakAtRisk(pulse);
 
     var ytd = stats
       ? '<div class="gp-ytd">// ' + new Date().getFullYear() + ' → <b>' + stats.commits + '</b> commits · <b>' + stats.pullRequests + '</b> PRs · <b>' + stats.issues + '</b> issues · <b>' + stats.repos + '</b> repos</div>'
@@ -11968,7 +11995,7 @@ document.addEventListener('keydown', function(e) {
       +     '<div class="gp-caption">Contributions</div>'
       +   '</div>'
       +   '<div class="gp-block">'
-      +     '<div class="gp-ring-wrap">'
+      +     '<div class="gp-ring-wrap' + (atRisk ? ' gp-ring-risk' : '') + '">'
       +       '<svg viewBox="0 0 82 82" width="82" height="82">'
       +         '<circle class="gp-ring-bg" cx="41" cy="41" r="' + r + '"></circle>'
       +         '<circle class="gp-ring-fg" cx="41" cy="41" r="' + r + '" stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + c.toFixed(1) + '" data-offset="' + offset.toFixed(1) + '"></circle>'
