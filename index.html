@@ -11228,37 +11228,107 @@ document.addEventListener('keydown', function(e) {
 
 <!-- ══ Recently Shipped — live GitHub activity feed. Self-contained
      style block so it doesn't depend on hunting through the main
-     stylesheet; fetches /api/github-activity once on load. ══ -->
+     stylesheet; fetches /api/github-activity once on load. Styled as
+     a dev-console feed (type badges, monospace) rather than an emoji
+     list, with a glass-panel treatment and a staggered entrance. ══ -->
 <section id="recent-activity" class="ra-section" data-aos="fade-up">
   <style>
     .ra-section { max-width: 720px; margin: 2.5rem auto 0; padding: 0 1rem; }
     .ra-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 0.9rem; flex-wrap: wrap; gap: 0.4rem; }
     .ra-title { font-size: 1.05rem; font-weight: 800; color: #eafff7; margin: 0; display: flex; align-items: center; gap: 0.5rem; }
+
+    /* ── year-to-date stats strip, from GitHub's GraphQL contributions
+       API — real totals, not scoped to the 90-day events window ── */
+    .ra-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .ra-stat {
+      text-align: center;
+      background: linear-gradient(160deg, rgba(255,255,255,0.05), rgba(0,255,180,0.03));
+      border: 1px solid rgba(0,255,180,0.14);
+      border-radius: 10px;
+      padding: 0.6rem 0.3rem;
+    }
+    .ra-stat-num { display: block; font-family: 'Courier New', monospace; font-weight: 800; font-size: 1.15rem; color: #00ffb4; text-shadow: 0 0 12px rgba(0,255,180,0.35); }
+    .ra-stat-label { font-size: 0.6rem; color: rgba(200,220,215,0.55); letter-spacing: 0.4px; text-transform: uppercase; }
+    .ra-stats-note { grid-column: 1 / -1; text-align: right; font-size: 0.62rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.4); margin-top: -0.1rem; }
     .ra-live-dot { width: 7px; height: 7px; border-radius: 50%; background: #00ffb4; box-shadow: 0 0 8px 2px rgba(0,255,180,0.7); animation: raPulse 1.8s ease-in-out infinite; flex-shrink: 0; }
     @keyframes raPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
     .ra-sub { font-size: 0.72rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.5); margin: 0; }
-    .ra-list { display: flex; flex-direction: column; gap: 0.55rem; }
+    .ra-list { display: flex; flex-direction: column; gap: 0.6rem; }
+
+    /* ── glass console row ── */
     .ra-item {
-      display: flex; align-items: flex-start; gap: 0.7rem;
-      background: rgba(255,255,255,0.025);
-      border: 1px solid rgba(0,255,180,0.13);
-      border-radius: 10px;
-      padding: 0.65rem 0.85rem;
+      position: relative;
+      display: flex; align-items: center; gap: 0.85rem;
+      background: linear-gradient(160deg, rgba(255,255,255,0.05), rgba(0,255,180,0.035) 60%, rgba(255,255,255,0.015));
+      backdrop-filter: blur(7px);
+      -webkit-backdrop-filter: blur(7px);
+      border: 1px solid rgba(0,255,180,0.15);
+      border-radius: 11px;
+      padding: 0.7rem 0.9rem;
       text-decoration: none;
-      transition: border-color 0.2s ease, background 0.2s ease;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.08);
+      transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+      opacity: 0;
+      animation: raRise 0.5s ease forwards;
     }
-    .ra-item:hover { border-color: rgba(0,255,180,0.32); background: rgba(0,255,180,0.04); }
-    .ra-icon { font-size: 0.95rem; line-height: 1.3; flex-shrink: 0; }
-    .ra-body { min-width: 0; }
-    .ra-msg { font-size: 0.82rem; color: rgba(225,240,235,0.9); line-height: 1.4; }
-    .ra-time { font-size: 0.66rem; font-family: 'Courier New', monospace; color: rgba(0,255,180,0.55); margin-top: 0.15rem; }
-    .ra-loading, .ra-empty, .ra-error {
+    .ra-item:hover {
+      border-color: rgba(0,255,180,0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 26px rgba(0,0,0,0.3), 0 0 18px rgba(0,255,180,0.12), inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+    @keyframes raRise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ── type badge, monospace tag instead of an emoji ── */
+    .ra-badge {
+      flex-shrink: 0;
+      font-family: 'Courier New', monospace;
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 0.28rem 0.5rem;
+      border-radius: 5px;
+      white-space: nowrap;
+      border: 1px solid currentColor;
+      min-width: 4.4rem;
+      text-align: center;
+    }
+    .ra-badge-push { color: #00ffb4; background: rgba(0,255,180,0.09); }
+    .ra-badge-pull_request { color: #7dc4ff; background: rgba(96,180,255,0.09); }
+    .ra-badge-release { color: #ffcf6b; background: rgba(255,207,107,0.09); }
+    .ra-badge-issue { color: #ff8a8a; background: rgba(255,120,120,0.09); }
+    .ra-badge-create_repo { color: #c792ff; background: rgba(199,146,255,0.09); }
+
+    .ra-body { min-width: 0; flex: 1; }
+    .ra-repo { font-family: 'Courier New', monospace; font-size: 0.82rem; color: rgba(230,245,240,0.95); font-weight: 700; }
+    .ra-detail { font-size: 0.72rem; color: rgba(200,220,215,0.55); margin-top: 0.1rem; }
+    .ra-time { font-family: 'Courier New', monospace; font-size: 0.66rem; color: rgba(0,255,180,0.5); flex-shrink: 0; white-space: nowrap; }
+
+    /* ── loading skeleton ── */
+    .ra-skel {
+      height: 3.1rem; border-radius: 11px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(0,255,180,0.08) 50%, rgba(255,255,255,0.03) 75%);
+      background-size: 200% 100%;
+      animation: raSkel 1.4s ease-in-out infinite;
+      margin-bottom: 0.6rem;
+    }
+    @keyframes raSkel { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    .ra-empty, .ra-error {
       font-size: 0.76rem; font-family: 'Courier New', monospace;
       color: rgba(200,220,215,0.5); padding: 0.8rem 0.2rem;
     }
     .ra-footer { text-align: right; margin-top: 0.7rem; }
     .ra-footer a { font-size: 0.72rem; color: rgba(0,255,180,0.7); text-decoration: none; border-bottom: 1px dotted rgba(0,255,180,0.4); }
     .ra-footer a:hover { border-bottom-style: solid; }
+    @media (prefers-reduced-motion: reduce) {
+      .ra-live-dot, .ra-item, .ra-skel { animation: none; opacity: 1; }
+    }
   </style>
 
   <div class="ra-header">
@@ -11266,8 +11336,12 @@ document.addEventListener('keydown', function(e) {
     <p class="ra-sub">// live from GitHub</p>
   </div>
 
+  <div id="raStats"></div>
+
   <div id="raList" class="ra-list">
-    <div class="ra-loading">Loading recent activity…</div>
+    <div class="ra-skel"></div>
+    <div class="ra-skel"></div>
+    <div class="ra-skel"></div>
   </div>
 
   <div class="ra-footer">
@@ -11277,12 +11351,12 @@ document.addEventListener('keydown', function(e) {
 
 <script>
 (function () {
-  var ICONS = {
-    push: '🔀',
-    pull_request: '🔁',
-    create_repo: '🆕',
-    issue: '🐞',
-    release: '🚀'
+  var BADGE_LABEL = {
+    push: 'PUSH',
+    pull_request: 'PR',
+    create_repo: 'NEW REPO',
+    issue: 'ISSUE',
+    release: 'RELEASE'
   };
 
   function timeAgo(iso) {
@@ -11304,21 +11378,63 @@ document.addEventListener('keydown', function(e) {
     return div.innerHTML;
   }
 
+  // Collapse consecutive same-type/same-repo entries (e.g. five separate
+  // "pushed 1 commit" events to the same repo within minutes of each
+  // other) into a single row with a count, so the feed shows more
+  // distinct activity instead of repeating itself.
+  function groupConsecutive(items) {
+    var grouped = [];
+    items.forEach(function (item) {
+      var last = grouped[grouped.length - 1];
+      if (last && last.type === item.type && last.repo === item.repo) {
+        last.count += 1;
+      } else {
+        grouped.push({ type: item.type, repo: item.repo, url: item.url, time: item.time, count: 1 });
+      }
+    });
+    return grouped;
+  }
+
+  function detailLine(g) {
+    if (g.type === 'push') return g.count > 1 ? g.count + ' pushes' : '1 commit';
+    if (g.type === 'pull_request') return g.count > 1 ? g.count + ' updates' : 'pull request activity';
+    if (g.type === 'issue') return g.count > 1 ? g.count + ' updates' : 'issue activity';
+    if (g.type === 'release') return 'new release';
+    if (g.type === 'create_repo') return 'repository created';
+    return '';
+  }
+
+  function renderStats(stats) {
+    var el = document.getElementById('raStats');
+    if (!stats) { el.innerHTML = ''; return; }
+    var year = new Date().getFullYear();
+    el.innerHTML = '<div class="ra-stats">'
+      + '<div class="ra-stat"><span class="ra-stat-num">' + stats.commits + '</span><span class="ra-stat-label">Commits</span></div>'
+      + '<div class="ra-stat"><span class="ra-stat-num">' + stats.pullRequests + '</span><span class="ra-stat-label">Pull Reqs</span></div>'
+      + '<div class="ra-stat"><span class="ra-stat-num">' + stats.issues + '</span><span class="ra-stat-label">Issues</span></div>'
+      + '<div class="ra-stat"><span class="ra-stat-num">' + stats.repos + '</span><span class="ra-stat-label">Repos</span></div>'
+      + '<div class="ra-stats-note">// ' + year + ' year-to-date</div>'
+      + '</div>';
+  }
+
   function render(items) {
     var list = document.getElementById('raList');
     if (!items.length) {
       list.innerHTML = '<div class="ra-empty">No recent public activity in the last 90 days.</div>';
       return;
     }
-    list.innerHTML = items.slice(0, 5).map(function (item) {
-      var icon = ICONS[item.type] || '•';
-      var href = item.url || 'https://github.com/SahnawazL';
-      return '<a class="ra-item" href="' + href + '" target="_blank" rel="noopener">'
-        + '<span class="ra-icon">' + icon + '</span>'
+    var grouped = groupConsecutive(items).slice(0, 8);
+    list.innerHTML = grouped.map(function (g, i) {
+      var badgeClass = 'ra-badge-' + g.type;
+      var label = BADGE_LABEL[g.type] || g.type.toUpperCase();
+      var href = g.url || 'https://github.com/SahnawazL';
+      return '<a class="ra-item" style="animation-delay:' + (i * 0.06) + 's" href="' + href + '" target="_blank" rel="noopener">'
+        + '<span class="ra-badge ' + badgeClass + '">' + label + '</span>'
         + '<span class="ra-body">'
-        + '<span class="ra-msg">' + escapeHtml(item.message) + '</span>'
-        + '<div class="ra-time">' + timeAgo(item.time) + '</div>'
+        + '<div class="ra-repo">' + escapeHtml(g.repo) + '</div>'
+        + '<div class="ra-detail">' + detailLine(g) + '</div>'
         + '</span>'
+        + '<span class="ra-time">' + timeAgo(g.time) + '</span>'
         + '</a>';
     }).join('');
   }
@@ -11328,7 +11444,10 @@ document.addEventListener('keydown', function(e) {
       if (!res.ok) throw new Error('bad response');
       return res.json();
     })
-    .then(function (data) { render(data.activity || []); })
+    .then(function (data) {
+      render(data.activity || []);
+      renderStats(data.stats || null);
+    })
     .catch(function () {
       var list = document.getElementById('raList');
       list.innerHTML = '<div class="ra-error">Couldn\u2019t load activity right now \u2014 <a href="https://github.com/SahnawazL" target="_blank" rel="noopener" style="color:rgba(0,255,180,0.7);">view on GitHub</a> instead.</div>';
