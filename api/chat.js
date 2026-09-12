@@ -46,6 +46,38 @@ async function getYojanaSahayLiveStats() {
   }
 }
 
+// ── LIVE GITHUB ACTIVITY ("Recently Shipped") ────────────────────────────────
+// Same self-referential pattern as getYojanaSahayLiveStats() above: the
+// portfolio's own /api/github-activity endpoint (already cached there via
+// s-maxage=600, stale-while-revalidate=1800) is fetched here so the chatbot
+// can talk about what Sahnawaz has actually shipped lately — instead of a
+// static, always-drifting list. Cached at module scope so a burst of chat
+// messages on the same warm Vercel instance doesn't refetch every time; the
+// underlying feed only changes as often as Sahnawaz pushes commits anyway.
+// A short fetch timeout + try/catch means a slow or dead endpoint NEVER
+// delays or breaks a chat reply — it just falls back to a safe static line.
+let githubActivityCache = { data: null, fetchedAt: 0 };
+const GITHUB_ACTIVITY_TTL_MS = 15 * 60 * 1000; // 15 minutes
+
+async function getGithubActivitySnapshot() {
+  const now = Date.now();
+  if (githubActivityCache.data && (now - githubActivityCache.fetchedAt) < GITHUB_ACTIVITY_TTL_MS) {
+    return githubActivityCache.data;
+  }
+  try {
+    const res = await fetch('https://sahnawaz-portfolio.vercel.app/api/github-activity', {
+      signal: AbortSignal.timeout(2500) // never let a slow endpoint delay a chat reply for long
+    });
+    if (!res.ok) throw new Error(`bad status ${res.status}`);
+    const data = await res.json();
+    githubActivityCache = { data, fetchedAt: now };
+    return data;
+  } catch (err) {
+    console.warn('[chat] GitHub activity fetch failed, using static fallback:', err && err.message);
+    return null; // caller falls back to a fixed, still-honest static line
+  }
+}
+
 const handler = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -361,6 +393,28 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
     ? `Covers: ${yojanaStats.schemeCount.toLocaleString('en-IN')}+ Central and State government schemes tracked (${yojanaStats.linkHealthPercent}% of links currently verified live) across every state in India`
     : 'Covers: 1,116+ Central and State government schemes across every state in India';
 
+  // ── Live GitHub activity snapshot — fetched once here, used in KNOWLEDGE below ──
+  const githubSnapshot = await getGithubActivitySnapshot();
+  let recentShippedLine;
+  if (githubSnapshot) {
+    const items = (githubSnapshot.activity || []).slice(0, 5).map(a => `- ${a.message}`).join('\n');
+    const pulse = githubSnapshot.pulse;
+    const stats = githubSnapshot.stats;
+    const pulseLine = pulse
+      ? `Streak: ${pulse.currentStreak} day(s) current, ${pulse.longestStreak} day(s) longest | All-time contributions: ${pulse.totalContributions.toLocaleString('en-IN')}`
+      : '';
+    const statsLine = stats
+      ? `This year so far: ${stats.commits} commits, ${stats.pullRequests} pull requests, ${stats.issues} issues, across ${stats.repos} repositories`
+      : '';
+    recentShippedLine = [
+      items || 'No recent public GitHub activity found.',
+      pulseLine,
+      statsLine
+    ].filter(Boolean).join('\n');
+  } else {
+    recentShippedLine = 'Live GitHub data is temporarily unavailable right now — Sahnawaz ships regularly across his portfolio, StudyLens AI, and YojanaSahay.';
+  }
+
   // ── KNOWLEDGE BASE ─────────────────────────────────────────────────────
   const KNOWLEDGE = `
 You are the personal AI assistant embedded in Sahnawaz Ahmed Laskar's portfolio website.
@@ -569,6 +623,13 @@ Also: ChatGPT/Copilot integration, Notion AI, SSL/CDN/Hosting setup
 - Agile collaboration with 10+ developers
 - Signature "Hacker Mode" — retro terminal UI built from scratch
 - Entire portfolio hand-coded — zero templates, every animation custom
+
+--- RECENTLY SHIPPED (LIVE GITHUB ACTIVITY) ---
+This is REAL, LIVE data pulled directly from Sahnawaz's GitHub right now — the exact same feed shown in the "Recently Shipped" section of this portfolio (GitHub Pulse, streaks, activity feed). If a visitor asks things like "what has Sahnawaz built recently?", "what's he working on lately?", "is he actively coding?", or "what did he ship this week?" — use this real data confidently. Never invent activity that isn't listed here.
+
+${recentShippedLine}
+
+If the line above says live data is temporarily unavailable, be honest about that rather than guessing specifics — just reassure them Sahnawaz ships regularly, and point them to the "Recently Shipped" section on this site or github.com/sahnawazl for the live feed.
 
 --- PORTFOLIO WEBSITE & VERSION HISTORY ---
 Current Version: Website 2.0 — "New Look. Smoother. Smarter. Stronger."
