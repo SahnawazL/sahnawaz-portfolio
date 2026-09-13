@@ -988,6 +988,9 @@ img {
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   box-shadow: 0 2px 14px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   /* both open and close animate smoothly */
   transition:
     width 0.4s cubic-bezier(0.4,0,0.2,1),
@@ -1066,8 +1069,9 @@ img {
   transform:rotate(180deg); color:rgba(0,255,180,0.8);
   background:rgba(0,255,180,0.08); border-color:rgba(0,255,180,0.3);
 }
-/* skill bar */
-.cert-bar-wrap { position:relative; margin: 9px 0 0; }
+/* skill bar — pinned to the bottom of the card so it lines up
+   across cards in the same row regardless of title length */
+.cert-bar-wrap { position:relative; margin: auto 0 0; padding-top: 9px; }
 .cert-bar-track {
   width:100%; height:2px;
   background:rgba(0,255,180,0.07); border-radius:99px; overflow:hidden;
@@ -6901,8 +6905,7 @@ function ptestiToggle(card) {
   font-family: 'DM Sans', sans-serif;
   font-size: 0.82rem; font-weight: 700;
   color: #c8e8f8;
-  line-height: 1.2;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  line-height: 1.25;
 }
 .pwork-role {
   font-family: 'DM Sans', sans-serif;
