@@ -11472,6 +11472,22 @@ document.addEventListener('keydown', function(e) {
       background: linear-gradient(160deg, rgba(255,255,255,0.035), rgba(0,255,180,0.015));
       overflow-x: auto;
     }
+    .pc-range-row { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.6rem; }
+    .pc-range-pill {
+      all: unset; box-sizing: border-box; cursor: pointer;
+      padding: 0.22rem 0.6rem; border-radius: 16px;
+      border: 1px solid rgba(0,255,180,0.2);
+      background: rgba(255,255,255,0.02);
+      font-family: 'Courier New', monospace; font-size: 0.54rem; font-weight: 700;
+      letter-spacing: 0.02em; color: rgba(200,220,215,0.48);
+      transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+    }
+    .pc-range-pill:hover { border-color: rgba(0,255,180,0.5); color: rgba(220,245,238,0.85); }
+    .pc-range-pill:focus-visible { outline: 2px solid rgba(0,255,180,0.65); outline-offset: 2px; }
+    .pc-range-pill.active {
+      background: linear-gradient(135deg, rgba(0,255,180,0.2), rgba(255,255,255,0.02));
+      border-color: rgba(0,255,180,0.65); color: #00ffb4;
+    }
     .pc-meta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 0.65rem; }
     .pc-tag {
       font-size: 0.56rem; font-weight: 700; letter-spacing: 0.02em;
@@ -11527,6 +11543,7 @@ document.addEventListener('keydown', function(e) {
     .pc-peak-note b { color: #00ffb4; font-weight: 700; }
     .pc-coverage { font-size: 0.56rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.35); margin-top: 0.25rem; }
     .pc-empty { font-size: 0.62rem; color: rgba(200,220,215,0.42); font-style: italic; padding: 0.4rem 0; }
+    .pc-empty b { color: #00ffb4; font-style: normal; font-weight: 700; }
     /* Popover — same visual language as the Contribution Map's day popover */
     .pc-pop {
       position: absolute; z-index: 5; min-width: 148px; max-width: 210px;
@@ -12726,12 +12743,18 @@ document.addEventListener('keydown', function(e) {
     return tags;
   }
 
-  function wirePunchcardPopover(el, breakdown) {
-    var scrollBox = el.querySelector('.pc-scroll');
+  // Popover is appended to `card` (the .pc-card element itself) and all
+  // rect math is measured against that same element, since .pc-card is
+  // both the positioned ancestor AND the horizontally-scrolling box here
+  // (unlike the heatmap, which splits those two roles across separate
+  // elements) — keeping both in one element avoids a mismatched frame of
+  // reference between where the popover is anchored and where its
+  // top/left are calculated from.
+  function wirePunchcardPopover(card, breakdown) {
     var pop = document.createElement('div');
     pop.className = 'pc-pop';
     pop.setAttribute('role', 'status');
-    scrollBox.appendChild(pop);
+    card.appendChild(pop);
     var openBtn = null;
 
     function closePop() {
@@ -12739,7 +12762,7 @@ document.addEventListener('keydown', function(e) {
       if (openBtn) { openBtn.setAttribute('aria-expanded', 'false'); openBtn = null; }
     }
 
-    el.querySelectorAll('button.pc-cell').forEach(function (btn) {
+    card.querySelectorAll('button.pc-cell').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.stopPropagation();
         if (openBtn === btn) { closePop(); return; }
@@ -12761,19 +12784,19 @@ document.addEventListener('keydown', function(e) {
         pop.innerHTML = html;
         pop.classList.add('pc-open');
 
-        var cRect = el.getBoundingClientRect();
+        var cRect = card.getBoundingClientRect();
         var bRect = btn.getBoundingClientRect();
         var popW = pop.offsetWidth, popH = pop.offsetHeight;
 
         var spaceAbove = bRect.top - cRect.top;
         var below = spaceAbove < (popH + 14);
         var top = below
-          ? (bRect.bottom - cRect.top) + 10
-          : (bRect.top - cRect.top) - popH - 10;
+          ? (bRect.bottom - cRect.top) + card.scrollTop + 10
+          : (bRect.top - cRect.top) + card.scrollTop - popH - 10;
 
-        var left = (bRect.left - cRect.left) + (bRect.width / 2) - (popW / 2);
-        var maxLeft = el.clientWidth - popW - 6;
-        left = Math.max(6, Math.min(left, maxLeft));
+        var left = (bRect.left - cRect.left) + card.scrollLeft + (bRect.width / 2) - (popW / 2);
+        var maxLeft = card.scrollLeft + card.clientWidth - popW - 6;
+        left = Math.max(card.scrollLeft + 6, Math.min(left, maxLeft));
 
         pop.style.top = top + 'px';
         pop.style.left = left + 'px';
@@ -12787,17 +12810,67 @@ document.addEventListener('keydown', function(e) {
     document.addEventListener('click', function (e) {
       if (openBtn && !pop.contains(e.target) && e.target !== openBtn) closePop();
     });
-    if (scrollBox) scrollBox.addEventListener('scroll', closePop);
+    card.addEventListener('scroll', closePop);
     window.addEventListener('resize', closePop);
   }
 
-  function renderPunchcard(activity) {
-    var el = document.getElementById('raPunchcard');
-    if (!el) return;
-    var list = (activity || []).filter(function (a) { return a && a.time; });
+  // ── Time-range filter ──
+  // The raw `activity` array is whatever GitHub's public events API
+  // returned (recent events only, capped at ~90 days / 300 events by
+  // GitHub itself — this endpoint can't go back further than that, so
+  // "All" below really means "everything GitHub gives us", not forever).
+  // Filtering client-side against that same array means no extra
+  // request per tap. Defaults to "All" so a quiet week doesn't render an
+  // empty card by default — narrowing to 7D/30D is opt-in.
+  var PC_RANGES = [
+    { key: '7', label: '7D', days: 7 },
+    { key: '30', label: '30D', days: 30 },
+    { key: '90', label: '90D', days: 90 },
+    { key: 'all', label: 'All', days: null }
+  ];
+  var pcState = { rawActivity: [], pulse: null, range: 'all' };
+
+  function filterActivityByRange(list, days) {
+    if (!days) return list;
+    var cutoff = Date.now() - days * 86400000;
+    return list.filter(function (a) {
+      var t = new Date(a.time).getTime();
+      return !isNaN(t) && t >= cutoff;
+    });
+  }
+
+  // Falls back to the daily contribution calendar (pulse.heatmapFull,
+  // already fetched up to ~1 year deep for the Contribution Map) to find
+  // the most recent day with any activity at all. That calendar has no
+  // hour-of-day detail, so it can't fill in the punchcard itself — but
+  // it's enough to tell a visitor "here's when they were last active"
+  // instead of just a blank card when the hourly feed has nothing.
+  function findLastActiveDate(pulse) {
+    if (!pulse || !pulse.heatmapFull) return null;
+    var days = pulse.heatmapFull;
+    for (var i = days.length - 1; i >= 0; i--) {
+      if (days[i].count > 0) return days[i].date;
+    }
+    return null;
+  }
+
+  function renderPunchcardEmptyState(hasAnyRawActivity) {
+    if (hasAnyRawActivity) {
+      return '<div class="pc-empty">No public activity in this window \u2014 try a wider range above.</div>';
+    }
+    var lastActive = findLastActiveDate(pcState.pulse);
+    if (lastActive) {
+      return '<div class="pc-empty">No hourly activity data available right now (GitHub\u2019s public events feed only keeps recent history). Last recorded contribution: <b>' + formatFriendlyDate(lastActive) + '</b>.</div>';
+    }
+    return '<div class="pc-empty">No public activity tracked yet \u2014 check back after the next push.</div>';
+  }
+
+  function renderPunchcardBody(bodyEl) {
+    var rangeDef = PC_RANGES.filter(function (r) { return r.key === pcState.range; })[0] || PC_RANGES[3];
+    var list = filterActivityByRange(pcState.rawActivity, rangeDef.days);
+
     if (!list.length) {
-      el.innerHTML = '<div class="ra-label-row"><span class="ra-label">Commit Punchcard</span><span class="ra-label-sub">// day \u00d7 hour, IST</span></div>'
-        + '<div class="pc-card"><div class="pc-empty">No public activity tracked yet \u2014 check back after the next push.</div></div>';
+      bodyEl.innerHTML = '<div class="pc-card">' + renderPunchcardEmptyState(pcState.rawActivity.length > 0) + '</div>';
       return;
     }
 
@@ -12823,8 +12896,7 @@ document.addEventListener('keydown', function(e) {
       });
     });
     if (max === 0) {
-      el.innerHTML = '<div class="ra-label-row"><span class="ra-label">Commit Punchcard</span><span class="ra-label-sub">// day \u00d7 hour, IST</span></div>'
-        + '<div class="pc-card"><div class="pc-empty">No public activity tracked yet \u2014 check back after the next push.</div></div>';
+      bodyEl.innerHTML = '<div class="pc-card">' + renderPunchcardEmptyState(pcState.rawActivity.length > 0) + '</div>';
       return;
     }
     var activeHours = Object.keys(activeHoursSet).length;
@@ -12846,8 +12918,9 @@ document.addEventListener('keydown', function(e) {
       var cells = row.map(function (count, h) {
         var isPeak = (d === peak.day && h === peak.hour);
         var label = PC_DAY_LABELS[d] + ' ' + formatHour12(h) + ' IST \u00b7 ' + count + (count === 1 ? ' event' : ' events');
+        var size = (4.5 + Math.sqrt(count / max) * 8.5).toFixed(1);
         var dot = count
-          ? '<span class="pc-dot" style="width:' + (4.5 + Math.sqrt(count / max) * 8.5).toFixed(1) + 'px;height:' + (4.5 + Math.sqrt(count / max) * 8.5).toFixed(1) + 'px;"></span>'
+          ? '<span class="pc-dot" style="width:' + size + 'px;height:' + size + 'px;"></span>'
           : '<span class="pc-dot-ghost"></span>';
         return '<button type="button" class="pc-cell' + (isPeak ? ' pc-peak' : '') + '" data-day="' + d + '" data-hour="' + h + '" data-count="' + count
           + '" aria-expanded="false" aria-label="' + label + '">' + dot + '</button>';
@@ -12857,7 +12930,7 @@ document.addEventListener('keydown', function(e) {
     }).join('');
 
     var days = minTime ? Math.max(1, Math.round((maxTime - minTime) / 86400000)) : null;
-    var coverage = days ? '<div class="pc-coverage">// based on the last ' + days + ' day' + (days === 1 ? '' : 's') + ' of public activity</div>' : '';
+    var coverage = days ? '<div class="pc-coverage">// based on the last ' + days + ' day' + (days === 1 ? '' : 's') + ' of public activity in this range</div>' : '';
     var peakNote = '<div class="pc-peak-note">Busiest window: <b>' + PC_DAY_LABELS[peak.day] + '</b> around <b>' + formatHour12(peak.hour) + ' IST</b></div>';
 
     var personaTags = describePunchcardPersona(matrix, totalEvents);
@@ -12874,11 +12947,43 @@ document.addEventListener('keydown', function(e) {
           }).join('')
       + '</span>More</div>';
 
+    bodyEl.innerHTML =
+      '<div class="pc-card">' + metaRow + '<div class="pc-scroll">' + headHtml + bodyHtml + '</div>' + legend + peakNote + coverage + '</div>';
+
+    wirePunchcardPopover(bodyEl.querySelector('.pc-card'), buildPunchcardBreakdown(list));
+  }
+
+  function renderPunchcard(activity, pulse) {
+    var el = document.getElementById('raPunchcard');
+    if (!el) return;
+    pcState.rawActivity = (activity || []).filter(function (a) { return a && a.time; });
+    pcState.pulse = pulse || null;
+
+    var pillsHtml = PC_RANGES.map(function (r) {
+      return '<button type="button" class="pc-range-pill' + (r.key === pcState.range ? ' active' : '') + '" data-range="' + r.key + '" aria-pressed="' + (r.key === pcState.range) + '">' + r.label + '</button>';
+    }).join('');
+
     el.innerHTML =
         '<div class="ra-label-row"><span class="ra-label">Commit Punchcard</span><span class="ra-label-sub">// day \u00d7 hour, IST</span></div>'
-      + '<div class="pc-card">' + metaRow + '<div class="pc-scroll">' + headHtml + bodyHtml + '</div>' + legend + peakNote + coverage + '</div>';
+      + '<div class="pc-range-row">' + pillsHtml + '</div>'
+      + '<div class="pc-body"></div>';
 
-    wirePunchcardPopover(el, buildPunchcardBreakdown(list));
+    var bodyEl = el.querySelector('.pc-body');
+
+    el.querySelectorAll('.pc-range-pill').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        if (btn.classList.contains('active')) return;
+        pcState.range = btn.getAttribute('data-range');
+        el.querySelectorAll('.pc-range-pill').forEach(function (b) {
+          var isActive = b === btn;
+          b.classList.toggle('active', isActive);
+          b.setAttribute('aria-pressed', isActive);
+        });
+        renderPunchcardBody(bodyEl);
+      });
+    });
+
+    renderPunchcardBody(bodyEl);
   }
 
   // Thin multi-line sparkline for up to 3 languages' share over time,
@@ -13250,7 +13355,7 @@ document.addEventListener('keydown', function(e) {
       renderProjectStats(data.projectStats || null);
       renderCIHealth(data.ci || null);
       applyRange(90);
-      renderPunchcard(data.activity || []);
+      renderPunchcard(data.activity || [], data.pulse || null);
       renderLanguagesAndHours(data.languages || null, data.codingHours || null, data.languageHistory || null);
 
       var hasHeatmapData = !!(data.pulse && (data.pulse.heatmapFull || data.pulse.heatmap));
