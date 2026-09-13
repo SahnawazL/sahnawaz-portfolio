@@ -11565,14 +11565,26 @@ document.addEventListener('keydown', function(e) {
     .ci-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.45rem; margin-bottom: 1.1rem; }
     .ci-card {
       position: relative;
-      border: 1px solid rgba(0,255,180,0.13);
-      border-radius: 9px;
-      padding: 0.45rem 0.55rem;
+      display: block;
+      border: 1px solid rgba(0,255,180,0.16);
+      border-radius: 10px;
+      padding: 0.5rem 0.6rem 0.55rem;
       background: linear-gradient(160deg, rgba(255,255,255,0.03), rgba(0,255,180,0.015));
-      transition: border-color 0.2s ease;
+      text-decoration: none;
+      color: inherit;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
     }
-    .ci-card:hover { border-color: rgba(0,255,180,0.3); }
-    .ci-top { display: flex; align-items: center; gap: 0.35rem; padding-right: 1.2rem; }
+    .ci-card:hover {
+      border-color: rgba(0,255,180,0.5);
+      background: linear-gradient(160deg, rgba(255,255,255,0.045), rgba(0,255,180,0.06));
+      transform: translateY(-3px);
+      box-shadow: 0 10px 22px rgba(0,255,180,0.14);
+    }
+    .ci-card:active { transform: scale(0.97); }
+    .ci-card:focus-visible { outline: 2px solid rgba(0,255,180,0.65); outline-offset: 2px; }
+    .ci-top { display: flex; align-items: center; gap: 0.35rem; }
     .ci-dot { flex-shrink: 0; width: 7px; height: 7px; border-radius: 50%; }
     .ci-dot-success { background: #00ffb4; box-shadow: 0 0 6px rgba(0,255,180,0.7); }
     .ci-dot-failure { background: #ff5a5a; box-shadow: 0 0 6px rgba(255,90,90,0.6); }
@@ -11591,7 +11603,23 @@ document.addEventListener('keydown', function(e) {
     .ci-fill-bad { background: linear-gradient(90deg, rgba(255,90,90,0.55), #ff5a5a); }
     .ci-rate-pct { font-size: 0.56rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.45); flex-shrink: 0; width: 28px; text-align: right; }
     .ci-status-note { font-size: 0.56rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.35); font-style: italic; }
-    .ci-goto { position: absolute; top: 0.4rem; right: 0.4rem; }
+    /* The clickable affordance itself — a small labeled CTA row, same
+       "dashed border, arrow nudges right on hover" language as the AI
+       Weekly Recap button above it, so the whole card visibly reads as
+       a link to a real GitHub Actions run rather than a static stat. */
+    .ci-view-run {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 0.4rem;
+      margin-top: 0.5rem; padding-top: 0.42rem;
+      border-top: 1px dashed rgba(0,255,180,0.22);
+      font-family: 'Courier New', monospace; font-size: 0.56rem; font-weight: 700;
+      letter-spacing: 0.02em; text-transform: uppercase;
+      color: rgba(0,255,180,0.75);
+      transition: color 0.2s ease;
+    }
+    .ci-card:hover .ci-view-run { color: #00ffb4; }
+    .ci-view-arrow { flex-shrink: 0; width: 12px; height: 12px; transition: transform 0.2s ease; }
+    .ci-card:hover .ci-view-arrow { transform: translateX(2px); }
     .ci-skel { height: 3.6rem; border-radius: 9px; }
     .ci-empty { grid-column: 1 / -1; font-size: 0.62rem; color: rgba(200,220,215,0.4); font-style: italic; text-align: center; padding: 0.5rem 0; }
 
@@ -12817,6 +12845,8 @@ document.addEventListener('keydown', function(e) {
     return 'ci-fill-bad';
   }
 
+  var CI_VIEW_ARROW = '<svg class="ci-view-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
+
   function renderCIHealth(ci) {
     var el = document.getElementById('raCIHealth');
     if (!el) return;
@@ -12836,12 +12866,16 @@ document.addEventListener('keydown', function(e) {
         : '<div class="ci-rate-row"><span class="ci-status-note">// no finished runs yet</span></div>';
       var href = entry.url || 'https://github.com/SahnawazL';
 
-      return '<div class="ci-card">'
-        + '<a class="ra-goto ci-goto" href="' + href + '" target="_blank" rel="noopener" aria-label="Open latest workflow run for ' + escapeHtml(entry.repo) + '">' + GOTO_ICON + '</a>'
+      // The whole card is the link — a labeled "View full run" row at
+      // the bottom (same dashed-border, arrow-nudges-right language as
+      // the AI Weekly Recap CTA above it) makes it read as clickable at
+      // a glance, not just a static stat card.
+      return '<a class="ci-card" href="' + href + '" target="_blank" rel="noopener" aria-label="Open full GitHub Actions run details for ' + escapeHtml(entry.repo) + '">'
         + '<div class="ci-top"><span class="ci-dot ' + dotClass + '"></span><span class="ci-name">' + escapeHtml(entry.repo) + '</span></div>'
         + '<div class="ci-status-line ' + textClass + '">' + escapeHtml(statusLine) + '</div>'
         + rateHtml
-        + '</div>';
+        + '<div class="ci-view-run"><span>View full run</span>' + CI_VIEW_ARROW + '</div>'
+        + '</a>';
     }).join('');
 
     el.innerHTML =
