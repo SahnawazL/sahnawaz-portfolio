@@ -4438,7 +4438,7 @@ h1.prem-name {
   <!-- ── Experience ── -->
   <div class="exp-para-wrap">
     <div class="exp-eyebrow">⚡ Experience</div>
-    <p class="exp-para-text">Customer support experience at <strong style="font-weight:700;background:linear-gradient(90deg,#f36c21,#ffaa55);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Xiaomi</strong> (L1 inbound → MSM troubleshooting) and <strong style="font-weight:700;background:linear-gradient(90deg,#2874f0,#66aaff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Flipkart</strong> (L2 returns &amp; refunds), followed by an IT/Developer role at <strong style="font-weight:700;background:linear-gradient(90deg,#e6b800,#ffe066);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Rapido</strong> — internal tooling, agent training, and live chat support. Demonstrated strong <strong style="font-weight:600;color:rgba(160,255,240,0.9);-webkit-text-fill-color:rgba(160,255,240,0.9);">communication</strong>, <strong style="font-weight:600;color:rgba(160,255,240,0.9);-webkit-text-fill-color:rgba(160,255,240,0.9);">team leadership</strong>, and <strong style="font-weight:600;color:rgba(160,255,240,0.9);-webkit-text-fill-color:rgba(160,255,240,0.9);">problem-solving</strong> skills throughout.</p>
+    <p class="exp-para-text">Customer support experience at <strong style="font-weight:700;background:linear-gradient(90deg,#f36c21,#ffaa55);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Xiaomi</strong> (L1 inbound → MSM troubleshooting) and <strong style="font-weight:700;background:linear-gradient(90deg,#2874f0,#66aaff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Flipkart</strong> (L2 returns &amp; refunds) — then a real shift into development at <strong style="font-weight:700;background:linear-gradient(90deg,#e6b800,#ffe066);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Rapido</strong>, where I moved off support and onto the IT team building internal tools, alongside agent training and live chat support. That's <strong style="font-weight:600;color:rgba(160,255,240,0.9);-webkit-text-fill-color:rgba(160,255,240,0.9);">2.4+ years</strong> across all three companies, part of <strong style="font-weight:600;color:rgba(160,255,240,0.9);-webkit-text-fill-color:rgba(160,255,240,0.9);">5+ years</strong> as a developer overall — counting freelance &amp; personal projects since 2021. Demonstrated strong <strong style="font-weight:600;color:rgba(160,255,240,0.9);-webkit-text-fill-color:rgba(160,255,240,0.9);">communication</strong>, <strong style="font-weight:600;color:rgba(160,255,240,0.9);-webkit-text-fill-color:rgba(160,255,240,0.9);">team leadership</strong>, and <strong style="font-weight:600;color:rgba(160,255,240,0.9);-webkit-text-fill-color:rgba(160,255,240,0.9);">problem-solving</strong> skills throughout.</p>
   </div>
 
   <!-- ── Resume button ── -->
@@ -4802,7 +4802,7 @@ h1.prem-name {
     </div>
     <div class="ts-card" data-cat="backend" style="--card-glow:#777bb4; animation-delay:0.52s">
       <div class="ts-card-inner">
-        <img loading="lazy" src="https://img.icons8.com/color/96/php-logo.png" alt="PHP"/>
+        <img loading="lazy" src="https://cdn.simpleicons.org/php/777bb4" alt="PHP"/>
         <span class="ts-card-label">PHP</span>
       </div>
     </div>
@@ -4916,7 +4916,7 @@ h1.prem-name {
 })();
 </script></section><style>
 /* ═══════════ PREMIUM BLOG SECTION ═══════════ */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&family=Caveat:wght@500;600;700&display=swap');
 
 /* ══ BLOG SECTION — Stats Dashboard pill style ══ */
 .premium-blog-section {
@@ -5178,43 +5178,216 @@ h1.prem-name {
   width: 60px; height: 1px; margin: 0 auto 1.1rem;
   background: linear-gradient(90deg, transparent, rgba(0,220,180,0.4), transparent);
 }
-.blog-legacy-line {
-  font-family: 'Playfair Display', serif;
-  font-style: italic;
-  font-size: 0.88rem;
-  line-height: 1.75;
-  letter-spacing: 0.2px;
-  color: rgba(210, 235, 230, 0.72);
+
+/* premium thin 3D glass box around the legacy line */
+.blog-legacy-box {
+  position: relative;
+  padding: 1.6rem 1.5rem;
+  border-radius: 18px;
+  background:
+    linear-gradient(145deg, rgba(0,220,180,0.05), rgba(255,255,255,0.015) 45%, rgba(0,220,180,0.03));
+  border: 1px solid rgba(0,220,180,0.16);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.06) inset,
+    0 -1px 0 rgba(0,0,0,0.35) inset,
+    0 18px 40px -22px rgba(0,0,0,0.65),
+    0 2px 10px -4px rgba(0,220,180,0.08);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transform: translateZ(0);
+  transition: transform 0.5s cubic-bezier(0.22,1,0.36,1), box-shadow 0.5s ease, border-color 0.5s ease;
   animation: blogLegacyFade 2.4s ease forwards;
   opacity: 0;
+  overflow: hidden;
+}
+.blog-legacy-box::before {
+  /* thin luminous edge, top-left highlight like a beveled glass panel */
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  padding: 1px;
+  background: linear-gradient(160deg, rgba(0,235,190,0.45), rgba(0,220,180,0.02) 35%, rgba(0,220,180,0.02) 65%, rgba(0,235,190,0.22));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.blog-legacy-box::after {
+  /* faint sheen sweep */
+  content: '';
+  position: absolute;
+  top: -50%; left: -20%;
+  width: 60%; height: 200%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,0.05), transparent);
+  transform: rotate(8deg);
+  animation: blogLegacySheen 6s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes blogLegacySheen {
+  0%, 100% { transform: translateX(-10%) rotate(8deg); opacity: 0; }
+  45%      { opacity: 1; }
+  55%      { opacity: 0; }
+  60%      { transform: translateX(220%) rotate(8deg); opacity: 0; }
+}
+.blog-legacy-box:hover {
+  transform: translateY(-2px) translateZ(0);
+  border-color: rgba(0,235,190,0.3);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.08) inset,
+    0 -1px 0 rgba(0,0,0,0.35) inset,
+    0 24px 48px -22px rgba(0,0,0,0.7),
+    0 4px 18px -4px rgba(0,220,180,0.16);
+}
+.blog-legacy-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  margin-bottom: 1.1rem;
+}
+.blog-legacy-heart-svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  animation: shzHeartbeat 2.2s ease-in-out infinite;
+  filter: drop-shadow(0 0 4px rgba(0,240,216,0.5));
+}
+.blog-legacy-heart-emoji,
+.blog-legacy-heart-svg-fill {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  animation: shzHeartbeat 2.2s ease-in-out infinite;
+  animation-delay: 0.15s;
+  filter: drop-shadow(0 0 4px rgba(0,240,216,0.5));
+}
+@keyframes shzHeartbeat {
+  0%, 100% { transform: scale(1); }
+  20%      { transform: scale(1.22); }
+  40%      { transform: scale(1); }
+  60%      { transform: scale(1.14); }
+}
+.blog-legacy-header-text {
+  font-family: 'Caveat', 'Brush Script MT', cursive;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 1rem;
+  letter-spacing: 0.4px;
+  background: linear-gradient(90deg, #00f0ff 0%, #ffffff 50%, #00f0ff 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3s infinite linear;
+  white-space: nowrap;
+}
+.blog-legacy-wave {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto 1.15rem;
+  width: 120px;
+  height: 18px;
+}
+.blog-legacy-wave svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  opacity: 0.95;
+  filter:
+    drop-shadow(0 1px 0 rgba(255,255,255,0.15))
+    drop-shadow(0 3px 4px rgba(0,0,0,0.6))
+    drop-shadow(0 0 8px rgba(0,240,216,0.55));
+  animation: shzWaveFloat 3.2s ease-in-out infinite;
+}
+@keyframes shzWaveFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-1.5px); }
+}
+.blog-legacy-line {
+  position: relative;
+  font-family: 'Caveat', 'Brush Script MT', cursive;
+  font-weight: 600;
+  font-style: normal;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  letter-spacing: 0.2px;
+  background: linear-gradient(100deg, rgba(180,255,235,0.95) 0%, rgba(0,220,180,1) 45%, rgba(190,255,240,0.95) 75%, rgba(0,220,180,1) 100%);
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: rgba(0,220,180,1);
+  animation: shzTextShine 7s ease-in-out infinite;
+  text-shadow: 0 2px 18px rgba(0,220,180,0.18);
+}
+@keyframes shzTextShine {
+  0%, 100% { background-position: 0% 0; }
+  50%      { background-position: 100% 0; }
 }
 @keyframes blogLegacyFade {
   0%   { opacity: 0; transform: translateY(6px); }
   100% { opacity: 1; transform: translateY(0); }
 }
 
-/* SHZ mark — distinct from the two text signatures above */
-.blog-shz-mark {
-  text-align: center;
-  margin-top: 1.5rem;
+/* SHZ mark — now nested inside the legacy quote box */
+.blog-shz-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin: 1.5rem auto 1.2rem;
 }
-.blog-shz-pill {
-  display: inline-block;
-  padding: 0.55rem 1.3rem;
-  border-radius: 999px;
-  border: 1px solid rgba(0,255,234,0.28);
-  background: rgba(0,255,234,0.05);
-  box-shadow: 0 0 16px rgba(0,255,234,0.14), inset 0 1px 0 rgba(255,255,255,0.04);
+.blog-shz-divider .shz-star {
+  font-size: 0.55rem;
+  color: rgba(0,255,234,0.8);
+  text-shadow: 0 0 6px rgba(0,255,234,0.6);
+  animation: shzStarTwinkle 2.4s ease-in-out infinite;
+  line-height: 1;
+}
+.blog-shz-divider .shz-star.star-2 { animation-delay: 0.6s; font-size: 0.4rem; opacity: 0.7; }
+.blog-shz-divider .shz-star.star-3 { animation-delay: 1.2s; font-size: 0.4rem; opacity: 0.7; }
+@keyframes shzStarTwinkle {
+  0%, 100% { opacity: 0.35; transform: scale(0.85); }
+  50%      { opacity: 1; transform: scale(1.15); }
+}
+.blog-shz-shimmer-line {
+  position: relative;
+  width: 42px;
+  height: 1px;
+  border-radius: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(0,255,234,0.7) 50%,
+    transparent 100%);
+  background-size: 220% 100%;
+  animation: shzLineFlow 3.6s ease-in-out infinite;
+  box-shadow: 0 0 6px rgba(0,255,234,0.3);
+}
+@keyframes shzLineFlow {
+  0%   { background-position: 0% 0; opacity: 0.5; }
+  50%  { background-position: 100% 0; opacity: 1; }
+  100% { background-position: 0% 0; opacity: 0.5; }
+}
+.blog-shz-mark {
+  text-align: right;
+  padding-right: 0.4rem;
 }
 .blog-shz-text {
-  font-family: 'Inter', sans-serif;
-  font-weight: 800;
-  font-size: 0.66rem;
-  letter-spacing: 2.5px;
-  text-transform: uppercase;
+  display: inline-block;
+  font-family: 'Caveat', 'Brush Script MT', cursive;
+  font-weight: 600;
+  font-size: 1.15rem;
+  letter-spacing: 0.5px;
+  text-transform: none;
+  font-style: italic;
   background: linear-gradient(90deg, #00f0ff 0%, #ffffff 50%, #00f0ff 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: shimmer 3s infinite linear;
 }
@@ -5334,11 +5507,54 @@ h1.prem-name {
 
   <div class="blog-legacy-wrap">
     <div class="blog-legacy-divider"></div>
-    <p class="blog-legacy-line">People are forgotten faster than the things they build. Long after this name stops being said out loud, this portfolio, these projects, and everything shaped here will still be quietly doing their job — in my hands while I'm here, and in someone else's the day I'm not. That continuity is the only kind of forever I've ever really wanted.</p>
-  </div>
-
-  <div class="blog-shz-mark">
-    <span class="blog-shz-pill"><span class="blog-shz-text">SHZ | Sahnawaz Hyper Zenith</span></span>
+    <div class="blog-legacy-box">
+      <div class="blog-legacy-header">
+        <svg class="blog-legacy-heart-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 21s-7.2-4.5-10-9.1C0.4 8.6 1.7 4.8 5.2 3.7c2.1-0.7 4.3 0.1 5.5 1.9l1.3 1.9 1.3-1.9c1.2-1.8 3.4-2.6 5.5-1.9 3.5 1.1 4.8 4.9 3.2 8.2C19.2 16.5 12 21 12 21z" stroke="url(#heartGrad)" stroke-width="1.4" stroke-linejoin="round"/>
+          <defs>
+            <linearGradient id="heartGrad" x1="0" y1="0" x2="24" y2="24">
+              <stop offset="0%" stop-color="#00f0d8"/>
+              <stop offset="100%" stop-color="#8affe0"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <span class="blog-legacy-header-text">For Whoever Comes After Me</span>
+        <svg class="blog-legacy-heart-svg blog-legacy-heart-svg-fill" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 21s-7.2-4.5-10-9.1C0.4 8.6 1.7 4.8 5.2 3.7c2.1-0.7 4.3 0.1 5.5 1.9l1.3 1.9 1.3-1.9c1.2-1.8 3.4-2.6 5.5-1.9 3.5 1.1 4.8 4.9 3.2 8.2C19.2 16.5 12 21 12 21z" fill="url(#heartGradFill)"/>
+          <defs>
+            <linearGradient id="heartGradFill" x1="0" y1="0" x2="24" y2="24">
+              <stop offset="0%" stop-color="#8affe0"/>
+              <stop offset="100%" stop-color="#00f0d8"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <div class="blog-legacy-wave">
+        <svg viewBox="0 0 140 20" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2,10 Q11,1 20,10 T38,10 T56,10 T74,10 T92,10 T110,10 T128,10" fill="none" stroke="url(#waveGrad)" stroke-width="2.6" stroke-linecap="round"/>
+          <defs>
+            <linearGradient id="waveGrad" x1="0" y1="0" x2="140" y2="0">
+              <stop offset="0%" stop-color="rgba(0,240,216,0.15)"/>
+              <stop offset="15%" stop-color="#00f0d8"/>
+              <stop offset="50%" stop-color="#a8fff0"/>
+              <stop offset="85%" stop-color="#00f0d8"/>
+              <stop offset="100%" stop-color="rgba(0,240,216,0.15)"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <p class="blog-legacy-line">People are forgotten faster than the things they build. Long after this name stops being said out loud, this portfolio, these projects, and everything shaped here will still be quietly doing their job — in my hands while I'm here, and in someone else's the day I'm not. That continuity is the only kind of forever I've ever really wanted.</p>
+      <div class="blog-shz-divider">
+        <span class="shz-star star-3">✧</span>
+        <span class="shz-star star-2">✦</span>
+        <span class="blog-shz-shimmer-line"></span>
+        <span class="shz-star star-2">✦</span>
+        <span class="shz-star star-3">✧</span>
+      </div>
+      <div class="blog-shz-mark">
+        <span class="blog-shz-text">— SHZ | Sahnawaz Hyper Zenith</span>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -7843,6 +8059,28 @@ document.addEventListener('keydown', function(e) {
 
   var activeCard = { tech: null, impact: null };
 
+  // Moves the shared drawer to sit directly after the LAST card in the
+  // same visual row as the clicked card, instead of always trailing at
+  // the very end of the grid. Row membership is detected by matching
+  // offsetTop (small rounding tolerance) rather than a hardcoded column
+  // count, so it stays correct across the responsive auto-fill grid
+  // (2 columns on mobile, more on wider screens) and even while the
+  // drawer is currently open elsewhere in the same grid.
+  function kta3PlaceDrawer(card, group) {
+    var grid = document.getElementById('kta3-' + group + '-grid');
+    var drawer = document.getElementById('kta3-drawer-' + group);
+    if (!grid || !drawer) return;
+    var cards = grid.querySelectorAll('.kta3-card');
+    var cardTop = card.offsetTop;
+    var lastInRow = card;
+    cards.forEach(function(c){
+      if (Math.abs(c.offsetTop - cardTop) < 4) lastInRow = c;
+    });
+    if (lastInRow.nextElementSibling !== drawer) {
+      lastInRow.insertAdjacentElement('afterend', drawer);
+    }
+  }
+
   function kta3Open(card) {
     var id = card.getAttribute('data-id');
     var group = card.getAttribute('data-group');
@@ -7875,7 +8113,8 @@ document.addEventListener('keydown', function(e) {
     var tagsEl = document.getElementById('kta3-tags-' + group);
     tagsEl.innerHTML = d.tags.map(function(t){ return '<span class="kta3-tag">' + t + '</span>'; }).join('');
 
-    // open drawer
+    // open drawer directly below the clicked card's row
+    kta3PlaceDrawer(card, group);
     document.getElementById('kta3-drawer-' + group).classList.add('kta3-open');
 
     // smooth scroll
