@@ -1045,12 +1045,11 @@ img {
 }
 .cert-info { flex:1; min-width:0; }
 .cert-name {
-  font-family:'Syne',sans-serif; font-size:0.72rem; font-weight:700;
+  font-size:0.72rem; font-weight:700;
   color:rgba(230,250,240,0.9); line-height:1.28;
-  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
   transition: color 0.3s;
 }
-.cert-card.is-open .cert-name { -webkit-line-clamp:unset; color:#fff; }
+.cert-card.is-open .cert-name { color:#fff; }
 .cert-meta {
   font-size:0.48rem; color:rgba(0,255,180,0.4);
   letter-spacing:0.9px; text-transform:uppercase; margin-top:2px;
@@ -1106,17 +1105,6 @@ img {
   font-size:0.44rem; font-weight:700; letter-spacing:0.5px; text-transform:uppercase;
   color:rgba(0,255,180,0.65); background:rgba(0,255,180,0.06);
   border:1px solid rgba(0,255,180,0.13); border-radius:4px; padding:2px 5px;
-}
-/* pulse dot */
-.cert-dot {
-  position:absolute; top:10px; right:10px;
-  width:5px; height:5px; border-radius:50%;
-  background:rgba(0,255,180,0.5); box-shadow:0 0 6px rgba(0,255,180,0.6);
-  animation: cDot 2.6s ease-in-out infinite;
-}
-@keyframes cDot {
-  0%,100% { opacity:0.25; transform:scale(1); }
-  50%      { opacity:1;    transform:scale(1.9); box-shadow:0 0 10px rgba(0,255,180,0.8); }
 }
 @media(max-width:520px) {
   .cert-card { width:148px; }
@@ -3531,6 +3519,7 @@ header::after {
   opacity: 0;
   animation: hdrFadeIn 0.6s ease 0.35s forwards;
   line-height: 1;
+  margin-top: 7px;
 }
 
 /* ── SHZ badge row ── */
@@ -4448,691 +4437,7 @@ h1.prem-name {
   </div>
 
 </div>
-</div></section><!-- ══════════════════════════════════════════
-     SKILLS GALAXY — Premium Interactive Star Map v2.0
-     3D depth-layered stars · sphere-shaded orbs · energy-tube links
-     traveling light pulses · smooth parallax tilt · spring easing
-     ══════════════════════════════════════════ -->
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Exo+2:wght@400;500;600&display=swap');
-
-.galaxy-tech{position:relative;padding:2.6rem 1rem 2.8rem;background:transparent;overflow:hidden;text-align:center;}
-.galaxy-tech::before{content:'';position:absolute;top:0;left:12%;right:12%;height:1px;background:linear-gradient(90deg,transparent,rgba(0,200,255,0.2),transparent);}
-
-.glx-head{margin-bottom:1.1rem;}
-.glx-eyebrow{display:inline-flex;align-items:center;gap:6px;font-family:'Exo 2',sans-serif;font-size:0.62rem;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:rgba(0,255,220,0.55);margin-bottom:0.4rem;}
-.glx-title{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(1.35rem,5.5vw,1.8rem);margin:0 0 0.35rem;letter-spacing:0.5px;background:linear-gradient(135deg,#e8fffb 0%,#00e5ff 45%,#8b5cf6 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:center;}
-.glx-sub{font-family:'Exo 2',sans-serif;font-size:0.74rem;color:rgba(170,215,240,0.5);margin:0;letter-spacing:0.2px;}
-
-/* ── Filter chips ── */
-.glx-filters{display:flex;flex-wrap:wrap;justify-content:center;gap:0.5rem;margin:1.15rem auto 1.1rem;max-width:520px;}
-.glx-chip{display:inline-flex;align-items:center;gap:7px;font-family:'Exo 2',sans-serif;font-size:0.78rem;font-weight:600;color:rgba(220,240,255,0.75);background:rgba(255,255,255,0.045);border:1px solid rgba(255,255,255,0.1);border-radius:999px;padding:0.42rem 0.95rem;cursor:pointer;transition:transform 0.4s cubic-bezier(.16,1,.3,1),background 0.3s ease,border-color 0.3s ease,box-shadow 0.3s ease;-webkit-tap-highlight-color:transparent;}
-.glx-chip-dot{width:8px;height:8px;border-radius:50%;box-shadow:0 0 8px currentColor;flex-shrink:0;}
-.glx-chip:active{transform:scale(0.94);}
-.glx-chip.active{background:rgba(0,229,255,0.12);border-color:rgba(0,229,255,0.45);color:#eafffd;box-shadow:0 0 16px rgba(0,229,255,0.18);}
-
-/* ── Stage (3D perspective container) ── */
-.glx-stage-outer{max-width:640px;margin:0 auto;perspective:900px;}
-.glx-stage{
-  position:relative;border-radius:22px;overflow:hidden;
-  background:
-    radial-gradient(ellipse 120% 90% at 50% 0%,rgba(0,60,90,0.35) 0%,transparent 60%),
-    radial-gradient(ellipse 90% 70% at 85% 100%,rgba(90,0,120,0.22) 0%,transparent 65%),
-    linear-gradient(160deg,#03070f 0%,#050b16 45%,#040711 100%);
-  border:1px solid rgba(0,220,255,0.14);
-  box-shadow:0 0 0 1px rgba(255,255,255,0.02) inset,0 20px 50px rgba(0,0,0,0.45),0 0 40px rgba(0,180,255,0.06);
-  aspect-ratio:380/300;
-  transform-style:preserve-3d;
-  will-change:transform;
-  transition:transform 0.6s cubic-bezier(.16,1,.3,1);
-}
-.glx-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1;}
-.glx-svg{position:absolute;inset:0;width:100%;height:100%;display:block;transform-style:preserve-3d;z-index:2;}
-
-/* ── Gradient nebula drift — slow breathing color clouds behind the stars ── */
-.glx-nebula{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
-.glx-nebula span{position:absolute;border-radius:50%;filter:blur(26px);will-change:transform,opacity;}
-.glx-neb-a{width:65%;height:65%;left:-15%;top:-18%;background:radial-gradient(circle,rgba(0,180,255,0.22) 0%,transparent 70%);animation:glxNebA 26s ease-in-out infinite alternate;}
-.glx-neb-b{width:70%;height:70%;right:-20%;bottom:-20%;background:radial-gradient(circle,rgba(140,60,220,0.18) 0%,transparent 70%);animation:glxNebB 32s ease-in-out infinite alternate;}
-.glx-neb-c{width:50%;height:50%;left:35%;top:30%;background:radial-gradient(circle,rgba(255,60,150,0.10) 0%,transparent 70%);animation:glxNebC 38s ease-in-out infinite alternate;}
-@keyframes glxNebA{0%{transform:translate(0,0) scale(1);opacity:0.7;}100%{transform:translate(6%,8%) scale(1.15);opacity:1;}}
-@keyframes glxNebB{0%{transform:translate(0,0) scale(1);opacity:0.6;}100%{transform:translate(-7%,-6%) scale(1.12);opacity:0.95;}}
-@keyframes glxNebC{0%{transform:translate(-4%,-3%) scale(0.95);opacity:0.5;}100%{transform:translate(5%,4%) scale(1.1);opacity:0.85;}}
-
-.glx-hint{position:absolute;left:0;right:0;bottom:9px;margin:0;text-align:center;font-family:'Exo 2',sans-serif;font-size:0.62rem;letter-spacing:1.5px;text-transform:lowercase;color:rgba(160,210,240,0.32);pointer-events:none;transition:opacity 0.3s ease;z-index:5;}
-
-/* ── Radar sweep — a slow rotating light wedge for that scanning-instrument feel ── */
-.glx-radar{position:absolute;top:50%;left:50%;width:220%;height:220%;margin-left:-110%;margin-top:-110%;z-index:3;pointer-events:none;mix-blend-mode:screen;background:conic-gradient(from 0deg,transparent 0deg,rgba(0,229,255,0.16) 5deg,transparent 22deg,transparent 360deg);animation:glxRadarSpin 15s linear infinite;}
-@keyframes glxRadarSpin{to{transform:rotate(360deg);}}
-
-/* ── Vignette — darkened corners for a cinematic frame ── */
-.glx-vignette{position:absolute;inset:0;z-index:4;pointer-events:none;background:radial-gradient(ellipse at 50% 46%,transparent 48%,rgba(1,4,10,0.5) 100%);}
-.glx-stage.glx-touched .glx-hint{opacity:0;}
-
-/* corner HUD brackets — reinforce the "instrument" feel */
-.glx-bracket{position:absolute;width:16px;height:16px;border-color:rgba(0,229,255,0.35);pointer-events:none;z-index:5;}
-.glx-bracket.tl{top:10px;left:10px;border-top:1.5px solid;border-left:1.5px solid;}
-.glx-bracket.tr{top:10px;right:10px;border-top:1.5px solid;border-right:1.5px solid;}
-.glx-bracket.bl{bottom:10px;left:10px;border-bottom:1.5px solid;border-left:1.5px solid;}
-.glx-bracket.br{bottom:10px;right:10px;border-bottom:1.5px solid;border-right:1.5px solid;}
-.glx-readout{position:absolute;top:10px;left:34px;right:34px;font-family:'Exo 2',monospace;font-size:0.56rem;letter-spacing:1px;color:rgba(120,220,255,0.4);text-align:left;pointer-events:none;z-index:5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-
-/* ── SVG nodes (depth-shaded 3D orbs) ── */
-.glx-node{cursor:pointer;}
-.glx-hitzone{fill:transparent;}
-.glx-halo-wide{transition:opacity 0.45s ease;}
-.glx-halo{opacity:0.5;transition:opacity 0.45s cubic-bezier(.16,1,.3,1),r 0.45s cubic-bezier(.16,1,.3,1);}
-.glx-core{transition:transform 0.45s cubic-bezier(.16,1,.3,1),opacity 0.45s ease;transform-box:fill-box;transform-origin:center;}
-.glx-node.glx-dim .glx-halo-wide{opacity:0.04 !important;}
-.glx-node.glx-dim .glx-halo{opacity:0.10;}
-.glx-node.glx-dim .glx-core{opacity:0.32;}
-.glx-node.glx-active .glx-core{transform:scale(1.5);}
-.glx-node.glx-active .glx-halo{opacity:0.95;}
-.glx-node.glx-active .glx-halo-wide{opacity:0.3 !important;}
-.glx-node.glx-selected .glx-core{transform:scale(1.85);}
-.glx-twinkle{animation:glxTwinkle 3.4s ease-in-out infinite;}
-@keyframes glxTwinkle{0%,100%{opacity:0.7;}50%{opacity:1;}}
-.glx-label{font-family:'Exo 2',sans-serif;font-weight:600;fill:rgba(235,250,255,0.92);text-anchor:middle;pointer-events:none;opacity:0;transition:opacity 0.4s ease;paint-order:stroke;stroke:rgba(3,7,15,0.85);stroke-width:2.4px;stroke-linejoin:round;}
-.glx-node.glx-show-label .glx-label{opacity:1;}
-
-/* energy-tube links: soft wide glow + slim bright core, two stacked paths */
-.glx-link-glow{fill:none;stroke-linecap:round;transition:opacity 0.5s ease;}
-.glx-link-core{fill:none;stroke-linecap:round;stroke:rgba(255,255,255,0.75);transition:opacity 0.5s ease;}
-.glx-link-flow{fill:none;stroke-linecap:round;stroke-dasharray:3 9;animation:glxFlow 2.6s linear infinite;transition:opacity 0.5s ease;}
-@keyframes glxFlow{to{stroke-dashoffset:-24;}}
-.glx-pulse{filter:url(#glxPulseGlow);}
-
-/* ── Detail card ── */
-.glx-card{max-width:640px;margin:0.9rem auto 0;background:rgba(8,16,28,0.78);backdrop-filter:blur(14px) saturate(160%);-webkit-backdrop-filter:blur(14px) saturate(160%);border:1px solid rgba(0,220,255,0.18);border-radius:18px;padding:1.05rem 1.15rem 1.15rem;text-align:left;position:relative;transform:translateY(10px) scale(0.98);opacity:0;max-height:0;overflow:hidden;transition:opacity 0.4s cubic-bezier(.16,1,.3,1),transform 0.4s cubic-bezier(.16,1,.3,1),max-height 0.45s ease,padding 0.4s ease,margin 0.4s ease;}
-.glx-card.glx-open{opacity:1;transform:translateY(0) scale(1);max-height:220px;}
-.glx-card-close{position:absolute;top:10px;right:12px;background:none;border:none;color:rgba(200,230,245,0.5);font-size:0.95rem;cursor:pointer;padding:4px;line-height:1;}
-.glx-card-close:active{color:#fff;}
-.glx-card-top{display:flex;align-items:center;gap:12px;margin-bottom:0.7rem;}
-.glx-card-icon-wrap{width:44px;height:44px;border-radius:13px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.glx-card-icon-wrap img{width:26px;height:26px;object-fit:contain;}
-.glx-card-name{font-family:'Orbitron',sans-serif;font-weight:700;font-size:1rem;color:#eafffd;}
-.glx-card-cat{font-family:'Exo 2',sans-serif;font-size:0.68rem;letter-spacing:1.4px;text-transform:uppercase;margin-top:2px;font-weight:600;}
-.glx-card-bar-track{height:7px;border-radius:5px;background:rgba(255,255,255,0.07);overflow:hidden;margin-bottom:0.3rem;}
-.glx-card-bar-fill{height:100%;width:0%;border-radius:5px;transition:width 1s cubic-bezier(.16,1,.3,1);}
-.glx-card-pct{font-family:'Exo 2',sans-serif;font-size:0.7rem;font-weight:700;color:rgba(200,235,250,0.7);text-align:right;margin-bottom:0.55rem;}
-.glx-card-note{font-family:'Exo 2',sans-serif;font-size:0.8rem;line-height:1.45;color:rgba(210,230,245,0.72);margin:0;}
-
-@media (prefers-reduced-motion: reduce){
-  .glx-stage,.glx-twinkle,.glx-chip,.glx-halo,.glx-core{animation:none !important;transition:none !important;}
-}
-</style>
-
-<section class="tech-stack ts-section galaxy-tech" data-aos="fade-up" id="skillsGalaxy">
-
-  <div class="glx-head">
-    <span class="glx-eyebrow">✦ Built with</span>
-    <h2 class="glx-title">My Tech Stack</h2>
-    <p class="glx-sub">Tap a category, then tap a star — a live map of the tools I build with</p>
-  </div>
-
-  <div class="glx-filters" id="glxFilters">
-    <button class="glx-chip active" data-cat="all"><span class="glx-chip-dot" style="background:conic-gradient(#00e5ff,#8b5cf6,#34d399,#00e5ff);color:#00e5ff;"></span>All</button>
-    <button class="glx-chip" data-cat="frontend"><span class="glx-chip-dot" style="background:#00e5ff;color:#00e5ff;"></span>Frontend</button>
-    <button class="glx-chip" data-cat="backend"><span class="glx-chip-dot" style="background:#34d399;color:#34d399;"></span>Backend</button>
-    <button class="glx-chip" data-cat="design"><span class="glx-chip-dot" style="background:#ff5fa2;color:#ff5fa2;"></span>Design</button>
-  </div>
-
-  <div class="glx-stage-outer">
-    <div class="glx-stage" id="glxStage">
-      <div class="glx-nebula">
-        <span class="glx-neb-a"></span>
-        <span class="glx-neb-b"></span>
-        <span class="glx-neb-c"></span>
-      </div>
-      <canvas class="glx-canvas" id="glxCanvas"></canvas>
-      <svg class="glx-svg" id="glxSvg" viewBox="0 0 380 300" preserveAspectRatio="xMidYMid meet">
-        <defs>
-          <filter id="glxGlow" x="-250%" y="-250%" width="600%" height="600%">
-            <feGaussianBlur stdDeviation="3" result="b"/>
-            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-          <filter id="glxGlowWide" x="-400%" y="-400%" width="900%" height="900%">
-            <feGaussianBlur stdDeviation="7"/>
-          </filter>
-          <filter id="glxPulseGlow" x="-400%" y="-400%" width="900%" height="900%">
-            <feGaussianBlur stdDeviation="1.6"/>
-          </filter>
-          <radialGradient id="grad-frontend" cx="35%" cy="30%" r="75%">
-            <stop offset="0%" stop-color="#ffffff"/>
-            <stop offset="35%" stop-color="#7cf3ff"/>
-            <stop offset="100%" stop-color="#00a8c9"/>
-          </radialGradient>
-          <radialGradient id="grad-backend" cx="35%" cy="30%" r="75%">
-            <stop offset="0%" stop-color="#ffffff"/>
-            <stop offset="35%" stop-color="#8ff5c8"/>
-            <stop offset="100%" stop-color="#149a63"/>
-          </radialGradient>
-          <radialGradient id="grad-design" cx="35%" cy="30%" r="75%">
-            <stop offset="0%" stop-color="#ffffff"/>
-            <stop offset="35%" stop-color="#ff9cc7"/>
-            <stop offset="100%" stop-color="#c22a6f"/>
-          </radialGradient>
-        </defs>
-        <g id="glxLinks"></g>
-        <g id="glxPulses"></g>
-        <g id="glxNodes"></g>
-      </svg>
-      <div class="glx-radar"></div>
-      <div class="glx-vignette"></div>
-      <div class="glx-bracket tl"></div>
-      <div class="glx-bracket tr"></div>
-      <div class="glx-bracket bl"></div>
-      <div class="glx-bracket br"></div>
-      <div class="glx-readout" id="glxReadout">SYS.STACK // 13 NODES ONLINE</div>
-      <p class="glx-hint" id="glxHint">✦ tap a star to see details ✦</p>
-    </div>
-  </div>
-
-  <div class="glx-card" id="glxCard">
-    <button class="glx-card-close" id="glxCardClose" aria-label="Close">✕</button>
-    <div class="glx-card-top">
-      <div class="glx-card-icon-wrap"><img id="glxCardIcon" src="" alt=""></div>
-      <div>
-        <div class="glx-card-name" id="glxCardName">—</div>
-        <div class="glx-card-cat" id="glxCardCat">—</div>
-      </div>
-    </div>
-    <div class="glx-card-bar-track"><div class="glx-card-bar-fill" id="glxCardFill"></div></div>
-    <div class="glx-card-pct" id="glxCardPct">0%</div>
-    <p class="glx-card-note" id="glxCardNote"></p>
-  </div>
-
-<script>
-(function(){
-  var CAT_COLOR = { frontend:'#00e5ff', backend:'#34d399', design:'#ff5fa2' };
-  var CAT_LABEL = { frontend:'Frontend', backend:'Backend', design:'Design' };
-  var CAT_GRAD  = { frontend:'url(#grad-frontend)', backend:'url(#grad-backend)', design:'url(#grad-design)' };
-
-  /* id, name, cat, x, y, z(depth 0.55-1 closer=bigger), labelDy, icon, pct, note */
-  var SKILLS = [
-    { id:'html',   name:'HTML5',      cat:'frontend', x:48,  y:58,  z:0.95, dy:16, icon:'https://img.icons8.com/color/96/html-5--v1.png',        pct:95, note:'Semantic, accessible markup — the foundation every page is built on.' },
-    { id:'css',    name:'CSS3',       cat:'frontend', x:98,  y:38,  z:0.75, dy:24, icon:'https://img.icons8.com/color/96/css3.png',               pct:90, note:'Layouts, animations and responsive design that feel native on any screen.' },
-    { id:'js',     name:'JavaScript', cat:'frontend', x:152, y:56,  z:1.0,  dy:16, icon:'https://img.icons8.com/color/96/javascript--v1.png',     pct:85, note:'Interactive logic, DOM control, and the glue behind every feature.' },
-    { id:'react',  name:'React',      cat:'frontend', x:186, y:92,  z:0.65, dy:24, icon:'https://img.icons8.com/color/96/react-native.png',       pct:80, note:'Component-driven UIs for apps that need to scale cleanly.' },
-    { id:'tw',     name:'Tailwind',   cat:'frontend', x:120, y:100, z:0.85, dy:-14,icon:'https://img.icons8.com/color/96/tailwindcss.png',        pct:88, note:'Fast, consistent styling without fighting a stylesheet.' },
-
-    { id:'figma',  name:'Figma',      cat:'design',   x:280, y:48,  z:0.9,  dy:16, icon:'https://img.icons8.com/color/96/figma--v1.png',          pct:82, note:'Where every layout starts — wireframes, prototypes, design systems.' },
-    { id:'wp',     name:'WordPress',  cat:'design',   x:330, y:88,  z:0.6,  dy:16, icon:'https://img.icons8.com/color/96/wordpress.png',          pct:70, note:'Quick, reliable CMS builds for clients who need to self-manage content.' },
-
-    { id:'node',   name:'Node.js',    cat:'backend',  x:45,  y:198, z:0.7,  dy:16, icon:'https://img.icons8.com/fluency/96/node-js.png',          pct:75, note:'Server logic and APIs that keep the frontend fed with real data.' },
-    { id:'py',     name:'Python',     cat:'backend',  x:98,  y:232, z:0.9,  dy:16, icon:'https://img.icons8.com/color/96/python--v1.png',         pct:72, note:'Scripting, automation, and data work outside the browser.' },
-    { id:'excel',  name:'Excel',      cat:'backend',  x:158, y:206, z:0.6,  dy:-14,icon:'https://img.icons8.com/fluency/96/microsoft-excel-2019.png',pct:85, note:'Analytics, reporting and the spreadsheets that run the business side.' },
-    { id:'fb',     name:'Firebase',   cat:'backend',  x:222, y:236, z:1.0,  dy:16, icon:'https://img.icons8.com/color/96/firebase.png',           pct:80, note:'Auth, database and hosting — the backend for most of my live projects.' },
-    { id:'vercel', name:'Vercel',     cat:'backend',  x:280, y:206, z:0.65, dy:-14,icon:'https://cdn.simpleicons.org/vercel/ffffff',              pct:78, note:'One-push deployments so every update goes live in seconds.' },
-    { id:'ai',     name:'AI / LLM',   cat:'backend',  x:335, y:232, z:0.85, dy:16, icon:'https://img.icons8.com/fluency/96/chatbot.png',          pct:82, note:'Prompting and integrating AI tools like this site\u2019s own built-in chatbot.' }
-  ];
-
-  var CHAINS = {
-    frontend: ['html','css','js','react','tw','html'],
-    design:   ['figma','wp'],
-    backend:  ['node','py','excel','fb','vercel','ai']
-  };
-
-  var svgNS = 'http://www.w3.org/2000/svg';
-  var linksG = document.getElementById('glxLinks');
-  var pulsesG = document.getElementById('glxPulses');
-  var nodesG = document.getElementById('glxNodes');
-  var stage  = document.getElementById('glxStage');
-  var readout = document.getElementById('glxReadout');
-  var byId = {};
-  var linkPaths = {}; /* cat -> [{el, len}] */
-
-  function el(tag, attrs){
-    var n = document.createElementNS(svgNS, tag);
-    for (var k in attrs) n.setAttribute(k, attrs[k]);
-    return n;
-  }
-
-  /* ── Draw energy-tube constellation links per category ── */
-  Object.keys(CHAINS).forEach(function(cat){
-    linkPaths[cat] = [];
-    var ids = CHAINS[cat];
-    for (var i = 0; i < ids.length - 1; i++) {
-      var a = SKILLS.find(function(s){ return s.id === ids[i]; });
-      var b = SKILLS.find(function(s){ return s.id === ids[i+1]; });
-      if (!a || !b) continue;
-      var mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2 - 10;
-      var d = 'M ' + a.x + ' ' + a.y + ' Q ' + mx + ' ' + my + ' ' + b.x + ' ' + b.y;
-
-      var glow = el('path', { d: d, class: 'glx-link-glow', 'data-cat': cat, stroke: CAT_COLOR[cat], 'stroke-width': '4', opacity: '0.10' });
-      var core = el('path', { d: d, class: 'glx-link-core', 'data-cat': cat, 'stroke-width': '1', opacity: '0.16' });
-      var flow = el('path', { d: d, class: 'glx-link-flow', 'data-cat': cat, stroke: CAT_COLOR[cat], 'stroke-width': '1.3', opacity: '0.35' });
-      flow.style.animationDelay = (i * 0.4) + 's';
-      var len = 90;
-      [glow, core].forEach(function(p){
-        p.style.strokeDasharray = len;
-        p.style.strokeDashoffset = len;
-      });
-      linksG.appendChild(glow);
-      linksG.appendChild(core);
-      linksG.appendChild(flow);
-
-      var pathForLen = core;
-      linkPaths[cat].push(pathForLen);
-    }
-  });
-
-  /* ── Draw star nodes (3D sphere-shaded orbs, depth-scaled) ── */
-  SKILLS.forEach(function(s, i){
-    var grad = CAT_GRAD[s.cat];
-    var color = CAT_COLOR[s.cat];
-    var g = el('g', { class: 'glx-node', 'data-id': s.id, 'data-cat': s.cat, transform: 'translate(' + s.x + ',' + s.y + ')' });
-
-    var haloWideR = (13 + s.z * 8).toFixed(2);
-    var haloR = (7 + s.z * 5).toFixed(2);
-    var coreR = (2.6 + s.z * 2.2).toFixed(2);
-
-    var hit = el('circle', { class: 'glx-hitzone', r: '17' });
-    var haloWide = el('circle', { class: 'glx-halo-wide', r: haloWideR, fill: color, filter: 'url(#glxGlowWide)', opacity: (0.14 + s.z * 0.1).toFixed(2) });
-    var halo = el('circle', { class: 'glx-halo', r: haloR, fill: color, filter: 'url(#glxGlow)' });
-    var core = el('circle', { class: 'glx-core glx-twinkle', r: coreR, fill: grad });
-    core.style.animationDelay = (i * 0.35) + 's';
-    core.style.opacity = (0.55 + s.z * 0.45).toFixed(2);
-    var label = el('text', { class: 'glx-label', y: s.dy, style: 'font-size:9px;fill:#eafffd' });
-    label.textContent = s.name;
-
-    g.appendChild(hit); g.appendChild(haloWide); g.appendChild(halo); g.appendChild(core); g.appendChild(label);
-    nodesG.appendChild(g);
-    byId[s.id] = { data: s, g: g, halo: halo, core: core };
-
-    g.addEventListener('click', function(){ selectStar(s.id); });
-  });
-
-  /* ── Filter chips ── */
-  var chips = document.querySelectorAll('.glx-chip');
-  var activeCat = 'all';
-
-  function applyFilter(cat, opts){
-    opts = opts || {};
-    activeCat = cat;
-    chips.forEach(function(c){ c.classList.toggle('active', c.dataset.cat === cat); });
-
-    SKILLS.forEach(function(s){
-      var node = byId[s.id].g;
-      var match = (cat === 'all') || (s.cat === cat);
-      node.classList.toggle('glx-dim', !match);
-      node.classList.toggle('glx-active', match && cat !== 'all');
-      node.classList.toggle('glx-show-label', cat !== 'all' && match);
-    });
-
-    var glows = linksG.querySelectorAll('.glx-link-glow');
-    var cores = linksG.querySelectorAll('.glx-link-core');
-    var flows = linksG.querySelectorAll('.glx-link-flow');
-    [glows, cores].forEach(function(list, idx){
-      list.forEach(function(p){
-        var match = p.dataset.cat === cat;
-        if (cat === 'all') {
-          p.style.opacity = idx === 0 ? 0.08 : 0.14;
-          p.style.strokeDashoffset = 0;
-        } else if (match) {
-          p.style.opacity = idx === 0 ? 0.55 : 0.85;
-          requestAnimationFrame(function(){
-            p.style.transition = 'stroke-dashoffset 0.8s cubic-bezier(.16,1,.3,1)';
-            p.style.strokeDashoffset = 0;
-          });
-        } else {
-          p.style.opacity = 0.03;
-        }
-      });
-    });
-    flows.forEach(function(p){
-      var match = p.dataset.cat === cat;
-      p.style.opacity = cat === 'all' ? 0.3 : (match ? 0.55 : 0.03);
-    });
-
-    stopPulses();
-    if (cat !== 'all') startPulses(cat);
-
-    if (!opts.silent) markTouched();
-    updateReadout();
-  }
-
-  chips.forEach(function(chip){
-    chip.addEventListener('click', function(){ applyFilter(chip.dataset.cat); });
-  });
-
-  /* ── Traveling light pulses along active links (real motion, GPU-cheap) ── */
-  var pulseRAF = null;
-  var pulseDots = [];
-
-  function startPulses(cat){
-    pulsesG.innerHTML = '';
-    pulseDots = [];
-    var paths = linkPaths[cat] || [];
-    paths.forEach(function(p, idx){
-      var len = p.getTotalLength();
-      var dot = el('circle', { r: '2.4', fill: '#ffffff', class: 'glx-pulse' });
-      pulsesG.appendChild(dot);
-      pulseDots.push({ path: p, len: len, dot: dot, offset: idx * 0.3, speed: 0.00035 });
-    });
-    var start = performance.now();
-    function tick(t){
-      var elapsed = t - start;
-      pulseDots.forEach(function(pd){
-        var progress = ((elapsed * pd.speed) + pd.offset) % 1;
-        var pt = pd.path.getPointAtLength(progress * pd.len);
-        pd.dot.setAttribute('cx', pt.x);
-        pd.dot.setAttribute('cy', pt.y);
-      });
-      pulseRAF = requestAnimationFrame(tick);
-    }
-    pulseRAF = requestAnimationFrame(tick);
-  }
-  function stopPulses(){
-    if (pulseRAF) cancelAnimationFrame(pulseRAF);
-    pulseRAF = null;
-    pulsesG.innerHTML = '';
-  }
-
-  /* ── HUD readout text ── */
-  function updateReadout(){
-    if (activeCat === 'all') {
-      readout.textContent = 'SYS.STACK // ' + SKILLS.length + ' NODES ONLINE';
-    } else {
-      var n = SKILLS.filter(function(s){ return s.cat === activeCat; }).length;
-      readout.textContent = 'SYS.' + activeCat.toUpperCase() + ' // ' + n + ' NODES LOCKED';
-    }
-  }
-
-  /* ── Detail card ── */
-  var card = document.getElementById('glxCard');
-  var cardIcon = document.getElementById('glxCardIcon');
-  var cardName = document.getElementById('glxCardName');
-  var cardCat = document.getElementById('glxCardCat');
-  var cardFill = document.getElementById('glxCardFill');
-  var cardPct = document.getElementById('glxCardPct');
-  var cardNote = document.getElementById('glxCardNote');
-  var closeBtn = document.getElementById('glxCardClose');
-  var selectedId = null;
-
-  function selectStar(id){
-    var s = byId[id].data;
-    if (activeCat !== s.cat) applyFilter(s.cat, { silent:true });
-
-    if (selectedId && byId[selectedId]) byId[selectedId].g.classList.remove('glx-selected');
-    selectedId = id;
-    byId[id].g.classList.add('glx-selected');
-
-    cardIcon.src = s.icon;
-    cardIcon.alt = s.name;
-    cardName.textContent = s.name;
-    cardCat.textContent = CAT_LABEL[s.cat];
-    cardCat.style.color = CAT_COLOR[s.cat];
-    cardNote.textContent = s.note;
-    cardFill.style.background = 'linear-gradient(90deg,' + CAT_COLOR[s.cat] + ',rgba(255,255,255,0.85))';
-    cardFill.style.width = '0%';
-    cardPct.textContent = '0%';
-    card.classList.add('glx-open');
-
-    readout.textContent = 'SYS.LOCK // ' + s.name.toUpperCase();
-
-    requestAnimationFrame(function(){
-      setTimeout(function(){
-        cardFill.style.width = s.pct + '%';
-        cardPct.textContent = s.pct + '%';
-      }, 60);
-    });
-
-    markTouched();
-  }
-
-  closeBtn.addEventListener('click', function(){
-    card.classList.remove('glx-open');
-    if (selectedId && byId[selectedId]) byId[selectedId].g.classList.remove('glx-selected');
-    selectedId = null;
-    updateReadout();
-  });
-
-  function markTouched(){ stage.classList.add('glx-touched'); }
-
-  applyFilter('all', { silent:true });
-
-  /* ── Smooth 3D parallax tilt — pointer & touch driven, spring-lerped ── */
-  var tiltX = 0, tiltY = 0;      /* current, lerped */
-  var targetTiltX = 0, targetTiltY = 0;
-  var MAX_TILT = 7; /* degrees */
-  var stageOuter = document.querySelector('.glx-stage-outer');
-
-  function setTargetFromPoint(clientX, clientY){
-    var rect = stage.getBoundingClientRect();
-    var px = (clientX - rect.left) / rect.width;  /* 0..1 */
-    var py = (clientY - rect.top) / rect.height;
-    targetTiltY = (px - 0.5) * MAX_TILT * 2;   /* rotateY from x */
-    targetTiltX = -(py - 0.5) * MAX_TILT * 2;  /* rotateX from y */
-  }
-
-  stageOuter.addEventListener('pointermove', function(e){
-    setTargetFromPoint(e.clientX, e.clientY);
-  });
-  stageOuter.addEventListener('pointerleave', function(){
-    targetTiltX = 0; targetTiltY = 0;
-  });
-  stageOuter.addEventListener('touchmove', function(e){
-    if (e.touches && e.touches[0]) setTargetFromPoint(e.touches[0].clientX, e.touches[0].clientY);
-  }, { passive: true });
-  stageOuter.addEventListener('touchend', function(){
-    targetTiltX = 0; targetTiltY = 0;
-  });
-
-  var breatheT = 0;
-  function tiltLoop(){
-    tiltX += (targetTiltX - tiltX) * 0.08;
-    tiltY += (targetTiltY - tiltY) * 0.08;
-    breatheT += 0.006;
-    var breathe = Math.sin(breatheT) * 1.1; /* gentle idle sway so it never looks static */
-    stage.style.transform = 'rotateX(' + (tiltX + breathe * 0.4).toFixed(2) + 'deg) rotateY(' + (tiltY + breathe).toFixed(2) + 'deg)';
-    requestAnimationFrame(tiltLoop);
-  }
-  requestAnimationFrame(tiltLoop);
-
-  /* ── Twinkling depth-layered starfield background ── */
-  var canvas = document.getElementById('glxCanvas');
-  var ctx = canvas.getContext('2d');
-  var stars = [];
-  var planets = [];
-  var rafId = null;
-  var running = false;
-
-  function sizeCanvas(){
-    var rect = stage.getBoundingClientRect();
-    var dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = Math.max(1, rect.width * dpr);
-    canvas.height = Math.max(1, rect.height * dpr);
-    canvas.style.width = rect.width + 'px';
-    canvas.style.height = rect.height + 'px';
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    seedStars(rect.width, rect.height);
-  }
-
-  function seedStars(w, h){
-    var count = Math.round((w * h) / 3200);
-    count = Math.max(45, Math.min(count, 95));
-    stars = [];
-    for (var i = 0; i < count; i++) {
-      var depth = Math.random(); /* 0 = far, 1 = near */
-      stars.push({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        depth: depth,
-        r: 0.25 + depth * 1.0,
-        phase: Math.random() * Math.PI * 2,
-        speed: 0.35 + Math.random() * 0.75
-      });
-    }
-
-    /* Positioned in genuinely empty pockets of the 380x300 star map, well clear
-       of every constellation's hit-zone (safe clearance ~70+ viewBox units). */
-    planets = [
-      { /* pale moon — quiet middle band between the top and bottom clusters */
-        baseX: w * 0.645, baseY: h * 0.475,
-        r: Math.max(8, w * 0.034),
-        orbitRx: w * 0.045, orbitRy: h * 0.032,
-        periodMs: 19000, phase: 0.6, depth: 0.22,
-        rotMs: 26000,
-        hi: '#f2f6ff', mid: '#aab7dd', low: '#333f6e',
-        craters: [ {a:0.6, da:0.9, r:0.30}, {a:2.4, da:1.6, r:0.20}, {a:4.1, da:1.1, r:0.24} ],
-        ring: false
-      },
-      { /* ringed planet — quiet bottom-left pocket, tucked below the backend chain */
-        baseX: w * 0.145, baseY: h * 0.89,
-        r: Math.max(9, w * 0.04),
-        orbitRx: w * 0.03, orbitRy: h * 0.02,
-        periodMs: 25000, phase: 2.3, depth: 0.16,
-        rotMs: 34000,
-        hi: '#ffedd0', mid: '#dba25e', low: '#6e4720',
-        bands: [ {a:-0.5, w:0.28, alpha:0.22}, {a:0.15, w:0.22, alpha:0.16}, {a:0.7, w:0.2, alpha:0.14} ],
-        ring: true, ringColor: 'rgba(235,195,145,0.5)', ringTilt: -0.34
-      }
-    ];
-  }
-
-  function drawPlanets(t, parX, parY){
-    for (var i = 0; i < planets.length; i++) {
-      var p = planets[i];
-      var ang = (t / p.periodMs) * Math.PI * 2 + p.phase;
-      var x = p.baseX + Math.cos(ang) * p.orbitRx + parX * p.depth * 6;
-      var y = p.baseY + Math.sin(ang) * p.orbitRy + parY * p.depth * 6;
-      var rot = (t / p.rotMs) * Math.PI * 2;
-
-      /* faint dashed orbit path so the motion reads as deliberate, not random */
-      ctx.save();
-      ctx.setLineDash([2, 5]);
-      ctx.strokeStyle = 'rgba(180,210,255,0.07)';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.ellipse(p.baseX + parX * p.depth * 6, p.baseY + parY * p.depth * 6, p.orbitRx, p.orbitRy, 0, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
-
-      /* ring drawn behind the sphere */
-      if (p.ring) {
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.rotate(p.ringTilt);
-        ctx.scale(1, 0.34);
-        ctx.beginPath();
-        ctx.ellipse(0, 0, p.r * 1.9, p.r * 1.9, 0, 0, Math.PI * 2);
-        ctx.strokeStyle = p.ringColor;
-        ctx.lineWidth = Math.max(1.4, p.r * 0.17);
-        ctx.stroke();
-        ctx.restore();
-      }
-
-      /* base lit sphere */
-      var grad = ctx.createRadialGradient(x - p.r * 0.35, y - p.r * 0.35, p.r * 0.1, x, y, p.r);
-      grad.addColorStop(0, p.hi);
-      grad.addColorStop(0.5, p.mid);
-      grad.addColorStop(1, p.low);
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(x, y, p.r, 0, Math.PI * 2);
-      ctx.closePath();
-      ctx.clip();
-      ctx.fillStyle = grad;
-      ctx.globalAlpha = 0.9;
-      ctx.fillRect(x - p.r, y - p.r, p.r * 2, p.r * 2);
-
-      /* slowly-rotating surface texture, clipped to the sphere */
-      if (p.craters) {
-        p.craters.forEach(function(c){
-          var ca = c.a + rot;
-          var cx = x + Math.cos(ca) * p.r * 0.5;
-          var cy = y + Math.sin(ca) * p.r * 0.32;
-          ctx.beginPath();
-          ctx.fillStyle = 'rgba(20,28,50,0.22)';
-          ctx.ellipse(cx, cy, p.r * c.r, p.r * c.r * 0.75, 0, 0, Math.PI * 2);
-          ctx.fill();
-        });
-      }
-      if (p.bands) {
-        p.bands.forEach(function(b){
-          var by = y + Math.sin(rot * 0.5 + b.a) * p.r * 0.15 + b.a * p.r * 0.35;
-          ctx.beginPath();
-          ctx.fillStyle = 'rgba(90,55,20,' + b.alpha + ')';
-          ctx.ellipse(x, by, p.r * 1.05, p.r * b.w, 0, 0, Math.PI * 2);
-          ctx.fill();
-        });
-      }
-
-      /* atmospheric rim light on the lit edge, additive for a soft glow */
-      ctx.globalCompositeOperation = 'lighter';
-      var rim = ctx.createRadialGradient(x - p.r * 0.4, y - p.r * 0.4, p.r * 0.6, x - p.r * 0.4, y - p.r * 0.4, p.r * 1.05);
-      rim.addColorStop(0, 'rgba(255,255,255,0.22)');
-      rim.addColorStop(1, 'rgba(255,255,255,0)');
-      ctx.fillStyle = rim;
-      ctx.fillRect(x - p.r * 1.3, y - p.r * 1.3, p.r * 2.6, p.r * 2.6);
-      ctx.restore();
-
-      /* soft ambient halo bleeding beyond the sphere, ties it into the scene's light */
-      ctx.save();
-      ctx.globalCompositeOperation = 'lighter';
-      var halo = ctx.createRadialGradient(x, y, p.r * 0.9, x, y, p.r * 2.2);
-      halo.addColorStop(0, 'rgba(180,200,255,0.10)');
-      halo.addColorStop(1, 'rgba(180,200,255,0)');
-      ctx.fillStyle = halo;
-      ctx.beginPath();
-      ctx.arc(x, y, p.r * 2.2, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    }
-  }
-
-  function drawStars(t){
-    var rect = stage.getBoundingClientRect();
-    ctx.clearRect(0, 0, rect.width, rect.height);
-    var parX = (tiltY / MAX_TILT); /* -1..1 */
-    var parY = (tiltX / MAX_TILT);
-    drawPlanets(t, parX, parY);
-    for (var i = 0; i < stars.length; i++) {
-      var s = stars[i];
-      var tw = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(t * 0.001 * s.speed + s.phase));
-      var offX = parX * s.depth * 6;   /* near stars parallax more */
-      var offY = parY * s.depth * 6;
-      ctx.beginPath();
-      ctx.fillStyle = 'rgba(210,235,255,' + (tw * (0.35 + s.depth * 0.6)).toFixed(3) + ')';
-      ctx.arc(s.x + offX, s.y + offY, s.r, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    if (running) rafId = requestAnimationFrame(drawStars);
-  }
-
-  function startLoop(){
-    if (running) return;
-    running = true;
-    rafId = requestAnimationFrame(drawStars);
-  }
-  function stopLoop(){
-    running = false;
-    if (rafId) cancelAnimationFrame(rafId);
-  }
-
-  sizeCanvas();
-  updateReadout();
-
-  var resizeTimer;
-  window.addEventListener('resize', function(){
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(sizeCanvas, 150);
-  });
-
-  if ('IntersectionObserver' in window) {
-    var io = new IntersectionObserver(function(entries){
-      entries.forEach(function(entry){
-        if (entry.isIntersecting) startLoop(); else stopLoop();
-      });
-    }, { threshold: 0.05 });
-    io.observe(stage);
-  } else {
-    startLoop();
-  }
-})();
-</script>
-</section>
+</div></section>
 
 <!-- ══════════════════════════════════════════
      PREMIUM MY TECH STACK SECTION — v3.0
@@ -5144,7 +4449,7 @@ h1.prem-name {
 /* ══ TECH STACK — Premium Minimal ══ */
 .ts-section {
   position: relative;
-  padding: 0 1rem 3rem;
+  padding: 2.6rem 1rem 3rem;
   background: transparent;
   overflow: hidden;
   text-align: center;
@@ -5392,10 +4697,12 @@ h1.prem-name {
 <!-- TECH STACK SECTION -->
 <section class="ts-section tech-stack" data-aos="fade-up">
 
-  <!-- Connector bridging the galaxy map above -->
+  <div class="ts-head">
+    <h2 class="ts-title">My Tech Stack</h2>
+  </div>
+
+  <!-- Connector -->
   <div class="ts-connector">
-    <span class="ts-connector-line"></span>
-    <span class="ts-connector-dot"></span>
     <span class="ts-connector-text">Full stack, listed</span>
   </div>
 
@@ -6443,7 +5750,7 @@ function toggleBlogCard(card) {
       <div class="ptesti-stars"><span class="ptesti-star">★</span><span class="ptesti-star">★</span><span class="ptesti-star">★</span><span class="ptesti-star">★</span><span class="ptesti-star">★</span></div>
       <span class="ptesti-name">Santoosh Reddy</span>
       <div class="ptesti-bar-track"><div class="ptesti-bar-fill" data-fill="100"></div></div>
-      <div class="ptesti-role">Floor Manager – Rapido</div>
+      <div class="ptesti-role">IT Head – Rapido</div>
       <div class="ptesti-hint">tap to read ↓</div>
       <div class="ptesti-text">He takes ownership, delivers real impact, and brings calm creativity to even the most pressure-driven environments. Truly rare.</div>
     </div>
@@ -6951,7 +6258,7 @@ function ptestiToggle(card) {
   var stats = [
     { elId:'shz-n0', target:2.4,  decimal:true,  suffix:'',  barId:'shz-b0' },
     { elId:'shz-n1', target:50,   decimal:false, suffix:'+', barId:'shz-b1', sufId:'shz-s1' },
-    { elId:'shz-n2', target:35,   decimal:false, suffix:'-40', barId:'shz-b2', sufId:'shz-s2' }
+    { elId:'shz-n2', target:35,   decimal:false, suffix:'+', barId:'shz-b2', sufId:'shz-s2' }
   ];
 
   function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
@@ -7053,7 +6360,6 @@ function ptestiToggle(card) {
   <div class="cert-grid" id="certGrid">
 
     <div class="cert-card" data-fill="90">
-      <div class="cert-dot"></div>
       <div class="cert-header">
         <div class="cert-icon">🎓</div>
         <div class="cert-info">
@@ -7075,7 +6381,6 @@ function ptestiToggle(card) {
     </div>
 
     <div class="cert-card" data-fill="85">
-      <div class="cert-dot" style="animation-delay:.5s"></div>
       <div class="cert-header">
         <div class="cert-icon">🌐</div>
         <div class="cert-info">
@@ -7097,7 +6402,6 @@ function ptestiToggle(card) {
     </div>
 
     <div class="cert-card" data-fill="92">
-      <div class="cert-dot" style="animation-delay:1s"></div>
       <div class="cert-header">
         <div class="cert-icon">📊</div>
         <div class="cert-info">
@@ -7119,7 +6423,6 @@ function ptestiToggle(card) {
     </div>
 
     <div class="cert-card" data-fill="95">
-      <div class="cert-dot" style="animation-delay:1.5s"></div>
       <div class="cert-header">
         <div class="cert-icon">🤝</div>
         <div class="cert-info">
@@ -7141,7 +6444,6 @@ function ptestiToggle(card) {
     </div>
 
     <div class="cert-card" data-fill="80">
-      <div class="cert-dot" style="animation-delay:.3s"></div>
       <div class="cert-header">
         <div class="cert-icon">⚡</div>
         <div class="cert-info">
@@ -7163,7 +6465,6 @@ function ptestiToggle(card) {
     </div>
 
     <div class="cert-card" data-fill="75">
-      <div class="cert-dot" style="animation-delay:1.8s"></div>
       <div class="cert-header">
         <div class="cert-icon">⚙️</div>
         <div class="cert-info">
@@ -7185,7 +6486,6 @@ function ptestiToggle(card) {
     </div>
 
     <div class="cert-card" data-fill="88">
-      <div class="cert-dot" style="animation-delay:.8s"></div>
       <div class="cert-header">
         <div class="cert-icon">🏷️</div>
         <div class="cert-info">
@@ -7207,7 +6507,6 @@ function ptestiToggle(card) {
     </div>
 
     <div class="cert-card" data-fill="93">
-      <div class="cert-dot" style="animation-delay:1.2s"></div>
       <div class="cert-header">
         <div class="cert-icon">🎨</div>
         <div class="cert-info">
@@ -7821,7 +7120,7 @@ function ptestiToggle(card) {
               <li>Worked on internal tools/systems supporting the Rapido process</li>
               <li>Led real-time chat support for ride, payment and driver-partner issues across peak-load shifts</li>
               <li>Designed and delivered agent training programs on deep-resolution workflows, adopted floor-wide</li>
-              <li>Floor Manager Santoosh Reddy noted: "He takes ownership, delivers impact and brings calm creativity."</li>
+              <li>IT Head Santoosh Reddy noted: "He takes ownership, delivers impact and brings calm creativity."</li>
             </ul>
           </div>
         </div>
@@ -11046,7 +10345,7 @@ document.addEventListener('keydown', function(e) {
       <div class="mpj-card-name">Rapido Agent Training System</div>
       <div class="mpj-card-tagline">Designed and delivered deep-resolution training workflows for Rapido's support floor — adopted company-wide. Includes structured SOP docs and escalation playbooks.</div>
       <div class="mpj-problem">Problem → New agents struggled with complex ride/payment issues under peak load. Built a systematic playbook they could follow in real-time.</div>
-      <div class="mpj-metric">⚡ Adopted floor-wide · Praised by Floor Manager Santoosh Reddy</div>
+      <div class="mpj-metric">⚡ Adopted floor-wide · Praised by IT Head Santoosh Reddy</div>
       <div class="mpj-stack">
         <span class="mpj-pill">Workflow Design</span>
         <span class="mpj-pill">SOP Docs</span>
@@ -16983,7 +16282,7 @@ function sendMail(e) { if(e) e.preventDefault(); ctSendMail(); }
 #shz-bottom-block {
   text-align: center;
   margin-top: 0.8rem;
-  padding-bottom: 0;
+  padding-bottom: 2.2rem;
 }
 
 /* Identity badge */
@@ -21543,7 +20842,7 @@ document.addEventListener('DOMContentLoaded', function(){
     { rx:/\b(xiaomi|one point one|1point1|mi support)\b/i,
       ans:"At Xiaomi India (via One Point One Solutions), Sahnawaz started out on L1 — taking live customer calls and resolving mobile issues via MSM-based troubleshooting — before moving into owning the order escalation dashboard. The Quality Head, Hemalatha, personally recognised his meticulous work — which meant a lot. 📱" },
     { rx:/\b(rapido|ride|cab)\b/i,
-      ans:"At Rapido (via Ienergizer), Sahnawaz worked as IT/Developer — supporting internal tooling, leading live chat support for ride-related issues, and training agents on deep-resolution workflows. Floor Manager Santoosh Reddy called him someone who 'brings calm creativity to pressure-driven environments.' That one stuck. 🛵" },
+      ans:"At Rapido (via Ienergizer), Sahnawaz worked as IT/Developer — supporting internal tooling, leading live chat support for ride-related issues, and training agents on deep-resolution workflows. IT Head Santoosh Reddy called him someone who 'brings calm creativity to pressure-driven environments.' That one stuck. 🛵" },
 
     /* ── Education ── */
     { rx:/\b(certif|qualification|degree|education|study|college|diploma|background|university|mca|bca|school|secondary)\b/i,
