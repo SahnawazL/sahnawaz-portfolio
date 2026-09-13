@@ -11582,22 +11582,23 @@ document.addEventListener('keydown', function(e) {
       transition: border-color 0.35s ease, background 0.35s ease, transform 0.3s cubic-bezier(.25,.9,.3,1), box-shadow 0.35s ease;
     }
     /* Soft ambient shimmer — a thin, low-opacity band that sweeps across
-       the glass once every ~6s and otherwise sits fully off-card, so it
-       reads as "this surface has life to it" rather than a distracting
-       loop. Clipped by the card's own overflow:hidden + isolation so it
+       the glass once every ~10s, gliding slowly across rather than
+       flashing past, and otherwise sits fully off-card so it reads as
+       "this surface has life to it" rather than a distracting loop.
+       Clipped by the card's own overflow:hidden + isolation so it
        never bleeds past its rounded corners. */
     .ci-card::before {
       content: '';
       position: absolute; top: 0; left: -140%; width: 55%; height: 100%;
       background: linear-gradient(115deg, transparent, rgba(255,255,255,0.14), transparent);
       transform: skewX(-18deg);
-      animation: ciShimmer 6s cubic-bezier(.3,.7,.4,1) infinite;
+      animation: ciShimmer 10s cubic-bezier(.45,.05,.55,.95) infinite;
       pointer-events: none;
       z-index: 1;
     }
     @keyframes ciShimmer {
       0%   { left: -140%; }
-      16%  { left: 160%; }
+      55%  { left: 160%; }
       100% { left: 160%; }
     }
     .ci-card:hover {
