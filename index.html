@@ -258,11 +258,11 @@ img {
         "Python",
         "Tailwind CSS",
         "Figma",
-        "Mobile App Design",
+        "Progressive Web Apps (PWA)",
         "API Development",
         "SEO Optimisation",
         "Performance Optimisation",
-        "GitHub Pages",
+        "Vercel Deployment",
         "HTML5",
         "CSS3"
       ],
@@ -463,7 +463,7 @@ img {
           "name": "What is the website design price of Sahnawaz Ahmed Laskar?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Sahnawaz Ahmed Laskar's pricing (as of 2026): Full Website Design starts at ₹9,999 (+ ₹1,500 domain/hosting) — includes custom animated UI, mobile-first responsive design, SEO optimisation, up to 5 pages. Portfolio Website starts at ₹6,999 (+ ₹1,500 domain/hosting) — includes premium animations, projects showcase, contact form, GitHub Pages deployment. E-Commerce Store starts at ₹14,999 (+ ₹1,500 domain/hosting) — includes payment gateway, product catalog, admin dashboard. Web Ads & Promotion starts at ₹3,999 per campaign. HTML/CSS/JS Frontend Development starts at ₹4,999 per project. Node.js/PHP/Firebase Backend Development starts at ₹5,999 per module. Figma/Adobe XD UI/UX Design starts at ₹3,999 per screen. WordPress/Shopify/Blogger CMS Setup starts at ₹3,499. SEO & Google Analytics setup starts at ₹3,999. AI Integration (ChatGPT/Copilot/Notion AI) starts at ₹2,999 per workflow. SSL/CDN/Hosting Setup starts at ₹2,499. Remote Support via WhatsApp/Zoom starts at ₹1,499 per hour. All pricing is transparent with no hidden costs."
+            "text": "Sahnawaz Ahmed Laskar's pricing (as of 2026): Full Website Design starts at ₹9,999 (+ ₹1,500 domain/hosting) — includes custom animated UI, mobile-first responsive design, SEO optimisation, up to 5 pages. Portfolio Website starts at ₹6,999 (+ ₹1,500 domain/hosting) — includes premium animations, projects showcase, contact form, GitHub & Vercel deployment. E-Commerce Store starts at ₹14,999 (+ ₹1,500 domain/hosting) — includes payment gateway, product catalog, admin dashboard. Web Ads & Promotion starts at ₹3,999 per campaign. HTML/CSS/JS Frontend Development starts at ₹4,999 per project. Node.js/PHP/Firebase Backend Development starts at ₹5,999 per module. Figma/Adobe XD UI/UX Design starts at ₹3,999 per screen. WordPress/Shopify/Blogger CMS Setup starts at ₹3,499. SEO & Google Analytics setup starts at ₹3,999. AI Integration (ChatGPT/Copilot/Notion AI) starts at ₹2,999 per workflow. SSL/CDN/Hosting Setup starts at ₹2,499. Remote Support via WhatsApp/Zoom starts at ₹1,499 per hour. All pricing is transparent with no hidden costs."
           }
         },
         {
@@ -958,6 +958,9 @@ img {
   background: linear-gradient(90deg, transparent, rgba(0,255,180,0.4));
 }
 .cert-head-label::after { background: linear-gradient(270deg, transparent, rgba(0,255,180,0.4)); }
+.cert-head-label svg {
+  width:12px; height:12px; flex-shrink:0;
+}
 .cert-head-title {
   font-size: 1.6rem; font-weight: 800;
   background: linear-gradient(135deg,#fff 0%,#7fffd4 50%,#00e5cc 100%);
@@ -1039,8 +1042,13 @@ img {
   background: linear-gradient(135deg,rgba(0,255,180,0.12),rgba(0,200,255,0.08));
   border:1px solid rgba(0,255,180,0.18);
   display:flex; align-items:center; justify-content:center;
-  font-size:0.9rem; flex-shrink:0;
+  flex-shrink:0;
+  color: rgba(0,255,180,0.85);
   transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s;
+}
+.cert-icon svg {
+  width:15px; height:15px;
+  display:block;
 }
 .cert-card:hover .cert-icon, .cert-card.is-open .cert-icon {
   transform: scale(1.2) rotate(-10deg);
@@ -4085,7 +4093,7 @@ h1.prem-name {
   .prem-role-text { font-size: 0.68rem; letter-spacing: 1px; }
   .prem-greeting-bar { width: 22px; }
 }
-</style><div class="btn-group"><div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;"><div style="text-align: center;"></div><div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;"><a class="btn" href="#projects" style="font-size: 0.8rem; padding: 6px 12px; border-radius: 20px; text-decoration: none; box-shadow: 0 0 5px #00ffff;"> 🚀 View Experience </a><a class="btn" href="#contact" style="font-size: 0.8rem; padding: 6px 12px; border-radius: 20px; text-decoration: none; box-shadow: 0 0 5px #00ffff;"> 📬 Contact Me </a></div></div></div>
+</style><div class="btn-group"><div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;"><div style="text-align: center;"></div><div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;"><a class="btn" href="#projects" style="font-size: 0.8rem; padding: 6px 12px; border-radius: 20px; text-decoration: none; box-shadow: 0 0 5px #00ffff;">View Experience</a><a class="btn" href="#contact" style="font-size: 0.8rem; padding: 6px 12px; border-radius: 20px; text-decoration: none; box-shadow: 0 0 5px #00ffff;">Contact Me</a></div></div></div>
 
 <!-- ══ LIVE STATS BAR ══ -->
 <div class="hero-stats-bar" id="heroStatsBar">
@@ -4790,6 +4798,48 @@ h1.prem-name {
       <div class="ts-card-inner">
         <img loading="lazy" src="https://img.icons8.com/color/96/wordpress.png" alt="WordPress"/>
         <span class="ts-card-label">WordPress</span>
+      </div>
+    </div>
+    <div class="ts-card" data-cat="backend" style="--card-glow:#777bb4; animation-delay:0.52s">
+      <div class="ts-card-inner">
+        <img loading="lazy" src="https://img.icons8.com/color/96/php-logo.png" alt="PHP"/>
+        <span class="ts-card-label">PHP</span>
+      </div>
+    </div>
+    <div class="ts-card" data-cat="backend" style="--card-glow:#00758f; animation-delay:0.56s">
+      <div class="ts-card-inner">
+        <img loading="lazy" src="https://img.icons8.com/color/96/mysql-logo.png" alt="MySQL"/>
+        <span class="ts-card-label">MySQL</span>
+      </div>
+    </div>
+    <div class="ts-card" data-cat="design" style="--card-glow:#ff2bc2; animation-delay:0.60s">
+      <div class="ts-card-inner">
+        <img loading="lazy" src="https://img.icons8.com/color/96/adobe-xd--v1.png" alt="Adobe XD"/>
+        <span class="ts-card-label">Adobe XD</span>
+      </div>
+    </div>
+    <div class="ts-card" data-cat="design" style="--card-glow:#95bf47; animation-delay:0.64s">
+      <div class="ts-card-inner">
+        <img loading="lazy" src="https://img.icons8.com/color/96/shopify.png" alt="Shopify"/>
+        <span class="ts-card-label">Shopify</span>
+      </div>
+    </div>
+    <div class="ts-card" data-cat="backend" style="--card-glow:#e37400; animation-delay:0.68s">
+      <div class="ts-card-inner">
+        <img loading="lazy" src="https://img.icons8.com/color/96/google-analytics.png" alt="Google Analytics GA4"/>
+        <span class="ts-card-label">GA4</span>
+      </div>
+    </div>
+    <div class="ts-card" data-cat="backend" style="--card-glow:#ffffff; animation-delay:0.72s">
+      <div class="ts-card-inner">
+        <img loading="lazy" src="https://cdn.simpleicons.org/notion/ffffff" alt="Notion AI"/>
+        <span class="ts-card-label">Notion AI</span>
+      </div>
+    </div>
+    <div class="ts-card" data-cat="backend" style="--card-glow:#ffffff; animation-delay:0.76s">
+      <div class="ts-card-inner">
+        <img loading="lazy" src="https://cdn.simpleicons.org/githubcopilot/ffffff" alt="GitHub Copilot"/>
+        <span class="ts-card-label">Copilot</span>
       </div>
     </div>
   </div>
@@ -5946,6 +5996,14 @@ function ptestiToggle(card) {
   letter-spacing: 4px;
   text-transform: uppercase;
   margin-bottom: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.shz-stats-title svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
 }
 
 /* ── Row ── */
@@ -6040,11 +6098,17 @@ function ptestiToggle(card) {
 
 /* Icon */
 .shz-stat-icon {
-  font-size: 1.1rem;
   display: block;
-  margin-bottom: 0.25rem;
+  margin: 0 auto 0.25rem;
   transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
   line-height: 1;
+  color: rgba(0,255,200,0.85);
+}
+.shz-stat-icon svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  margin: 0 auto;
 }
 .shz-stat:hover .shz-stat-icon {
   transform: scale(1.25) rotate(-8deg);
@@ -6196,20 +6260,20 @@ function ptestiToggle(card) {
   .shz-stats-grid { max-width: 100%; border-radius: 14px; }
   .shz-stat { padding: 0.8rem 0.4rem 0.75rem; }
   .shz-stat-num { font-size: 1.4rem; }
-  .shz-stat-icon { font-size: 0.95rem; }
+  .shz-stat-icon svg { width: 15px; height: 15px; }
   .shz-stat-label { font-size: 0.52rem; letter-spacing: 0.8px; }
 }
 /* ===== END COMPACT STATS ===== */
 </style>
 
 <div class="shz-stats-wrap">
-  <div class="shz-stats-title">📊 Stats Dashboard</div>
+  <div class="shz-stats-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 15v-3"/><path d="M12 15V7"/><path d="M17 15v-5"/></svg> Stats Dashboard</div>
   <div class="shz-stats-grid">
 
     <div class="shz-stat" id="shz-stat-0">
       <div class="shz-stat-shimmer"></div>
       <div class="shz-stat-dot"></div>
-      <span class="shz-stat-icon">⏱️</span>
+      <span class="shz-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5"/><path d="M9 2h6"/><path d="M12 2v2"/></svg></span>
       <span class="shz-stat-num" id="shz-n0">0</span>
       <div class="shz-stat-bar-track"><div class="shz-stat-bar-fill" id="shz-b0" data-fill="80"></div></div>
       <div class="shz-stat-label">Brand Ops Experience</div>
@@ -6225,7 +6289,7 @@ function ptestiToggle(card) {
     <div class="shz-stat" id="shz-stat-1">
       <div class="shz-stat-shimmer" style="animation-delay:0.25s"></div>
       <div class="shz-stat-dot" style="animation-delay:0.9s"></div>
-      <span class="shz-stat-icon">🚀</span>
+      <span class="shz-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5c2.5 1.5 4 4.5 4 8 0 2-.5 3.8-1.3 5.2l-2.7 3-2.7-3C8.5 14.3 8 12.5 8 10.5c0-3.5 1.5-6.5 4-8z"/><circle cx="12" cy="9" r="1.6"/><path d="M8.3 13.5c-1.8.4-3 1.6-3.3 4.3 1.8-.6 3.1-1.4 3.9-2.4"/><path d="M15.7 13.5c1.8.4 3 1.6 3.3 4.3-1.8-.6-3.1-1.4-3.9-2.4"/><path d="M10.2 18.7c.5 1 1 1.8 1.8 2.3.8-.5 1.3-1.3 1.8-2.3"/></svg></span>
       <span class="shz-stat-num" id="shz-n1">0<span class="shz-stat-suffix" id="shz-s1"></span></span>
       <div class="shz-stat-bar-track"><div class="shz-stat-bar-fill" id="shz-b1" data-fill="92"></div></div>
       <div class="shz-stat-label">Projects Completed</div>
@@ -6241,7 +6305,7 @@ function ptestiToggle(card) {
     <div class="shz-stat" id="shz-stat-2">
       <div class="shz-stat-shimmer" style="animation-delay:0.5s"></div>
       <div class="shz-stat-dot" style="animation-delay:1.8s"></div>
-      <span class="shz-stat-icon">😊</span>
+      <span class="shz-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 21a6 6 0 0 0-12 0"/><circle cx="12" cy="10" r="4"/><path d="M9.5 10.3l1.4 1.4L14.5 8.5"/></svg></span>
       <span class="shz-stat-num" id="shz-n2">0<span class="shz-stat-suffix" id="shz-s2"></span></span>
       <div class="shz-stat-bar-track"><div class="shz-stat-bar-fill" id="shz-b2" data-fill="88"></div></div>
       <div class="shz-stat-label">Happy Clients</div>
@@ -6357,7 +6421,7 @@ function ptestiToggle(card) {
 <!-- ===== END STATS ===== -->
 <section class="certifications" id="certSection" data-aos="fade-up" data-aos-duration="1200">
 
-  <div class="cert-head-label">🎖️ Verified Credentials</div>
+  <div class="cert-head-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4-3.9-3.8 5.4-.8z"/></svg> Verified Credentials</div>
   <div class="cert-head-title">Certifications</div>
   <div class="cert-head-sub">Tap any card to expand · Earned while working full-time</div>
 
@@ -6365,7 +6429,7 @@ function ptestiToggle(card) {
 
     <div class="cert-card" data-fill="90">
       <div class="cert-header">
-        <div class="cert-icon">🎓</div>
+        <div class="cert-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9l10-5 10 5-10 5-10-5z"/><path d="M6 11v4c0 1.5 3 3 6 3s6-1.5 6-3v-4"/><path d="M22 9v6"/></svg></div>
         <div class="cert-info">
           <div class="cert-name">Diploma in Computer Applications</div>
           <div class="cert-meta">Foundation · CS</div>
@@ -6386,7 +6450,7 @@ function ptestiToggle(card) {
 
     <div class="cert-card" data-fill="85">
       <div class="cert-header">
-        <div class="cert-icon">🌐</div>
+        <div class="cert-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.5-4-9s1.5-6.5 4-9z"/></svg></div>
         <div class="cert-info">
           <div class="cert-name">Web Development Basics</div>
           <div class="cert-meta">Frontend · Web Stack</div>
@@ -6407,7 +6471,7 @@ function ptestiToggle(card) {
 
     <div class="cert-card" data-fill="92">
       <div class="cert-header">
-        <div class="cert-icon">📊</div>
+        <div class="cert-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M3 20h18"/></svg></div>
         <div class="cert-info">
           <div class="cert-name">Advanced Excel &amp; Business Reporting</div>
           <div class="cert-meta">Analytics · Data</div>
@@ -6428,7 +6492,7 @@ function ptestiToggle(card) {
 
     <div class="cert-card" data-fill="95">
       <div class="cert-header">
-        <div class="cert-icon">🤝</div>
+        <div class="cert-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13v-1a8 8 0 0 1 16 0v1"/><rect x="2.5" y="13" width="4" height="6" rx="1.5"/><rect x="17.5" y="13" width="4" height="6" rx="1.5"/><path d="M20 19v1a3 3 0 0 1-3 3h-3"/></svg></div>
         <div class="cert-info">
           <div class="cert-name">Technical &amp; Backend Support</div>
           <div class="cert-meta">L1/L2 · Ops · IT</div>
@@ -6449,7 +6513,7 @@ function ptestiToggle(card) {
 
     <div class="cert-card" data-fill="80">
       <div class="cert-header">
-        <div class="cert-icon">⚡</div>
+        <div class="cert-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg></div>
         <div class="cert-info">
           <div class="cert-name">JavaScript Programming</div>
           <div class="cert-meta">Frontend · Logic</div>
@@ -6470,7 +6534,7 @@ function ptestiToggle(card) {
 
     <div class="cert-card" data-fill="75">
       <div class="cert-header">
-        <div class="cert-icon">⚙️</div>
+        <div class="cert-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8L6 18M18 6l1.8-1.8"/></svg></div>
         <div class="cert-info">
           <div class="cert-name">Programming in C++</div>
           <div class="cert-meta">Systems · OOP</div>
@@ -6491,7 +6555,7 @@ function ptestiToggle(card) {
 
     <div class="cert-card" data-fill="88">
       <div class="cert-header">
-        <div class="cert-icon">🏷️</div>
+        <div class="cert-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4L3 12l5 8"/><path d="M16 4l5 8-5 8"/></svg></div>
         <div class="cert-info">
           <div class="cert-name">HTML Essentials</div>
           <div class="cert-meta">Markup · Semantics</div>
@@ -6512,7 +6576,7 @@ function ptestiToggle(card) {
 
     <div class="cert-card" data-fill="93">
       <div class="cert-header">
-        <div class="cert-icon">🎨</div>
+        <div class="cert-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 8 0 1 0 0 16c1 0 1.8-.7 1.8-1.6 0-.4-.2-.8-.4-1.1-.2-.3-.4-.7-.4-1.1 0-.9.8-1.6 1.8-1.6H17c2.2 0 4-1.6 4-3.8C21 6 17 3 12 3z"/><circle cx="7.5" cy="10.5" r="1.1" fill="currentColor" stroke="none"/><circle cx="9.5" cy="7" r="1.1" fill="currentColor" stroke="none"/><circle cx="14.5" cy="7" r="1.1" fill="currentColor" stroke="none"/><circle cx="16.5" cy="10.5" r="1.1" fill="currentColor" stroke="none"/></svg></div>
         <div class="cert-info">
           <div class="cert-name">UI/UX Design & React Development</div>
           <div class="cert-meta">Design · Frontend · React</div>
@@ -7023,7 +7087,7 @@ function ptestiToggle(card) {
       Professional Journey
       <span class="pwork-dot"></span>
     </div>
-    <h2 class="pwork-title">🚀 Work Experience</h2>
+    <h2 class="pwork-title" style="display:inline-flex; align-items:center; gap:0.5rem;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#50d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>Work Experience</h2>
     <p class="pwork-sub">Every role sharpened a different edge — tap any entry to explore the story.</p>
     <div class="pwork-divider"></div>
   </div>
@@ -7032,11 +7096,11 @@ function ptestiToggle(card) {
 
     <!-- ① Xiaomi -->
     <li class="pwork-entry" onclick="pworkToggle(this)">
-      <div class="pwork-node" style="color:#f36c21; border-color:#f36c21;">📱</div>
+      <div class="pwork-node" style="color:#f36c21; border-color:#f36c21;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg></div>
       <div class="pwork-card">
         <div class="pwork-corner"></div>
         <div class="pwork-card-head">
-          <div class="pwork-logo" style="background:rgba(243,108,33,0.12); border-color:rgba(243,108,33,0.25);">📱</div>
+          <div class="pwork-logo" style="background:rgba(243,108,33,0.12); border-color:rgba(243,108,33,0.25); color:#f36c21;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg></div>
           <div class="pwork-head-text">
             <div class="pwork-company">Xiaomi India — One Point One Solutions</div>
             <div class="pwork-role">L1 Inbound Support → MSM Troubleshooting (Pilot Batch)</div>
@@ -7065,11 +7129,11 @@ function ptestiToggle(card) {
 
     <!-- ② Flipkart -->
     <li class="pwork-entry" onclick="pworkToggle(this)">
-      <div class="pwork-node" style="color:#2874f0; border-color:#2874f0;">🛒</div>
+      <div class="pwork-node" style="color:#2874f0; border-color:#2874f0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg></div>
       <div class="pwork-card">
         <div class="pwork-corner"></div>
         <div class="pwork-card-head">
-          <div class="pwork-logo" style="background:rgba(40,116,240,0.12); border-color:rgba(40,116,240,0.25);">🛒</div>
+          <div class="pwork-logo" style="background:rgba(40,116,240,0.12); border-color:rgba(40,116,240,0.25); color:#2874f0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg></div>
           <div class="pwork-head-text">
             <div class="pwork-company">Flipkart — Ienergizer</div>
             <div class="pwork-role">L2 Support — Returns &amp; Refunds</div>
@@ -7097,11 +7161,11 @@ function ptestiToggle(card) {
 
     <!-- ③ Rapido -->
     <li class="pwork-entry" onclick="pworkToggle(this)">
-      <div class="pwork-node" style="color:#ffcc00; border-color:#ffcc00;">🛵</div>
+      <div class="pwork-node" style="color:#ffcc00; border-color:#ffcc00;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="18" r="2.2"/><circle cx="18" cy="18" r="2.2"/><path d="M7 18h6l3-6h3"/><path d="M13 12l-2-5H8"/><path d="M16 5h2"/></svg></div>
       <div class="pwork-card">
         <div class="pwork-corner"></div>
         <div class="pwork-card-head">
-          <div class="pwork-logo" style="background:rgba(255,204,0,0.1); border-color:rgba(255,204,0,0.25);">🛵</div>
+          <div class="pwork-logo" style="background:rgba(255,204,0,0.1); border-color:rgba(255,204,0,0.25); color:#ffcc00;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="18" r="2.2"/><circle cx="18" cy="18" r="2.2"/><path d="M7 18h6l3-6h3"/><path d="M13 12l-2-5H8"/><path d="M16 5h2"/></svg></div>
           <div class="pwork-head-text">
             <div class="pwork-company">Rapido — Ienergizer</div>
             <div class="pwork-role">IT / Developer</div>
@@ -7132,11 +7196,11 @@ function ptestiToggle(card) {
 
     <!-- ④ Frontend / Self-Built -->
     <li class="pwork-entry" onclick="pworkToggle(this)">
-      <div class="pwork-node" style="color:#00e5c8; border-color:#00e5c8;">💻</div>
+      <div class="pwork-node" style="color:#00e5c8; border-color:#00e5c8;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
       <div class="pwork-card">
         <div class="pwork-corner"></div>
         <div class="pwork-card-head">
-          <div class="pwork-logo" style="background:rgba(0,229,200,0.1); border-color:rgba(0,229,200,0.25);">💻</div>
+          <div class="pwork-logo" style="background:rgba(0,229,200,0.1); border-color:rgba(0,229,200,0.25); color:#00e5c8;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
           <div class="pwork-head-text">
             <div class="pwork-company">Freelance &amp; Personal Projects</div>
             <div class="pwork-role">Full Stack Developer &amp; UI/UX Designer</div>
@@ -7493,7 +7557,14 @@ document.addEventListener('keydown', function(e) {
 }
 @keyframes kta3-ripple { to { transform: translate(-50%,-50%) scale(1); opacity: 0; } }
 
-.kta3-emoji { font-size: 1.6rem; margin-bottom: 6px; line-height: 1; }
+.kta3-emoji {
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 6px;
+  color: var(--ka, #a78bfa);
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--ka, #a78bfa) 45%, transparent));
+}
+.kta3-emoji svg { width: 22px; height: 22px; display: block; }
 .kta3-card-title {
   font-size: 0.71rem; font-weight: 650;
   color: #d8cdf5; line-height: 1.35; margin: 0;
@@ -7537,9 +7608,12 @@ document.addEventListener('keydown', function(e) {
   display: flex; gap: 1.1rem; align-items: flex-start;
 }
 .kta3-panel-ico {
-  font-size: 2rem; flex-shrink: 0; margin-top: 3px;
+  width: 40px; height: 40px; flex-shrink: 0; margin-top: 3px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--kp, #a78bfa);
   filter: drop-shadow(0 0 8px rgba(167,139,250,0.45));
 }
+.kta3-panel-ico svg { width: 26px; height: 26px; display: block; }
 .kta3-panel-body { flex: 1; text-align: left; }
 .kta3-panel-title {
   font-size: 0.84rem; font-weight: 700;
@@ -7579,52 +7653,64 @@ document.addEventListener('keydown', function(e) {
       Crafted with Precision
       <span class="kta3-dot"></span>
     </div>
-    <h2 class="kta3-title">⚡ Key Technical Achievements</h2>
+    <h2 class="kta3-title"><svg viewBox="0 0 24 24" fill="currentColor" style="width:0.85em;height:0.85em;vertical-align:-0.05em;"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg> Key Technical Achievements</h2>
     <p class="kta3-sub">Real milestones, real impact — click any card to explore the full story.</p>
     <div class="kta3-rule"></div>
   </div>
 
   <!-- CATEGORY: Technical Skills -->
   <div class="kta3-cat">
-    <span class="kta3-cat-label" style="color:#60a5fa;">🔵 Technical Skills</span>
+    <span class="kta3-cat-label" style="color:#60a5fa; display:inline-flex; align-items:center; gap:5px;"><svg viewBox="0 0 24 24" fill="currentColor" style="width:8px;height:8px;"><circle cx="12" cy="12" r="10"/></svg> Technical Skills</span>
     <span class="kta3-cat-line" style="background:#60a5fa;"></span>
   </div>
 
   <div class="kta3-grid" id="kta3-tech-grid">
 
-    <div class="kta3-card" style="--ka:#60a5fa;" data-id="kt1" data-group="tech" style="animation-delay:0.05s">
-      <div class="kta3-emoji">🥇</div>
-      <p class="kta3-card-title">GitHub – 100+ Contributions</p>
+    <div class="kta3-card" style="--ka:#60a5fa; animation-delay:0.05s;" data-id="kt1" data-group="tech">
+      <div class="kta3-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v4a4 4 0 0 1-8 0V4z"/><path d="M8 5H5a3 3 0 0 0 3 3"/><path d="M16 5h3a3 3 0 0 1-3 3"/><path d="M12 12v3"/><path d="M9 19h6"/><path d="M10 19v-2a2 2 0 0 1 4 0v2"/></svg></div>
+      <p class="kta3-card-title">2,600+ GitHub Contributions</p>
+      <span class="kta3-hint">as of 14 Sep 2026 · tap to explore</span>
+    </div>
+
+    <div class="kta3-card" style="--ka:#34d399; animation-delay:0.1s;" data-id="kt2" data-group="tech">
+      <div class="kta3-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5c2.5 1.5 4 4.5 4 8 0 2-.5 3.8-1.3 5.2l-2.7 3-2.7-3C8.5 14.3 8 12.5 8 10.5c0-3.5 1.5-6.5 4-8z"/><circle cx="12" cy="9" r="1.6"/><path d="M8.3 13.5c-1.8.4-3 1.6-3.3 4.3 1.8-.6 3.1-1.4 3.9-2.4"/><path d="M15.7 13.5c1.8.4 3 1.6 3.3 4.3-1.8-.6-3.1-1.4-3.9-2.4"/><path d="M10.2 18.7c.5 1 1 1.8 1.8 2.3.8-.5 1.3-1.3 1.8-2.3"/></svg></div>
+      <p class="kta3-card-title">50+ Web Projects Deployed</p>
       <span class="kta3-hint">▸ click to explore</span>
     </div>
 
-    <div class="kta3-card" style="--ka:#34d399;" data-id="kt2" data-group="tech" style="animation-delay:0.1s">
-      <div class="kta3-emoji">🚀</div>
-      <p class="kta3-card-title">Deployed 5+ Web Projects</p>
+    <div class="kta3-card" style="--ka:#f472b6; animation-delay:0.15s;" data-id="kt3" data-group="tech">
+      <div class="kta3-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5c2 0 5 .4 6.5 2v12c-1.5-1.4-4.5-1.8-6.5-1.8V5.5z"/><path d="M20 5.5c-2 0-5 .4-6.5 2v12c1.5-1.4 4.5-1.8 6.5-1.8V5.5z"/></svg></div>
+      <p class="kta3-card-title">Advanced React Mastery</p>
       <span class="kta3-hint">▸ click to explore</span>
     </div>
 
-    <div class="kta3-card" style="--ka:#f472b6;" data-id="kt3" data-group="tech" style="animation-delay:0.15s">
-      <div class="kta3-emoji">📚</div>
-      <p class="kta3-card-title">Advanced React (2023)</p>
-      <span class="kta3-hint">▸ click to explore</span>
-    </div>
-
-    <div class="kta3-card" style="--ka:#fbbf24;" data-id="kt4" data-group="tech" style="animation-delay:0.2s">
-      <div class="kta3-emoji">🎯</div>
-      <p class="kta3-card-title">200+ Algorithmic Challenges</p>
-      <span class="kta3-hint">▸ click to explore</span>
-    </div>
-
-    <div class="kta3-card" style="--ka:#22d3ee;" data-id="kt5" data-group="tech" style="animation-delay:0.25s">
-      <div class="kta3-emoji">🎨</div>
+    <div class="kta3-card" style="--ka:#22d3ee; animation-delay:0.25s;" data-id="kt5" data-group="tech">
+      <div class="kta3-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 8 0 1 0 0 16c1 0 1.8-.7 1.8-1.6 0-.4-.2-.8-.4-1.1-.2-.3-.4-.7-.4-1.1 0-.9.8-1.6 1.8-1.6H17c2.2 0 4-1.6 4-3.8C21 6 17 3 12 3z"/><circle cx="7.5" cy="10.5" r="1.1" fill="currentColor" stroke="none"/><circle cx="9.5" cy="7" r="1.1" fill="currentColor" stroke="none"/><circle cx="14.5" cy="7" r="1.1" fill="currentColor" stroke="none"/><circle cx="16.5" cy="10.5" r="1.1" fill="currentColor" stroke="none"/></svg></div>
       <p class="kta3-card-title">Responsive UI Engineering</p>
       <span class="kta3-hint">▸ click to explore</span>
     </div>
 
-    <div class="kta3-card" style="--ka:#a78bfa;" data-id="kt6" data-group="tech" style="animation-delay:0.3s">
-      <div class="kta3-emoji">🤖</div>
-      <p class="kta3-card-title">API + Workflow Automation</p>
+    <div class="kta3-card" style="--ka:#a78bfa; animation-delay:0.3s;" data-id="kt6" data-group="tech">
+      <div class="kta3-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="6" r="2.2"/><circle cx="19" cy="6" r="2.2"/><circle cx="12" cy="18" r="2.2"/><path d="M7 7.5L10.5 16"/><path d="M17 7.5L13.5 16"/></svg></div>
+      <p class="kta3-card-title">Multi-Agent AI Integration</p>
+      <span class="kta3-hint">▸ click to explore</span>
+    </div>
+
+    <div class="kta3-card" style="--ka:#fb923c; animation-delay:0.35s;" data-id="kt7" data-group="tech">
+      <div class="kta3-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></div>
+      <p class="kta3-card-title">Two-Tier Link Verification</p>
+      <span class="kta3-hint">▸ click to explore</span>
+    </div>
+
+    <div class="kta3-card" style="--ka:#c084fc; animation-delay:0.4s;" data-id="kt8" data-group="tech">
+      <div class="kta3-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></div>
+      <p class="kta3-card-title">AI Chat Concierge — Mail, Resume &amp; Callback</p>
+      <span class="kta3-hint">▸ click to explore</span>
+    </div>
+
+    <div class="kta3-card" style="--ka:#fbbf24; animation-delay:0.45s;" data-id="kt9" data-group="tech">
+      <div class="kta3-emoji"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2z"/></svg></div>
+      <p class="kta3-card-title">On-Demand AI Recap &amp; Live Ship Toast</p>
       <span class="kta3-hint">▸ click to explore</span>
     </div>
 
@@ -7647,33 +7733,45 @@ document.addEventListener('keydown', function(e) {
 
   <!-- CATEGORY: Impact & Innovation -->
   <div class="kta3-cat" style="margin-top:0.3rem;">
-    <span class="kta3-cat-label" style="color:#e2e8f0;">⚪ Impact &amp; Innovation</span>
+    <span class="kta3-cat-label" style="color:#e2e8f0; display:inline-flex; align-items:center; gap:5px;"><svg viewBox="0 0 24 24" fill="currentColor" style="width:8px;height:8px;"><circle cx="12" cy="12" r="10"/></svg> Impact &amp; Innovation</span>
     <span class="kta3-cat-line" style="background:#e2e8f0;"></span>
   </div>
 
   <div class="kta3-grid" id="kta3-impact-grid">
 
-    <div class="kta3-card" style="--ka:#e2e8f0;" data-id="ki1" data-group="impact" style="animation-delay:0.05s">
-      <div class="kta3-emoji">🧑‍🤝‍🧑</div>
-      <p class="kta3-card-title">Agile Collab (10+ Devs)</p>
+    <div class="kta3-card" style="--ka:#ffcc00; animation-delay:0.05s;" data-id="ki1" data-group="impact">
+      <div class="kta3-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="8" r="3"/><path d="M2.5 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 20c.2-2.6 1.9-4.6 4-5.2"/></svg></div>
+      <p class="kta3-card-title">Team Development — Rapido</p>
       <span class="kta3-hint">▸ click to explore</span>
     </div>
 
-    <div class="kta3-card" style="--ka:#facc15;" data-id="ki2" data-group="impact" style="animation-delay:0.1s">
-      <div class="kta3-emoji">💡</div>
+    <div class="kta3-card" style="--ka:#facc15; animation-delay:0.1s;" data-id="ki2" data-group="impact">
+      <div class="kta3-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.5.4.8.9.8 1.5v.1h5.4v-.1c0-.6.3-1.1.8-1.5A6 6 0 0 0 12 3z"/></svg></div>
       <p class="kta3-card-title">Signature "Hacker Mode"</p>
       <span class="kta3-hint">▸ click to explore</span>
     </div>
 
-    <div class="kta3-card" style="--ka:#4ade80;" data-id="ki3" data-group="impact" style="animation-delay:0.15s">
-      <div class="kta3-emoji">🌐</div>
-      <p class="kta3-card-title">10k+ Active Users Reached</p>
+    <div class="kta3-card" style="--ka:#4ade80; animation-delay:0.15s;" data-id="ki3" data-group="impact">
+      <div class="kta3-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.5-4-9s1.5-6.5 4-9z"/></svg></div>
+      <p class="kta3-card-title">Real-World Reach — Public Projects</p>
       <span class="kta3-hint">▸ click to explore</span>
     </div>
 
-    <div class="kta3-card" style="--ka:#00d4ff;" data-id="ki4" data-group="impact" style="animation-delay:0.20s">
-      <div class="kta3-emoji">🖥️</div>
+    <div class="kta3-card" style="--ka:#00d4ff; animation-delay:0.20s;" data-id="ki4" data-group="impact">
+      <div class="kta3-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg></div>
       <p class="kta3-card-title">Portfolio — Built from Scratch</p>
+      <span class="kta3-hint">▸ click to explore</span>
+    </div>
+
+    <div class="kta3-card" style="--ka:#2dd4bf; animation-delay:0.25s;" data-id="ki5" data-group="impact">
+      <div class="kta3-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg></div>
+      <p class="kta3-card-title">Live System Health Dashboard</p>
+      <span class="kta3-hint">▸ click to explore</span>
+    </div>
+
+    <div class="kta3-card" style="--ka:#fb7185; animation-delay:0.3s;" data-id="ki6" data-group="impact">
+      <div class="kta3-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20v-3h4v3"/><path d="M10 20v-6h4v6"/><path d="M16 20v-9h4v9"/></svg></div>
+      <p class="kta3-card-title">Smart 3-Step Project Quote Wizard</p>
       <span class="kta3-hint">▸ click to explore</span>
     </div>
 
@@ -7698,36 +7796,48 @@ document.addEventListener('keydown', function(e) {
 <script>
 (function() {
   var kta3DB = {
-    kt1: { icon:'🥇', title:'GitHub – 100+ Contributions', group:'tech', accent:'#60a5fa',
-      desc:'Consistency is the rarest skill in development. I\'ve maintained an active GitHub streak with 100+ commits across personal and collaborative projects — every push representing a deliberate, version-controlled improvement. This discipline shaped how I think: in iterations, not leaps.',
-      tags:['Git','Version Control','Open Source','CI/CD','Collaboration'] },
-    kt2: { icon:'🚀', title:'Deployed 5+ Production Web Projects', group:'tech', accent:'#34d399',
-      desc:'Building locally is one thing. Shipping to the real world — with real users, real traffic, and real consequences — is another. I\'ve launched 5+ production apps, managing deployment pipelines, domain config, performance monitoring, and post-launch iteration.',
-      tags:['Deployment','GitHub Pages','Hosting','SEO','Performance'] },
-    kt3: { icon:'📚', title:'Advanced React — Certified (2023)', group:'tech', accent:'#f472b6',
-      desc:'I didn\'t just learn React syntax — I mastered its mental model. Hooks, context, reducer patterns, memoisation, lazy loading, code splitting — applied directly in production. In 2023 I completed an advanced React certification that formalised what I\'d been building in the wild.',
+    kt1: { icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v4a4 4 0 0 1-8 0V4z"/><path d="M8 5H5a3 3 0 0 0 3 3"/><path d="M16 5h3a3 3 0 0 1-3 3"/><path d="M12 12v3"/><path d="M9 19h6"/><path d="M10 19v-2a2 2 0 0 1 4 0v2"/></svg>', title:'GitHub — 2,600+ Contributions (4 Repos)', group:'tech', accent:'#60a5fa',
+      desc:'Consistency is the rarest skill in development. Across all 4 of my repositories, I\'ve logged 2,600+ contributions over the past year — with a 44-day active streak and a 63-day longest streak on record (last updated 14 Sep 2026). Every push represents a deliberate, version-controlled improvement. This discipline shaped how I think: in iterations, not leaps.',
+      tags:['Git','Version Control','Commit Streak','4 Repos','Consistency'] },
+    kt2: { icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5c2.5 1.5 4 4.5 4 8 0 2-.5 3.8-1.3 5.2l-2.7 3-2.7-3C8.5 14.3 8 12.5 8 10.5c0-3.5 1.5-6.5 4-8z"/><circle cx="12" cy="9" r="1.6"/><path d="M8.3 13.5c-1.8.4-3 1.6-3.3 4.3 1.8-.6 3.1-1.4 3.9-2.4"/><path d="M15.7 13.5c1.8.4 3 1.6 3.3 4.3-1.8-.6-3.1-1.4-3.9-2.4"/><path d="M10.2 18.7c.5 1 1 1.8 1.8 2.3.8-.5 1.3-1.3 1.8-2.3"/></svg>', title:'Deployed 50+ Web Projects', group:'tech', accent:'#34d399',
+      desc:'Building locally is one thing. Shipping to the real world — with real users, real traffic, and real consequences — is another. Beyond my 4 flagship products (this portfolio, StudyLens AI, YojanaSahay, and the SHG Directory), I\'ve deployed 50+ web projects overall — store management systems, e-commerce setups, personal portfolios, school websites, restaurant websites, and more — managing deployment pipelines, domain config, and post-launch iteration for each.',
+      tags:['Deployment','Vercel','Client Projects','Hosting','Performance'] },
+    kt3: { icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5c2 0 5 .4 6.5 2v12c-1.5-1.4-4.5-1.8-6.5-1.8V5.5z"/><path d="M20 5.5c-2 0-5 .4-6.5 2v12c1.5-1.4 4.5-1.8 6.5-1.8V5.5z"/></svg>', title:'Advanced React — Deep Mastery', group:'tech', accent:'#f472b6',
+      desc:'I didn\'t just learn React syntax — I mastered its mental model. Hooks, context, reducer patterns, memoisation, lazy loading, code splitting — all sharpened project after project since 2023, not through a single course or badge, but through real production work.',
       tags:['React','Hooks','State Mgmt','Component Design','Performance'] },
-    kt4: { icon:'🎯', title:'200+ Algorithmic Challenges Solved', group:'tech', accent:'#fbbf24',
-      desc:'Great developers think in algorithms. I\'ve solved 200+ structured coding challenges spanning arrays, trees, dynamic programming, and string manipulation — building the cognitive habit of breaking any complex problem into clean, efficient logic before writing a single line.',
-      tags:['DSA','Problem Solving','JS Logic','Efficiency','Pattern Recognition'] },
-    kt5: { icon:'🎨', title:'Responsive UI Engineering', group:'tech', accent:'#22d3ee',
+    kt5: { icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 8 0 1 0 0 16c1 0 1.8-.7 1.8-1.6 0-.4-.2-.8-.4-1.1-.2-.3-.4-.7-.4-1.1 0-.9.8-1.6 1.8-1.6H17c2.2 0 4-1.6 4-3.8C21 6 17 3 12 3z"/><circle cx="7.5" cy="10.5" r="1.1" fill="currentColor" stroke="none"/><circle cx="9.5" cy="7" r="1.1" fill="currentColor" stroke="none"/><circle cx="14.5" cy="7" r="1.1" fill="currentColor" stroke="none"/><circle cx="16.5" cy="10.5" r="1.1" fill="currentColor" stroke="none"/></svg>', title:'Responsive UI Engineering', group:'tech', accent:'#22d3ee',
       desc:'Pixel-perfect design must hold across every device, orientation, and screen density. I\'ve engineered fully responsive, mobile-first interfaces using fluid grids, CSS custom properties, and real-device testing. This portfolio you\'re viewing is itself the proof.',
       tags:['CSS Grid','Flexbox','Mobile-First','Breakpoints','Cross-device'] },
-    kt6: { icon:'🤖', title:'API Integration & Workflow Automation', group:'tech', accent:'#a78bfa',
-      desc:'Manual processes have a ceiling. I\'ve integrated third-party APIs (analytics, notifications, AI assistants) and built automation workflows that eliminated repetitive steps — cutting operational friction and letting teams focus on what actually matters.',
-      tags:['REST APIs','Automation','Webhooks','AI Tools','Workflow Design'] },
-    ki1: { icon:'🧑‍🤝‍🧑', title:'Agile Collaboration — 10+ Dev Teams', group:'impact', accent:'#e2e8f0',
-      desc:'Code doesn\'t ship in isolation. I\'ve collaborated within and led cross-functional teams of 10+ developers across Agile sprints — writing clear PRs, giving actionable code reviews, coordinating deliverables, and keeping communication clear under deadline pressure.',
-      tags:['Agile','Scrum','Code Review','Cross-functional','Team Leadership'] },
-    ki2: { icon:'💡', title:'Signature "Hacker Mode" Feature', group:'impact', accent:'#facc15',
+    kt6: { icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="6" r="2.2"/><circle cx="19" cy="6" r="2.2"/><circle cx="12" cy="18" r="2.2"/><path d="M7 7.5L10.5 16"/><path d="M17 7.5L13.5 16"/></svg>', title:'Multi-Agent AI Integration', group:'tech', accent:'#a78bfa',
+      desc:'AI isn\'t decoration here — it\'s infrastructure. This portfolio runs a live Groq-powered chat assistant with streamed, context-aware responses. YojanaSahay goes further: a Groq + Tavily stack handles conversational scheme search, while a separate automation layer — Tavily-backed scheme verification, link verification, and dead-URL/ping checks, alongside the Sharpe API — keeps scheme data accurate without manual upkeep. 5 AI agents run behind the scenes in the YojanaSahay backend, working autonomously so the data stays trustworthy 24/7.',
+      tags:['Groq AI','Tavily','Multi-Agent AI','Link Verification','YojanaSahay'] },
+    kt7: { icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>', title:'Two-Tier Link Verification System', group:'tech', accent:'#fb923c',
+      desc:'A simple ping-and-flag check for scheme URLs kept producing false positives — pages that moved, not pages that died. I built a two-tier system instead: Tier 1 is a fast HEAD-with-GET-fallback ping across every scheme; anything that fails gets queued for Tier 2, which pulls the page through Tavily Extract, strips it to 4,000 clean characters, and sends it to Groq (openai/gpt-oss-20b) with a JSON-only prompt asking for lastDate, isActive, and confidence. 569 of 1,116 schemes are currently "verifiable" — the other 544 are offline-only and correctly excluded rather than reported as false failures. When confidence drops below 0.3, the code hard-overrides isActive to null server-side, regardless of what the model returned — the rule lives in code, not just in the prompt, so the model can\'t talk its way around it.',
+      tags:['Two-Tier Verification','Tavily Extract','Groq JSON','Confidence Scoring','YojanaSahay'] },
+    kt8: { icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>', title:'AI Chat Concierge — Mail, Resume & Callback', group:'tech', accent:'#c084fc',
+      desc:'The chat assistant\'s Help menu opens three fully automated flows, not dumb forms: Quick Mail to Sahnawaz, Send Me His Resume, and Request a Callback. Each is a real multi-step conversation — it asks for a name, then validates an email inline with progressively friendlier retry nudges (up to 4 tries before suggesting Cancel), and for callbacks accepts a plain 10-digit Indian mobile number and quietly prepends +91 itself. Every flow ends by hitting a real serverless endpoint — /api/contact, /api/resume, or /api/callback — and reports back exactly what happened: a confirmation landing in the visitor\'s inbox, Sahnawaz notified instantly, or a clear fallback email address the moment a network call fails, so nobody is left wondering if their message actually went through.',
+      tags:['Conversational UI','Input Validation','Serverless API','Two-Way Email','Graceful Fallbacks'] },
+    kt9: { icon:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2z"/></svg>', title:'On-Demand AI Recap & Live Ship Toast', group:'tech', accent:'#fbbf24',
+      desc:'The AI Weekly Recap inside "Recently Shipped" never fires on page load or the moment it scrolls into view — the /api/github-digest call, and the Groq request behind it, only runs the instant a visitor taps the button, guarded against a fast double-click so it can never fire twice. Once the summary lands, it doesn\'t type out like a terminal — it reveals word by word with a soft blur/fade-up motion, timing each word\'s delay dynamically from the recap\'s own length (clamped between 28ms and 65ms per word) so a short recap doesn\'t crawl and a long one doesn\'t rush. If the request fails, the error state becomes the retry button itself — tap it and it tries again, no dead end. A sibling feature, the live "Just Shipped" toast, listens on the same Firestore collection the GitHub push webhook writes to and pops up the instant a real commit lands — reusing the same Firestore connection already wired up for reviews and chat history, with zero polling.',
+      tags:['On-Demand AI','Word-Reveal Animation','Double-Fire Guard','Retry-as-CTA','Real-Time Webhook'] },
+    ki1: { icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="8" r="3"/><path d="M2.5 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 20c.2-2.6 1.9-4.6 4-5.2"/></svg>', title:'Team Development — Rapido', group:'impact', accent:'#ffcc00',
+      desc:'Internal tooling for a process spanning ride-hailing, payments, and driver support doesn\'t get built alone. At Rapido, I worked alongside a team of fellow developers on internal tools for the process, while also leading real-time chat support for ride and driver issues and designing agent training programs that were adopted floor-wide.',
+      tags:['Team Collaboration','Internal Tooling','Rapido','Cross-functional','Agent Training'] },
+    ki2: { icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.5.4.8.9.8 1.5v.1h5.4v-.1c0-.6.3-1.1.8-1.5A6 6 0 0 0 12 3z"/></svg>', title:'Signature "Hacker Mode" Feature', group:'impact', accent:'#facc15',
       desc:'Innovation means building things that didn\'t exist before. I designed and shipped a bespoke "Hacker Mode" — a creative UI state that transforms the interface into a terminal-aesthetic experience, complete with matrix rain effects, custom cursors, and sound cues.',
       tags:['Creative Coding','JS Canvas','UX Innovation','Signature Feature','UI Modes'] },
-    ki3: { icon:'🌐', title:'10,000+ Active Users Reached', group:'impact', accent:'#4ade80',
-      desc:'Numbers only matter when real people are behind them. The solutions I\'ve built — from L1/L2 support tooling at Xiaomi and Flipkart to publicly accessible web projects — have collectively reached and served over 10,000 active users. Scale validates design.',
-      tags:['Scale','User Impact','Production','Analytics','Real-world Delivery'] },
-    ki4: { icon:'🖥️', title:'Portfolio — Engineered from Scratch', group:'impact', accent:'#00d4ff',
+    ki3: { icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.5-4-9s1.5-6.5 4-9z"/></svg>', title:'Real-World Impact — Public Civic-Tech', group:'impact', accent:'#4ade80',
+      desc:'Numbers matter less than who\'s behind them. YojanaSahay helps everyday citizens discover and check eligibility for government welfare schemes. StudyLens AI answers real academic questions for Assam students. The SHG Directory turns Self Help Group data from Cachar district into something people can actually use. Three public, solo-built projects doing real work — not internal demos.',
+      tags:['Civic Tech','Public Access','YojanaSahay','StudyLens AI','SHG Directory'] },
+    ki4: { icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>', title:'Portfolio — Engineered from Scratch', group:'impact', accent:'#00d4ff',
       desc:'This portfolio is not a template. Every line — from the particle canvas and matrix rain footer, to the AI-powered live chat, skill bars, hacker mode, animated profile ring, and this very achievement system — is hand-coded in pure HTML, CSS, and vanilla JavaScript. No frameworks, no page builders. 16,000+ lines of deliberate, performance-optimised code, built to showcase what a developer who truly understands the web can create solo.',
-      tags:['Vanilla JS','CSS Animations','AI Chatbot','Performance','16k+ Lines','Zero Templates'] }
+      tags:['Vanilla JS','CSS Animations','AI Chatbot','Performance','16k+ Lines','Zero Templates'] },
+    ki5: { icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg>', title:'Live System Health Dashboard', group:'impact', accent:'#2dd4bf',
+      desc:'The "Recently Shipped" panel on this page runs its own independent health check — GitHub API, Firestore, and the push webhook — each shown with a live status dot and real latency in milliseconds, not a static "all systems operational" badge. It auto-rechecks every 30 seconds to match the endpoint\'s own cache window, and uses the Page Visibility API to pause polling the moment the tab goes hidden — so it never silently burns GitHub or Firestore quota in a forgotten background tab — then immediately re-checks the instant the tab comes back if enough time has passed. The same pattern real status dashboards use, built solo and self-contained.',
+      tags:['System Status API','Firestore','Page Visibility API','Self-Healing Polling','Live Monitoring'] },
+    ki6: { icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20v-3h4v3"/><path d="M10 20v-6h4v6"/><path d="M16 20v-9h4v9"/></svg>', title:'Smart 3-Step Project Quote Wizard', group:'impact', accent:'#fb7185',
+      desc:'The "What do you need built?" wizard in the Contact section asks three quick questions — project type, budget, timeline — and keeps the Quote & Contact form visibly locked behind a padlock until all three are answered, so visitors give useful context before they ever see a text box. It doesn\'t show a canned price list either: it calls the same Groq-powered /api/chat endpoint the AI assistant uses, tagged source:\'wizard\' for a leaner, faster prompt, and streams back a genuine instant estimate. If the visitor is already signed in, their name and email auto-fill from the Firebase session, and their three answers quietly fold into the message. Hitting send fires the exact same /api/contact pipeline as the chat\'s Quick Mail flow — one confirmation email out to the visitor, one instant notification in to Sahnawaz, no second implementation to maintain.',
+      tags:['Progressive Disclosure','Groq AI Estimate','Firebase Auto-fill','Two-Way Email','Lead Qualification'] }
   };
 
   var activeCard = { tech: null, impact: null };
@@ -7757,7 +7867,7 @@ document.addEventListener('keydown', function(e) {
     activeCard[group] = card;
 
     // populate panel
-    document.getElementById('kta3-ico-' + group).textContent = d.icon;
+    document.getElementById('kta3-ico-' + group).innerHTML = d.icon;
     document.getElementById('kta3-title-' + group).textContent = d.title;
     document.getElementById('kta3-desc-' + group).textContent = d.desc;
     document.getElementById('kta3-panel-' + group).style.setProperty('--kp', d.accent);
@@ -8088,7 +8198,7 @@ document.addEventListener('keydown', function(e) {
             <li>Premium animations &amp; effects</li>
             <li>Projects &amp; skills showcase</li>
             <li>Contact form integration</li>
-            <li>GitHub Pages deployment</li>
+            <li>GitHub &amp; Vercel deployment</li>
           </ul>
         </div>
       </div>
@@ -9727,8 +9837,26 @@ document.addEventListener('keydown', function(e) {
   margin-bottom: 0.9rem;
 }
 .mpj-card-icon {
-  font-size: 1.6rem;
-  line-height: 1;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--mpj-accent);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+  flex-shrink: 0;
+}
+.mpj-card-icon svg {
+  width: 21px;
+  height: 21px;
+  color: #04141a;
+}
+.mpj-metric svg, .mpj-hindsight svg, .mpj-link-case svg, .mpj-link-github svg.mpj-lock-icon, .mpj-cta-btn svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  vertical-align: -1px;
 }
 .mpj-card-status {
   font-size: 0.6rem;
@@ -10161,13 +10289,13 @@ document.addEventListener('keydown', function(e) {
     <!-- ① This Portfolio -->
     <div class="mpj-card" data-cat="fullstack ui" style="--mpj-accent: linear-gradient(90deg, #00ffe7, #00c6ff);">
       <div class="mpj-card-top">
-        <span class="mpj-card-icon">🚀</span>
+        <span class="mpj-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5c2.5 1.5 4 4.5 4 8 0 2-.5 3.8-1.3 5.2l-2.7 3-2.7-3C8.5 14.3 8 12.5 8 10.5c0-3.5 1.5-6.5 4-8z"/><circle cx="12" cy="9" r="1.6"/><path d="M8.3 13.5c-1.8.4-3 1.6-3.3 4.3 1.8-.6 3.1-1.4 3.9-2.4"/><path d="M15.7 13.5c1.8.4 3 1.6 3.3 4.3-1.8-.6-3.1-1.4-3.9-2.4"/><path d="M10.2 18.7c.5 1 1 1.8 1.8 2.3.8-.5 1.3-1.3 1.8-2.3"/></svg></span>
         <span class="mpj-card-status mpj-status-live">● LIVE</span>
       </div>
       <div class="mpj-card-name">This Portfolio — sahnawaz.dev</div>
       <div class="mpj-card-tagline">22,000+ lines of hand-coded HTML/CSS/JS. Firebase auth, AI chat, blog, particles, full dark UI — zero templates, zero shortcuts.</div>
       <div class="mpj-problem">Problem → Recruiters couldn't find my work in one place. Built a full personal brand hub instead.</div>
-      <div class="mpj-metric">⚡ 22,000+ lines · Firebase · AI Chat · Auth</div>
+      <div class="mpj-metric"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg> 22,000+ lines · Firebase · AI Chat · Auth</div>
       <div class="mpj-stack">
         <span class="mpj-pill">HTML/CSS/JS</span>
         <span class="mpj-pill">Firebase</span>
@@ -10176,12 +10304,12 @@ document.addEventListener('keydown', function(e) {
         <span class="mpj-pill">AOS</span>
         <span class="mpj-pill">Responsive</span>
       </div>
-      <div class="mpj-hindsight">🔮 Next iteration → React + component library for faster feature shipping.</div>
+      <div class="mpj-hindsight"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.5.4.8.9.8 1.5v.1h5.4v-.1c0-.6.3-1.1.8-1.5A6 6 0 0 0 12 3z"/></svg> Next iteration → React + component library for faster feature shipping.</div>
       <div class="mpj-card-meta">
         <span class="mpj-role-tag">Solo Built · Full Stack</span>
         <div class="mpj-card-links">
           <a href="https://sahnawaz-portfolio.vercel.app" target="_blank" class="mpj-link-btn mpj-link-live">↗ Live</a>
-          <button type="button" class="mpj-link-btn mpj-link-case" onclick="openCaseStudy('portfolio')">🔍 Case Study</button>
+          <button type="button" class="mpj-link-btn mpj-link-case" onclick="openCaseStudy('portfolio')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.3-4.3"/></svg> Case Study</button>
           <a href="https://github.com/sahnawazl" target="_blank" rel="noopener" class="mpj-link-btn mpj-link-github">
             <svg class="mpj-gh-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577
@@ -10201,13 +10329,13 @@ document.addEventListener('keydown', function(e) {
     <!-- ② StudyLens AI -->
     <div class="mpj-card" data-cat="fullstack tool" style="--mpj-accent: linear-gradient(90deg, #7c3aed, #3b82f6);">
       <div class="mpj-card-top">
-        <span class="mpj-card-icon">📚</span>
+        <span class="mpj-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5c2 0 5 .4 6.5 2v12c-1.5-1.4-4.5-1.8-6.5-1.8V5.5z"/><path d="M20 5.5c-2 0-5 .4-6.5 2v12c1.5-1.4 4.5-1.8 6.5-1.8V5.5z"/></svg></span>
         <span class="mpj-card-status mpj-status-live">● LIVE</span>
       </div>
       <div class="mpj-card-name">StudyLens AI — AI Homework Helper</div>
       <div class="mpj-card-tagline">AI-powered study assistant built for students in Assam — covers SEBA, AHSEC, CBSE &amp; ICSE syllabi. Ask questions by typing or snapping a photo from your book. Answers in English, Bengali, Hindi &amp; Assamese.</div>
       <div class="mpj-problem">Problem → Students in Assam had no syllabus-specific AI helper in their own language. Built a full platform with board selection, multi-language AI, photo Q&amp;A, and Firebase-synced history.</div>
-      <div class="mpj-metric">⚡ 4 Languages · 4+ Boards · Photo Q&amp;A · Cross-device Sync</div>
+      <div class="mpj-metric"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg> 4 Languages · 4+ Boards · Photo Q&amp;A · Cross-device Sync</div>
       <div class="mpj-stack">
         <span class="mpj-pill">Groq AI</span>
         <span class="mpj-pill">Firebase</span>
@@ -10216,12 +10344,12 @@ document.addEventListener('keydown', function(e) {
         <span class="mpj-pill">Multi-language</span>
         <span class="mpj-pill">OCR / Vision</span>
       </div>
-      <div class="mpj-hindsight">🔮 Would add personalised learning streaks and parent-monitoring dashboard in the next version.</div>
+      <div class="mpj-hindsight"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.5.4.8.9.8 1.5v.1h5.4v-.1c0-.6.3-1.1.8-1.5A6 6 0 0 0 12 3z"/></svg> Would add personalised learning streaks and parent-monitoring dashboard in the next version.</div>
       <div class="mpj-card-meta">
         <span class="mpj-role-tag">Solo Built · Full Stack + AI</span>
         <div class="mpj-card-links">
           <a href="https://studylens-ai-gamma.vercel.app" target="_blank" class="mpj-link-btn mpj-link-live">↗ Live</a>
-          <button type="button" class="mpj-link-btn mpj-link-case" onclick="openCaseStudy('studylens')">🔍 Case Study</button>
+          <button type="button" class="mpj-link-btn mpj-link-case" onclick="openCaseStudy('studylens')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.3-4.3"/></svg> Case Study</button>
         </div>
       </div>
     </div>
@@ -10229,7 +10357,7 @@ document.addEventListener('keydown', function(e) {
     <!-- ③ Yojana Sahay -->
     <div class="mpj-card" data-cat="fullstack tool" style="--mpj-accent: linear-gradient(90deg, #f97316, #16a34a);">
       <div class="mpj-card-top">
-        <span class="mpj-card-icon">🇮🇳</span>
+        <span class="mpj-card-icon"><svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="4" rx="1" fill="#FF9933"/><rect x="3.5" y="9.5" width="17" height="4" fill="#FFFFFF"/><rect x="3.5" y="13.5" width="17" height="4" rx="1" fill="#128807"/><circle cx="12" cy="11.5" r="1.35" fill="none" stroke="#0B2A6B" stroke-width="0.55"/></svg></span>
         <span class="mpj-card-status mpj-status-live">● LIVE</span>
       </div>
       <div class="mpj-card-name">Yojana Sahay — AI Government Scheme Finder</div>
@@ -10263,13 +10391,13 @@ document.addEventListener('keydown', function(e) {
         <span class="mpj-pill">REST API</span>
         <span class="mpj-pill">SEO</span>
       </div>
-      <div class="mpj-hindsight">🔮 Would add state-level filtering and WhatsApp bot integration so citizens can check eligibility without even opening a browser.</div>
+      <div class="mpj-hindsight"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.5.4.8.9.8 1.5v.1h5.4v-.1c0-.6.3-1.1.8-1.5A6 6 0 0 0 12 3z"/></svg> Would add state-level filtering and WhatsApp bot integration so citizens can check eligibility without even opening a browser.</div>
       <div class="mpj-demo-hint">// <b>Scheme Eligibility Checker</b> — a live module of this app, embedded in the Case Study below. Open it to test the actual checker.</div>
       <div class="mpj-card-meta">
         <span class="mpj-role-tag">Solo Built · Civic Tech + AI</span>
         <div class="mpj-card-links">
           <a href="https://yojanasahay.vercel.app" target="_blank" class="mpj-link-btn mpj-link-live">↗ Live</a>
-          <button type="button" class="mpj-link-btn mpj-link-case mpj-link-case-demo" onclick="openCaseStudy('yojanasahay')">🔍 Case Study</button>
+          <button type="button" class="mpj-link-btn mpj-link-case mpj-link-case-demo" onclick="openCaseStudy('yojanasahay')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.3-4.3"/></svg> Case Study</button>
         </div>
       </div>
     </div>
@@ -10277,13 +10405,13 @@ document.addEventListener('keydown', function(e) {
     <!-- ⑥ UI Component Library / Freelance Work -->
     <div class="mpj-card" data-cat="ui fullstack" style="--mpj-accent: linear-gradient(90deg, #a855f7, #ec4899);">
       <div class="mpj-card-top">
-        <span class="mpj-card-icon">🎨</span>
+        <span class="mpj-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 8 0 1 0 0 16c1 0 1.8-.7 1.8-1.6 0-.4-.2-.8-.4-1.1-.2-.3-.4-.7-.4-1.1 0-.9.8-1.6 1.8-1.6H17c2.2 0 4-1.6 4-3.8C21 6 17 3 12 3z"/><circle cx="7.5" cy="10.5" r="1.1" fill="currentColor" stroke="none"/><circle cx="9.5" cy="7" r="1.1" fill="currentColor" stroke="none"/><circle cx="14.5" cy="7" r="1.1" fill="currentColor" stroke="none"/><circle cx="16.5" cy="10.5" r="1.1" fill="currentColor" stroke="none"/></svg></span>
         <span class="mpj-card-status mpj-status-personal">◎ FREELANCE</span>
       </div>
       <div class="mpj-card-name">Client Brand Sites &amp; UI Systems</div>
       <div class="mpj-card-tagline">Multiple client websites built from scratch — responsive, pixel-perfect, brand-aligned. Delivered on-time with production-level precision for 10+ clients.</div>
       <div class="mpj-problem">Problem → Clients needed web presence that actually converts. Delivered fast-loading, beautiful sites built to their brief.</div>
-      <div class="mpj-metric">⚡ 10+ clients · Pixel-perfect delivery · On-time record</div>
+      <div class="mpj-metric"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg> 10+ clients · Pixel-perfect delivery · On-time record</div>
       <div class="mpj-stack">
         <span class="mpj-pill">HTML/CSS/JS</span>
         <span class="mpj-pill">Tailwind</span>
@@ -10292,7 +10420,7 @@ document.addEventListener('keydown', function(e) {
         <span class="mpj-pill">Shopify</span>
         <span class="mpj-pill">Adobe XD</span>
       </div>
-      <div class="mpj-hindsight">🔮 Would document a reusable design system earlier — saves 40% time on each new client project.</div>
+      <div class="mpj-hindsight"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.5.4.8.9.8 1.5v.1h5.4v-.1c0-.6.3-1.1.8-1.5A6 6 0 0 0 12 3z"/></svg> Would document a reusable design system earlier — saves 40% time on each new client project.</div>
       <div class="mpj-card-meta">
         <span class="mpj-role-tag">Frontend Lead · Freelance</span>
         <div class="mpj-card-links">
@@ -10304,13 +10432,13 @@ document.addEventListener('keydown', function(e) {
     <!-- ⑦ AI Chat Integration -->
     <div class="mpj-card" data-cat="fullstack tool" style="--mpj-accent: linear-gradient(90deg, #00ff88, #00d4aa);">
       <div class="mpj-card-top">
-        <span class="mpj-card-icon">🤖</span>
+        <span class="mpj-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="8" width="14" height="10" rx="2"/><path d="M12 8V5"/><circle cx="12" cy="4" r="1" fill="currentColor"/><circle cx="9" cy="13" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="13" r="1.2" fill="currentColor" stroke="none"/><path d="M9 16.5h6"/><path d="M3 12h2M19 12h2"/></svg></span>
         <span class="mpj-card-status mpj-status-live">● LIVE</span>
       </div>
       <div class="mpj-card-name">AI Chat Widget — Groq Integration</div>
       <div class="mpj-card-tagline">Custom AI assistant embedded in this portfolio — powered by Groq AI with context-aware responses, streamed output, and mobile-first UI.</div>
       <div class="mpj-problem">Problem → Static portfolio can't answer recruiter questions 24/7. Built a live AI layer that speaks on my behalf.</div>
-      <div class="mpj-metric">⚡ Real-time streaming · Context-aware · Mobile-first</div>
+      <div class="mpj-metric"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg> Real-time streaming · Context-aware · Mobile-first</div>
       <div class="mpj-stack">
         <span class="mpj-pill">Groq AI</span>
         <span class="mpj-pill">JavaScript</span>
@@ -10318,7 +10446,7 @@ document.addEventListener('keydown', function(e) {
         <span class="mpj-pill">Custom UI</span>
         <span class="mpj-pill">Firebase</span>
       </div>
-      <div class="mpj-hindsight">🔮 Would fine-tune the model on my own Q&A dataset for even sharper, more personalised responses.</div>
+      <div class="mpj-hindsight"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.5.4.8.9.8 1.5v.1h5.4v-.1c0-.6.3-1.1.8-1.5A6 6 0 0 0 12 3z"/></svg> Would fine-tune the model on my own Q&A dataset for even sharper, more personalised responses.</div>
       <div class="mpj-card-meta">
         <span class="mpj-role-tag">Solo Built · Full Stack + AI</span>
         <div class="mpj-card-links">
@@ -10342,24 +10470,24 @@ document.addEventListener('keydown', function(e) {
     <!-- ⑧ Rapido Training Workflow Design -->
     <div class="mpj-card" data-cat="ui tool" style="--mpj-accent: linear-gradient(90deg, #ffcc00, #ff9900);">
       <div class="mpj-card-top">
-        <span class="mpj-card-icon">🛵</span>
+        <span class="mpj-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="17" r="2.3"/><circle cx="18" cy="17" r="2.3"/><path d="M6 17h4l2-5h4"/><path d="M12 12h3.5c1.4 0 2.5 1 2.5 2.3v.7"/><path d="M9 8h3l1 3"/></svg></span>
         <span class="mpj-card-status mpj-status-freelance">◈ INTERNAL</span>
       </div>
       <div class="mpj-card-name">Rapido Agent Training System</div>
       <div class="mpj-card-tagline">Designed and delivered deep-resolution training workflows for Rapido's support floor — adopted company-wide. Includes structured SOP docs and escalation playbooks.</div>
       <div class="mpj-problem">Problem → New agents struggled with complex ride/payment issues under peak load. Built a systematic playbook they could follow in real-time.</div>
-      <div class="mpj-metric">⚡ Adopted floor-wide · Praised by IT Head Santoosh Reddy</div>
+      <div class="mpj-metric"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg> Adopted floor-wide · Praised by IT Head Santoosh Reddy</div>
       <div class="mpj-stack">
         <span class="mpj-pill">Workflow Design</span>
         <span class="mpj-pill">SOP Docs</span>
         <span class="mpj-pill">Training Design</span>
         <span class="mpj-pill">Crisis Resolution</span>
       </div>
-      <div class="mpj-hindsight">🔮 Would digitise the playbook into an interactive web tool so agents can search scenarios in real-time.</div>
+      <div class="mpj-hindsight"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.5.4.8.9.8 1.5v.1h5.4v-.1c0-.6.3-1.1.8-1.5A6 6 0 0 0 12 3z"/></svg> Would digitise the playbook into an interactive web tool so agents can search scenarios in real-time.</div>
       <div class="mpj-card-meta">
         <span class="mpj-role-tag">Training Lead · Rapido</span>
         <div class="mpj-card-links">
-          <span class="mpj-link-btn mpj-link-github" style="opacity:0.5; cursor:default;">🔒 Internal</span>
+          <span class="mpj-link-btn mpj-link-github" style="opacity:0.5; cursor:default;"><svg class="mpj-lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10" width="14" height="9" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg> Internal</span>
         </div>
       </div>
     </div>
@@ -10370,7 +10498,7 @@ document.addEventListener('keydown', function(e) {
   <div class="mpj-cta">
     <p class="mpj-cta-text">Have a project that needs a Full Stack Developer + UI Designer?<br><span style="color:rgba(0,255,200,0.5);font-family:'Courier New',monospace;font-size:0.75rem;">Let's build something that actually works.</span></p>
     <a href="#contact" class="mpj-cta-btn">
-      ✉️ &nbsp;Let's Collaborate
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 6a2 2 0 012-2h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6zm2 .236V18h16V6.236l-7.386 6.464a1 1 0 01-1.228 0L4 6.236zM4.518 5l7.482 6.545L19.482 5H4.518z"/></svg>&nbsp;Let's Collaborate
     </a>
   </div>
 
@@ -14236,14 +14364,33 @@ textarea.ct-field { resize: none; height: 90px; }
 .ct-card:hover .ct-card-shine { left: 130%; }
 
 .ct-card-icon {
-  font-size: 1.35rem;
-  line-height: 1;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
   z-index: 2;
   flex-shrink: 0;
-  transition: transform 0.3s ease;
+  background: rgba(var(--ct-rgb, 0,255,255), 0.10);
+  border: 1px solid rgba(var(--ct-rgb, 0,255,255), 0.28);
+  box-shadow: inset 0 0 8px rgba(var(--ct-rgb, 0,255,255), 0.08);
+  transition: transform 0.3s ease, background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
-.ct-card:hover .ct-card-icon { transform: scale(1.15); }
+.ct-card-icon svg {
+  width: 19px;
+  height: 19px;
+  display: block;
+  fill: var(--ct-color, #00ffff);
+}
+.ct-card:hover .ct-card-icon {
+  transform: scale(1.1) rotate(-4deg);
+  background: rgba(var(--ct-rgb, 0,255,255), 0.20);
+  border-color: var(--ct-color, #00ffff);
+  box-shadow: 0 0 14px rgba(var(--ct-rgb, 0,255,255), 0.35),
+              inset 0 0 8px rgba(var(--ct-rgb, 0,255,255), 0.12);
+}
 
 .ct-card-info {
   position: relative;
@@ -14817,7 +14964,8 @@ textarea.ct-field { min-height: 90px; }
   opacity: 0.6;
   filter: grayscale(0.3);
 }
-.ct-card-locked .ct-card-icon { font-size: 1.35rem; line-height: 1; flex-shrink: 0; filter: grayscale(1); opacity: 0.5; }
+.ct-card-locked .ct-card-icon { filter: grayscale(1); opacity: 0.5; background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.12); }
+.ct-card-locked .ct-card-icon svg { fill: rgba(255,255,255,0.6); }
 .ct-card-locked .ct-card-name { font-size: 0.78rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.3); line-height: 1.1; }
 .ct-card-locked .ct-card-desc { font-size: 0.6rem; color: rgba(255,255,255,0.2); letter-spacing: 0.5px; margin-top: 1px; }
 .ct-locked-badge {
@@ -14864,7 +15012,7 @@ textarea.ct-field { min-height: 90px; }
   background: rgba(255,68,68,0.06);
 }
 .ct-card-showcase:active { transform: scale(0.98); }
-.ct-card-showcase .ct-card-icon { font-size: 1.35rem; line-height: 1; flex-shrink: 0; position: relative; z-index: 2; opacity: 0.75; }
+.ct-card-showcase .ct-card-icon { opacity: 0.85; }
 .ct-card-showcase .ct-card-name { font-size: 0.78rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,100,100,0.75); line-height: 1.1; position: relative; z-index: 2; }
 .ct-card-showcase .ct-card-desc { font-size: 0.6rem; color: rgba(255,255,255,0.3); letter-spacing: 0.5px; margin-top: 1px; position: relative; z-index: 2; }
 .ct-showcase-badge {
@@ -14927,7 +15075,7 @@ textarea.ct-field { min-height: 90px; }
        style="--ct-color:#00ffff; --ct-rgb:0,255,255;">
       <span class="ct-card-shine"></span>
       <span class="ct-card-dot"></span>
-      <span class="ct-card-icon">✉️</span>
+      <span class="ct-card-icon"><svg viewBox="0 0 24 24"><path d="M2 6a2 2 0 012-2h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6zm2 .236V18h16V6.236l-7.386 6.464a1 1 0 01-1.228 0L4 6.236zM4.518 5l7.482 6.545L19.482 5H4.518z"/></svg></span>
       <div class="ct-card-info">
         <div class="ct-card-name">Email</div>
         <div class="ct-card-desc">Direct message</div>
@@ -14939,7 +15087,7 @@ textarea.ct-field { min-height: 90px; }
        style="--ct-color:#25d366; --ct-rgb:37,211,102; width:100%;">
       <span class="ct-card-shine"></span>
       <span class="ct-card-dot"></span>
-      <span class="ct-card-icon">💬</span>
+      <span class="ct-card-icon"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413"/></svg></span>
       <div class="ct-card-info">
         <div class="ct-card-name">WhatsApp</div>
         <div class="ct-card-desc">Quick reply</div>
@@ -14951,7 +15099,7 @@ textarea.ct-field { min-height: 90px; }
        target="_blank" rel="noopener"
        style="--ct-color:#e1306c; --ct-rgb:225,48,108;">
       <span class="ct-card-shine"></span>
-      <span class="ct-card-icon">📸</span>
+      <span class="ct-card-icon"><svg viewBox="0 0 24 24"><path d="M12 0C8.74 0 8.333.014 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.014 8.333 0 8.74 0 12s.014 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.014 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.36-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.061-4.861.06-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06zm0 3.678a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></span>
       <div class="ct-card-info">
         <div class="ct-card-name">Instagram</div>
         <div class="ct-card-desc">@sahnawaz.ui.dev</div>
@@ -14962,7 +15110,7 @@ textarea.ct-field { min-height: 90px; }
     <button class="ct-card" onclick="ctOpenFb(event)"
        style="--ct-color:#1877f2; --ct-rgb:24,119,242; width:100%;">
       <span class="ct-card-shine"></span>
-      <span class="ct-card-icon">📘</span>
+      <span class="ct-card-icon"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></span>
       <div class="ct-card-info">
         <div class="ct-card-name">Facebook</div>
         <div class="ct-card-desc">Stay connected</div>
@@ -14982,7 +15130,7 @@ textarea.ct-field { min-height: 90px; }
        target="_blank" rel="noopener" title="Connect on LinkedIn"
        style="--ct-color:#0A66C2; --ct-rgb:10,102,194;">
       <span class="ct-card-shine"></span>
-      <span class="ct-card-icon">💼</span>
+      <span class="ct-card-icon"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></span>
       <div class="ct-card-info">
         <div class="ct-card-name">LinkedIn</div>
         <div class="ct-card-desc">Let's connect</div>
@@ -14992,7 +15140,7 @@ textarea.ct-field { min-height: 90px; }
     <!-- YouTube — showcase only -->
     <button class="ct-card-showcase" onclick="ctOpenYt(event)">
       <span class="ct-showcase-badge">Showcase</span>
-      <span class="ct-card-icon">▶️</span>
+      <span class="ct-card-icon"><svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></span>
       <div class="ct-card-info">
         <div class="ct-card-name">YouTube</div>
         <div class="ct-card-desc">SHZ Motivation</div>
@@ -15055,6 +15203,9 @@ textarea.ct-field { min-height: 90px; }
   }
 
   .ct-wiz-opt {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     padding: 9px 16px;
     border-radius: 50px;
     border: 1px solid rgba(0,220,255,0.22);
@@ -15067,6 +15218,11 @@ textarea.ct-field { min-height: 90px; }
     transition: all 0.22s ease;
     -webkit-tap-highlight-color: transparent;
     white-space: nowrap;
+  }
+  .ct-wiz-opt svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
   }
   .ct-wiz-opt:hover, .ct-wiz-opt.ct-wiz-selected {
     background: rgba(0,220,255,0.12);
@@ -15210,12 +15366,12 @@ textarea.ct-field { min-height: 90px; }
       <div class="ct-wiz-label">✦ Step 1 of 3 — Project</div>
       <div class="ct-wiz-q">What do you need built?</div>
       <div class="ct-wiz-opts">
-        <button class="ct-wiz-opt" onclick="ctWizPick(0,'Website / Landing Page')">🌐 Website</button>
-        <button class="ct-wiz-opt" onclick="ctWizPick(0,'E-Commerce Store')">🛒 E-Commerce</button>
-        <button class="ct-wiz-opt" onclick="ctWizPick(0,'UI/UX Design (Figma)')">🎨 UI/UX Design</button>
-        <button class="ct-wiz-opt" onclick="ctWizPick(0,'Portfolio Website')">💼 Portfolio</button>
-        <button class="ct-wiz-opt" onclick="ctWizPick(0,'AI Integration')">🤖 AI Integration</button>
-        <button class="ct-wiz-opt" onclick="ctWizPick(0,'Something Else')">✨ Other</button>
+        <button class="ct-wiz-opt" onclick="ctWizPick(0,'Website / Landing Page')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.5-4-9s1.5-6.5 4-9z"/></svg> Website</button>
+        <button class="ct-wiz-opt" onclick="ctWizPick(0,'E-Commerce Store')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/><path d="M2.5 3h2l2.6 12.3a2 2 0 0 0 2 1.7h8.4a2 2 0 0 0 2-1.6L21 8H6"/></svg> E-Commerce</button>
+        <button class="ct-wiz-opt" onclick="ctWizPick(0,'UI/UX Design (Figma)')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 8 0 1 0 0 16c1 0 1.8-.7 1.8-1.6 0-.4-.2-.8-.4-1.1-.2-.3-.4-.7-.4-1.1 0-.9.8-1.6 1.8-1.6H17c2.2 0 4-1.6 4-3.8C21 6 17 3 12 3z"/><circle cx="7.5" cy="10.5" r="1.1" fill="currentColor" stroke="none"/><circle cx="9.5" cy="7" r="1.1" fill="currentColor" stroke="none"/><circle cx="14.5" cy="7" r="1.1" fill="currentColor" stroke="none"/><circle cx="16.5" cy="10.5" r="1.1" fill="currentColor" stroke="none"/></svg> UI/UX Design</button>
+        <button class="ct-wiz-opt" onclick="ctWizPick(0,'Portfolio Website')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="12" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg> Portfolio</button>
+        <button class="ct-wiz-opt" onclick="ctWizPick(0,'AI Integration')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="8" width="14" height="10" rx="2"/><path d="M12 8V5"/><circle cx="12" cy="4" r="1" fill="currentColor"/><circle cx="9" cy="13" r="1.1" fill="currentColor" stroke="none"/><circle cx="15" cy="13" r="1.1" fill="currentColor" stroke="none"/><path d="M9 16h6"/></svg> AI Integration</button>
+        <button class="ct-wiz-opt" onclick="ctWizPick(0,'Something Else')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 5.4L19 9l-5.2 1.6L12 16l-1.8-5.4L5 9l5.2-1.6L12 2z"/></svg> Other</button>
       </div>
     </div>
 
@@ -15237,10 +15393,10 @@ textarea.ct-field { min-height: 90px; }
       <div class="ct-wiz-label">✦ Step 3 of 3 — Timeline</div>
       <div class="ct-wiz-q">When do you need it ready?</div>
       <div class="ct-wiz-opts">
-        <button class="ct-wiz-opt" onclick="ctWizPick(2,'ASAP / Urgent')">⚡ ASAP</button>
-        <button class="ct-wiz-opt" onclick="ctWizPick(2,'Within 2–4 weeks')">📅 2–4 Weeks</button>
-        <button class="ct-wiz-opt" onclick="ctWizPick(2,'1–2 months')">🗓 1–2 Months</button>
-        <button class="ct-wiz-opt" onclick="ctWizPick(2,'Just exploring')">🔍 Exploring</button>
+        <button class="ct-wiz-opt" onclick="ctWizPick(2,'ASAP / Urgent')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg> ASAP</button>
+        <button class="ct-wiz-opt" onclick="ctWizPick(2,'Within 2–4 weeks')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M3.5 10h17"/><path d="M8 3v4M16 3v4"/></svg> 2–4 Weeks</button>
+        <button class="ct-wiz-opt" onclick="ctWizPick(2,'1–2 months')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M3.5 10h17"/><path d="M8 3v4M16 3v4"/><path d="M8 14h3M13 14h3M8 17h3"/></svg> 1–2 Months</button>
+        <button class="ct-wiz-opt" onclick="ctWizPick(2,'Just exploring')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.3-4.3"/></svg> Exploring</button>
       </div>
       <button class="ct-wiz-back" onclick="ctWizBack()">← Back</button>
     </div>
