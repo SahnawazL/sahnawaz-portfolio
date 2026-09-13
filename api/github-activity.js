@@ -25,6 +25,16 @@
 //                    "Actions: Read-only" on a fine-grained PAT; without
 //                    it (or on repos with no workflows) this just comes
 //                    back null for that repo and gets filtered out.
+//   5. `repos`     - trimmed {name, url} list of top contributed repos,
+//                    for the "Repo Ecosystem" view. Ownership role (own
+//                    product / client work / OSS) is not derivable from
+//                    the GitHub API and is tagged client-side instead.
+//   6. `depFreshness` - % of `dependencies` (from each top repo's
+//                    package.json) pinned at npm's current "latest"
+//                    version, plus a few concrete outdated examples.
+//                    Repos with no package.json, or zero comparable
+//                    deps, are filtered out — same graceful null
+//                    pattern as `ci` above.
 //
 // Env vars (set in Vercel → Settings → Environment Variables):
 //   GITHUB_TOKEN   - fine-grained, Metadata: Read-only is enough for the
@@ -186,6 +196,10 @@ function describeEvent(event) {
       return {
         type: 'release',
         repo,
+        // `tag` kept as its own field (not just baked into `message`) so
+        // the Release Timeline strip can render it as a standalone chip
+        // without having to regex it back out of the sentence.
+        tag: tag || null,
         message: `Released ${tag || 'a new version'} of ${repo}`,
         url: repoUrl,
         time: event.created_at
@@ -442,6 +456,108 @@ async function fetchCIHealth(headers, repos) {
   return cleaned.length ? cleaned : null;
 }
 
+// ── Dependency freshness ──
+// For each of the same top contributed repos already discovered above,
+// reads package.json via the Contents API and compares each pinned
+// "dependencies" version against npm's current "latest" dist-tag. A repo
+// with no package.json (not a Node project), an unparsable one, or zero
+// comparable deps just resolves to null and gets filtered out — same
+// graceful-degradation pattern as CI Health and Project Stats.
+//
+// Capped deliberately to keep this fast and polite to the npm registry:
+// at most DEP_FRESHNESS_MAX_REPOS repos, at most
+// DEP_FRESHNESS_MAX_DEPS_PER_REPO dependencies checked per repo (only
+// `dependencies`, not `devDependencies` — that's the set a technical
+// reviewer actually cares about for a shipped project).
+const DEP_FRESHNESS_MAX_REPOS = 3;
+const DEP_FRESHNESS_MAX_DEPS_PER_REPO = 12;
+
+// Reduces a semver range spec ("^5.2.1", "~2.0.0", ">=1.0.0 <2.0.0") down
+// to the version actually pinned, so it can be string-compared against
+// npm's "latest". Anything that isn't a plain version (git URLs,
+// "workspace:*", "latest", file: links, etc.) returns null and gets
+// skipped rather than mis-reported as outdated.
+function stripVersionRange(spec) {
+  if (!spec || typeof spec !== 'string') return null;
+  const first = spec.split('||')[0].trim().split(' ')[0];
+  const cleaned = first.replace(/^[\^~>=<]+/, '').trim();
+  return /^\d/.test(cleaned) ? cleaned : null;
+}
+
+async function fetchLatestNpmVersion(pkgName) {
+  try {
+    const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(pkgName)}/latest`, {
+      signal: AbortSignal.timeout(4000)
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json && json.version ? json.version : null;
+  } catch (err) {
+    return null;
+  }
+}
+
+async function fetchRepoDependencyFreshness(repo, headers) {
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${repo.nameWithOwner}/contents/package.json`,
+      { headers }
+    );
+    if (!res.ok) return null; // not a Node project, or file not at repo root
+    const json = await res.json();
+    if (!json.content) return null;
+    let pkg;
+    try {
+      pkg = JSON.parse(Buffer.from(json.content, 'base64').toString('utf8'));
+    } catch (err) {
+      return null;
+    }
+
+    const deps = pkg.dependencies || {};
+    const names = Object.keys(deps).slice(0, DEP_FRESHNESS_MAX_DEPS_PER_REPO);
+    if (!names.length) return null;
+
+    const latestVersions = await Promise.all(names.map((n) => fetchLatestNpmVersion(n)));
+
+    let upToDate = 0;
+    const outdated = [];
+    names.forEach((name, i) => {
+      const pinned = stripVersionRange(deps[name]);
+      const latest = latestVersions[i];
+      if (!pinned || !latest) return; // can't compare — skip rather than guess
+      if (pinned === latest) {
+        upToDate += 1;
+      } else {
+        outdated.push({ name, pinned, latest });
+      }
+    });
+
+    const comparable = upToDate + outdated.length;
+    if (!comparable) return null;
+
+    return {
+      repo: repo.name,
+      url: repo.url,
+      freshPercent: Math.round((upToDate / comparable) * 100),
+      upToDate,
+      total: comparable,
+      // A few concrete examples for the card's detail line — not the
+      // full outdated list, just enough to substantiate the percentage.
+      outdated: outdated.slice(0, 4)
+    };
+  } catch (err) {
+    return null;
+  }
+}
+
+async function fetchDependencyFreshness(headers, repos) {
+  if (!repos || !repos.length) return null;
+  const top = repos.slice(0, DEP_FRESHNESS_MAX_REPOS);
+  const results = await Promise.all(top.map((repo) => fetchRepoDependencyFreshness(repo, headers)));
+  const cleaned = results.filter(Boolean);
+  return cleaned.length ? cleaned : null;
+}
+
 // Aggregate bytes-per-language across all owned (non-fork) repos, using
 // GitHub's per-repo languages endpoint, then reduce to a top-5 + "Other"
 // breakdown by percentage. Colors are assigned client-side.
@@ -657,13 +773,26 @@ module.exports = async (req, res) => {
       fetchLanguageBreakdown(headers)
     ]);
 
-    // Both depend on the same repo list above, so they run together here
-    // rather than each re-fetching it via their own fetchContributedRepos
-    // call — halves the GraphQL round trips this endpoint makes.
-    const [projectStats, ci] = await Promise.all([
+    // All three depend on the same repo list above, so they run together
+    // here rather than each re-fetching it via their own
+    // fetchContributedRepos call — cuts down the GraphQL/REST round trips
+    // this endpoint makes.
+    const [projectStats, ci, depFreshness] = await Promise.all([
       fetchProjectStats(headers, contributedRepos),
-      fetchCIHealth(headers, contributedRepos)
+      fetchCIHealth(headers, contributedRepos),
+      fetchDependencyFreshness(headers, contributedRepos)
     ]);
+
+    // Trimmed repo list for the Repo Ecosystem view — just enough to
+    // render a name + link + role tag, not the full GraphQL shape.
+    // Ownership (own product / client work / OSS contribution) isn't
+    // something GitHub's API can tell us, so it isn't computed here —
+    // the front-end defaults every repo to "Own product" and a small
+    // client-side map can override specific ones by name.
+    const repos = (contributedRepos || []).slice(0, 8).map((r) => ({
+      name: r.name,
+      url: r.url
+    }));
 
     // Sequential (not Promise.all'd with the above) so a same-day first
     // request writes today's snapshot BEFORE reading history back — the
@@ -678,11 +807,13 @@ module.exports = async (req, res) => {
       activity: activityResult.activity,
       stats: stats,
       projectStats: projectStats,
+      repos: repos,
       pulse: pulse,
       languages: languages,
       languageHistory: languageHistory,
       codingHours: describePeakWindow(activityResult.hourHistogram),
       ci: ci,
+      depFreshness: depFreshness,
       fetchedAt: new Date().toISOString()
     });
   } catch (err) {
