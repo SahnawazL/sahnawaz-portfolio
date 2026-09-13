@@ -30,11 +30,13 @@
 //                    product / client work / OSS) is not derivable from
 //                    the GitHub API and is tagged client-side instead.
 //   6. `depFreshness` - % of `dependencies` (from each top repo's
-//                    package.json) pinned at npm's current "latest"
-//                    version, plus a few concrete outdated examples.
-//                    Repos with no package.json, or zero comparable
-//                    deps, are filtered out — same graceful null
-//                    pattern as `ci` above.
+//                    package.json) on the SAME MAJOR VERSION as npm's
+//                    current "latest" — not an exact-version match, so a
+//                    few patches/minors behind doesn't count against it,
+//                    only a real major-version gap does — plus a few
+//                    concrete outdated examples. Repos with no
+//                    package.json, or zero comparable deps, are filtered
+//                    out — same graceful null pattern as `ci` above.
 //
 // Env vars (set in Vercel → Settings → Environment Variables):
 //   GITHUB_TOKEN   - fine-grained, Metadata: Read-only is enough for the
@@ -458,11 +460,13 @@ async function fetchCIHealth(headers, repos) {
 
 // ── Dependency freshness ──
 // For each of the same top contributed repos already discovered above,
-// reads package.json via the Contents API and compares each pinned
-// "dependencies" version against npm's current "latest" dist-tag. A repo
-// with no package.json (not a Node project), an unparsable one, or zero
-// comparable deps just resolves to null and gets filtered out — same
-// graceful-degradation pattern as CI Health and Project Stats.
+// reads package.json via the Contents API and checks each pinned
+// "dependencies" entry against npm's current "latest" — specifically
+// whether it's on the same MAJOR version, not an exact-version match
+// (see majorVersion() below for why). A repo with no package.json (not
+// a Node project), an unparsable one, or zero comparable deps just
+// resolves to null and gets filtered out — same graceful-degradation
+// pattern as CI Health and Project Stats.
 //
 // Capped deliberately to keep this fast and polite to the npm registry:
 // at most DEP_FRESHNESS_MAX_REPOS repos, at most
@@ -473,15 +477,26 @@ const DEP_FRESHNESS_MAX_REPOS = 3;
 const DEP_FRESHNESS_MAX_DEPS_PER_REPO = 12;
 
 // Reduces a semver range spec ("^5.2.1", "~2.0.0", ">=1.0.0 <2.0.0") down
-// to the version actually pinned, so it can be string-compared against
-// npm's "latest". Anything that isn't a plain version (git URLs,
-// "workspace:*", "latest", file: links, etc.) returns null and gets
-// skipped rather than mis-reported as outdated.
+// to the version actually pinned, so it can be compared against npm's
+// "latest". Anything that isn't a plain version (git URLs, "workspace:*",
+// "latest", file: links, etc.) returns null and gets skipped rather than
+// mis-reported as outdated.
 function stripVersionRange(spec) {
   if (!spec || typeof spec !== 'string') return null;
   const first = spec.split('||')[0].trim().split(' ')[0];
   const cleaned = first.replace(/^[\^~>=<]+/, '').trim();
   return /^\d/.test(cleaned) ? cleaned : null;
+}
+
+// First numeric segment of a version string ("12.19.0" -> "12"). Used to
+// compare "freshness" by major version rather than exact string equality
+// — a package pinned a few patch/minor releases behind its npm "latest"
+// is normal and not meaningfully outdated; a whole major version behind
+// (React 17 vs React 18) is the bar reviewers actually care about.
+function majorVersion(v) {
+  if (!v) return null;
+  const m = v.match(/^(\d+)/);
+  return m ? m[1] : null;
 }
 
 async function fetchLatestNpmVersion(pkgName) {
@@ -519,13 +534,17 @@ async function fetchRepoDependencyFreshness(repo, headers) {
 
     const latestVersions = await Promise.all(names.map((n) => fetchLatestNpmVersion(n)));
 
+    // "Fresh" = same major version as npm's current latest — not an
+    // exact-string match. A patch or minor version behind is completely
+    // normal and isn't counted against the score; only a full major
+    // version gap (a real breaking-change gap) counts as outdated.
     let upToDate = 0;
     const outdated = [];
     names.forEach((name, i) => {
       const pinned = stripVersionRange(deps[name]);
       const latest = latestVersions[i];
       if (!pinned || !latest) return; // can't compare — skip rather than guess
-      if (pinned === latest) {
+      if (majorVersion(pinned) === majorVersion(latest)) {
         upToDate += 1;
       } else {
         outdated.push({ name, pinned, latest });
