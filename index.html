@@ -11625,7 +11625,7 @@ document.addEventListener('keydown', function(e) {
     @keyframes rdCaretBreathe { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
     .rd-skel { height: 3.4rem; border-radius: 10px; }
 
-    .ra-skel, .rp-skel, .gp-skel, .hm-skel, .lh-skel, .rd-skel {
+    .ra-skel, .rp-skel, .gp-skel, .hm-skel, .lh-skel, .rd-skel, .sys-skel {
       background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(0,255,180,0.07) 50%, rgba(255,255,255,0.03) 75%);
       background-size: 200% 100%;
       animation: raSkel 1.4s ease-in-out infinite;
@@ -11694,7 +11694,7 @@ document.addEventListener('keydown', function(e) {
     .ra-footer a { font-size: 0.72rem; color: rgba(0,255,180,0.7); text-decoration: none; border-bottom: 1px dotted rgba(0,255,180,0.4); }
     .ra-footer a:hover { border-bottom-style: solid; }
     @media (prefers-reduced-motion: reduce) {
-      .ra-live-dot, .ra-row, .ra-skel, .rp-skel, .gp-skel, .hm-skel, .lh-skel, .rd-skel, .rd-badge-dot, .gp-panel::after, .gp-ring-fg, .hrs-bar,
+      .ra-live-dot, .ra-row, .ra-skel, .rp-skel, .gp-skel, .hm-skel, .lh-skel, .rd-skel, .sys-skel, .rd-badge-dot, .gp-panel::after, .gp-ring-fg, .hrs-bar,
       .rd-card, .rd-surface::before, .rd-word, .rd-caret, .rd-cta-btn, .rd-cta-arrow, .rd-loading-label,
       .gp-score-badge, .gp-score-caret, .gp-score-detail, .gp-score-fill { animation: none !important; transition: none !important; opacity: 1; filter: none !important; transform: none !important; }
       .gp-score-ping { display: none !important; }
@@ -11746,6 +11746,34 @@ document.addEventListener('keydown', function(e) {
     .ship-toast-title { font-size: 0.72rem; font-weight: 600; color: rgba(220,245,238,0.92); }
     .ship-toast-title b { color: #00ffb4; }
     .ship-toast-msg { font-size: 0.62rem; color: rgba(200,220,215,0.6); margin-top: 0.15rem; font-family: 'Courier New', monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* ── System Status — live checks, not decoration ── */
+    .sys-panel {
+      border-radius: 17px;
+      padding: 0.9rem 1rem 0.95rem;
+      background:
+        radial-gradient(circle at 88% -12%, rgba(0,255,180,0.1), transparent 55%),
+        linear-gradient(160deg, rgba(16,26,24,0.6), rgba(7,13,12,0.72));
+      border: 1px solid rgba(255,255,255,0.06);
+      margin-top: 1rem;
+    }
+    .sys-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.7rem; }
+    .sys-title-row { display: flex; align-items: baseline; gap: 0.5rem; }
+    .sys-recheck { background: none; border: 1px solid rgba(0,255,180,0.3); color: rgba(0,255,180,0.85); border-radius: 20px; padding: 0.25rem 0.7rem; font-size: 0.6rem; font-family: 'Courier New', monospace; cursor: pointer; }
+    .sys-recheck:active { transform: scale(0.96); }
+    .sys-recheck.sys-spin { opacity: 0.55; pointer-events: none; }
+    .sys-row { display: flex; align-items: center; gap: 0.55rem; padding: 0.4rem 0; border-top: 1px dashed rgba(255,255,255,0.06); }
+    .sys-row:first-of-type { border-top: none; }
+    .sys-dot { flex-shrink: 0; width: 8px; height: 8px; border-radius: 50%; }
+    .sys-dot-operational { background: #00ffb4; box-shadow: 0 0 7px rgba(0,255,180,0.7); }
+    .sys-dot-degraded { background: #ffb020; box-shadow: 0 0 7px rgba(255,176,32,0.6); }
+    .sys-dot-down { background: #ff5a5a; box-shadow: 0 0 7px rgba(255,90,90,0.6); }
+    .sys-dot-unknown { background: rgba(200,220,215,0.35); }
+    .sys-name { font-size: 0.7rem; color: rgba(220,245,238,0.9); font-weight: 600; width: 88px; flex-shrink: 0; }
+    .sys-detail { flex: 1; min-width: 0; font-size: 0.6rem; color: rgba(200,220,215,0.55); font-family: 'Courier New', monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sys-ms { font-size: 0.58rem; color: rgba(200,220,215,0.4); font-family: 'Courier New', monospace; flex-shrink: 0; }
+    .sys-checked { margin-top: 0.6rem; text-align: right; font-size: 0.54rem; color: rgba(200,220,215,0.32); font-family: 'Courier New', monospace; }
+    .sys-skel { height: 18px; border-radius: 6px; margin: 0.4rem 0; }
   </style>
 
   <div class="ra-header">
@@ -11793,6 +11821,19 @@ document.addEventListener('keydown', function(e) {
     <div class="ra-skel"></div>
     <div class="ra-skel"></div>
     <div class="ra-skel"></div>
+  </div>
+
+  <div id="raSysStatus" class="sys-panel">
+    <div class="sys-head">
+      <div class="sys-title-row"><span class="ra-label">System Status</span><span class="ra-label-sub">// live, not decorative</span></div>
+      <button type="button" class="sys-recheck" id="sysRecheckBtn" aria-label="Re-run system status checks">Recheck</button>
+    </div>
+    <div id="sysRows">
+      <div class="sys-skel"></div>
+      <div class="sys-skel"></div>
+      <div class="sys-skel"></div>
+    </div>
+    <div class="sys-checked" id="sysCheckedAt"></div>
   </div>
 
   <div class="ra-footer">
@@ -12437,6 +12478,90 @@ document.addEventListener('keydown', function(e) {
       document.getElementById('raHeatmap').innerHTML = '';
       document.getElementById('raLangHours').innerHTML = '';
     });
+})();
+</script>
+
+<script>
+/* ── SYSTEM STATUS — live health check for GitHub API, Firestore, and
+   the webhook (see api/system-status.js). Completely independent fetch
+   from the main activity load above — a slow or failed status check
+   never blocks or affects the rest of the "Recently Shipped" panel. */
+(function () {
+  var rowsEl = document.getElementById('sysRows');
+  var checkedEl = document.getElementById('sysCheckedAt');
+  var btn = document.getElementById('sysRecheckBtn');
+  if (!rowsEl) return;
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function timeAgo(iso) {
+    if (!iso) return null;
+    var diffMs = Date.now() - new Date(iso).getTime();
+    var mins = Math.floor(diffMs / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return mins + 'm ago';
+    var hrs = Math.floor(mins / 60);
+    if (hrs < 24) return hrs + 'h ago';
+    return Math.floor(hrs / 24) + 'd ago';
+  }
+
+  function dotClassFor(status) {
+    if (status === 'operational') return 'sys-dot-operational';
+    if (status === 'degraded') return 'sys-dot-degraded';
+    if (status === 'down') return 'sys-dot-down';
+    return 'sys-dot-unknown';
+  }
+
+  function row(name, dotClass, detail, ms) {
+    return '<div class="sys-row">'
+      + '<span class="sys-dot ' + dotClass + '"></span>'
+      + '<span class="sys-name">' + name + '</span>'
+      + '<span class="sys-detail">' + escapeHtml(detail || '') + '</span>'
+      + (typeof ms === 'number' ? '<span class="sys-ms">' + ms + 'ms</span>' : '')
+      + '</div>';
+  }
+
+  function render(data) {
+    var gh = data.github || {};
+    var fs = data.firestore || {};
+    var wh = data.webhook || {};
+
+    var webhookDetail = !wh.configured
+      ? 'Secret not configured'
+      : (wh.lastEventAt ? 'Last push ' + timeAgo(wh.lastEventAt) : 'Configured \u2014 awaiting first push');
+    var webhookDot = !wh.configured ? 'sys-dot-down' : (wh.lastEventAt ? 'sys-dot-operational' : 'sys-dot-unknown');
+
+    rowsEl.innerHTML =
+      row('GitHub API', dotClassFor(gh.status), gh.detail, gh.latencyMs)
+      + row('Firestore', dotClassFor(fs.status), fs.detail, fs.latencyMs)
+      + row('Webhook', webhookDot, webhookDetail);
+
+    checkedEl.textContent = 'checked ' + (timeAgo(data.checkedAt) || 'just now');
+  }
+
+  function renderError() {
+    rowsEl.innerHTML = '<div class="ra-error">Status check unavailable right now.</div>';
+    checkedEl.textContent = '';
+  }
+
+  function runCheck() {
+    if (btn) btn.classList.add('sys-spin');
+    fetch('/api/system-status')
+      .then(function (res) {
+        if (!res.ok) throw new Error('bad response');
+        return res.json();
+      })
+      .then(render)
+      .catch(renderError)
+      .finally(function () { if (btn) btn.classList.remove('sys-spin'); });
+  }
+
+  if (btn) btn.addEventListener('click', runCheck);
+  runCheck();
 })();
 </script>
 
