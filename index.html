@@ -11699,7 +11699,53 @@ document.addEventListener('keydown', function(e) {
       .gp-score-badge, .gp-score-caret, .gp-score-detail, .gp-score-fill { animation: none !important; transition: none !important; opacity: 1; filter: none !important; transform: none !important; }
       .gp-score-ping { display: none !important; }
       .hm-day-pop { transition: none !important; transform: none !important; }
+      .ship-toast { transition: none !important; transform: none !important; }
     }
+
+    /* ── Live "Just Shipped" toast — see js/ship-toast.js ──
+       Fixed to the viewport (not this section), since a push can land
+       while the visitor is scrolled anywhere on the page. */
+    #shipToastRoot {
+      position: fixed;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 0.5rem;
+      width: min(92vw, 360px);
+      pointer-events: none;
+    }
+    .ship-toast {
+      pointer-events: auto;
+      cursor: pointer;
+      border-radius: 14px;
+      padding: 0.7rem 0.85rem;
+      background:
+        radial-gradient(circle at 88% -12%, rgba(0,255,180,0.18), transparent 55%),
+        linear-gradient(160deg, rgba(16,26,24,0.88), rgba(7,13,12,0.92));
+      border: 1px solid rgba(0,255,180,0.25);
+      backdrop-filter: blur(18px) saturate(160%);
+      -webkit-backdrop-filter: blur(18px) saturate(160%);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.35);
+      opacity: 0;
+      transform: translateY(14px) scale(0.97);
+      transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.2,0.9,0.3,1.2);
+    }
+    .ship-toast-in { opacity: 1; transform: translateY(0) scale(1); }
+    .ship-toast-out { opacity: 0; transform: translateY(8px) scale(0.97); }
+    .ship-toast-row { display: flex; align-items: flex-start; gap: 0.6rem; }
+    .ship-toast-dot {
+      flex-shrink: 0; width: 9px; height: 9px; margin-top: 0.3rem; border-radius: 50%;
+      background: #00ffb4; box-shadow: 0 0 8px rgba(0,255,180,0.75);
+      animation: shipDotPulse 1.6s ease-in-out infinite;
+    }
+    @keyframes shipDotPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .ship-toast-main { min-width: 0; }
+    .ship-toast-title { font-size: 0.72rem; font-weight: 600; color: rgba(220,245,238,0.92); }
+    .ship-toast-title b { color: #00ffb4; }
+    .ship-toast-msg { font-size: 0.62rem; color: rgba(200,220,215,0.6); margin-top: 0.15rem; font-family: 'Courier New', monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   </style>
 
   <div class="ra-header">
@@ -24404,6 +24450,12 @@ div#popup.popup {
 
 <!-- ── Engagement Features: Reviews, Chat History, Project Likes ── -->
 <script src="js/engagement.js"></script>
+
+<!-- ── Live "Just Shipped" toast — reacts to a real GitHub push in
+     real time via the shipEvents Firestore collection (see
+     api/github-webhook.js). Reuses the Firestore instance engagement.js
+     already sets up. ── -->
+<script src="js/ship-toast.js"></script>
 
 <!-- ── Secret unlock toast — fixed to viewport, outside footer ── -->
 <div id="shz-secret-toast">
