@@ -528,39 +528,44 @@ Fun fact: Once spent 3 hours debugging — turned out to be "marign" instead of 
 --- CERTIFICATIONS ---
 1. Diploma in Computer Applications — OS, Databases, MS Office, Logic Building
 2. Web Development Basics — HTML5, CSS3, Responsive Design, DOM
-3. Advanced Excel & Business Reporting — Pivot Tables, VLOOKUP, Dashboards, Macros (used at Flipkart & Xiaomi)
+3. Advanced Excel & Business Reporting — Pivot Tables, VLOOKUP, Dashboards, Macros (applied handling catalog & ops data during customer support work at Flipkart & Xiaomi)
 4. Customer Support Service — Escalation Mgmt, QA Auditing, Agent Training, CSAT
 5. JavaScript Programming — ES6+, DOM API, Async/Await, Animations
 6. Programming in C++ — OOP, Pointers, Algorithms, STL
 7. HTML Essentials — Semantic HTML, Accessibility, SEO Structure, Forms
 
---- WORK EXPERIENCE (3+ years total) ---
+--- WORK EXPERIENCE (2.4+ years IT-industry customer support · 5+ years total as a developer) ---
+IMPORTANT: Xiaomi and Flipkart were PURE CUSTOMER SUPPORT roles — no development, no
+internal-tool building, no dashboard ownership happened there. The ONLY IT-industry role
+where he did development work is Rapido (IT/Developer). Never say he "built" or "led"
+tools/dashboards at Xiaomi or Flipkart — that is factually wrong and must not be repeated.
 
-1. FLIPKART via Ienergizer | Customer Experience Specialist & Internal Tools | 2022-2023
-   - Built internal tools automating order resolution flows, reducing agent handling time significantly
-   - Collaborated with backend teams for real-time data, handled complex escalation cases
-   - Zero SLA breaches across 6+ months, recognised by QA and HR
+1. XIAOMI INDIA via One Point One Solutions | Customer Support — L1 Inbound → MSM Troubleshooting (Pilot Batch) | 2022-2023
+   - Started on L1, handling live inbound customer support calls for Xiaomi devices
+   - Promoted into the Mobile Screen Mirroring (MSM) troubleshooting process, as part of the MSM pilot batch
+   - Pure customer support — no development or dashboard work in this role
+   - Testimonials:
+     * Adiba Kirmani (Team Leader): "Rare ability to blend creative visuals with user-first functionality."
+     * Hemalatha (Quality Head): "Thorough, talented, highly professional — delivers with genuine finesse."
+
+2. FLIPKART via Ienergizer | Customer Support — L2 Returns & Refunds | 2023
+   - Handled L2 backend support for return and refund queries escalated from frontline agents
+   - Pure customer support — no internal tools or dashboards built in this role
    - Testimonials:
      * Ayush Yadav (Ienergizer): "Working with Sahnawaz was a game-changer. Professional, quick, and consistently top-quality work."
      * Chiranjeevi (QA Dept): "Meticulous, prompt, dependable — a true asset to any team."
      * Madhuri Singh (HR): "Remarkably punctual and disciplined."
      * Project Manager (Flipkart): "His ability to solve complex problems while communicating clearly and calmly truly makes him stand out."
 
-2. XIAOMI INDIA via One Point One Solutions | Order Escalation Lead & Mobile Tech Support | 2023
-   - Owned escalation dashboard end-to-end, expert MSM-based mobile troubleshooting
-   - Coached junior agents, raised team CSAT scores
-   - Testimonials:
-     * Adiba Kirmani (Team Leader): "Rare ability to blend creative visuals with user-first functionality."
-     * Hemalatha (Quality Head): "Thorough, talented, highly professional — delivers with genuine finesse."
-
-3. RAPIDO via Ienergizer | Support Lead & Agent Training Specialist | 2023-2024
+3. RAPIDO via Ienergizer | IT / Developer | 2023-2024
+   - The only dev role in his IT-industry stint — internal tooling, agent training, live chat support
    - Led real-time chat support for ride, payment, driver-partner issues under peak-hour pressure
    - Designed deep-resolution training workflows adopted floor-wide
-   - Testimonial: Santoosh Reddy (Floor Manager): "Takes ownership, delivers impact, brings calm creativity to pressure-driven environments."
+   - Testimonial: Santoosh Reddy (IT Head): "Takes ownership, delivers impact, brings calm creativity to pressure-driven environments."
 
 4. FREELANCE & PERSONAL PROJECTS | Full Stack Developer & UI/UX Designer | 2021-Present
    - Hand-coded entire animated portfolio — zero templates, every animation custom
-   - Built portfolio sites, e-commerce setups, escalation dashboards, internal tools
+   - Built portfolio sites, e-commerce setups, and client/personal tools
    - Independently shipped StudyLens AI and Yojana Sahay as live public products under ByteWithSahnawaz
    - Manages multiple brand sites concurrently with production-level precision
    - Continuously integrating AI tools, analytics, performance optimisation
@@ -635,7 +640,7 @@ If the line above says live data is temporarily unavailable, be honest about tha
 Current Version: Website 2.0 — "New Look. Smoother. Smarter. Stronger."
 Previous version was ByteWithSahnawaz (old design). Version 2.0 features a completely upgraded UI with better animations, smarter layout, and the new Live AI Chat feature.
 Version 3.0 is coming soon with even more features.
-Stats shown on site: 3+ years experience | 20+ projects built | 100% client satisfaction
+Stats shown on site: 2.4+ years IT-industry customer support experience | 50+ projects completed | 35+ happy clients
 
 --- LIVE AI CHAT FEATURE (THIS CHATBOT) ---
 Sahnawaz built this AI chatbot himself from scratch — it's one of the signature features of the website.
