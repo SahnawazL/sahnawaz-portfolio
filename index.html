@@ -12548,7 +12548,10 @@ document.addEventListener('keydown', function(e) {
     checkedEl.textContent = '';
   }
 
+  var lastRunAt = 0;
+
   function runCheck() {
+    lastRunAt = Date.now();
     if (btn) btn.classList.add('sys-spin');
     fetch('/api/system-status')
       .then(function (res) {
@@ -12562,6 +12565,37 @@ document.addEventListener('keydown', function(e) {
 
   if (btn) btn.addEventListener('click', runCheck);
   runCheck();
+
+  // Auto-refresh every 30s — matches the endpoint's own 30s cache window,
+  // so this never fires faster than a "new" check could actually exist.
+  // Pauses while the tab is hidden (Page Visibility API) rather than
+  // silently burning GitHub/Firestore quota in a forgotten background
+  // tab, then immediately re-checks the moment it's visible again if
+  // enough time has passed since the last run (manual or automatic) —
+  // the same pattern real status dashboards use.
+  var POLL_MS = 30000;
+  var pollTimer = null;
+
+  function startPolling() {
+    if (pollTimer) return;
+    pollTimer = setInterval(runCheck, POLL_MS);
+  }
+  function stopPolling() {
+    if (!pollTimer) return;
+    clearInterval(pollTimer);
+    pollTimer = null;
+  }
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) {
+      stopPolling();
+    } else {
+      if (Date.now() - lastRunAt > POLL_MS) runCheck();
+      startPolling();
+    }
+  });
+
+  if (!document.hidden) startPolling();
 })();
 </script>
 
