@@ -287,6 +287,6 @@ Hand-coded animated portfolios, client websites, and analytics dashboards — **
 
 *⚡ Designed & coded with passion from Silchar, Assam, India 🇮🇳*
 
-*"Clarity. Responsiveness. Impact." — © 2026 Sahnawaz Ahmed Laskar*
+*"Clarity. Responsiveness. Impact." — © 2026 Sahnawaz Ahmed Laskar | UI*
 
 </div>
