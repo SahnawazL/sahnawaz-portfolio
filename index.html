@@ -11258,6 +11258,29 @@ document.addEventListener('keydown', function(e) {
     .ra-label { font-size: 0.76rem; font-weight: 700; color: rgba(230,245,240,0.82); letter-spacing: 0.3px; }
     .ra-label-sub { font-size: 0.6rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.38); }
 
+    /* ══ Time-range toggle — small pill switcher sitting above GitHub
+       Pulse. Purely client-side: recomputes contributions, streak, and
+       shipping score for the selected window from pulse.heatmapFull
+       (already fetched, ~1 year deep), no extra request per tap. ══ */
+    .rt-panel { display: flex; gap: 0.4rem; justify-content: center; margin-bottom: 0.65rem; }
+    .rt-pill {
+      all: unset; box-sizing: border-box; cursor: pointer;
+      padding: 0.32rem 0.8rem; border-radius: 20px;
+      border: 1px solid rgba(0,255,180,0.22);
+      background: rgba(255,255,255,0.02);
+      font-family: 'Courier New', monospace; font-size: 0.62rem; font-weight: 700;
+      letter-spacing: 0.02em;
+      color: rgba(200,220,215,0.5);
+      transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+    }
+    .rt-pill:hover { border-color: rgba(0,255,180,0.5); color: rgba(220,245,238,0.85); }
+    .rt-pill:focus-visible { outline: 2px solid rgba(0,255,180,0.65); outline-offset: 2px; }
+    .rt-pill.active {
+      background: linear-gradient(135deg, rgba(0,255,180,0.2), rgba(255,255,255,0.02));
+      border-color: rgba(0,255,180,0.65);
+      color: #00ffb4;
+    }
+
     /* ══ GitHub Pulse ══ */
     .gp-panel {
       position: relative;
@@ -11532,6 +11555,45 @@ document.addEventListener('keydown', function(e) {
     .rp-num { display: block; font-family: 'Courier New', monospace; font-weight: 800; font-size: 1.05rem; color: #00ffb4; text-shadow: 0 0 8px rgba(0,255,180,0.28); margin: 0.1rem 0 0; }
     .rp-since { font-size: 0.56rem; color: rgba(200,220,215,0.42); }
     .rp-skel { height: 3.6rem; border-radius: 9px; }
+
+    /* ══ Build Health — GitHub Actions signal for the same top
+       contributed repos as Project Stats. A dot (pass/fail/running),
+       the latest run's age, and a rolling pass-rate bar over the last
+       15 completed runs. Purely a trust signal for technical reviewers
+       — a repo with no workflows or a token without Actions permission
+       just doesn't get a card, nothing else on the page is affected. ══ */
+    .ci-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.45rem; margin-bottom: 1.1rem; }
+    .ci-card {
+      position: relative;
+      border: 1px solid rgba(0,255,180,0.13);
+      border-radius: 9px;
+      padding: 0.45rem 0.55rem;
+      background: linear-gradient(160deg, rgba(255,255,255,0.03), rgba(0,255,180,0.015));
+      transition: border-color 0.2s ease;
+    }
+    .ci-card:hover { border-color: rgba(0,255,180,0.3); }
+    .ci-top { display: flex; align-items: center; gap: 0.35rem; padding-right: 1.2rem; }
+    .ci-dot { flex-shrink: 0; width: 7px; height: 7px; border-radius: 50%; }
+    .ci-dot-success { background: #00ffb4; box-shadow: 0 0 6px rgba(0,255,180,0.7); }
+    .ci-dot-failure { background: #ff5a5a; box-shadow: 0 0 6px rgba(255,90,90,0.6); }
+    .ci-dot-pending { background: #ffb020; box-shadow: 0 0 6px rgba(255,176,32,0.6); }
+    .ci-dot-neutral { background: rgba(200,220,215,0.35); }
+    .ci-name { font-family: 'Courier New', monospace; font-size: 0.63rem; font-weight: 700; color: rgba(230,245,240,0.8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ci-status-line { font-size: 0.58rem; font-family: 'Courier New', monospace; margin: 0.3rem 0 0.4rem; color: rgba(200,220,215,0.5); }
+    .ci-text-success { color: rgba(0,255,180,0.8); }
+    .ci-text-failure { color: rgba(255,140,140,0.9); }
+    .ci-text-pending { color: rgba(255,190,120,0.9); }
+    .ci-rate-row { display: flex; align-items: center; gap: 0.35rem; }
+    .ci-rate-track { flex: 1; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.08); overflow: hidden; }
+    .ci-rate-fill { display: block; height: 100%; width: 0%; border-radius: 2px; transition: width 0.8s cubic-bezier(.3,.9,.3,1); }
+    .ci-fill-good { background: linear-gradient(90deg, rgba(0,255,180,0.55), #00ffb4); }
+    .ci-fill-warn { background: linear-gradient(90deg, rgba(255,176,32,0.55), #ffb020); }
+    .ci-fill-bad { background: linear-gradient(90deg, rgba(255,90,90,0.55), #ff5a5a); }
+    .ci-rate-pct { font-size: 0.56rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.45); flex-shrink: 0; width: 28px; text-align: right; }
+    .ci-status-note { font-size: 0.56rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.35); font-style: italic; }
+    .ci-goto { position: absolute; top: 0.4rem; right: 0.4rem; }
+    .ci-skel { height: 3.6rem; border-radius: 9px; }
+    .ci-empty { grid-column: 1 / -1; font-size: 0.62rem; color: rgba(200,220,215,0.4); font-style: italic; text-align: center; padding: 0.5rem 0; }
 
     /* ══ Activity feed ══ */
     .ra-panel {
@@ -11904,13 +11966,20 @@ document.addEventListener('keydown', function(e) {
     </div>
   </div>
 
+  <div id="raRangeToggle" class="rt-panel" role="group" aria-label="Time range">
+    <button type="button" class="rt-pill" data-range="7" aria-pressed="false">7D</button>
+    <button type="button" class="rt-pill" data-range="30" aria-pressed="false">30D</button>
+    <button type="button" class="rt-pill active" data-range="90" aria-pressed="true">90D</button>
+    <button type="button" class="rt-pill" data-range="365" aria-pressed="false">1Y</button>
+  </div>
+
   <div id="raPulse">
-    <div class="ra-label-row"><span class="ra-label">GitHub Pulse</span><span class="ra-label-sub">// all-time</span></div>
+    <div class="ra-label-row"><span class="ra-label">GitHub Pulse</span><span class="ra-label-sub">// last 90 days</span></div>
     <div class="gp-panel"><div class="gp-skel"></div></div>
   </div>
 
   <div id="raHeatmap" class="hm-panel">
-    <div class="ra-label-row"><span class="ra-label">Contribution Map</span><span class="ra-label-sub">// last 12 weeks</span></div>
+    <div class="ra-label-row"><span class="ra-label">Contribution Map</span><span class="ra-label-sub">// last 90 days</span></div>
     <div class="hm-skel"></div>
   </div>
 
@@ -11929,6 +11998,13 @@ document.addEventListener('keydown', function(e) {
     <div class="rp-grid">
       <div class="rp-skel"></div><div class="rp-skel"></div>
       <div class="rp-skel"></div><div class="rp-skel"></div>
+    </div>
+  </div>
+
+  <div id="raCIHealth">
+    <div class="ra-label-row"><span class="ra-label">Build Health</span><span class="ra-label-sub">// GitHub Actions</span></div>
+    <div class="ci-grid">
+      <div class="ci-skel"></div><div class="ci-skel"></div>
     </div>
   </div>
 
@@ -12222,9 +12298,10 @@ document.addEventListener('keydown', function(e) {
     return last.date === todayStr && last.count === 0 && isEveningIST();
   }
 
-  function renderPulse(pulse, stats, activity) {
+  function renderPulse(pulse, stats, activity, rangeLabel) {
     var el = document.getElementById('raPulse');
     if (!pulse) { el.innerHTML = ''; return; }
+    rangeLabel = rangeLabel || 'last 90 days';
 
     var ratio = pulse.longestStreak > 0
       ? Math.min(pulse.currentStreak / pulse.longestStreak, 1)
@@ -12266,7 +12343,7 @@ document.addEventListener('keydown', function(e) {
     var scoreDetail = '<div class="gp-score-detail" id="gpScoreDetail">' + scoreDetailHtml(shipScore, delta) + '</div>';
 
     el.innerHTML =
-        '<div class="ra-label-row"><span class="ra-label">GitHub Pulse</span><span class="ra-label-sub">// since ' + monthYear(pulse.since) + '</span></div>'
+        '<div class="ra-label-row"><span class="ra-label">GitHub Pulse</span><span class="ra-label-sub">// ' + rangeLabel + '</span></div>'
       + '<div class="gp-panel">'
       +   scoreBadge
       +   '<div class="gp-grid">'
@@ -12403,9 +12480,10 @@ document.addEventListener('keydown', function(e) {
     window.addEventListener('resize', closePop);
   }
 
-  function renderHeatmap(pulse, activity) {
+  function renderHeatmap(pulse, activity, rangeLabel) {
     var el = document.getElementById('raHeatmap');
     var days = pulse && pulse.heatmap;
+    rangeLabel = rangeLabel || 'last 90 days';
     if (!days || !days.length) { el.innerHTML = ''; return; }
 
     var first = new Date(days[0].date + 'T00:00:00Z');
@@ -12452,7 +12530,7 @@ document.addEventListener('keydown', function(e) {
     }).join('');
 
     el.innerHTML =
-        '<div class="ra-label-row"><span class="ra-label">Contribution Map</span><span class="ra-label-sub">// last 12 weeks</span></div>'
+        '<div class="ra-label-row"><span class="ra-label">Contribution Map</span><span class="ra-label-sub">// ' + rangeLabel + '</span></div>'
       + '<div class="hm-body">'
       +   '<div class="hm-scroll"><div class="hm-grid">' + gridHtml + '</div></div>'
       +   sideHtml
@@ -12700,6 +12778,191 @@ document.addEventListener('keydown', function(e) {
     }).join('');
   }
 
+  // ══ Build Health (CI) ══
+  // Renders the `ci` array from the API — one entry per top contributed
+  // repo that has GitHub Actions workflows and a token with permission
+  // to read them. Anything else (no workflows, no permission, private
+  // Actions log) already resolved to null server-side and was filtered
+  // out, so every entry here is real, renderable data.
+  function ciDotClass(entry) {
+    if (entry.status !== 'completed') return 'ci-dot-pending';
+    if (entry.conclusion === 'success') return 'ci-dot-success';
+    if (entry.conclusion === 'failure') return 'ci-dot-failure';
+    return 'ci-dot-neutral';
+  }
+
+  function ciTextClass(entry) {
+    if (entry.status !== 'completed') return 'ci-text-pending';
+    if (entry.conclusion === 'success') return 'ci-text-success';
+    if (entry.conclusion === 'failure') return 'ci-text-failure';
+    return '';
+  }
+
+  var CI_CONCLUSION_LABELS = {
+    success: 'Passed', failure: 'Failed', cancelled: 'Cancelled',
+    timed_out: 'Timed out', action_required: 'Action required',
+    neutral: 'Neutral', skipped: 'Skipped', stale: 'Stale'
+  };
+
+  function ciStatusLabel(entry) {
+    if (entry.status === 'in_progress') return 'Running now';
+    if (entry.status === 'queued') return 'Queued';
+    if (entry.status !== 'completed') return entry.status || 'Unknown';
+    return CI_CONCLUSION_LABELS[entry.conclusion] || (entry.conclusion || 'Unknown');
+  }
+
+  function ciRateFillClass(rate) {
+    if (rate >= 80) return 'ci-fill-good';
+    if (rate >= 50) return 'ci-fill-warn';
+    return 'ci-fill-bad';
+  }
+
+  function renderCIHealth(ci) {
+    var el = document.getElementById('raCIHealth');
+    if (!el) return;
+    if (!ci || !ci.length) { el.innerHTML = ''; return; }
+
+    var cardsHtml = ci.map(function (entry) {
+      var dotClass = ciDotClass(entry);
+      var textClass = ciTextClass(entry);
+      var label = ciStatusLabel(entry);
+      var ago = entry.ranAt ? timeAgo(entry.ranAt) : '';
+      var statusLine = label + (ago ? ' \u00b7 ' + ago : '');
+      var rateHtml = (typeof entry.passRate === 'number')
+        ? '<div class="ci-rate-row">'
+          +   '<span class="ci-rate-track"><span class="ci-rate-fill ' + ciRateFillClass(entry.passRate) + '" data-fill="' + entry.passRate + '"></span></span>'
+          +   '<span class="ci-rate-pct">' + entry.passRate + '%</span>'
+          + '</div>'
+        : '<div class="ci-rate-row"><span class="ci-status-note">// no finished runs yet</span></div>';
+      var href = entry.url || 'https://github.com/SahnawazL';
+
+      return '<div class="ci-card">'
+        + '<a class="ra-goto ci-goto" href="' + href + '" target="_blank" rel="noopener" aria-label="Open latest workflow run for ' + escapeHtml(entry.repo) + '">' + GOTO_ICON + '</a>'
+        + '<div class="ci-top"><span class="ci-dot ' + dotClass + '"></span><span class="ci-name">' + escapeHtml(entry.repo) + '</span></div>'
+        + '<div class="ci-status-line ' + textClass + '">' + escapeHtml(statusLine) + '</div>'
+        + rateHtml
+        + '</div>';
+    }).join('');
+
+    el.innerHTML =
+        '<div class="ra-label-row"><span class="ra-label">Build Health</span><span class="ra-label-sub">// GitHub Actions</span></div>'
+      + '<div class="ci-grid">' + cardsHtml + '</div>';
+
+    requestAnimationFrame(function () {
+      el.querySelectorAll('.ci-rate-fill').forEach(function (fill) {
+        fill.style.width = fill.getAttribute('data-fill') + '%';
+      });
+    });
+  }
+
+  // ══ Time-range toggle (7d / 30d / 90d / 1y) ══
+  // Everything below is client-side only, built from pulse.heatmapFull
+  // (already fetched, ~1 year of daily counts) plus the activity list
+  // already loaded for the feed — switching pills never re-hits the API.
+  var lastActivityData = null;
+  var currentRangeDays = 90;
+
+  var RANGE_META = {
+    7:   { pulseLabel: 'last 7 days',   heatmapLabel: 'last 7 days' },
+    30:  { pulseLabel: 'last 30 days',  heatmapLabel: 'last 30 days' },
+    90:  { pulseLabel: 'last 90 days',  heatmapLabel: 'last 90 days' },
+    365: { pulseLabel: 'last 12 months', heatmapLabel: 'last 12 months' }
+  };
+
+  // Mirrors computeStreaks() in api/github-activity.js exactly, just run
+  // client-side against whatever slice of heatmapFull the selected
+  // window covers, so streak/longest-streak are real for that window
+  // rather than always showing the all-time figures.
+  function computeStreaksClient(days) {
+    if (!days || !days.length) return null;
+    var longest = { length: 0, start: null, end: null };
+    var run = { length: 0, start: null };
+    days.forEach(function (d) {
+      if (d.count > 0) {
+        if (run.length === 0) run.start = d.date;
+        run.length += 1;
+        if (run.length > longest.length) {
+          longest = { length: run.length, start: run.start, end: d.date };
+        }
+      } else {
+        run = { length: 0, start: null };
+      }
+    });
+    var i = days.length - 1;
+    if (days[i].count === 0) i -= 1;
+    var currentEnd = i >= 0 ? days[i].date : null;
+    var currentLength = 0;
+    var currentStart = null;
+    while (i >= 0 && days[i].count > 0) {
+      currentLength += 1;
+      currentStart = days[i].date;
+      i -= 1;
+    }
+    return {
+      currentStreak: currentLength,
+      currentStart: currentStart,
+      currentEnd: currentLength ? currentEnd : null,
+      longestStreak: longest.length,
+      longestStart: longest.start,
+      longestEnd: longest.end
+    };
+  }
+
+  // Builds a pulse-shaped object scoped to the last `windowDays` days of
+  // heatmapFull, so it can be handed straight to the existing
+  // renderPulse/renderHeatmap functions unchanged.
+  function buildWindowedPulse(fullDays, windowDays) {
+    if (!fullDays || !fullDays.length) return null;
+    var sliced = fullDays.slice(-windowDays);
+    var streaks = computeStreaksClient(sliced);
+    if (!streaks) return null;
+    var total = 0;
+    sliced.forEach(function (d) { total += d.count; });
+    return {
+      totalContributions: total,
+      currentStreak: streaks.currentStreak,
+      currentRange: streaks.currentStreak ? [streaks.currentStart, streaks.currentEnd] : null,
+      longestStreak: streaks.longestStreak,
+      longestRange: streaks.longestStreak ? [streaks.longestStart, streaks.longestEnd] : null,
+      heatmap: sliced
+    };
+  }
+
+  function filterActivityToWindow(activity, windowDays) {
+    var cutoff = Date.now() - windowDays * 86400000;
+    return (activity || []).filter(function (a) {
+      return a && a.time && new Date(a.time).getTime() >= cutoff;
+    });
+  }
+
+  function applyRange(windowDays) {
+    if (!lastActivityData) return;
+    currentRangeDays = windowDays;
+
+    document.querySelectorAll('#raRangeToggle .rt-pill').forEach(function (btn) {
+      var active = parseInt(btn.getAttribute('data-range'), 10) === windowDays;
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+
+    var basePulse = lastActivityData.pulse;
+    var fullDays = basePulse ? (basePulse.heatmapFull || basePulse.heatmap) : null;
+    var windowedPulse = buildWindowedPulse(fullDays, windowDays);
+    var windowedActivity = filterActivityToWindow(lastActivityData.activity, windowDays);
+    var meta = RANGE_META[windowDays] || RANGE_META[90];
+
+    renderPulse(windowedPulse, lastActivityData.stats || null, windowedActivity, meta.pulseLabel);
+    renderHeatmap(windowedPulse, windowedActivity, meta.heatmapLabel);
+  }
+
+  document.querySelectorAll('#raRangeToggle .rt-pill').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var w = parseInt(btn.getAttribute('data-range'), 10);
+      if (w === currentRangeDays) return;
+      applyRange(w);
+    });
+  });
+
   fetch('/api/github-activity')
     .then(function (res) {
       if (!res.ok) throw new Error('bad response');
@@ -12707,21 +12970,29 @@ document.addEventListener('keydown', function(e) {
     })
     .then(function (data) {
       var items = data.activity || [];
+      lastActivityData = data;
       render(items);
       renderFreshness(items);
       renderProjectStats(data.projectStats || null);
-      renderPulse(data.pulse || null, data.stats || null, data.activity || []);
-      renderHeatmap(data.pulse || null, data.activity || []);
+      renderCIHealth(data.ci || null);
+      applyRange(90);
       renderPunchcard(data.activity || []);
       renderLanguagesAndHours(data.languages || null, data.codingHours || null, data.languageHistory || null);
+
+      var hasHeatmapData = !!(data.pulse && (data.pulse.heatmapFull || data.pulse.heatmap));
+      var toggleEl = document.getElementById('raRangeToggle');
+      if (!hasHeatmapData && toggleEl) toggleEl.style.display = 'none';
     })
     .catch(function () {
       document.getElementById('raList').innerHTML = '<div class="ra-error">Couldn\u2019t load activity right now \u2014 <a href="https://github.com/SahnawazL" target="_blank" rel="noopener" style="color:rgba(0,255,180,0.7);">view on GitHub</a> instead.</div>';
       document.getElementById('raProjectStats').innerHTML = '';
+      document.getElementById('raCIHealth').innerHTML = '';
       document.getElementById('raPulse').innerHTML = '';
       document.getElementById('raHeatmap').innerHTML = '';
       document.getElementById('raPunchcard').innerHTML = '';
       document.getElementById('raLangHours').innerHTML = '';
+      var toggleEl = document.getElementById('raRangeToggle');
+      if (toggleEl) toggleEl.style.display = 'none';
     });
 })();
 </script>
