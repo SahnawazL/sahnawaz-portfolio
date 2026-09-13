@@ -11295,6 +11295,7 @@ document.addEventListener('keydown', function(e) {
     .gp-num.ra-accent { color: #00ffb4; text-shadow: 0 0 14px rgba(0,255,180,0.4); }
     .gp-caption { font-size: 0.62rem; color: rgba(200,220,215,0.55); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 0.1rem; }
     .gp-range { font-size: 0.58rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.35); margin-top: 0.1rem; }
+    .gp-trend-line { font-size: 0.56rem; font-family: 'Courier New', monospace; margin-top: 0.22rem; letter-spacing: 0.02em; color: rgba(200,220,215,0.4); }
 
     .gp-ring-wrap { position: relative; width: 82px; height: 82px; margin: 0 auto; }
     .gp-ring-wrap svg { transform: rotate(-90deg); }
@@ -12032,6 +12033,59 @@ document.addEventListener('keydown', function(e) {
   // us the streak as it stood then, and each activity item's own
   // timestamp lets us refilter frequency/spread to that same cutoff. No
   // stored history, no backend change — just the same data, read twice.
+  // Windowed sum — total contributions across `days` days ending at
+  // endDateStr (inclusive), read from the same heatmap already on hand.
+  function sumWindow(heatmap, endDateStr, days) {
+    var byDate = {};
+    heatmap.forEach(function (d) { byDate[d.date] = d.count; });
+    var total = 0;
+    var cursor = new Date(endDateStr + 'T00:00:00Z');
+    for (var i = 0; i < days; i++) {
+      total += byDate[cursor.toISOString().slice(0, 10)] || 0;
+      cursor.setUTCDate(cursor.getUTCDate() - 1);
+    }
+    return total;
+  }
+
+  // This-week-vs-last-week contribution trend — two adjacent 7-day
+  // windows read from the heatmap, so it needs 14+ days of history to
+  // be a fair comparison. Returns null (badge omitted) until then.
+  function contributionsTrend(pulse) {
+    var heatmap = pulse && pulse.heatmap;
+    if (!heatmap || !heatmap.length) return null;
+    var todayStr = heatmap[heatmap.length - 1].date;
+    var priorEnd = new Date(todayStr + 'T00:00:00Z');
+    priorEnd.setUTCDate(priorEnd.getUTCDate() - 7);
+    var priorEndStr = priorEnd.toISOString().slice(0, 10);
+    if (priorEndStr < heatmap[0].date) return null;
+    var thisWeek = sumWindow(heatmap, todayStr, 7);
+    var lastWeek = sumWindow(heatmap, priorEndStr, 7);
+    return thisWeek - lastWeek;
+  }
+
+  // Current streak vs. what the streak stood at exactly 7 days ago —
+  // reuses streakEndingOn() below, same trick as the score trend.
+  function streakTrend(pulse) {
+    var heatmap = pulse && pulse.heatmap;
+    if (!heatmap || !heatmap.length) return null;
+    var cutoff = new Date();
+    cutoff.setUTCDate(cutoff.getUTCDate() - 7);
+    var cutoffStr = cutoff.toISOString().slice(0, 10);
+    if (cutoffStr < heatmap[0].date) return null;
+    return pulse.currentStreak - streakEndingOn(heatmap, cutoffStr);
+  }
+
+  // Renders a small mono trend line reusing the score badge's existing
+  // up/down color language, so all three trend indicators in this panel
+  // (score, contributions, streak) read as one consistent system.
+  function trendLineHtml(delta, label) {
+    if (delta === null) return '';
+    if (delta === 0) return '<div class="gp-trend-line">// steady ' + label + '</div>';
+    var up = delta > 0;
+    return '<div class="gp-trend-line ' + (up ? 'gp-trend-up' : 'gp-trend-down') + '">'
+      + (up ? '\u25b2' : '\u25bc') + Math.abs(delta) + ' ' + label + '</div>';
+  }
+
   function streakEndingOn(heatmap, dateStr) {
     var byDate = {};
     heatmap.forEach(function (d) { byDate[d.date] = d.count; });
@@ -12145,6 +12199,8 @@ document.addEventListener('keydown', function(e) {
     var shipScore = computeShippingScore(pulse, activity);
     var pastScore = scoreAsOfLastWeek(pulse, activity);
     var delta = pastScore === null ? null : shipScore.score - pastScore;
+    var contribDelta = contributionsTrend(pulse);
+    var streakDelta = streakTrend(pulse);
 
     var trendHtml = '';
     var trendAria = '';
@@ -12176,6 +12232,7 @@ document.addEventListener('keydown', function(e) {
       +   '<div class="gp-block">'
       +     '<span class="gp-num ra-accent" id="gpTotal">' + pulse.totalContributions + '</span>'
       +     '<div class="gp-caption">Contributions</div>'
+      +     trendLineHtml(contribDelta, 'vs last week')
       +   '</div>'
       +   '<div class="gp-block">'
       +     '<div class="gp-ring-wrap' + (atRisk ? ' gp-ring-risk' : '') + '">'
@@ -12186,6 +12243,7 @@ document.addEventListener('keydown', function(e) {
       +       '<div class="gp-ring-center"><span class="gp-ring-num">' + pulse.currentStreak + '</span><span class="gp-ring-flame">🔥 streak</span></div>'
       +     '</div>'
       +     (pulse.currentRange ? '<div class="gp-range">' + shortDate(pulse.currentRange[0]) + ' – ' + shortDate(pulse.currentRange[1]) + '</div>' : '')
+      +     trendLineHtml(streakDelta, 'vs 7 days ago')
       +   '</div>'
       +   '<div class="gp-block">'
       +     '<span class="gp-num">' + pulse.longestStreak + '</span>'
