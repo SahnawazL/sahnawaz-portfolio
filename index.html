@@ -1018,7 +1018,6 @@ img {
 }
 /* expanded */
 .cert-card.is-open {
-  width: 240px;
   border-color: rgba(0,255,180,0.35);
   box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 28px rgba(0,255,180,0.1), inset 0 1px 0 rgba(255,255,255,0.08);
 }
@@ -1100,7 +1099,7 @@ img {
   font-size:0.61rem; line-height:1.6; color:rgba(255,255,255,0.44);
   padding-top:0;
 }
-.cert-card.is-open .cert-desc { max-height:160px; opacity:1; padding-top:9px; }
+.cert-card.is-open .cert-desc { max-height:220px; opacity:1; padding-top:9px; }
 /* chips */
 .cert-chips { display:flex; flex-wrap:wrap; gap:3px; margin-top:7px; }
 .cert-chip {
@@ -1121,7 +1120,6 @@ img {
 }
 @media(max-width:520px) {
   .cert-card { width:148px; }
-  .cert-card.is-open { width:220px; }
 }
 /* ===== END CERTIFICATIONS ===== */
 
@@ -3114,196 +3112,7 @@ function hideWhatsAppNotice() {
   }
 }
 </script>
-<style id="premium-services-fix">
-/* Adjust service card size */
-#tools-services .cube-box {
-  height: 220px !important; /* smaller, elegant size */
-}
-
-/* Price text styling on flip */
-#tools-services .cube-box .back h3,
-#tools-services .cube-box .back .price {
-  color: #30d158 !important; /* Apple green */
-  font-size: 1.2rem !important;
-  font-weight: 600 !important;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
-  text-align: center;
-  margin-top: 40px;
-}
-
-/* Optional: refine text inside */
-#tools-services .cube-box .back .price::before {
-  content: "Starting at ";
-  font-size: 0.9rem;
-  font-weight: 400;
-  color: #d1d1d6;
-}
-</style>
-<style id="compact-services-cards">
-/* Services grid layout */
-.services-container-fix .grouped-cards {
-  display: grid !important;
-  grid-template-columns: repeat(2, 1fr) !important; /* always 2 per row */
-  gap: 16px !important;
-}
-
-/* Compact card size */
-.services-container-fix .grouped-cards .flip-card {
-  height: 120px !important;
-  border-radius: 14px !important; /* slightly smaller radius */
-  overflow: hidden;
-}
-
-/* Front face text */
-.services-container-fix .grouped-cards .flip-front {
-  font-size: 0.9rem !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 8px;
-}
-
-/* Back face (price) */
-.services-container-fix .grouped-cards .flip-back {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1rem !important;
-  font-weight: 600 !important;
-  color: #30d158 !important; /* Apple green */
-  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
-}
-.services-container-fix .grouped-cards .flip-back::before {
-  content: "Starting at ";
-  font-size: 0.8rem;
-  font-weight: 400;
-  color: #d1d1d6;
-  margin-right: 3px;
-}
-</style>
-<style id="fix-centered-services">
-.services-grid {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  justify-content: center !important;
-  align-items: center !important;
-  gap: 20px !important;
-  max-width: 1000px !important;
-  margin: 0 auto !important;
-}
-.services-grid .service-card {
-  flex: 0 1 calc(45% - 20px) !important; /* 2 per row on mobile */
-  height: 140px !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-@media (min-width: 768px) {
-  .services-grid .service-card {
-    flex: 0 1 calc(30% - 20px); /* 3 per row on tablets */
-  }
-}
-@media (min-width: 1024px) {
-  .services-grid .service-card {
-    flex: 0 1 calc(22% - 20px); /* 4 per row on desktop */
-  }
-}
-</style>
-<!-- CENTER-FORCE OVERRIDE - place at end of head -->
-<style id="center-force-override">
-/* Strong override to center grouped-cards */
-#tools-services .services-container-fix {
-  max-width: 1000px !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-  padding-left: 10px !important;
-  padding-right: 10px !important;
-  box-sizing: border-box !important;
-}
-
-/* Ensure grouped-cards is centered inside its container */
-#tools-services .services-container-fix .grouped-cards {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  justify-content: center !important;
-  align-items: flex-start !important;
-  gap: 18px !important;
-  margin: 0 auto !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-}
-
-/* Each card should take ~45% width (2 per row on mobile), then 30% on tablet, 22% on desktop */
-#tools-services .services-container-fix .grouped-cards .flip-card {
-  flex: 0 1 calc(45% - 18px) !important;
-  max-width: calc(45% - 18px) !important;
-  box-sizing: border-box !important;
-  height: 140px !important;
-  margin: 0 !important;
-}
-
-/* Tablet: 3 per row */
-@media (min-width: 768px) {
-  #tools-services .services-container-fix .grouped-cards .flip-card {
-    flex: 0 1 calc(30% - 18px) !important;
-    max-width: calc(30% - 18px) !important;
-  }
-}
-
-/* Desktop: 4 per row */
-@media (min-width: 1024px) {
-  #tools-services .services-container-fix .grouped-cards .flip-card {
-    flex: 0 1 calc(22% - 18px) !important;
-    max-width: calc(22% - 18px) !important;
-  }
-}
-
-/* Ensure front/back content is centered */
-#tools-services .services-container-fix .grouped-cards .flip-card .flip-inner,
-#tools-services .services-container-fix .grouped-cards .flip-card .flip-front,
-#tools-services .services-container-fix .grouped-cards .flip-card .flip-back {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  text-align: center !important;
-  box-sizing: border-box !important;
-  padding: 8px !important;
-}
-</style>
-<style id="services-size-fix">
-#tools-services .services-container-fix .grouped-cards {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 14px;
-  max-width: 1000px;
-  margin: 0 auto;
-}
-#tools-services .services-container-fix .grouped-cards .flip-card {
-  width: 120px !important;
-  height: 120px !important;
-  perspective: 1000px;
-}
-#tools-services .services-container-fix .grouped-cards .flip-front,
-#tools-services .services-container-fix .grouped-cards .flip-back {
-  font-size: 0.8rem !important;
-  padding: 0.5rem !important;
-}
-@media (min-width: 768px) {
-  #tools-services .services-container-fix .grouped-cards .flip-card {
-    width: 140px !important;
-    height: 120px !important;
-  }
-}
-@media (min-width: 1024px) {
-  #tools-services .services-container-fix .grouped-cards .flip-card {
-    width: 150px !important;
-    height: 120px !important;
-  }
-}
-</style>
+<!-- Dead CSS removed here (2026-09-13): premium-services-fix, compact-services-cards, fix-centered-services, center-force-override, services-size-fix — five stacked patches targeting .cube-box / .flip-card / .services-grid .service-card, none of which exist in the DOM anymore. The live Services section uses .syb-card / .syb-grid (see #tools-services below); its styling lives with that markup, not here. -->
 <link href="./site.webmanifest" rel="manifest"/>
 <!-- Open Graph and Twitter meta consolidated in head — no duplicates needed here -->
 
@@ -4288,12 +4097,12 @@ h1.prem-name {
 <!-- ══ LIVE STATS BAR ══ -->
 <div class="hero-stats-bar" id="heroStatsBar">
   <div class="hsb-item">
-    <span class="hsb-num" data-target="3" data-suffix="+">0</span>
-    <span class="hsb-label">Yrs Experience</span>
+    <span class="hsb-num" data-target="5" data-suffix="+">0</span>
+    <span class="hsb-label">Yrs as Developer</span>
   </div>
   <div class="hsb-divider" aria-hidden="true"></div>
   <div class="hsb-item">
-    <span class="hsb-num" data-target="20" data-suffix="+">0</span>
+    <span class="hsb-num" data-target="50" data-suffix="+">0</span>
     <span class="hsb-label">Projects Built</span>
   </div>
   <div class="hsb-divider" aria-hidden="true"></div>
@@ -4628,7 +4437,7 @@ h1.prem-name {
   <!-- ── Experience ── -->
   <div class="exp-para-wrap">
     <div class="exp-eyebrow">⚡ Experience</div>
-    <p class="exp-para-text">Experienced in customer service and support roles for leading Indian brands — <strong style="font-weight:700;background:linear-gradient(90deg,#f36c21,#ffaa55);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Xiaomi</strong>, <strong style="font-weight:700;background:linear-gradient(90deg,#2874f0,#66aaff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Flipkart</strong>, and <strong style="font-weight:700;background:linear-gradient(90deg,#e6b800,#ffe066);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Rapido</strong>. Demonstrated strong <strong style="font-weight:600;color:rgba(160,255,240,0.9);-webkit-text-fill-color:rgba(160,255,240,0.9);">communication</strong>, <strong style="font-weight:600;color:rgba(160,255,240,0.9);-webkit-text-fill-color:rgba(160,255,240,0.9);">team leadership</strong>, and <strong style="font-weight:600;color:rgba(160,255,240,0.9);-webkit-text-fill-color:rgba(160,255,240,0.9);">problem-solving</strong> skills in high-volume environments while consistently improving customer satisfaction.</p>
+    <p class="exp-para-text">Customer support experience at <strong style="font-weight:700;background:linear-gradient(90deg,#f36c21,#ffaa55);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Xiaomi</strong> (L1 inbound → MSM troubleshooting) and <strong style="font-weight:700;background:linear-gradient(90deg,#2874f0,#66aaff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Flipkart</strong> (L2 returns &amp; refunds), followed by an IT/Developer role at <strong style="font-weight:700;background:linear-gradient(90deg,#e6b800,#ffe066);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Rapido</strong> — internal tooling, agent training, and live chat support. Demonstrated strong <strong style="font-weight:600;color:rgba(160,255,240,0.9);-webkit-text-fill-color:rgba(160,255,240,0.9);">communication</strong>, <strong style="font-weight:600;color:rgba(160,255,240,0.9);-webkit-text-fill-color:rgba(160,255,240,0.9);">team leadership</strong>, and <strong style="font-weight:600;color:rgba(160,255,240,0.9);-webkit-text-fill-color:rgba(160,255,240,0.9);">problem-solving</strong> skills throughout.</p>
   </div>
 
   <!-- ── Resume button ── -->
@@ -5820,7 +5629,7 @@ h1.prem-name {
   display: flex;
   justify-content: center;
   align-items: stretch;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 0;
   max-width: 700px;
   margin: 0 auto 0.55rem;
@@ -5997,6 +5806,58 @@ h1.prem-name {
 }
 .blog-signature span { color: rgba(0,220,180,0.55); }
 
+/* legacy line */
+.blog-legacy-wrap {
+  text-align: center;
+  margin: 1.6rem auto 0.4rem;
+  max-width: 560px;
+  padding: 0 1rem;
+}
+.blog-legacy-divider {
+  width: 60px; height: 1px; margin: 0 auto 1.1rem;
+  background: linear-gradient(90deg, transparent, rgba(0,220,180,0.4), transparent);
+}
+.blog-legacy-line {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 0.88rem;
+  line-height: 1.75;
+  letter-spacing: 0.2px;
+  color: rgba(210, 235, 230, 0.72);
+  animation: blogLegacyFade 2.4s ease forwards;
+  opacity: 0;
+}
+@keyframes blogLegacyFade {
+  0%   { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* SHZ mark — distinct from the two text signatures above */
+.blog-shz-mark {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+.blog-shz-pill {
+  display: inline-block;
+  padding: 0.55rem 1.3rem;
+  border-radius: 999px;
+  border: 1px solid rgba(0,255,234,0.28);
+  background: rgba(0,255,234,0.05);
+  box-shadow: 0 0 16px rgba(0,255,234,0.14), inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.blog-shz-text {
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
+  font-size: 0.66rem;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  background: linear-gradient(90deg, #00f0ff 0%, #ffffff 50%, #00f0ff 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3s infinite linear;
+}
+
 /* hide old elements */
 .pblog-corner { display: none !important; }
 .pblog-arrow  { display: none !important; }
@@ -6029,20 +5890,20 @@ h1.prem-name {
       <div class="pblog-shimmer"></div>
       <div class="pblog-dot"></div>
       <span class="pblog-tag" style="color:#00e5c8;">Dev Story</span>
-      <p class="pblog-card-title">How I Built My Portfolio</p>
+      <p class="pblog-card-title">Building Live Engineering Telemetry Into This Portfolio</p>
       <div class="pblog-bar-track"><div class="pblog-bar-fill" data-fill="100"></div></div>
       <div class="pblog-hint">tap to read ↓</div>
-      <p class="pblog-card-desc">Pixel by pixel, line by line — hand-coded with HTML, CSS &amp; JS. No templates. No shortcuts. Just craft and relentless iteration until every animation felt alive.</p>
+      <p class="pblog-card-desc">The "Recently Shipped" section above isn't a static timeline — it calls GitHub's REST and GraphQL APIs live, computes real commit streaks and CI pass rates, and snapshots language drift to Firestore once a day so the trend line is real history, not a guess.</p>
     </div>
 
     <div class="pblog-card" onclick="toggleBlogCard(this)">
       <div class="pblog-shimmer" style="animation-delay:0.2s"></div>
       <div class="pblog-dot" style="animation-delay:0.7s"></div>
       <span class="pblog-tag" style="color:#4dd9ff;">Productivity</span>
-      <p class="pblog-card-title">Top Excel Skills You Must Know</p>
+      <p class="pblog-card-title">Excel Techniques That Actually Save Hours</p>
       <div class="pblog-bar-track"><div class="pblog-bar-fill" data-fill="100"></div></div>
       <div class="pblog-hint">tap to read ↓</div>
-      <p class="pblog-card-desc">Pivot tables, VLOOKUP, dynamic dashboards — the exact skills that turned raw data into decisions at Flipkart and Xiaomi. Real analyst superpowers.</p>
+      <p class="pblog-card-desc">XLOOKUP instead of nested VLOOKUPs, INDEX-MATCH for two-way lookups, pivot tables with calculated fields instead of a wall of manual SUMIFs — the difference between a report that takes twenty minutes and one that takes twenty seconds, learned handling catalog and ops data at Flipkart and Xiaomi.</p>
     </div>
 
     <div class="pblog-card" onclick="toggleBlogCard(this)">
@@ -6052,17 +5913,17 @@ h1.prem-name {
       <p class="pblog-card-title">Why Responsive Design Matters</p>
       <div class="pblog-bar-track"><div class="pblog-bar-fill" data-fill="100"></div></div>
       <div class="pblog-hint">tap to read ↓</div>
-      <p class="pblog-card-desc">A site that breaks on mobile breaks trust. Fluid grids, breakpoints, and mobile-first thinking directly impact SEO rankings and session time.</p>
+      <p class="pblog-card-desc">Fluid type with clamp() instead of a pile of fixed breakpoints, mobile-first media queries, and testing at 375px before ever touching 1440px — because Google's mobile-first indexing means a layout that breaks on a phone quietly hurts your desktop ranking too.</p>
     </div>
 
     <div class="pblog-card" onclick="toggleBlogCard(this)">
       <div class="pblog-shimmer" style="animation-delay:0.6s"></div>
       <div class="pblog-dot" style="animation-delay:1.4s"></div>
       <span class="pblog-tag" style="color:#f9a825;">Engineering</span>
-      <p class="pblog-card-title">The Art of Debugging Efficiently</p>
+      <p class="pblog-card-title">Why I Ditched Exact-Version Dependency Matching</p>
       <div class="pblog-bar-track"><div class="pblog-bar-fill" data-fill="100"></div></div>
       <div class="pblog-hint">tap to read ↓</div>
-      <p class="pblog-card-desc">Great developers read code like detectives. Console techniques, breakpoint strategies, and AI-assisted workflows to squash bugs in minutes.</p>
+      <p class="pblog-card-desc">My first pass at the Dependency Freshness score above flagged anything that wasn't npm's literal newest release — so a healthy project one patch behind looked neglected. Switched to comparing major versions instead: React 17 vs 18 is a real gap, 18.2 vs 18.3 isn't.</p>
     </div>
 
     <div class="pblog-card" onclick="toggleBlogCard(this)">
@@ -6072,13 +5933,52 @@ h1.prem-name {
       <p class="pblog-card-title">Optimizing Frontend for Speed</p>
       <div class="pblog-bar-track"><div class="pblog-bar-fill" data-fill="100"></div></div>
       <div class="pblog-hint">tap to read ↓</div>
-      <p class="pblog-card-desc">Milliseconds matter. Minification, lazy loading, GPU-accelerated CSS and smart asset strategies that turn a sluggish page into an instant, premium experience.</p>
+      <p class="pblog-card-desc">Halving the particle-field count on mobile (25 down to 12), turning off AOS scroll animations below the mobile breakpoint, and deferring non-critical scripts — the unglamorous trims on this exact page that actually move a Lighthouse score, unlike a bigger hero image.</p>
+    </div>
+
+    <div class="pblog-card" onclick="toggleBlogCard(this)">
+      <div class="pblog-shimmer" style="animation-delay:1.0s"></div>
+      <div class="pblog-dot" style="animation-delay:2.1s"></div>
+      <span class="pblog-tag" style="color:#ff8fa3;">Mindset</span>
+      <p class="pblog-card-title">What Handling Angry Customers Taught Me About Debugging</p>
+      <div class="pblog-bar-track"><div class="pblog-bar-fill" data-fill="100"></div></div>
+      <div class="pblog-hint">tap to read ↓</div>
+      <p class="pblog-card-desc">Escalation calls at Flipkart and Xiaomi drilled in one habit: the person in front of you isn't the problem, the gap behind the scenes is. Slow down, ask what actually broke instead of guessing, fix the real cause — the exact same order of operations I now follow every time something misbehaves in code instead of on a call.</p>
+    </div>
+
+    <div class="pblog-card" onclick="toggleBlogCard(this)">
+      <div class="pblog-shimmer" style="animation-delay:1.2s"></div>
+      <div class="pblog-dot" style="animation-delay:2.4s"></div>
+      <span class="pblog-tag" style="color:#60a5fa;">Clarity</span>
+      <p class="pblog-card-title">Writing for People Who've Never Opened a Government Form</p>
+      <div class="pblog-bar-track"><div class="pblog-bar-fill" data-fill="100"></div></div>
+      <div class="pblog-hint">tap to read ↓</div>
+      <p class="pblog-card-desc">Welfare scheme pages are written for officials, not for the people who actually qualify. Building YojanaSahay meant turning dense eligibility rules into a sentence someone can act on the first time they read it — the same standard I held myself to training new agents at Rapido: if it needs a follow-up question, it wasn't explained well enough.</p>
+    </div>
+
+    <div class="pblog-card" onclick="toggleBlogCard(this)">
+      <div class="pblog-shimmer" style="animation-delay:1.4s"></div>
+      <div class="pblog-dot" style="animation-delay:2.7s"></div>
+      <span class="pblog-tag" style="color:#c084fc;">Ownership</span>
+      <p class="pblog-card-title">Why I'd Rather Ship Late Than Let Something Break Quietly</p>
+      <div class="pblog-bar-track"><div class="pblog-bar-fill" data-fill="100"></div></div>
+      <div class="pblog-hint">tap to read ↓</div>
+      <p class="pblog-card-desc">Running a platform solo means there's no one behind me to catch what I miss, so I'd rather push a feature a week later than have it fail silently on someone counting on it. It's the same line I held on live support floors at Xiaomi and Flipkart — get it right before you close it out, not after someone comes back asking why it didn't work.</p>
     </div>
 
   </div>
   </div>
 
   <p class="blog-signature">— <span>Sahnawaz Ahmed Laskar</span> &nbsp;·&nbsp; The Digital Alchemist</p>
+
+  <div class="blog-legacy-wrap">
+    <div class="blog-legacy-divider"></div>
+    <p class="blog-legacy-line">People are forgotten faster than the things they build. Long after this name stops being said out loud, this portfolio, these projects, and everything shaped here will still be quietly doing their job — in my hands while I'm here, and in someone else's the day I'm not. That continuity is the only kind of forever I've ever really wanted.</p>
+  </div>
+
+  <div class="blog-shz-mark">
+    <span class="blog-shz-pill"><span class="blog-shz-text">SHZ | Sahnawaz Hyper Zenith</span></span>
+  </div>
 </section>
 
 <script>
@@ -6507,7 +6407,7 @@ function toggleBlogCard(card) {
       <div class="ptesti-bar-track"><div class="ptesti-bar-fill" data-fill="100"></div></div>
       <div class="ptesti-role">Quality – Flipkart, Ienergizer</div>
       <div class="ptesti-hint">tap to read ↓</div>
-      <div class="ptesti-text">Sahnawaz consistently exceeded expectations with meticulous designs and prompt deliveries. A dependable asset to any team.</div>
+      <div class="ptesti-text">Sahnawaz consistently exceeded expectations with meticulous, precise resolutions and prompt turnarounds. A dependable asset to any team.</div>
     </div>
 
     <div class="ptesti-card" onclick="ptestiToggle(this)">
@@ -6518,7 +6418,7 @@ function toggleBlogCard(card) {
       <div class="ptesti-bar-track"><div class="ptesti-bar-fill" data-fill="100"></div></div>
       <div class="ptesti-role">Team Lead – Xiaomi, OPO</div>
       <div class="ptesti-hint">tap to read ↓</div>
-      <div class="ptesti-text">His ability to blend creative visuals with user-first functionality is rare. A true go-to expert for design solutions that actually work.</div>
+      <div class="ptesti-text">His patience with even the toughest customers and his eye for what's actually going wrong is rare. A true go-to expert who turns frustrated calls into satisfied customers, every time.</div>
     </div>
 
   </div><!-- end row 1 -->
@@ -7001,14 +6901,14 @@ function ptestiToggle(card) {
       <span class="shz-stat-icon">⏱️</span>
       <span class="shz-stat-num" id="shz-n0">0</span>
       <div class="shz-stat-bar-track"><div class="shz-stat-bar-fill" id="shz-b0" data-fill="80"></div></div>
-      <div class="shz-stat-label">Years Experience</div>
+      <div class="shz-stat-label">Brand Ops Experience</div>
       <div class="shz-stat-tags">
-        <span class="shz-stat-tag">Flipkart</span>
         <span class="shz-stat-tag">Xiaomi</span>
+        <span class="shz-stat-tag">Flipkart</span>
         <span class="shz-stat-tag">Rapido</span>
       </div>
       <div class="shz-stat-hint">tap for details ↓</div>
-      <div class="shz-stat-desc">Real-world ops across 3 major Indian brands — handling customer support, quality audits &amp; agent training at Flipkart, Xiaomi India &amp; Rapido.</div>
+      <div class="shz-stat-desc">2.4+ years across Xiaomi India (L1 support → MSM troubleshooting) and Flipkart (L2 returns &amp; refunds) in customer support, followed by an IT/Developer role at Rapido — internal tooling, agent training &amp; live chat support. Part of 5+ years total as a developer, counting freelance &amp; personal projects since 2021.</div>
     </div>
 
     <div class="shz-stat" id="shz-stat-1">
@@ -7050,8 +6950,8 @@ function ptestiToggle(card) {
 (function(){
   var stats = [
     { elId:'shz-n0', target:2.4,  decimal:true,  suffix:'',  barId:'shz-b0' },
-    { elId:'shz-n1', target:20,   decimal:false, suffix:'+', barId:'shz-b1', sufId:'shz-s1' },
-    { elId:'shz-n2', target:15,   decimal:false, suffix:'+', barId:'shz-b2', sufId:'shz-s2' }
+    { elId:'shz-n1', target:50,   decimal:false, suffix:'+', barId:'shz-b1', sufId:'shz-s1' },
+    { elId:'shz-n2', target:35,   decimal:false, suffix:'-40', barId:'shz-b2', sufId:'shz-s2' }
   ];
 
   function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
@@ -7223,8 +7123,8 @@ function ptestiToggle(card) {
       <div class="cert-header">
         <div class="cert-icon">🤝</div>
         <div class="cert-info">
-          <div class="cert-name">Customer Support Service</div>
-          <div class="cert-meta">CX · Ops · Comms</div>
+          <div class="cert-name">Technical &amp; Backend Support</div>
+          <div class="cert-meta">L1/L2 · Ops · IT</div>
         </div>
         <div class="cert-chevron">▼</div>
       </div>
@@ -7233,9 +7133,9 @@ function ptestiToggle(card) {
         <div class="cert-bar-track"><div class="cert-bar-fill"></div></div>
       </div>
       <div class="cert-desc">
-        Behind 2.4 years of real ops — escalations, agent coaching, QA audits across Flipkart, Xiaomi India &amp; Rapido.
+        Behind 2.4 years of real ops — L1 support &amp; MSM troubleshooting at Xiaomi, L2 returns/refunds resolution at Flipkart, and an IT/Developer role with agent training at Rapido.
         <div class="cert-chips">
-          <span class="cert-chip">Escalation</span><span class="cert-chip">QA Auditing</span><span class="cert-chip">Training</span><span class="cert-chip">CSAT</span>
+          <span class="cert-chip">L1/L2 Support</span><span class="cert-chip">Escalation</span><span class="cert-chip">QA Auditing</span><span class="cert-chip">Training</span>
         </div>
       </div>
     </div>
@@ -7828,41 +7728,7 @@ function ptestiToggle(card) {
 
   <ul class="pwork-timeline" id="pworkTimeline">
 
-    <!-- ① Flipkart -->
-    <li class="pwork-entry" onclick="pworkToggle(this)">
-      <div class="pwork-node" style="color:#2874f0; border-color:#2874f0;">🛒</div>
-      <div class="pwork-card">
-        <div class="pwork-corner"></div>
-        <div class="pwork-card-head">
-          <div class="pwork-logo" style="background:rgba(40,116,240,0.12); border-color:rgba(40,116,240,0.25);">🛒</div>
-          <div class="pwork-head-text">
-            <div class="pwork-company">Flipkart — Ienergizer</div>
-            <div class="pwork-role">Customer Experience Specialist &amp; Internal Tools</div>
-          </div>
-          <div class="pwork-period">2022 – 2023</div>
-          <span class="pwork-chevron">▼</span>
-        </div>
-        <div class="pwork-card-body">
-          <div class="pwork-body-inner">
-            <p class="pwork-summary">At India's largest e-commerce platform, I built and managed internal tools that automated order resolution flows, cutting agent handling time significantly. I collaborated with backend teams to surface real-time data for faster decision-making and became the go-to person for complex escalation cases.</p>
-            <div class="pwork-pills">
-              <span class="pwork-pill" style="color:#2874f0; border-color:rgba(40,116,240,0.5);">Customer Ops</span>
-              <span class="pwork-pill" style="color:#2874f0; border-color:rgba(40,116,240,0.5);">Internal Tools</span>
-              <span class="pwork-pill" style="color:#2874f0; border-color:rgba(40,116,240,0.5);">Automation</span>
-              <span class="pwork-pill" style="color:#2874f0; border-color:rgba(40,116,240,0.5);">Escalation Mgmt</span>
-            </div>
-            <ul class="pwork-achievements">
-              <li>Built internal portal tools to automate customer resolution — reduced repeat-contact rate</li>
-              <li>Supported backend team with live agent clarification workflows and real-time data bridging</li>
-              <li>Handled high-priority escalation cases with zero SLA breaches across 6+ months</li>
-              <li>Recognised by QA and HR departments for consistent professionalism and precision</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </li>
-
-    <!-- ② Xiaomi -->
+    <!-- ① Xiaomi -->
     <li class="pwork-entry" onclick="pworkToggle(this)">
       <div class="pwork-node" style="color:#f36c21; border-color:#f36c21;">📱</div>
       <div class="pwork-card">
@@ -7871,25 +7737,56 @@ function ptestiToggle(card) {
           <div class="pwork-logo" style="background:rgba(243,108,33,0.12); border-color:rgba(243,108,33,0.25);">📱</div>
           <div class="pwork-head-text">
             <div class="pwork-company">Xiaomi India — One Point One Solutions</div>
-            <div class="pwork-role">Order Escalation Lead &amp; Mobile Tech Support</div>
+            <div class="pwork-role">L1 Inbound Support → MSM Troubleshooting (Pilot Batch)</div>
+          </div>
+          <div class="pwork-period">2022 – 2023</div>
+          <span class="pwork-chevron">▼</span>
+        </div>
+        <div class="pwork-card-body">
+          <div class="pwork-body-inner">
+            <p class="pwork-summary">My first real IT-industry role — customer support, not development. I started on L1 inbound, taking live calls from Xiaomi customers. As I got sharper at diagnosing device issues, I was promoted into the Mobile Screen Mirroring (MSM) troubleshooting process, as part of the MSM pilot batch handling that new process.</p>
+            <div class="pwork-pills">
+              <span class="pwork-pill" style="color:#f36c21; border-color:rgba(243,108,33,0.5);">L1 Inbound Support</span>
+              <span class="pwork-pill" style="color:#f36c21; border-color:rgba(243,108,33,0.5);">MSM Troubleshooting</span>
+              <span class="pwork-pill" style="color:#f36c21; border-color:rgba(243,108,33,0.5);">Pilot Batch</span>
+            </div>
+            <ul class="pwork-achievements">
+              <li>Started on L1, handling live inbound customer support calls for Xiaomi devices</li>
+              <li>Promoted into the Mobile Screen Mirroring (MSM) troubleshooting process</li>
+              <li>Selected as part of the MSM pilot batch for the newly launched process</li>
+              <li>Commended by Team Leader (Adiba Kirmani) and Quality Head (Hemalatha) for meticulous output</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </li>
+
+    <!-- ② Flipkart -->
+    <li class="pwork-entry" onclick="pworkToggle(this)">
+      <div class="pwork-node" style="color:#2874f0; border-color:#2874f0;">🛒</div>
+      <div class="pwork-card">
+        <div class="pwork-corner"></div>
+        <div class="pwork-card-head">
+          <div class="pwork-logo" style="background:rgba(40,116,240,0.12); border-color:rgba(40,116,240,0.25);">🛒</div>
+          <div class="pwork-head-text">
+            <div class="pwork-company">Flipkart — Ienergizer</div>
+            <div class="pwork-role">L2 Support — Returns &amp; Refunds</div>
           </div>
           <div class="pwork-period">2023</div>
           <span class="pwork-chevron">▼</span>
         </div>
         <div class="pwork-card-body">
           <div class="pwork-body-inner">
-            <p class="pwork-summary">At Xiaomi India, I owned the escalation dashboard end-to-end — identifying bottlenecks, streamlining issue routing, and providing precise MSM-based mobile device troubleshooting. Working at this scale taught me how quality systems, not just individual effort, create lasting customer satisfaction.</p>
+            <p class="pwork-summary">At India's largest e-commerce platform, I worked L2 — handling backend return and refund queries escalated from frontline agents, queries that needed deeper digging than a first-contact call could resolve. This was a customer support role, focused on accuracy and turnaround time on complex cases.</p>
             <div class="pwork-pills">
-              <span class="pwork-pill" style="color:#f36c21; border-color:rgba(243,108,33,0.5);">Dashboard Ops</span>
-              <span class="pwork-pill" style="color:#f36c21; border-color:rgba(243,108,33,0.5);">MSM Diagnostics</span>
-              <span class="pwork-pill" style="color:#f36c21; border-color:rgba(243,108,33,0.5);">Quality Assurance</span>
-              <span class="pwork-pill" style="color:#f36c21; border-color:rgba(243,108,33,0.5);">Team Coaching</span>
+              <span class="pwork-pill" style="color:#2874f0; border-color:rgba(40,116,240,0.5);">L2 Support</span>
+              <span class="pwork-pill" style="color:#2874f0; border-color:rgba(40,116,240,0.5);">Returns &amp; Refunds</span>
+              <span class="pwork-pill" style="color:#2874f0; border-color:rgba(40,116,240,0.5);">Escalation Handling</span>
             </div>
             <ul class="pwork-achievements">
-              <li>Streamlined the escalation dashboard — improved issue resolution speed across the support floor</li>
-              <li>Delivered expert MSM-based mobile hardware and software troubleshooting for complex device faults</li>
-              <li>Coached junior agents on quality-first resolution techniques, raising team CSAT scores</li>
-              <li>Commended by Team Leader (Adiba Kirmani) and Quality Head (Hemalatha) for meticulous output</li>
+              <li>Handled L2 backend queries for returns and refunds, escalated from frontline agents</li>
+              <li>Focused on accurate, timely resolution of complex return/refund cases</li>
+              <li>Recognised by QA and HR departments for consistent professionalism and precision</li>
             </ul>
           </div>
         </div>
@@ -7905,24 +7802,25 @@ function ptestiToggle(card) {
           <div class="pwork-logo" style="background:rgba(255,204,0,0.1); border-color:rgba(255,204,0,0.25);">🛵</div>
           <div class="pwork-head-text">
             <div class="pwork-company">Rapido — Ienergizer</div>
-            <div class="pwork-role">Support Lead &amp; Agent Training Specialist</div>
+            <div class="pwork-role">IT / Developer</div>
           </div>
           <div class="pwork-period">2023 – 2024</div>
           <span class="pwork-chevron">▼</span>
         </div>
         <div class="pwork-card-body">
           <div class="pwork-body-inner">
-            <p class="pwork-summary">In Rapido's high-velocity support environment, I led real-time chat support for ride and driver issues, maintaining composure and accuracy under peak-hour pressure. I designed and delivered agent training programs on deep-resolution workflows that became standard practice on the floor.</p>
+            <p class="pwork-summary">I rejoined Ienergizer specifically for the Rapido process — this time in an IT/Developer role rather than customer support. I worked on internal tooling for the process, led real-time chat support operations for ride and driver issues, and designed &amp; delivered agent training programs on deep-resolution workflows.</p>
             <div class="pwork-pills">
-              <span class="pwork-pill" style="color:#ffcc00; border-color:rgba(255,204,0,0.45);">Live Chat Support</span>
+              <span class="pwork-pill" style="color:#ffcc00; border-color:rgba(255,204,0,0.45);">IT / Developer</span>
+              <span class="pwork-pill" style="color:#ffcc00; border-color:rgba(255,204,0,0.45);">Internal Tooling</span>
               <span class="pwork-pill" style="color:#ffcc00; border-color:rgba(255,204,0,0.45);">Agent Training</span>
-              <span class="pwork-pill" style="color:#ffcc00; border-color:rgba(255,204,0,0.45);">Workflow Design</span>
-              <span class="pwork-pill" style="color:#ffcc00; border-color:rgba(255,204,0,0.45);">Crisis Resolution</span>
+              <span class="pwork-pill" style="color:#ffcc00; border-color:rgba(255,204,0,0.45);">Live Chat Support</span>
             </div>
             <ul class="pwork-achievements">
+              <li>Rejoined Ienergizer specifically for the Rapido process as IT/Developer, not customer support</li>
+              <li>Worked on internal tools/systems supporting the Rapido process</li>
               <li>Led real-time chat support for ride, payment and driver-partner issues across peak-load shifts</li>
-              <li>Designed deep-resolution training workflows adopted floor-wide by the support team</li>
-              <li>Maintained calm creative problem-solving under sustained high-pressure operations</li>
+              <li>Designed and delivered agent training programs on deep-resolution workflows, adopted floor-wide</li>
               <li>Floor Manager Santoosh Reddy noted: "He takes ownership, delivers impact and brings calm creativity."</li>
             </ul>
           </div>
@@ -8523,7 +8421,7 @@ document.addEventListener('keydown', function(e) {
       desc:'Innovation means building things that didn\'t exist before. I designed and shipped a bespoke "Hacker Mode" — a creative UI state that transforms the interface into a terminal-aesthetic experience, complete with matrix rain effects, custom cursors, and sound cues.',
       tags:['Creative Coding','JS Canvas','UX Innovation','Signature Feature','UI Modes'] },
     ki3: { icon:'🌐', title:'10,000+ Active Users Reached', group:'impact', accent:'#4ade80',
-      desc:'Numbers only matter when real people are behind them. The solutions I\'ve built — from customer support tooling at Flipkart and Xiaomi to publicly accessible web projects — have collectively reached and served over 10,000 active users. Scale validates design.',
+      desc:'Numbers only matter when real people are behind them. The solutions I\'ve built — from L1/L2 support tooling at Xiaomi and Flipkart to publicly accessible web projects — have collectively reached and served over 10,000 active users. Scale validates design.',
       tags:['Scale','User Impact','Production','Analytics','Real-world Delivery'] },
     ki4: { icon:'🖥️', title:'Portfolio — Engineered from Scratch', group:'impact', accent:'#00d4ff',
       desc:'This portfolio is not a template. Every line — from the particle canvas and matrix rain footer, to the AI-powered live chat, skill bars, hacker mode, animated profile ring, and this very achievement system — is hand-coded in pure HTML, CSS, and vanilla JavaScript. No frameworks, no page builders. 16,000+ lines of deliberate, performance-optimised code, built to showcase what a developer who truly understands the web can create solo.',
@@ -11070,56 +10968,6 @@ document.addEventListener('keydown', function(e) {
         <div class="mpj-card-links">
           <a href="https://yojanasahay.vercel.app" target="_blank" class="mpj-link-btn mpj-link-live">↗ Live</a>
           <button type="button" class="mpj-link-btn mpj-link-case mpj-link-case-demo" onclick="openCaseStudy('yojanasahay')">🔍 Case Study</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ④ Flipkart Internal Escalation Tool -->
-    <div class="mpj-card" data-cat="tool" style="--mpj-accent: linear-gradient(90deg, #2874f0, #4da6ff);">
-      <div class="mpj-card-top">
-        <span class="mpj-card-icon">🛒</span>
-        <span class="mpj-card-status mpj-status-freelance">◈ INTERNAL</span>
-      </div>
-      <div class="mpj-card-name">Flipkart Order Resolution Portal</div>
-      <div class="mpj-card-tagline">Internal tool built to automate customer order resolution flows, bridging agent UI with backend data — cutting handling time significantly.</div>
-      <div class="mpj-problem">Problem → Agents wasted time on manual lookups. Automated the flow with real-time data bridging.</div>
-      <div class="mpj-metric">⚡ Reduced repeat-contact rate · Zero SLA breaches (6mo+)</div>
-      <div class="mpj-stack">
-        <span class="mpj-pill">Internal Portal</span>
-        <span class="mpj-pill">Automation</span>
-        <span class="mpj-pill">Data Bridging</span>
-        <span class="mpj-pill">Escalation Logic</span>
-      </div>
-      <div class="mpj-hindsight">🔮 Would add analytics dashboard layer + exportable SLA reports from day one.</div>
-      <div class="mpj-card-meta">
-        <span class="mpj-role-tag">Internal Tools Lead · Flipkart</span>
-        <div class="mpj-card-links">
-          <span class="mpj-link-btn mpj-link-github" style="opacity:0.5; cursor:default;">🔒 Internal</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- ⑤ Xiaomi Escalation Dashboard -->
-    <div class="mpj-card" data-cat="tool" style="--mpj-accent: linear-gradient(90deg, #f36c21, #ffaa55);">
-      <div class="mpj-card-top">
-        <span class="mpj-card-icon">📱</span>
-        <span class="mpj-card-status mpj-status-freelance">◈ INTERNAL</span>
-      </div>
-      <div class="mpj-card-name">Xiaomi Escalation Dashboard</div>
-      <div class="mpj-card-tagline">End-to-end escalation dashboard for Xiaomi India support floor — identified bottlenecks, streamlined issue routing, improved resolution speed across teams.</div>
-      <div class="mpj-problem">Problem → Support floor had no visibility into escalation backlogs. Built a real-time routing system.</div>
-      <div class="mpj-metric">⚡ Improved team CSAT · Commended by QA Head Hemalatha</div>
-      <div class="mpj-stack">
-        <span class="mpj-pill">Dashboard Ops</span>
-        <span class="mpj-pill">MSM Diagnostics</span>
-        <span class="mpj-pill">QA Workflows</span>
-        <span class="mpj-pill">Team Coaching</span>
-      </div>
-      <div class="mpj-hindsight">🔮 Would integrate MSM diagnostic data directly into the dashboard for one-click hardware context.</div>
-      <div class="mpj-card-meta">
-        <span class="mpj-role-tag">Escalation Lead · Xiaomi India</span>
-        <div class="mpj-card-links">
-          <span class="mpj-link-btn mpj-link-github" style="opacity:0.5; cursor:default;">🔒 Internal</span>
         </div>
       </div>
     </div>
@@ -17225,101 +17073,6 @@ function sendMail(e) { if(e) e.preventDefault(); ctSendMail(); }
 }
 
 /* Visitor counter premium */
-#shz-counter {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  margin-top: 0.5rem;
-  padding: 8px 16px 10px;
-  background: rgba(0,8,20,0.6);
-  border: 1px solid rgba(0,255,255,0.18);
-  border-radius: 10px;
-  cursor: pointer;
-  user-select: none;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-#shz-counter::after {
-  content: '';
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(0,255,255,0.5), transparent);
-  animation: scanLine 2.5s linear infinite;
-}
-@keyframes scanLine {
-  0%   { opacity: 0.3; transform: scaleX(0.6); }
-  50%  { opacity: 1;   transform: scaleX(1); }
-  100% { opacity: 0.3; transform: scaleX(0.6); }
-}
-#shz-counter:hover {
-  border-color: rgba(0,255,255,0.45);
-  box-shadow: 0 0 20px rgba(0,255,255,0.12);
-}
-#shz-counter-label {
-  font-family: 'Courier New', monospace;
-  font-size: 0.6rem;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: rgba(0,255,255,0.5);
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-#shz-counter-label::before,
-#shz-counter-label::after {
-  content: '';
-  display: inline-block;
-  width: 18px; height: 1px;
-  background: rgba(0,255,255,0.3);
-}
-/* Slot machine digit cells */
-.shz-slot {
-  width: 18px; height: 26px;
-  overflow: hidden;
-  border: 1px solid rgba(0,255,255,0.22);
-  border-radius: 4px;
-  background: linear-gradient(180deg, #030d18 0%, #061520 100%);
-  display: inline-block;
-  box-shadow: inset 0 0 4px rgba(0,255,255,0.08);
-}
-.shz-reel {
-  display: flex;
-  flex-direction: column;
-  will-change: transform;
-}
-.shz-reel span {
-  width: 18px; height: 26px;
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Courier New', monospace;
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: #00ffff;
-  text-shadow: 0 0 6px rgba(0,255,255,0.6);
-  flex-shrink: 0;
-}
-#shz-digits {
-  display: flex;
-  gap: 4px;
-  justify-content: center;
-  align-items: center;
-}
-/* separator dot between digit groups */
-.shz-sep {
-  font-size: 0.7rem;
-  color: rgba(0,255,255,0.35);
-  line-height: 26px;
-  padding: 0 1px;
-}
-#shz-counter-hint {
-  font-family: 'Courier New', monospace;
-  font-size: 0.55rem;
-  letter-spacing: 1.5px;
-  color: rgba(0,255,255,0.22);
-  text-transform: uppercase;
-}
 </style>
 
 <div id="shz-bottom-block">
@@ -17333,87 +17086,8 @@ function sendMail(e) { if(e) e.preventDefault(); ctSendMail(); }
     </div>
   </div>
 
-  <!-- Premium Visitor Counter -->
-  <div id="shz-counter">
-    <div id="shz-counter-label">Visitor Counter</div>
-    <div id="shz-digits"></div>
-    <div id="shz-counter-hint">tap to spin</div>
-  </div>
-
 </div>
 
-<script>
-(function(){
-  var BASE = 5475, SKEY = 'shz_vc2_session', CKEY = 'shz_vc2_count';
-  var CELL = 26, spinning = false, real;
-
-  function load(){ var v=parseInt(localStorage.getItem(CKEY),10); return isNaN(v)?BASE:v; }
-  function save(n){ localStorage.setItem(CKEY,n); }
-
-  function buildReels(str){
-    var wrap = document.getElementById('shz-digits');
-    if(!wrap) return;
-    wrap.innerHTML='';
-    // Add separator after 2nd digit (e.g. 05·494)
-    str.split('').forEach(function(ch, i){
-      if(i === 2){
-        var sep = document.createElement('span');
-        sep.className = 'shz-sep';
-        sep.textContent = '·';
-        wrap.appendChild(sep);
-      }
-      var slot=document.createElement('div'); slot.className='shz-slot';
-      var reel=document.createElement('div'); reel.className='shz-reel';
-      for(var n=0;n<=9;n++){
-        var s=document.createElement('span'); s.textContent=n; reel.appendChild(s);
-      }
-      var ext=document.createElement('span'); ext.textContent=ch; reel.appendChild(ext);
-      slot.appendChild(reel); wrap.appendChild(slot);
-      reel.style.transition='none';
-      reel.style.transform='translateY(-'+(parseInt(ch,10)*CELL)+'px)';
-    });
-  }
-
-  function spinTo(reel, digit, delay, dur){
-    return new Promise(function(res){
-      setTimeout(function(){
-        reel.style.transition='transform '+dur+'ms cubic-bezier(0.12,0.8,0.32,1)';
-        reel.style.transform='translateY(-'+(digit*CELL)+'px)';
-        setTimeout(res, dur);
-      }, delay);
-    });
-  }
-
-  function onClick(){
-    if(spinning) return;
-    spinning=true;
-    var str=String(real).padStart(5,'0');
-    buildReels(str);
-    setTimeout(function(){
-      var reels=document.querySelectorAll('#shz-digits .shz-reel');
-      var rands=Array.from(str).map(function(){ return Math.floor(Math.random()*10); });
-      Promise.all(Array.from(reels).map(function(r,i){
-        return spinTo(r, rands[i], i*55, 480+i*70);
-      })).then(function(){
-        setTimeout(function(){
-          var reels2=document.querySelectorAll('#shz-digits .shz-reel');
-          Promise.all(Array.from(reels2).map(function(r,i){
-            return spinTo(r, parseInt(str[i],10), i*70, 550);
-          })).then(function(){ spinning=false; });
-        }, 420);
-      });
-    }, 20);
-  }
-
-  real = load();
-  if(!sessionStorage.getItem(SKEY)){
-    real++; save(real); sessionStorage.setItem(SKEY,'1');
-  }
-  buildReels(String(real).padStart(5,'0'));
-  var btn=document.getElementById('shz-counter');
-  if(btn) btn.addEventListener('click', onClick);
-})();
-</script>
 <!-- ===== END ===== -->
 <footer style="text-align:center; padding: 0; margin-top: 0; position: relative;">
 <style>
@@ -21861,15 +21535,15 @@ document.addEventListener('DOMContentLoaded', function(){
 
     /* ── Experience / career ── */
     { rx:/\b(experience|years? of exp|career|professional background|work history|worked.*years|years.*worked)\b/i,
-      ans:"3+ years of real, hands-on experience — across Flipkart, Xiaomi India, and Rapido — handling everything from customer ops and escalation dashboards to UI design and web development. Not just resume experience. Real work, real impact, real teams. 📅" },
+      ans:"5+ years total as a developer — including 2.4+ years of hands-on IT-industry experience: L1 inbound support → MSM troubleshooting at Xiaomi India, L2 returns/refunds support at Flipkart, and an IT/Developer role (internal tooling, agent training, live chat support) at Rapido — plus freelance and personal development work since 2021. Not just resume experience. Real work, real impact, real teams. 📅" },
 
     /* ── Brand specifics ── */
     { rx:/\b(flipkart|ienergizer)\b/i,
-      ans:"At Flipkart (via Ienergizer), Sahnawaz built internal tools to automate resolutions, streamlined support workflows, and worked closely with the backend team. It was fast-paced, high-stakes work — and he loved every minute of it. 🛒" },
+      ans:"At Flipkart (via Ienergizer), Sahnawaz started on L2 backend support — handling return and refund queries escalated from frontline agents — before moving onto the internal IT team, where he helped build tools that automated resolution workflows and got his first real hands-on development experience. Fast-paced, high-stakes work — and he loved every minute of it. 🛒" },
     { rx:/\b(xiaomi|one point one|1point1|mi support)\b/i,
-      ans:"At Xiaomi India (via One Point One Solutions), Sahnawaz managed the order escalation dashboard and handled MSM-based mobile troubleshooting. The Quality Head, Hemalatha, personally recognised his meticulous work — which meant a lot. 📱" },
+      ans:"At Xiaomi India (via One Point One Solutions), Sahnawaz started out on L1 — taking live customer calls and resolving mobile issues via MSM-based troubleshooting — before moving into owning the order escalation dashboard. The Quality Head, Hemalatha, personally recognised his meticulous work — which meant a lot. 📱" },
     { rx:/\b(rapido|ride|cab)\b/i,
-      ans:"At Rapido (via Ienergizer), Sahnawaz led the chat support team for ride-related issues and trained agents on deep-resolution workflows. Floor Manager Santoosh Reddy called him someone who 'brings calm creativity to pressure-driven environments.' That one stuck. 🛵" },
+      ans:"At Rapido (via Ienergizer), Sahnawaz worked as IT/Developer — supporting internal tooling, leading live chat support for ride-related issues, and training agents on deep-resolution workflows. Floor Manager Santoosh Reddy called him someone who 'brings calm creativity to pressure-driven environments.' That one stuck. 🛵" },
 
     /* ── Education ── */
     { rx:/\b(certif|qualification|degree|education|study|college|diploma|background|university|mca|bca|school|secondary)\b/i,
@@ -23272,7 +22946,7 @@ document.addEventListener('DOMContentLoaded', function(){
     { q:"Where are you from?",
       a:"Silchar (Berenga), Assam, India — a smaller city in Northeast India. And yes, he's proud of it. Talent doesn't come from geography. 🌏" },
     { q:"What's your educational background?",
-      a:"Sahnawaz holds a Diploma in Computer Applications, plus certifications in Web Development, Advanced Excel, Customer Support, JavaScript, C++ and HTML. Every single one earned while working full-time. That kind of discipline doesn't show up on a certificate — but it shows up in the work. 🎖️" },
+      a:"Sahnawaz holds a Diploma in Computer Applications, plus certifications in Web Development, Advanced Excel, Technical & Backend Support, JavaScript, C++ and HTML. Every single one earned while working full-time. That kind of discipline doesn't show up on a certificate — but it shows up in the work. 🎖️" },
     { q:"What's your proudest moment?",
       a:"A senior at Flipkart praised Sahnawaz's work publicly — in front of the entire team. No warning, no preparation. Just pure, honest recognition. For someone from a small city who worked incredibly hard to earn that seat at the table, that moment meant everything. 🏅" },
     { q:"What's your dream?",
