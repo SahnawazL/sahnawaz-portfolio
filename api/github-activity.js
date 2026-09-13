@@ -13,11 +13,24 @@
 //                    `stats` comes back null and the front-end just
 //                    hides the stats strip — the activity feed still
 //                    works either way.
+//   3. `pulse.heatmapFull` - the same daily contribution data as
+//                    `pulse.heatmap`, just extended to ~1 year instead of
+//                    truncated to 12 weeks, so the front-end's 7d/30d/
+//                    90d/1y time-range toggle can recompute score,
+//                    streak, and contribution totals for any window
+//                    client-side, with no extra request.
+//   4. `ci`        - latest GitHub Actions run + rolling pass rate for
+//                    each top contributed repo that has workflows.
+//                    Requires GITHUB_TOKEN to additionally have
+//                    "Actions: Read-only" on a fine-grained PAT; without
+//                    it (or on repos with no workflows) this just comes
+//                    back null for that repo and gets filtered out.
 //
 // Env vars (set in Vercel → Settings → Environment Variables):
 //   GITHUB_TOKEN   - fine-grained, Metadata: Read-only is enough for the
 //                    REST feed; needed at all (any valid token) for the
-//                    GraphQL stats to work.
+//                    GraphQL stats to work. Add Actions: Read-only too
+//                    if you want the `ci` field populated.
 //   GITHUB_USER    - optional override; defaults to 'SahnawazL' below.
 
 const GITHUB_USER = process.env.GITHUB_USER || 'SahnawazL';
@@ -367,12 +380,64 @@ async function fetchRepoAllTime(repo, headers) {
   }
 }
 
-async function fetchProjectStats(headers, token) {
-  const repos = await fetchContributedRepos(token);
+async function fetchProjectStats(headers, repos) {
   if (!repos || !repos.length) return null;
 
   const top = repos.slice(0, 4);
   const results = await Promise.all(top.map((repo) => fetchRepoAllTime(repo, headers)));
+  const cleaned = results.filter(Boolean);
+  return cleaned.length ? cleaned : null;
+}
+
+// ── CI / build health ──
+// For each of the same top contributed repos already discovered for
+// Project Stats, checks whether that repo runs GitHub Actions and, if
+// so, reports its most recent run plus a rolling pass rate over the
+// last 15 completed runs. This is a real trust signal for a technical
+// reviewer ("tested", not just "committed") but it's genuinely optional:
+// a repo with no workflows, a token without Actions permission, or a
+// private Actions log all just resolve to `null` for that repo and get
+// filtered out — same graceful degradation as everything else here.
+//
+// Needs GITHUB_TOKEN to additionally have "Actions: Read-only" on a
+// fine-grained PAT (the "Metadata: Read-only" scope used for the REST
+// feed elsewhere in this file is not enough on its own) — without it,
+// GitHub returns 403/404 and `ci` comes back null, same as a missing
+// token entirely.
+async function fetchRepoCIHealth(repo, headers) {
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${repo.nameWithOwner}/actions/runs?per_page=15`,
+      { headers }
+    );
+    if (!res.ok) return null; // no workflows, no Actions permission, or Actions disabled
+    const json = await res.json();
+    const runs = json.workflow_runs;
+    if (!Array.isArray(runs) || !runs.length) return null;
+
+    const finished = runs.filter((r) => r.status === 'completed');
+    const passed = finished.filter((r) => r.conclusion === 'success').length;
+    const passRate = finished.length ? Math.round((passed / finished.length) * 100) : null;
+
+    const latest = runs[0];
+    return {
+      repo: repo.name,
+      url: latest.html_url,
+      status: latest.status,          // queued | in_progress | completed
+      conclusion: latest.conclusion,  // success | failure | cancelled | null
+      ranAt: latest.created_at,
+      passRate,                       // 0-100, or null if no runs have finished yet
+      sampleSize: finished.length
+    };
+  } catch (err) {
+    return null;
+  }
+}
+
+async function fetchCIHealth(headers, repos) {
+  if (!repos || !repos.length) return null;
+  const top = repos.slice(0, 4);
+  const results = await Promise.all(top.map((repo) => fetchRepoCIHealth(repo, headers)));
   const cleaned = results.filter(Boolean);
   return cleaned.length ? cleaned : null;
 }
@@ -558,7 +623,14 @@ async function fetchGithubPulse(headers, token) {
       currentRange: streaks.currentStreak ? [streaks.currentStart, streaks.currentEnd] : null,
       longestStreak: streaks.longestStreak,
       longestRange: streaks.longestStreak ? [streaks.longestStart, streaks.longestEnd] : null,
-      heatmap: data.days.slice(-84) // last 12 weeks, for the mini heatmap
+      heatmap: data.days.slice(-84), // last 12 weeks, for the mini heatmap
+      // Same daily data fetchContributionDays already pulled (up to 3 years
+      // back), just not truncated to 84 days — this is what lets the
+      // front-end's 7d/30d/90d/1y time-range toggle recompute score,
+      // streak-as-of, and contribution totals for any window without a
+      // second API call. Capped at ~1 year here (rather than sending the
+      // full 3-year set) to keep the response size sane.
+      heatmapFull: data.days.slice(-366)
     };
   } catch (err) {
     return null;
@@ -577,12 +649,20 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const [activityResult, stats, projectStats, pulse, languages] = await Promise.all([
+    const [activityResult, stats, contributedRepos, pulse, languages] = await Promise.all([
       fetchActivity(headers),
       fetchYearStats(process.env.GITHUB_TOKEN),
-      fetchProjectStats(headers, process.env.GITHUB_TOKEN),
+      fetchContributedRepos(process.env.GITHUB_TOKEN),
       fetchGithubPulse(headers, process.env.GITHUB_TOKEN),
       fetchLanguageBreakdown(headers)
+    ]);
+
+    // Both depend on the same repo list above, so they run together here
+    // rather than each re-fetching it via their own fetchContributedRepos
+    // call — halves the GraphQL round trips this endpoint makes.
+    const [projectStats, ci] = await Promise.all([
+      fetchProjectStats(headers, contributedRepos),
+      fetchCIHealth(headers, contributedRepos)
     ]);
 
     // Sequential (not Promise.all'd with the above) so a same-day first
@@ -602,6 +682,7 @@ module.exports = async (req, res) => {
       languages: languages,
       languageHistory: languageHistory,
       codingHours: describePeakWindow(activityResult.hourHistogram),
+      ci: ci,
       fetchedAt: new Date().toISOString()
     });
   } catch (err) {
