@@ -11726,6 +11726,79 @@ document.addEventListener('keydown', function(e) {
     .ci-skel { height: 3.6rem; border-radius: 15px; }
     .ci-empty { grid-column: 1 / -1; font-size: 0.62rem; color: rgba(200,220,215,0.4); font-style: italic; text-align: center; padding: 0.5rem 0; }
 
+    /* ══ Release Timeline — horizontal strip of version-tag chips built
+       from `activity` entries GitHub already gives us (ReleaseEvent),
+       zero extra API calls. Deliberately a scroll-strip, not a grid —
+       release cadence reads better as a left-to-right timeline. ══ */
+    .rt-strip {
+      display: flex; gap: 0.5rem; overflow-x: auto; padding: 0.1rem 0.1rem 0.5rem;
+      margin-bottom: 1.1rem; scrollbar-width: thin;
+    }
+    .rt-strip::-webkit-scrollbar { height: 4px; }
+    .rt-strip::-webkit-scrollbar-thumb { background: rgba(0,255,180,0.25); border-radius: 3px; }
+    .rt-chip {
+      flex-shrink: 0; display: flex; flex-direction: column; gap: 0.15rem;
+      min-width: 108px; border: 1px solid rgba(0,255,180,0.16); border-radius: 9px;
+      padding: 0.42rem 0.6rem; text-decoration: none; color: inherit;
+      background: linear-gradient(160deg, rgba(255,255,255,0.03), rgba(0,255,180,0.02));
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+    .rt-chip:hover { border-color: rgba(0,255,180,0.4); transform: translateY(-2px); }
+    .rt-chip-tag { font-family: 'Courier New', monospace; font-size: 0.68rem; font-weight: 800; color: #00ffb4; text-shadow: 0 0 6px rgba(0,255,180,0.28); }
+    .rt-chip-repo { font-size: 0.58rem; color: rgba(230,245,240,0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rt-chip-time { font-size: 0.54rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.4); }
+    .rt-skel { height: 3.3rem; width: 108px; border-radius: 9px; flex-shrink: 0; }
+    .rt-empty { font-size: 0.62rem; color: rgba(200,220,215,0.4); font-style: italic; padding: 0.3rem 0 0.9rem; }
+
+    /* ══ Repo Ecosystem — which repos are own product vs client work vs
+       OSS contribution. The role tag isn't derivable from the GitHub
+       API, so it's a small client-side map (REPO_OWNERSHIP below) that
+       defaults every repo to "Own product" unless overridden. ══ */
+    .re-grid { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-bottom: 1.1rem; }
+    .re-chip {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      border: 1px solid rgba(0,255,180,0.14); border-radius: 20px;
+      padding: 0.32rem 0.7rem 0.32rem 0.55rem; text-decoration: none; color: inherit;
+      background: linear-gradient(160deg, rgba(255,255,255,0.03), rgba(0,255,180,0.015));
+      transition: border-color 0.2s ease;
+    }
+    .re-chip:hover { border-color: rgba(0,255,180,0.35); }
+    .re-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .re-dot-own { background: #00ffb4; box-shadow: 0 0 6px rgba(0,255,180,0.6); }
+    .re-dot-client { background: #ffb020; box-shadow: 0 0 6px rgba(255,176,32,0.5); }
+    .re-dot-oss { background: #7dc4ff; box-shadow: 0 0 6px rgba(125,196,255,0.5); }
+    .re-name { font-family: 'Courier New', monospace; font-size: 0.63rem; font-weight: 700; color: rgba(230,245,240,0.85); }
+    .re-role { font-size: 0.56rem; color: rgba(200,220,215,0.45); }
+    .re-skel { height: 1.8rem; width: 120px; border-radius: 20px; }
+    .re-empty { font-size: 0.62rem; color: rgba(200,220,215,0.4); font-style: italic; padding: 0.3rem 0 0.9rem; }
+
+    /* ══ Dependency Freshness — % of a repo's `dependencies` pinned at
+       npm's current "latest", computed server-side from package.json +
+       the npm registry. Same 2-col card grid as Project Stats/Build
+       Health for visual consistency across the "Depth" row. ══ */
+    .df-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1.1rem; }
+    .df-card {
+      position: relative; border-radius: 12px; padding: 0.5rem 0.6rem;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: linear-gradient(160deg, rgba(255,255,255,0.05), rgba(0,255,180,0.025));
+      transition: border-color 0.2s ease;
+    }
+    .df-card:hover { border-color: rgba(0,255,180,0.3); }
+    .df-top { display: flex; align-items: center; justify-content: space-between; gap: 0.3rem; }
+    .df-name { font-family: 'Courier New', monospace; font-size: 0.63rem; font-weight: 700; color: rgba(230,245,240,0.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .df-pct { font-family: 'Courier New', monospace; font-weight: 800; font-size: 0.85rem; flex-shrink: 0; }
+    .df-pct-good { color: #00ffb4; text-shadow: 0 0 6px rgba(0,255,180,0.28); }
+    .df-pct-warn { color: #ffb020; }
+    .df-pct-bad { color: #ff8c8c; }
+    .df-rate-track { height: 4px; border-radius: 3px; background: rgba(255,255,255,0.09); overflow: hidden; margin: 0.32rem 0 0.36rem; }
+    .df-rate-fill { display: block; height: 100%; width: 0%; border-radius: 3px; transition: width 0.8s cubic-bezier(.3,.9,.3,1); }
+    .df-fill-good { background: linear-gradient(90deg, rgba(0,255,180,0.55), #00ffb4); }
+    .df-fill-warn { background: linear-gradient(90deg, rgba(255,176,32,0.55), #ffb020); }
+    .df-fill-bad { background: linear-gradient(90deg, rgba(255,90,90,0.55), #ff5a5a); }
+    .df-detail { font-size: 0.56rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.45); }
+    .df-skel { height: 3.4rem; border-radius: 12px; }
+    .df-empty { grid-column: 1 / -1; font-size: 0.62rem; color: rgba(200,220,215,0.4); font-style: italic; text-align: center; padding: 0.5rem 0; }
+
     /* ══ Activity feed ══ */
     .ra-panel {
       border: 1px solid rgba(0,255,180,0.13);
@@ -11855,7 +11928,7 @@ document.addEventListener('keydown', function(e) {
     @keyframes rdCaretBreathe { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
     .rd-skel { height: 3.4rem; border-radius: 10px; }
 
-    .ra-skel, .rp-skel, .gp-skel, .hm-skel, .lh-skel, .rd-skel, .sys-skel {
+    .ra-skel, .rp-skel, .gp-skel, .hm-skel, .lh-skel, .rd-skel, .sys-skel, .rt-skel, .re-skel, .df-skel {
       background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(0,255,180,0.07) 50%, rgba(255,255,255,0.03) 75%);
       background-size: 200% 100%;
       animation: raSkel 1.4s ease-in-out infinite;
@@ -11924,12 +11997,14 @@ document.addEventListener('keydown', function(e) {
     .ra-footer a { font-size: 0.72rem; color: rgba(0,255,180,0.7); text-decoration: none; border-bottom: 1px dotted rgba(0,255,180,0.4); }
     .ra-footer a:hover { border-bottom-style: solid; }
     @media (prefers-reduced-motion: reduce) {
-      .ra-live-dot, .ra-row, .ra-skel, .rp-skel, .gp-skel, .hm-skel, .lh-skel, .rd-skel, .sys-skel, .rd-badge-dot, .gp-panel::after, .gp-ring-fg, .hrs-bar,
+      .ra-live-dot, .ra-row, .ra-skel, .rp-skel, .gp-skel, .hm-skel, .lh-skel, .rd-skel, .sys-skel, .rt-skel, .re-skel, .df-skel, .rd-badge-dot, .gp-panel::after, .gp-ring-fg, .hrs-bar,
       .rd-card, .rd-surface::before, .rd-word, .rd-caret, .rd-cta-btn, .rd-cta-arrow, .rd-loading-label,
       .gp-score-badge, .gp-score-caret, .gp-score-detail, .gp-score-fill { animation: none !important; transition: none !important; opacity: 1; filter: none !important; transform: none !important; }
       .gp-score-ping { display: none !important; }
       .ci-card, .ci-card::before, .ci-view-arrow, .ci-rate-fill { animation: none !important; transition: none !important; transform: none !important; }
       .ci-card::before { display: none !important; }
+      .df-rate-fill { animation: none !important; transition: none !important; }
+      .rt-chip, .re-chip { transition: none !important; }
       .hm-day-pop { transition: none !important; transform: none !important; }
       .ship-toast { transition: none !important; transform: none !important; }
     }
@@ -12017,25 +12092,25 @@ document.addEventListener('keydown', function(e) {
        marketing language. ══ */
     .ra-eyebrow {
       position: relative;
-      display: inline-flex; align-items: center; gap: 0.45rem;
-      padding: 0.34rem 0.85rem 0.34rem 0.65rem;
+      display: inline-flex; align-items: center; gap: 0.6rem;
+      padding: 0.46rem 1.1rem 0.46rem 0.85rem;
       margin-bottom: 0.75rem;
       border: 1px solid rgba(0,255,180,0.35);
-      border-radius: 5px;
+      border-radius: 6px;
       background: linear-gradient(120deg, rgba(0,255,180,0.1), rgba(0,255,180,0.02));
       backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
       box-shadow: 0 0 0 1px rgba(0,255,180,0.04), 0 4px 14px -6px rgba(0,255,180,0.25);
     }
     .ra-eyebrow::before, .ra-eyebrow::after {
-      content: ''; position: absolute; width: 7px; height: 7px;
-      border: 1.5px solid #00ffb4; opacity: 0.85;
+      content: ''; position: absolute; width: 9px; height: 9px;
+      border: 1.8px solid #00ffb4; opacity: 0.85;
     }
     .ra-eyebrow::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
     .ra-eyebrow::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
-    .ra-eyebrow-icon { color: #00ffb4; flex-shrink: 0; }
+    .ra-eyebrow-icon { color: #00ffb4; flex-shrink: 0; width: 16px; height: 16px; }
     .ra-eyebrow-text {
-      font-family: 'Courier New', monospace; font-size: 0.66rem; font-weight: 700;
-      letter-spacing: 1.4px; text-transform: uppercase; color: #00ffb4;
+      font-family: 'Courier New', monospace; font-size: 0.92rem; font-weight: 700;
+      letter-spacing: 1.6px; text-transform: uppercase; color: #00ffb4;
     }
     .ra-eyebrow-note {
       margin: 0 0 1.1rem; max-width: 62ch;
@@ -12050,28 +12125,36 @@ document.addEventListener('keydown', function(e) {
     }
     @media (max-width: 480px) { .ra-eyebrow-note { font-size: 0.76rem; } }
 
-    /* ══ Header — a clean, static glass panel housing the "Recently
-       Shipped" title as a premium second-tier heading. No motion here
-       on purpose: the live-pulse dot already signals "live," so the
-       panel itself stays calm — a soft frosted card with a crisp
-       border and a faint top highlight, not an animation. ══ */
+    /* ══ Header — no card/box around "Recently Shipped" by design: the
+       live-pulse dot already signals "live," so instead of a framed
+       panel the title text itself carries a slow, subtle shimmer sweep
+       (a moving gradient clipped to the glyphs). Calm, premium motion
+       instead of a static border. ══ */
     .ra-header {
       position: relative;
       display: flex; align-items: center; justify-content: space-between;
       flex-wrap: wrap; gap: 0.5rem;
       margin-bottom: 1rem;
-      padding: 0.85rem 1.05rem;
-      border-radius: 14px;
-      border: 1px solid rgba(0,255,180,0.18);
-      background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(0,255,180,0.025));
-      backdrop-filter: blur(14px) saturate(140%);
-      -webkit-backdrop-filter: blur(14px) saturate(140%);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.09), 0 8px 24px -14px rgba(0,255,180,0.25);
     }
     .ra-title {
       font-size: 1.18rem; font-weight: 800; margin: 0;
       display: flex; align-items: center; gap: 0.55rem;
       letter-spacing: 0.2px; color: #eafff7;
+    }
+    .ra-title-shimmer {
+      background: linear-gradient(100deg,
+        #eafff7 20%, #eafff7 35%, #00ffb4 47%, #baffe8 50%, #00ffb4 53%, #eafff7 65%, #eafff7 100%);
+      background-size: 220% 100%;
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent; color: transparent;
+      animation: raTitleShimmer 3.6s ease-in-out infinite;
+    }
+    @keyframes raTitleShimmer {
+      0% { background-position: 160% 0; }
+      100% { background-position: -60% 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .ra-title-shimmer { animation: none; background: none; -webkit-text-fill-color: #eafff7; color: #eafff7; }
     }
   </style>
 
@@ -12079,10 +12162,10 @@ document.addEventListener('keydown', function(e) {
     <svg class="ra-eyebrow-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M8 9l-4 3 4 3M16 9l4 3-4 3M14 4l-4 16"/></svg>
     <span class="ra-eyebrow-text">Engineering Telemetry</span>
   </div>
-  <p class="ra-eyebrow-note">This section shows how the project actually gets built, pulled live from GitHub: how often new code is shipped, current streaks, and which programming languages are used. It's here mainly for <b>developers, recruiters and technical reviewers</b>. If that's not you, no problem — feel free to scroll past, you won't miss anything you need for the rest of the page.</p>
+  <p class="ra-eyebrow-note">Live engineering telemetry, pulled straight from GitHub — built for <b>developers, recruiters and technical reviewers</b> who know what these metrics mean.</p>
 
   <div class="ra-header">
-    <h2 class="ra-title"><span class="ra-live-dot" aria-hidden="true"></span>Recently Shipped</h2>
+    <h2 class="ra-title"><span class="ra-live-dot" aria-hidden="true"></span><span class="ra-title-shimmer">Recently Shipped</span></h2>
     <p class="ra-sub" id="raFreshness">// live from GitHub</p>
   </div>
 
@@ -12141,6 +12224,27 @@ document.addEventListener('keydown', function(e) {
     </div>
   </div>
 
+  <div id="raReleaseTimeline">
+    <div class="ra-label-row"><span class="ra-label">Release Timeline</span><span class="ra-label-sub">// tagged versions, most recent first</span></div>
+    <div class="rt-strip">
+      <div class="rt-skel"></div><div class="rt-skel"></div><div class="rt-skel"></div>
+    </div>
+  </div>
+
+  <div id="raRepoEcosystem">
+    <div class="ra-label-row"><span class="ra-label">Repo Ecosystem</span><span class="ra-label-sub">// role across active repos</span></div>
+    <div class="re-grid">
+      <div class="re-skel"></div><div class="re-skel"></div><div class="re-skel"></div>
+    </div>
+  </div>
+
+  <div id="raDepFreshness">
+    <div class="ra-label-row"><span class="ra-label">Dependency Freshness</span><span class="ra-label-sub">// vs npm latest</span></div>
+    <div class="df-grid">
+      <div class="df-skel"></div><div class="df-skel"></div>
+    </div>
+  </div>
+
   <div id="raList" class="ra-panel">
     <div class="ra-skel"></div>
     <div class="ra-skel"></div>
@@ -12182,6 +12286,20 @@ document.addEventListener('keydown', function(e) {
     var hash = 0;
     for (var i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
     return 'hsl(' + (hash % 360) + ', 55%, 60%)';
+  }
+
+  // ── Repo Ecosystem role tags ──
+  // GitHub's API has no concept of "own product" vs "client work" vs
+  // "OSS contribution" — that's a judgment call, not data. Every repo
+  // defaults to "Own product" unless listed here by name. To reclassify
+  // one, just add its repo name (the short name, e.g. "yojanasahay",
+  // not the full owner/name) to CLIENT_REPOS or OSS_REPOS below.
+  var CLIENT_REPOS = [];
+  var OSS_REPOS = [];
+  function repoOwnership(name) {
+    if (CLIENT_REPOS.indexOf(name) !== -1) return { label: 'Client work', dot: 're-dot-client' };
+    if (OSS_REPOS.indexOf(name) !== -1) return { label: 'OSS contribution', dot: 're-dot-oss' };
+    return { label: 'Own product', dot: 're-dot-own' };
   }
 
   function timeAgo(iso) {
@@ -13234,6 +13352,97 @@ document.addEventListener('keydown', function(e) {
     });
   }
 
+  // ══ Release Timeline ══
+  // Built entirely from `activity` entries already fetched for the main
+  // feed above (ReleaseEvent → type 'release') — no separate API call.
+  // Since the public events feed only covers ~90 days, this reads as
+  // "recent releases," not full version history.
+  function renderReleaseTimeline(activity) {
+    var el = document.getElementById('raReleaseTimeline');
+    if (!el) return;
+    var releases = (activity || []).filter(function (a) { return a.type === 'release'; });
+    if (!releases.length) {
+      el.innerHTML = '<div class="ra-label-row"><span class="ra-label">Release Timeline</span><span class="ra-label-sub">// tagged versions, most recent first</span></div>'
+        + '<div class="rt-empty">No tagged releases in the last 90 days of public activity.</div>';
+      return;
+    }
+    var chips = releases.map(function (r) {
+      var href = r.url || 'https://github.com/SahnawazL';
+      var tag = r.tag || 'release';
+      return '<a class="rt-chip" href="' + href + '" target="_blank" rel="noopener" aria-label="' + escapeHtml(tag) + ' of ' + escapeHtml(r.repo) + '">'
+        + '<span class="rt-chip-tag">' + escapeHtml(tag) + '</span>'
+        + '<span class="rt-chip-repo">' + escapeHtml(r.repo) + '</span>'
+        + '<span class="rt-chip-time">' + timeAgo(r.time) + '</span>'
+        + '</a>';
+    }).join('');
+    el.innerHTML = '<div class="ra-label-row"><span class="ra-label">Release Timeline</span><span class="ra-label-sub">// tagged versions, most recent first</span></div>'
+      + '<div class="rt-strip">' + chips + '</div>';
+  }
+
+  // ══ Repo Ecosystem ══
+  // Renders the `repos` list from the API with a role tag resolved
+  // client-side via repoOwnership() (defaults to "Own product").
+  function renderRepoEcosystem(repos) {
+    var el = document.getElementById('raRepoEcosystem');
+    if (!el) return;
+    if (!repos || !repos.length) { el.innerHTML = ''; return; }
+    var chips = repos.map(function (r) {
+      var role = repoOwnership(r.name);
+      var href = r.url || 'https://github.com/SahnawazL';
+      return '<a class="re-chip" href="' + href + '" target="_blank" rel="noopener" aria-label="' + escapeHtml(r.name) + ' \u2014 ' + role.label + '">'
+        + '<span class="re-dot ' + role.dot + '"></span>'
+        + '<span class="re-name">' + escapeHtml(r.name) + '</span>'
+        + '<span class="re-role">' + role.label + '</span>'
+        + '</a>';
+    }).join('');
+    el.innerHTML = '<div class="ra-label-row"><span class="ra-label">Repo Ecosystem</span><span class="ra-label-sub">// role across active repos</span></div>'
+      + '<div class="re-grid">' + chips + '</div>';
+  }
+
+  // ══ Dependency Freshness ══
+  // Renders the `depFreshness` array from the API — one card per repo
+  // with a readable package.json, showing % of `dependencies` pinned at
+  // npm's current "latest" plus one concrete outdated example.
+  function dfPctClass(pct) {
+    if (pct >= 80) return 'df-pct-good';
+    if (pct >= 50) return 'df-pct-warn';
+    return 'df-pct-bad';
+  }
+  function dfFillClass(pct) {
+    if (pct >= 80) return 'df-fill-good';
+    if (pct >= 50) return 'df-fill-warn';
+    return 'df-fill-bad';
+  }
+
+  function renderDepFreshness(list) {
+    var el = document.getElementById('raDepFreshness');
+    if (!el) return;
+    if (!list || !list.length) { el.innerHTML = ''; return; }
+
+    var cardsHtml = list.map(function (entry) {
+      var pctClass = dfPctClass(entry.freshPercent);
+      var detail = entry.upToDate + '/' + entry.total + ' deps current';
+      if (entry.outdated && entry.outdated.length) {
+        var ex = entry.outdated[0];
+        detail += ' \u2014 e.g. ' + escapeHtml(ex.name) + ' ' + escapeHtml(ex.pinned) + '\u2192' + escapeHtml(ex.latest);
+      }
+      return '<div class="df-card">'
+        + '<div class="df-top"><span class="df-name">' + escapeHtml(entry.repo) + '</span><span class="df-pct ' + pctClass + '">' + entry.freshPercent + '%</span></div>'
+        + '<div class="df-rate-track"><span class="df-rate-fill ' + dfFillClass(entry.freshPercent) + '" data-fill="' + entry.freshPercent + '"></span></div>'
+        + '<div class="df-detail">' + detail + '</div>'
+        + '</div>';
+    }).join('');
+
+    el.innerHTML = '<div class="ra-label-row"><span class="ra-label">Dependency Freshness</span><span class="ra-label-sub">// vs npm latest</span></div>'
+      + '<div class="df-grid">' + cardsHtml + '</div>';
+
+    requestAnimationFrame(function () {
+      el.querySelectorAll('.df-rate-fill').forEach(function (fill) {
+        fill.style.width = fill.getAttribute('data-fill') + '%';
+      });
+    });
+  }
+
   // ══ Time-range toggle (7d / 30d / 90d / 1y) ══
   // Everything below is client-side only, built from pulse.heatmapFull
   // (already fetched, ~1 year of daily counts) plus the activity list
@@ -13354,6 +13563,9 @@ document.addEventListener('keydown', function(e) {
       renderFreshness(items);
       renderProjectStats(data.projectStats || null);
       renderCIHealth(data.ci || null);
+      renderReleaseTimeline(data.activity || []);
+      renderRepoEcosystem(data.repos || null);
+      renderDepFreshness(data.depFreshness || null);
       applyRange(90);
       renderPunchcard(data.activity || [], data.pulse || null);
       renderLanguagesAndHours(data.languages || null, data.codingHours || null, data.languageHistory || null);
@@ -13366,6 +13578,9 @@ document.addEventListener('keydown', function(e) {
       document.getElementById('raList').innerHTML = '<div class="ra-error">Couldn\u2019t load activity right now \u2014 <a href="https://github.com/SahnawazL" target="_blank" rel="noopener" style="color:rgba(0,255,180,0.7);">view on GitHub</a> instead.</div>';
       document.getElementById('raProjectStats').innerHTML = '';
       document.getElementById('raCIHealth').innerHTML = '';
+      document.getElementById('raReleaseTimeline').innerHTML = '';
+      document.getElementById('raRepoEcosystem').innerHTML = '';
+      document.getElementById('raDepFreshness').innerHTML = '';
       document.getElementById('raPulse').innerHTML = '';
       document.getElementById('raHeatmap').innerHTML = '';
       document.getElementById('raPunchcard').innerHTML = '';
