@@ -11431,6 +11431,42 @@ document.addEventListener('keydown', function(e) {
     .hm-day-pop-repo b { color: rgba(220,245,238,0.88); font-weight: 700; }
     .hm-day-pop-empty { font-size: 0.56rem; color: rgba(200,220,215,0.42); font-style: italic; }
 
+    /* ══ Commit Punchcard — a classic 7×24 day/hour grid, GitHub's own
+       "punchcard" idea reimagined with area-proportional dots instead of
+       flat color tiles, so density reads at a glance without a legend.
+       Built entirely client-side from the activity list already fetched
+       for the feed above — no new API call. Times are bucketed in IST
+       to match the existing Coding Hours histogram elsewhere on the
+       page, so the two stay consistent with each other. ══ */
+    .pc-panel { margin-bottom: 0.9rem; }
+    .pc-card {
+      position: relative;
+      border: 1px solid rgba(0,255,180,0.16);
+      border-radius: 14px;
+      padding: 0.85rem 0.75rem 0.75rem;
+      background: linear-gradient(160deg, rgba(255,255,255,0.035), rgba(0,255,180,0.015));
+      overflow-x: auto;
+    }
+    .pc-scroll { display: flex; flex-direction: column; gap: 3px; min-width: 318px; width: max-content; }
+    .pc-row { display: grid; grid-template-columns: 24px repeat(24, minmax(11px, 1fr)); align-items: center; column-gap: 1.5px; }
+    .pc-head-row { margin-bottom: 1px; }
+    .pc-day-label { font-size: 0.5rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.45); text-align: right; padding-right: 4px; }
+    .pc-hour-label { font-size: 0.42rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.32); text-align: center; }
+    .pc-cell { display: flex; align-items: center; justify-content: center; height: 12px; }
+    .pc-dot {
+      display: block; border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #baffe8, #00ffb4 65%);
+      box-shadow: 0 0 4px rgba(0,255,180,0.55);
+    }
+    .pc-cell.pc-peak .pc-dot {
+      background: radial-gradient(circle at 35% 30%, #ffffff, #00ffb4 60%);
+      box-shadow: 0 0 9px rgba(0,255,180,0.95), 0 0 2px rgba(255,255,255,0.9);
+    }
+    .pc-peak-note { font-size: 0.62rem; color: rgba(210,230,225,0.75); margin-top: 0.6rem; }
+    .pc-peak-note b { color: #00ffb4; font-weight: 700; }
+    .pc-coverage { font-size: 0.56rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.35); margin-top: 0.25rem; }
+    @media (prefers-reduced-motion: reduce) { .pc-dot { transition: none !important; } }
+
     /* ══ Language + Coding Hours row ══ */
     .lh-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1.1rem; align-items: stretch; }
     .lh-card {
@@ -11875,6 +11911,11 @@ document.addEventListener('keydown', function(e) {
 
   <div id="raHeatmap" class="hm-panel">
     <div class="ra-label-row"><span class="ra-label">Contribution Map</span><span class="ra-label-sub">// last 12 weeks</span></div>
+    <div class="hm-skel"></div>
+  </div>
+
+  <div id="raPunchcard" class="pc-panel">
+    <div class="ra-label-row"><span class="ra-label">Commit Punchcard</span><span class="ra-label-sub">// day &times; hour, IST</span></div>
     <div class="hm-skel"></div>
   </div>
 
@@ -12423,6 +12464,77 @@ document.addEventListener('keydown', function(e) {
     wireHeatmapPopover(el, buildDayBreakdown(activity));
   }
 
+  // Commit Punchcard — buckets every activity event into a 7×24
+  // (weekday × hour) matrix, entirely from the same `activity` array
+  // already loaded for the feed. Hour bucketing is shifted to IST
+  // (UTC+5:30) to line up with the existing Coding Hours histogram, by
+  // simply adding the offset to each timestamp before reading its UTC
+  // day/hour — that naturally handles the midnight day-rollover too.
+  var PC_DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  var PC_HOUR_LABEL_AT = { 0: '12a', 6: '6a', 12: '12p', 18: '6p' };
+
+  function formatHour12(h) {
+    var h12 = h % 12 === 0 ? 12 : h % 12;
+    return h12 + (h < 12 ? 'am' : 'pm');
+  }
+
+  function renderPunchcard(activity) {
+    var el = document.getElementById('raPunchcard');
+    if (!el) return;
+    var list = (activity || []).filter(function (a) { return a && a.time; });
+    if (!list.length) { el.innerHTML = ''; return; }
+
+    var matrix = [];
+    for (var d = 0; d < 7; d++) matrix.push(new Array(24).fill(0));
+
+    var minTime = null, maxTime = null;
+    list.forEach(function (a) {
+      var t = new Date(a.time);
+      if (isNaN(t)) return;
+      if (!minTime || t < minTime) minTime = t;
+      if (!maxTime || t > maxTime) maxTime = t;
+      var ist = new Date(t.getTime() + 330 * 60000); // shift to IST, then read as UTC
+      matrix[ist.getUTCDay()][ist.getUTCHours()]++;
+    });
+
+    var max = 0;
+    matrix.forEach(function (row) { row.forEach(function (v) { if (v > max) max = v; }); });
+    if (max === 0) { el.innerHTML = ''; return; }
+
+    var peak = { day: 0, hour: 0, count: 0 };
+    matrix.forEach(function (row, d) {
+      row.forEach(function (v, h) { if (v > peak.count) peak = { day: d, hour: h, count: v }; });
+    });
+
+    var headHtml = '<div class="pc-row pc-head-row"><span class="pc-day-label"></span>';
+    for (var h0 = 0; h0 < 24; h0++) {
+      headHtml += '<span class="pc-hour-label">' + (PC_HOUR_LABEL_AT[h0] || '') + '</span>';
+    }
+    headHtml += '</div>';
+
+    var bodyHtml = matrix.map(function (row, d) {
+      var cells = row.map(function (count, h) {
+        if (!count) return '<span class="pc-cell"></span>';
+        var ratio = count / max;
+        var size = (4.5 + Math.sqrt(ratio) * 8.5).toFixed(1);
+        var isPeak = (d === peak.day && h === peak.hour);
+        var label = PC_DAY_LABELS[d] + ' ' + formatHour12(h) + ' IST \u00b7 ' + count + (count === 1 ? ' event' : ' events');
+        return '<span class="pc-cell' + (isPeak ? ' pc-peak' : '') + '" title="' + label + '" aria-label="' + label + '">'
+          + '<span class="pc-dot" style="width:' + size + 'px;height:' + size + 'px;"></span>'
+          + '</span>';
+      }).join('');
+      return '<div class="pc-row"><span class="pc-day-label">' + PC_DAY_LABELS[d] + '</span>' + cells + '</div>';
+    }).join('');
+
+    var days = minTime ? Math.max(1, Math.round((maxTime - minTime) / 86400000)) : null;
+    var coverage = days ? '<div class="pc-coverage">// based on the last ' + days + ' day' + (days === 1 ? '' : 's') + ' of public activity</div>' : '';
+    var peakNote = '<div class="pc-peak-note">Busiest window: <b>' + PC_DAY_LABELS[peak.day] + '</b> around <b>' + formatHour12(peak.hour) + ' IST</b></div>';
+
+    el.innerHTML =
+        '<div class="ra-label-row"><span class="ra-label">Commit Punchcard</span><span class="ra-label-sub">// day \u00d7 hour, IST</span></div>'
+      + '<div class="pc-card"><div class="pc-scroll">' + headHtml + bodyHtml + '</div>' + peakNote + coverage + '</div>';
+  }
+
   // Thin multi-line sparkline for up to 3 languages' share over time,
   // drawn from real daily snapshots (data.languageHistory). Returns null
   // if there isn't a real value to plot yet — callers show an honest
@@ -12600,6 +12712,7 @@ document.addEventListener('keydown', function(e) {
       renderProjectStats(data.projectStats || null);
       renderPulse(data.pulse || null, data.stats || null, data.activity || []);
       renderHeatmap(data.pulse || null, data.activity || []);
+      renderPunchcard(data.activity || []);
       renderLanguagesAndHours(data.languages || null, data.codingHours || null, data.languageHistory || null);
     })
     .catch(function () {
@@ -12607,6 +12720,7 @@ document.addEventListener('keydown', function(e) {
       document.getElementById('raProjectStats').innerHTML = '';
       document.getElementById('raPulse').innerHTML = '';
       document.getElementById('raHeatmap').innerHTML = '';
+      document.getElementById('raPunchcard').innerHTML = '';
       document.getElementById('raLangHours').innerHTML = '';
     });
 })();
