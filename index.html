@@ -11456,11 +11456,13 @@ document.addEventListener('keydown', function(e) {
 
     /* ══ Commit Punchcard — a classic 7×24 day/hour grid, GitHub's own
        "punchcard" idea reimagined with area-proportional dots instead of
-       flat color tiles, so density reads at a glance without a legend.
-       Built entirely client-side from the activity list already fetched
-       for the feed above — no new API call. Times are bucketed in IST
-       to match the existing Coding Hours histogram elsewhere on the
-       page, so the two stay consistent with each other. ══ */
+       flat color tiles, so density reads at a glance. Built entirely
+       client-side from the activity list already fetched for the feed
+       above — no new API call. Times are bucketed in IST to match the
+       existing Coding Hours histogram elsewhere on the page. Every cell
+       is a tappable button with a popover (repo breakdown), there's a
+       size legend, per-row totals, and a "coding persona" badge derived
+       from the actual hour/day distribution. ══ */
     .pc-panel { margin-bottom: 0.9rem; }
     .pc-card {
       position: relative;
@@ -11470,25 +11472,83 @@ document.addEventListener('keydown', function(e) {
       background: linear-gradient(160deg, rgba(255,255,255,0.035), rgba(0,255,180,0.015));
       overflow-x: auto;
     }
-    .pc-scroll { display: flex; flex-direction: column; gap: 3px; min-width: 318px; width: max-content; }
-    .pc-row { display: grid; grid-template-columns: 24px repeat(24, minmax(11px, 1fr)); align-items: center; column-gap: 1.5px; }
+    .pc-meta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 0.65rem; }
+    .pc-tag {
+      font-size: 0.56rem; font-weight: 700; letter-spacing: 0.02em;
+      font-family: 'Courier New', monospace; color: #00ffb4;
+      padding: 2px 9px; border-radius: 20px;
+      background: rgba(0,255,180,0.1); border: 1px solid rgba(0,255,180,0.28);
+      white-space: nowrap;
+    }
+    .pc-meta-stat { font-size: 0.56rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.5); }
+    .pc-scroll { display: flex; flex-direction: column; gap: 3px; min-width: 318px; width: max-content; position: relative; }
+    .pc-row { display: grid; grid-template-columns: 24px repeat(24, minmax(11px, 1fr)) 24px; align-items: center; column-gap: 1.5px; }
     .pc-head-row { margin-bottom: 1px; }
     .pc-day-label { font-size: 0.5rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.45); text-align: right; padding-right: 4px; }
-    .pc-hour-label { font-size: 0.42rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.32); text-align: center; }
-    .pc-cell { display: flex; align-items: center; justify-content: center; height: 12px; }
+    .pc-hour-label { font-size: 0.46rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.4); text-align: center; }
+    .pc-day-total { font-size: 0.46rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.32); text-align: left; padding-left: 5px; }
+    button.pc-cell {
+      all: unset; box-sizing: border-box; position: relative;
+      display: flex; align-items: center; justify-content: center;
+      height: 12px; cursor: pointer; border-radius: 3px;
+    }
+    button.pc-cell::before { content: ''; position: absolute; inset: -3px; }
+    button.pc-cell:focus-visible { outline: 2px solid rgba(0,255,180,0.65); outline-offset: 1px; z-index: 2; }
     .pc-dot {
       display: block; border-radius: 50%;
       background: radial-gradient(circle at 35% 30%, #baffe8, #00ffb4 65%);
       box-shadow: 0 0 4px rgba(0,255,180,0.55);
+      transition: transform 0.15s ease;
+      animation: pcDotIn 0.4s cubic-bezier(.34,1.56,.64,1) both;
     }
+    .pc-dot-ghost {
+      width: 3px; height: 3px; border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+      transition: background 0.15s ease;
+    }
+    button.pc-cell:hover .pc-dot, button.pc-cell:focus-visible .pc-dot { transform: scale(1.35); }
+    button.pc-cell:hover .pc-dot-ghost, button.pc-cell:focus-visible .pc-dot-ghost { background: rgba(0,255,180,0.3); }
     .pc-cell.pc-peak .pc-dot {
       background: radial-gradient(circle at 35% 30%, #ffffff, #00ffb4 60%);
       box-shadow: 0 0 9px rgba(0,255,180,0.95), 0 0 2px rgba(255,255,255,0.9);
     }
+    @keyframes pcDotIn { from { opacity: 0; transform: scale(0); } to { opacity: 1; transform: scale(1); } }
+    .pc-row:nth-child(2) .pc-dot { animation-delay: 0ms; }
+    .pc-row:nth-child(3) .pc-dot { animation-delay: 30ms; }
+    .pc-row:nth-child(4) .pc-dot { animation-delay: 60ms; }
+    .pc-row:nth-child(5) .pc-dot { animation-delay: 90ms; }
+    .pc-row:nth-child(6) .pc-dot { animation-delay: 120ms; }
+    .pc-row:nth-child(7) .pc-dot { animation-delay: 150ms; }
+    .pc-row:nth-child(8) .pc-dot { animation-delay: 180ms; }
+    .pc-legend { display: flex; align-items: center; gap: 6px; margin-top: 0.7rem; font-size: 0.52rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.4); }
+    .pc-legend-dots { display: flex; align-items: center; gap: 5px; }
+    .pc-legend-dots .pc-dot { animation: none; box-shadow: 0 0 3px rgba(0,255,180,0.4); }
     .pc-peak-note { font-size: 0.62rem; color: rgba(210,230,225,0.75); margin-top: 0.6rem; }
     .pc-peak-note b { color: #00ffb4; font-weight: 700; }
     .pc-coverage { font-size: 0.56rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.35); margin-top: 0.25rem; }
-    @media (prefers-reduced-motion: reduce) { .pc-dot { transition: none !important; } }
+    .pc-empty { font-size: 0.62rem; color: rgba(200,220,215,0.42); font-style: italic; padding: 0.4rem 0; }
+    /* Popover — same visual language as the Contribution Map's day popover */
+    .pc-pop {
+      position: absolute; z-index: 5; min-width: 148px; max-width: 210px;
+      padding: 0.5rem 0.6rem; border-radius: 10px;
+      border: 1px solid rgba(0,255,180,0.35);
+      background: linear-gradient(160deg, rgba(10,32,28,0.98), rgba(6,20,18,0.98));
+      box-shadow: 0 10px 26px rgba(0,0,0,0.45), 0 0 14px rgba(0,255,180,0.12);
+      font-family: 'Courier New', monospace;
+      opacity: 0; transform: translateY(4px) scale(0.97); pointer-events: none;
+      transition: opacity 0.16s ease, transform 0.16s ease;
+    }
+    .pc-pop.pc-open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+    .pc-pop-date { font-size: 0.62rem; font-weight: 700; color: rgba(220,245,238,0.92); margin-bottom: 0.3rem; }
+    .pc-pop-count { font-size: 0.58rem; color: #00ffb4; margin-bottom: 0.4rem; }
+    .pc-pop-repo { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; font-size: 0.56rem; color: rgba(200,220,215,0.7); margin-bottom: 0.2rem; }
+    .pc-pop-repo:last-child { margin-bottom: 0; }
+    .pc-pop-repo b { color: rgba(220,245,238,0.88); font-weight: 700; }
+    .pc-pop-empty { font-size: 0.56rem; color: rgba(200,220,215,0.42); font-style: italic; }
+    @media (prefers-reduced-motion: reduce) {
+      .pc-dot, .pc-dot-ghost { transition: none !important; animation: none !important; }
+      .pc-pop { transition: none !important; transform: none !important; }
+    }
 
     /* ══ Language + Coding Hours row ══ */
     .lh-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1.1rem; align-items: stretch; }
@@ -12612,11 +12672,134 @@ document.addEventListener('keydown', function(e) {
     return h12 + (h < 12 ? 'am' : 'pm');
   }
 
+  // Per-cell repo breakdown for the punchcard popover — mirrors
+  // buildDayBreakdown() above but keyed by "weekday-hour" (IST) instead
+  // of calendar date, since a punchcard cell can span many different days.
+  function buildPunchcardBreakdown(activity) {
+    var byCell = {};
+    (activity || []).forEach(function (a) {
+      if (!a || !a.time) return;
+      var t = new Date(a.time);
+      if (isNaN(t)) return;
+      var ist = new Date(t.getTime() + 330 * 60000);
+      var key = ist.getUTCDay() + '-' + ist.getUTCHours();
+      var repoKey = a.repo || 'unknown';
+      if (!byCell[key]) byCell[key] = {};
+      byCell[key][repoKey] = (byCell[key][repoKey] || 0) + 1;
+    });
+    var out = {};
+    Object.keys(byCell).forEach(function (key) {
+      out[key] = Object.keys(byCell[key])
+        .map(function (repo) { return { repo: repo, count: byCell[key][repo] }; })
+        .sort(function (a, b) { return b.count - a.count; });
+    });
+    return out;
+  }
+
+  // Reads the actual hour-of-day distribution and tags a short, honest
+  // "coding persona" — purely descriptive, computed straight from the
+  // same matrix already on screen (no separate request, no guesswork).
+  function describePunchcardPersona(matrix, totalEvents) {
+    if (totalEvents < 10) return null; // not enough signal yet to label a pattern
+    var hourTotals = new Array(24).fill(0);
+    matrix.forEach(function (row) { row.forEach(function (v, h) { hourTotals[h] += v; }); });
+
+    var buckets = {
+      'Night Owl \ud83c\udf19': [22, 23, 0, 1, 2, 3, 4],
+      'Early Bird \ud83c\udf05': [5, 6, 7, 8, 9],
+      'Afternoon Grinder \u2600\ufe0f': [10, 11, 12, 13, 14, 15, 16],
+      'Evening Coder \ud83c\udf07': [17, 18, 19, 20, 21]
+    };
+    var best = null, bestSum = -1;
+    Object.keys(buckets).forEach(function (label) {
+      var sum = buckets[label].reduce(function (acc, h) { return acc + hourTotals[h]; }, 0);
+      if (sum > bestSum) { bestSum = sum; best = label; }
+    });
+
+    var weekend = matrix[0].reduce(function (a, v) { return a + v; }, 0) + matrix[6].reduce(function (a, v) { return a + v; }, 0);
+    var weekday = 0;
+    for (var d = 1; d <= 5; d++) weekday += matrix[d].reduce(function (a, v) { return a + v; }, 0);
+    var weekendAvg = weekend / 2, weekdayAvg = weekday / 5;
+    var tags = [best];
+    if (weekendAvg > weekdayAvg * 1.15) tags.push('Weekend Warrior \ud83d\udee0\ufe0f');
+    else if (weekdayAvg > weekendAvg * 1.15 && weekday > 0) tags.push('Weekday Regular \ud83d\udcbc');
+    return tags;
+  }
+
+  function wirePunchcardPopover(el, breakdown) {
+    var scrollBox = el.querySelector('.pc-scroll');
+    var pop = document.createElement('div');
+    pop.className = 'pc-pop';
+    pop.setAttribute('role', 'status');
+    scrollBox.appendChild(pop);
+    var openBtn = null;
+
+    function closePop() {
+      pop.classList.remove('pc-open');
+      if (openBtn) { openBtn.setAttribute('aria-expanded', 'false'); openBtn = null; }
+    }
+
+    el.querySelectorAll('button.pc-cell').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (openBtn === btn) { closePop(); return; }
+
+        var d = parseInt(btn.getAttribute('data-day'), 10);
+        var h = parseInt(btn.getAttribute('data-hour'), 10);
+        var count = parseInt(btn.getAttribute('data-count'), 10) || 0;
+        var breakdown_ = breakdown[d + '-' + h] || [];
+
+        var html = '<div class="pc-pop-date">' + PC_DAY_LABELS[d] + ' \u00b7 ' + formatHour12(h) + ' IST</div>'
+          + '<div class="pc-pop-count">' + count + (count === 1 ? ' event' : ' events') + '</div>';
+        if (breakdown_.length) {
+          html += breakdown_.slice(0, 5).map(function (r) {
+            return '<div class="pc-pop-repo"><span>' + escapeHtml(r.repo) + '</span><b>' + r.count + '</b></div>';
+          }).join('');
+        } else {
+          html += '<div class="pc-pop-empty">No public activity in this window.</div>';
+        }
+        pop.innerHTML = html;
+        pop.classList.add('pc-open');
+
+        var cRect = el.getBoundingClientRect();
+        var bRect = btn.getBoundingClientRect();
+        var popW = pop.offsetWidth, popH = pop.offsetHeight;
+
+        var spaceAbove = bRect.top - cRect.top;
+        var below = spaceAbove < (popH + 14);
+        var top = below
+          ? (bRect.bottom - cRect.top) + 10
+          : (bRect.top - cRect.top) - popH - 10;
+
+        var left = (bRect.left - cRect.left) + (bRect.width / 2) - (popW / 2);
+        var maxLeft = el.clientWidth - popW - 6;
+        left = Math.max(6, Math.min(left, maxLeft));
+
+        pop.style.top = top + 'px';
+        pop.style.left = left + 'px';
+
+        if (openBtn) openBtn.setAttribute('aria-expanded', 'false');
+        openBtn = btn;
+        btn.setAttribute('aria-expanded', 'true');
+      });
+    });
+
+    document.addEventListener('click', function (e) {
+      if (openBtn && !pop.contains(e.target) && e.target !== openBtn) closePop();
+    });
+    if (scrollBox) scrollBox.addEventListener('scroll', closePop);
+    window.addEventListener('resize', closePop);
+  }
+
   function renderPunchcard(activity) {
     var el = document.getElementById('raPunchcard');
     if (!el) return;
     var list = (activity || []).filter(function (a) { return a && a.time; });
-    if (!list.length) { el.innerHTML = ''; return; }
+    if (!list.length) {
+      el.innerHTML = '<div class="ra-label-row"><span class="ra-label">Commit Punchcard</span><span class="ra-label-sub">// day \u00d7 hour, IST</span></div>'
+        + '<div class="pc-card"><div class="pc-empty">No public activity tracked yet \u2014 check back after the next push.</div></div>';
+      return;
+    }
 
     var matrix = [];
     for (var d = 0; d < 7; d++) matrix.push(new Array(24).fill(0));
@@ -12631,42 +12814,71 @@ document.addEventListener('keydown', function(e) {
       matrix[ist.getUTCDay()][ist.getUTCHours()]++;
     });
 
-    var max = 0;
-    matrix.forEach(function (row) { row.forEach(function (v) { if (v > max) max = v; }); });
-    if (max === 0) { el.innerHTML = ''; return; }
+    var max = 0, totalEvents = 0, activeHoursSet = {};
+    matrix.forEach(function (row) {
+      row.forEach(function (v, h) {
+        if (v > max) max = v;
+        totalEvents += v;
+        if (v > 0) activeHoursSet[h] = true;
+      });
+    });
+    if (max === 0) {
+      el.innerHTML = '<div class="ra-label-row"><span class="ra-label">Commit Punchcard</span><span class="ra-label-sub">// day \u00d7 hour, IST</span></div>'
+        + '<div class="pc-card"><div class="pc-empty">No public activity tracked yet \u2014 check back after the next push.</div></div>';
+      return;
+    }
+    var activeHours = Object.keys(activeHoursSet).length;
 
     var peak = { day: 0, hour: 0, count: 0 };
     matrix.forEach(function (row, d) {
       row.forEach(function (v, h) { if (v > peak.count) peak = { day: d, hour: h, count: v }; });
     });
 
+    var dayTotals = matrix.map(function (row) { return row.reduce(function (a, v) { return a + v; }, 0); });
+
     var headHtml = '<div class="pc-row pc-head-row"><span class="pc-day-label"></span>';
     for (var h0 = 0; h0 < 24; h0++) {
       headHtml += '<span class="pc-hour-label">' + (PC_HOUR_LABEL_AT[h0] || '') + '</span>';
     }
-    headHtml += '</div>';
+    headHtml += '<span class="pc-day-total">\u03a3</span></div>';
 
     var bodyHtml = matrix.map(function (row, d) {
       var cells = row.map(function (count, h) {
-        if (!count) return '<span class="pc-cell"></span>';
-        var ratio = count / max;
-        var size = (4.5 + Math.sqrt(ratio) * 8.5).toFixed(1);
         var isPeak = (d === peak.day && h === peak.hour);
         var label = PC_DAY_LABELS[d] + ' ' + formatHour12(h) + ' IST \u00b7 ' + count + (count === 1 ? ' event' : ' events');
-        return '<span class="pc-cell' + (isPeak ? ' pc-peak' : '') + '" title="' + label + '" aria-label="' + label + '">'
-          + '<span class="pc-dot" style="width:' + size + 'px;height:' + size + 'px;"></span>'
-          + '</span>';
+        var dot = count
+          ? '<span class="pc-dot" style="width:' + (4.5 + Math.sqrt(count / max) * 8.5).toFixed(1) + 'px;height:' + (4.5 + Math.sqrt(count / max) * 8.5).toFixed(1) + 'px;"></span>'
+          : '<span class="pc-dot-ghost"></span>';
+        return '<button type="button" class="pc-cell' + (isPeak ? ' pc-peak' : '') + '" data-day="' + d + '" data-hour="' + h + '" data-count="' + count
+          + '" aria-expanded="false" aria-label="' + label + '">' + dot + '</button>';
       }).join('');
-      return '<div class="pc-row"><span class="pc-day-label">' + PC_DAY_LABELS[d] + '</span>' + cells + '</div>';
+      return '<div class="pc-row"><span class="pc-day-label">' + PC_DAY_LABELS[d] + '</span>' + cells
+        + '<span class="pc-day-total">' + (dayTotals[d] || '') + '</span></div>';
     }).join('');
 
     var days = minTime ? Math.max(1, Math.round((maxTime - minTime) / 86400000)) : null;
     var coverage = days ? '<div class="pc-coverage">// based on the last ' + days + ' day' + (days === 1 ? '' : 's') + ' of public activity</div>' : '';
     var peakNote = '<div class="pc-peak-note">Busiest window: <b>' + PC_DAY_LABELS[peak.day] + '</b> around <b>' + formatHour12(peak.hour) + ' IST</b></div>';
 
+    var personaTags = describePunchcardPersona(matrix, totalEvents);
+    var metaRow = '<div class="pc-meta-row">'
+      + (personaTags ? personaTags.map(function (t) { return '<span class="pc-tag">' + t + '</span>'; }).join('') : '')
+      + '<span class="pc-meta-stat">' + totalEvents + (totalEvents === 1 ? ' event' : ' events') + ' \u00b7 ' + activeHours + ' active hr' + (activeHours === 1 ? '' : 's') + ' of 24</span>'
+      + '</div>';
+
+    var legend = '<div class="pc-legend">Less'
+      + '<span class="pc-legend-dots">'
+      +   [0.15, 0.4, 0.7, 1].map(function (ratio) {
+            var size = (4.5 + Math.sqrt(ratio) * 8.5).toFixed(1);
+            return '<span class="pc-dot" style="width:' + size + 'px;height:' + size + 'px;"></span>';
+          }).join('')
+      + '</span>More</div>';
+
     el.innerHTML =
         '<div class="ra-label-row"><span class="ra-label">Commit Punchcard</span><span class="ra-label-sub">// day \u00d7 hour, IST</span></div>'
-      + '<div class="pc-card"><div class="pc-scroll">' + headHtml + bodyHtml + '</div>' + peakNote + coverage + '</div>';
+      + '<div class="pc-card">' + metaRow + '<div class="pc-scroll">' + headHtml + bodyHtml + '</div>' + legend + peakNote + coverage + '</div>';
+
+    wirePunchcardPopover(el, buildPunchcardBreakdown(list));
   }
 
   // Thin multi-line sparkline for up to 3 languages' share over time,
