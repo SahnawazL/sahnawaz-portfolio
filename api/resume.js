@@ -64,15 +64,62 @@ function sourceLabel(requestSource) {
    EMAIL 1 — Premium confirmation → VISITOR
 ═══════════════════════════════════════════════════════════ */
 function visitorResumeEmail({ name, refId, now, requestSource }) {
+  /* Small helper for the two-column "Core Expertise" list rows */
+  const expertiseRow = (left, right) => `
+              <tr>
+                <td style="padding:10px 20px 10px 0;width:50%;vertical-align:top;
+                           border-bottom:1px solid rgba(255,255,255,0.04);">
+                  <span style="font-size:0.82rem;color:#c8e8ff;line-height:1.6;">${left}</span>
+                </td>
+                <td style="padding:10px 0 10px 20px;width:50%;vertical-align:top;
+                           border-left:1px solid rgba(255,255,255,0.04);
+                           border-bottom:1px solid rgba(255,255,255,0.04);">
+                  <span style="font-size:0.82rem;color:#c8e8ff;line-height:1.6;">${right}</span>
+                </td>
+              </tr>`;
+
+  /* Small helper for the "Services & Engagement" price rows */
+  const serviceRow = (label, price, last) => `
+              <tr${last ? '' : ' style="border-bottom:1px solid rgba(255,255,255,0.04);"'}>
+                <td style="padding:11px 18px;font-size:0.82rem;color:#9fc4d6;">${label}</td>
+                <td align="right" style="padding:11px 18px;font-size:0.82rem;color:#00dcff;font-weight:700;font-family:monospace;">${price}</td>
+              </tr>`;
+
   return `<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Sahnawaz's Resume</title></head>
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<meta name="color-scheme" content="dark"/>
+<meta name="supported-color-schemes" content="dark"/>
+<title>Resume &amp; Professional Profile — Sahnawaz Ahmed Laskar</title>
+<style>
+  body, table, td, a { -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
+  table, td { mso-table-lspace:0pt; mso-table-rspace:0pt; }
+  img { -ms-interpolation-mode:bicubic; border:0; }
+  a[x-apple-data-detectors] { color:inherit!important; text-decoration:none!important; }
+
+  /* ── Mobile: kill the side gutters, tighten section padding ── */
+  @media only screen and (max-width:600px) {
+    .gutter        { padding-left:8px  !important; padding-right:8px  !important; }
+    .sec-x         { padding-left:18px !important; padding-right:18px !important; }
+    .stack-td      { display:block !important; width:100% !important;
+                      padding-right:0 !important; box-sizing:border-box !important; }
+    .stack-btn     { display:block !important; text-align:center !important; }
+  }
+</style>
+</head>
 <body style="margin:0;padding:0;background:#07101a;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
 
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#07101a;padding:36px 16px 48px;">
+<!-- Preheader (hidden, controls inbox preview text) -->
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">
+  Resume attached, plus a full professional profile — background, expertise, selected work and ways to connect. Ref ${refId}.
+</div>
+
+<table width="100%" cellpadding="0" cellspacing="0" class="gutter" style="background:#07101a;padding:36px 16px 48px;">
 <tr><td align="center">
-<table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;">
 
   <!-- ── Brand bar ── -->
   <tr>
@@ -104,23 +151,28 @@ function visitorResumeEmail({ name, refId, now, requestSource }) {
       <!-- ── Header ── -->
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
-          <td style="padding:36px 36px 28px;background:linear-gradient(160deg,#0d2540 0%,#0d1d2e 100%);">
+          <td class="sec-x" style="padding:36px 36px 28px;background:linear-gradient(160deg,#0d2540 0%,#0d1d2e 100%);">
             <div style="margin-bottom:18px;">
               <span style="display:inline-block;background:rgba(0,220,255,0.1);
                            border:1px solid rgba(0,220,255,0.3);border-radius:4px;
                            padding:4px 12px;font-size:0.65rem;color:#00dcff;
                            letter-spacing:2px;text-transform:uppercase;font-weight:700;">
-                📄 &nbsp;Resume Delivered
+                Resume &amp; Professional Profile
               </span>
             </div>
 
-            <h1 style="margin:0 0 10px;font-size:1.6rem;font-weight:800;
-                       color:#ffffff;line-height:1.15;letter-spacing:-0.3px;">
-              Hi ${name}! 👋
+            <h1 style="margin:0 0 12px;font-size:1.5rem;font-weight:800;
+                       color:#ffffff;line-height:1.25;letter-spacing:-0.3px;">
+              Dear ${name},
             </h1>
-            <p style="margin:0;font-size:0.9rem;color:#6fa8bf;line-height:1.5;">
-              Thanks for your interest — <strong style="color:#c8e8ff;">Sahnawaz's resume</strong>
-              is attached to this email as a PDF, ready to view or forward.
+            <p style="margin:0 0 10px;font-size:0.88rem;color:#8fb8cc;line-height:1.65;">
+              Thank you for requesting Sahnawaz Ahmed Laskar's resume via
+              ${sourceLabel(requestSource)}. It is attached to this email as a PDF.
+            </p>
+            <p style="margin:0;font-size:0.88rem;color:#8fb8cc;line-height:1.65;">
+              To help you evaluate his background more fully, this message also includes
+              a summary of his professional experience, technical expertise, selected
+              work, and the ways you can connect with him further.
             </p>
           </td>
         </tr>
@@ -134,7 +186,7 @@ function visitorResumeEmail({ name, refId, now, requestSource }) {
       <!-- ── Reference & timestamp strip ── -->
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
-          <td style="padding:14px 36px;background:rgba(0,0,0,0.25);">
+          <td class="sec-x" style="padding:14px 36px;background:rgba(0,0,0,0.25);">
             <table width="100%" cellpadding="0" cellspacing="0">
               <tr>
                 <td style="font-size:0.72rem;color:#2a6070;">
@@ -143,7 +195,248 @@ function visitorResumeEmail({ name, refId, now, requestSource }) {
                                letter-spacing:1px;">${refId}</span>
                 </td>
                 <td align="right" style="font-size:0.72rem;color:#1d4a5e;">
-                  Sent: ${now} IST
+                  Issued: ${now} IST
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+
+      <!-- ── Divider ── -->
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr><td style="height:1px;background:rgba(255,255,255,0.04);"></td></tr>
+      </table>
+
+      <!-- ── Professional summary ── -->
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td class="sec-x" style="padding:28px 36px 24px;">
+            <div style="font-size:0.65rem;color:#1d4a5e;letter-spacing:2px;
+                        text-transform:uppercase;font-weight:700;margin-bottom:14px;">
+              Professional Summary
+            </div>
+            <p style="margin:0;font-size:0.85rem;color:#a8c9da;line-height:1.75;">
+              Sahnawaz Ahmed Laskar is a Full Stack Developer and UI/UX Designer based in
+              Silchar, Assam, India. He has 5+ years of development experience since 2021,
+              including 2.4+ years of hands-on industry experience across
+              <strong style="color:#c8e8ff;">Xiaomi India</strong>,
+              <strong style="color:#c8e8ff;">Flipkart</strong> and
+              <strong style="color:#c8e8ff;">Rapido</strong>, and is currently pursuing an
+              MCA at Yenepoya University, Bangalore. He specialises in React.js, Node.js,
+              Firebase and AI-integrated applications, and is open to freelance and
+              full-time roles worldwide.
+            </p>
+          </td>
+        </tr>
+      </table>
+
+      <!-- ── Divider ── -->
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr><td style="height:1px;background:rgba(255,255,255,0.04);"></td></tr>
+      </table>
+
+      <!-- ── Core expertise ── -->
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td class="sec-x" style="padding:24px 36px 20px;">
+            <div style="font-size:0.65rem;color:#1d4a5e;letter-spacing:2px;
+                        text-transform:uppercase;font-weight:700;margin-bottom:14px;">
+              Core Expertise
+            </div>
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="padding-bottom:8px;width:50%;">
+                  <span style="font-size:0.68rem;color:#2a6070;text-transform:uppercase;
+                               letter-spacing:1px;font-weight:700;">Development</span>
+                </td>
+                <td style="padding-bottom:8px;width:50%;padding-left:20px;">
+                  <span style="font-size:0.68rem;color:#2a6070;text-transform:uppercase;
+                               letter-spacing:1px;font-weight:700;">Design &amp; AI</span>
+                </td>
+              </tr>
+              ${expertiseRow('React.js &amp; Node.js', 'Figma &amp; Adobe XD')}
+              ${expertiseRow('JavaScript &amp; PHP', 'UI/UX Design')}
+              ${expertiseRow('Firebase &amp; MySQL', 'Tailwind CSS')}
+              ${expertiseRow('REST API Integration', 'ChatGPT &amp; Groq AI Integration')}
+            </table>
+          </td>
+        </tr>
+      </table>
+
+      <!-- ── Divider ── -->
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr><td style="height:1px;background:rgba(255,255,255,0.04);"></td></tr>
+      </table>
+
+      <!-- ── Selected work ── -->
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td class="sec-x" style="padding:24px 36px 8px;">
+            <div style="font-size:0.65rem;color:#1d4a5e;letter-spacing:2px;
+                        text-transform:uppercase;font-weight:700;margin-bottom:14px;">
+              Selected Work
+            </div>
+
+            <table width="100%" cellpadding="0" cellspacing="0"
+              style="border:1px solid rgba(0,220,255,0.1);border-radius:10px;overflow:hidden;">
+              <tr style="background:rgba(255,255,255,0.015);">
+                <td style="padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.04);">
+                  <div style="font-size:0.85rem;color:#c8e8ff;font-weight:700;margin-bottom:4px;">YojanaSahay</div>
+                  <div style="font-size:0.78rem;color:#7ea5b8;line-height:1.6;">
+                    Bilingual (Hindi &amp; English) civic-tech platform helping Indian
+                    citizens discover government welfare schemes, with an AI eligibility checker.
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.04);">
+                  <div style="font-size:0.85rem;color:#c8e8ff;font-weight:700;margin-bottom:4px;">StudyLens AI</div>
+                  <div style="font-size:0.78rem;color:#7ea5b8;line-height:1.6;">
+                    AI study assistant for KG&ndash;12 students covering SEBA, AHSEC, CBSE
+                    &amp; ICSE syllabi, answering in English, Bengali, Hindi and Assamese.
+                  </div>
+                </td>
+              </tr>
+              <tr style="background:rgba(255,255,255,0.015);">
+                <td style="padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.04);">
+                  <div style="font-size:0.85rem;color:#c8e8ff;font-weight:700;margin-bottom:4px;">Portfolio &amp; AI Assistant</div>
+                  <div style="font-size:0.78rem;color:#7ea5b8;line-height:1.6;">
+                    This site itself &mdash; 22,000+ lines of hand-coded HTML/CSS/JS with an
+                    embedded, context-aware AI chat assistant.
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:14px 18px;">
+                  <div style="font-size:0.85rem;color:#c8e8ff;font-weight:700;margin-bottom:4px;">Client Websites</div>
+                  <div style="font-size:0.78rem;color:#7ea5b8;line-height:1.6;">
+                    10+ client websites delivered from scratch &mdash; responsive,
+                    pixel-perfect and production-ready.
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+
+      <!-- ── Divider ── -->
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr><td style="height:1px;background:rgba(255,255,255,0.04);"></td></tr>
+      </table>
+
+      <!-- ── Professional experience ── -->
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td class="sec-x" style="padding:24px 36px 8px;">
+            <div style="font-size:0.65rem;color:#1d4a5e;letter-spacing:2px;
+                        text-transform:uppercase;font-weight:700;margin-bottom:14px;">
+              Professional Experience
+            </div>
+            <table width="100%" cellpadding="0" cellspacing="0"
+              style="border:1px solid rgba(0,220,255,0.1);border-radius:10px;overflow:hidden;">
+              <tr style="background:rgba(255,255,255,0.015);">
+                <td style="padding:11px 18px;font-size:0.82rem;color:#c8e8ff;font-weight:700;width:38%;
+                           border-bottom:1px solid rgba(255,255,255,0.04);">Rapido</td>
+                <td style="padding:11px 18px;font-size:0.8rem;color:#8fb8cc;
+                           border-left:1px solid rgba(255,255,255,0.04);
+                           border-bottom:1px solid rgba(255,255,255,0.04);">
+                  IT / Developer &mdash; internal tooling, agent training &amp; live chat support
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:11px 18px;font-size:0.82rem;color:#c8e8ff;font-weight:700;
+                           border-bottom:1px solid rgba(255,255,255,0.04);">Flipkart</td>
+                <td style="padding:11px 18px;font-size:0.8rem;color:#8fb8cc;
+                           border-left:1px solid rgba(255,255,255,0.04);
+                           border-bottom:1px solid rgba(255,255,255,0.04);">
+                  L2 Support &mdash; returns &amp; refunds
+                </td>
+              </tr>
+              <tr style="background:rgba(255,255,255,0.015);">
+                <td style="padding:11px 18px;font-size:0.82rem;color:#c8e8ff;font-weight:700;">Xiaomi India</td>
+                <td style="padding:11px 18px;font-size:0.8rem;color:#8fb8cc;
+                           border-left:1px solid rgba(255,255,255,0.04);">
+                  L1 Inbound Support &mdash; MSM troubleshooting
+                </td>
+              </tr>
+            </table>
+            <p style="margin:12px 0 0;font-size:0.76rem;color:#3a6a7f;line-height:1.6;">
+              2.4+ years combined across all three, part of 5+ years total as a developer
+              counting freelance &amp; personal work since 2021.
+            </p>
+          </td>
+        </tr>
+      </table>
+
+      <!-- ── Divider ── -->
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr><td style="height:1px;background:rgba(255,255,255,0.04);"></td></tr>
+      </table>
+
+      <!-- ── Services & engagement ── -->
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td class="sec-x" style="padding:24px 36px 8px;">
+            <div style="font-size:0.65rem;color:#1d4a5e;letter-spacing:2px;
+                        text-transform:uppercase;font-weight:700;margin-bottom:14px;">
+              Services &amp; Engagement
+            </div>
+            <table width="100%" cellpadding="0" cellspacing="0"
+              style="border:1px solid rgba(0,220,255,0.1);border-radius:10px;overflow:hidden;">
+              ${serviceRow('Website Design', '&#8377;9,999+')}
+              ${serviceRow('Portfolio Website', '&#8377;6,999+')}
+              ${serviceRow('E-Commerce Setup', '&#8377;14,999+')}
+              ${serviceRow('UI/UX Design', '&#8377;3,999+/screen')}
+              ${serviceRow('Backend Development', '&#8377;5,999+/module')}
+              ${serviceRow('AI Integration', '&#8377;2,999+/workflow', true)}
+            </table>
+            <p style="margin:10px 0 0;font-size:0.74rem;color:#3a6a7f;line-height:1.6;">
+              Shared for reference only &mdash; full scope and inclusions are listed on the
+              portfolio's Services section.
+            </p>
+          </td>
+        </tr>
+      </table>
+
+      <!-- ── Availability ── -->
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td class="sec-x" style="padding:22px 36px 8px;">
+            <span style="display:inline-block;background:rgba(52,211,153,0.1);
+                         border:1px solid rgba(52,211,153,0.3);border-radius:4px;
+                         padding:5px 12px;font-size:0.68rem;color:#34d399;
+                         letter-spacing:1px;text-transform:uppercase;font-weight:700;">
+              Open to Freelance &amp; Full-Time Roles &mdash; Worldwide
+            </span>
+          </td>
+        </tr>
+      </table>
+
+      <!-- ── CTA buttons ── -->
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td class="sec-x" style="padding:18px 36px 8px;">
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td class="stack-td" style="padding-right:10px;padding-bottom:10px;">
+                  <a href="https://sahnawaz-portfolio.vercel.app" class="stack-btn"
+                     style="display:inline-block;padding:12px 22px;
+                            background:linear-gradient(135deg,#00dcff,#0066ff);
+                            color:#031018;font-size:0.78rem;font-weight:800;
+                            letter-spacing:0.5px;text-decoration:none;border-radius:8px;">
+                    View Portfolio
+                  </a>
+                </td>
+                <td class="stack-td" style="padding-bottom:10px;">
+                  <a href="mailto:shzthedigitalalchemist@gmail.com" class="stack-btn"
+                     style="display:inline-block;padding:12px 22px;
+                            background:rgba(0,220,255,0.07);border:1px solid rgba(0,220,255,0.25);
+                            color:#00dcff;font-size:0.78rem;font-weight:800;
+                            letter-spacing:0.5px;text-decoration:none;border-radius:8px;">
+                    Get in Touch
+                  </a>
                 </td>
               </tr>
             </table>
@@ -159,7 +452,7 @@ function visitorResumeEmail({ name, refId, now, requestSource }) {
       <!-- ── Reach out directly ── -->
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
-          <td style="padding:28px 36px 8px;">
+          <td class="sec-x" style="padding:24px 36px 8px;">
             <div style="font-size:0.65rem;color:#1d4a5e;letter-spacing:2px;
                         text-transform:uppercase;font-weight:700;margin-bottom:14px;">
               Reach Out Directly
@@ -169,11 +462,13 @@ function visitorResumeEmail({ name, refId, now, requestSource }) {
               style="border:1px solid rgba(0,220,255,0.1);border-radius:10px;overflow:hidden;">
 
               <tr style="background:rgba(255,255,255,0.015);">
-                <td style="padding:13px 18px;width:34%;vertical-align:top;">
+                <td style="padding:13px 18px;width:32%;vertical-align:top;
+                           border-bottom:1px solid rgba(255,255,255,0.04);">
                   <span style="font-size:0.72rem;color:#2a6070;text-transform:uppercase;
                                letter-spacing:1px;font-weight:600;">Email</span>
                 </td>
-                <td style="padding:13px 18px;border-left:1px solid rgba(255,255,255,0.04);">
+                <td style="padding:13px 18px;border-left:1px solid rgba(255,255,255,0.04);
+                           border-bottom:1px solid rgba(255,255,255,0.04);">
                   <a href="mailto:shzthedigitalalchemist@gmail.com"
                      style="font-size:0.85rem;color:#00dcff;font-weight:700;text-decoration:none;">
                     shzthedigitalalchemist@gmail.com
@@ -181,47 +476,60 @@ function visitorResumeEmail({ name, refId, now, requestSource }) {
                 </td>
               </tr>
 
-              <tr><td colspan="2" style="height:1px;background:rgba(255,255,255,0.04);padding:0;"></td></tr>
-
               <tr>
-                <td style="padding:13px 18px;vertical-align:top;">
+                <td style="padding:13px 18px;vertical-align:top;
+                           border-bottom:1px solid rgba(255,255,255,0.04);">
                   <span style="font-size:0.72rem;color:#2a6070;text-transform:uppercase;
                                letter-spacing:1px;font-weight:600;">Portfolio</span>
                 </td>
-                <td style="padding:13px 18px;border-left:1px solid rgba(255,255,255,0.04);">
+                <td style="padding:13px 18px;border-left:1px solid rgba(255,255,255,0.04);
+                           border-bottom:1px solid rgba(255,255,255,0.04);">
                   <a href="https://sahnawaz-portfolio.vercel.app"
                      style="font-size:0.85rem;color:#00dcff;font-weight:700;text-decoration:none;">
                     sahnawaz-portfolio.vercel.app
                   </a>
                 </td>
               </tr>
-            </table>
-          </td>
-        </tr>
-      </table>
 
-      <!-- ── CTA buttons ── -->
-      <table width="100%" cellpadding="0" cellspacing="0">
-        <tr>
-          <td style="padding:24px 36px 8px;">
-            <table cellpadding="0" cellspacing="0">
-              <tr>
-                <td style="padding-right:10px;padding-bottom:10px;">
-                  <a href="https://sahnawaz-portfolio.vercel.app"
-                     style="display:inline-block;padding:12px 22px;
-                            background:linear-gradient(135deg,#00dcff,#0066ff);
-                            color:#031018;font-size:0.78rem;font-weight:800;
-                            letter-spacing:0.5px;text-decoration:none;border-radius:8px;">
-                    🌐 View Portfolio
+              <tr style="background:rgba(255,255,255,0.015);">
+                <td style="padding:13px 18px;vertical-align:top;
+                           border-bottom:1px solid rgba(255,255,255,0.04);">
+                  <span style="font-size:0.72rem;color:#2a6070;text-transform:uppercase;
+                               letter-spacing:1px;font-weight:600;">LinkedIn</span>
+                </td>
+                <td style="padding:13px 18px;border-left:1px solid rgba(255,255,255,0.04);
+                           border-bottom:1px solid rgba(255,255,255,0.04);">
+                  <a href="https://linkedin.com/in/sahnawaz-ahmed-laskar-021608168"
+                     style="font-size:0.85rem;color:#00dcff;font-weight:700;text-decoration:none;">
+                    sahnawaz-ahmed-laskar
                   </a>
                 </td>
-                <td style="padding-bottom:10px;">
-                  <a href="mailto:shzthedigitalalchemist@gmail.com"
-                     style="display:inline-block;padding:12px 22px;
-                            background:rgba(0,220,255,0.07);border:1px solid rgba(0,220,255,0.25);
-                            color:#00dcff;font-size:0.78rem;font-weight:800;
-                            letter-spacing:0.5px;text-decoration:none;border-radius:8px;">
-                    ✉️ Get in Touch
+              </tr>
+
+              <tr>
+                <td style="padding:13px 18px;vertical-align:top;
+                           border-bottom:1px solid rgba(255,255,255,0.04);">
+                  <span style="font-size:0.72rem;color:#2a6070;text-transform:uppercase;
+                               letter-spacing:1px;font-weight:600;">GitHub</span>
+                </td>
+                <td style="padding:13px 18px;border-left:1px solid rgba(255,255,255,0.04);
+                           border-bottom:1px solid rgba(255,255,255,0.04);">
+                  <a href="https://github.com/sahnawazl"
+                     style="font-size:0.85rem;color:#00dcff;font-weight:700;text-decoration:none;">
+                    github.com/sahnawazl
+                  </a>
+                </td>
+              </tr>
+
+              <tr style="background:rgba(255,255,255,0.015);">
+                <td style="padding:13px 18px;vertical-align:top;">
+                  <span style="font-size:0.72rem;color:#2a6070;text-transform:uppercase;
+                               letter-spacing:1px;font-weight:600;">Instagram</span>
+                </td>
+                <td style="padding:13px 18px;border-left:1px solid rgba(255,255,255,0.04);">
+                  <a href="https://instagram.com/sahnawaz.ui.dev"
+                     style="font-size:0.85rem;color:#00dcff;font-weight:700;text-decoration:none;">
+                    @sahnawaz.ui.dev
                   </a>
                 </td>
               </tr>
@@ -238,9 +546,9 @@ function visitorResumeEmail({ name, refId, now, requestSource }) {
       <!-- ── Footer note ── -->
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
-          <td style="padding:18px 36px;background:rgba(0,0,0,0.2);">
+          <td class="sec-x" style="padding:18px 36px;background:rgba(0,0,0,0.2);">
             <p style="margin:0;font-size:0.78rem;color:#3a6a7f;line-height:1.6;">
-              He personally reads every message and replies fast. 🚀
+              Every message is read personally, with replies typically sent within 24&ndash;48 hours.
             </p>
           </td>
         </tr>
@@ -279,14 +587,14 @@ function visitorResumeEmail({ name, refId, now, requestSource }) {
         Full Stack Developer &amp; UI/UX Designer &nbsp;·&nbsp; Silchar, Assam, India
       </p>
 
-      <p style="margin:16px auto 0;max-width:420px;font-size:0.66rem;color:#163a48;line-height:1.7;">
-        This is an automated message from sahnawaz-portfolio.vercel.app — replies go
+      <p style="margin:16px auto 0;max-width:440px;font-size:0.66rem;color:#163a48;line-height:1.7;">
+        This is a system-generated message from sahnawaz-portfolio.vercel.app &mdash; replies go
         straight to shzthedigitalalchemist@gmail.com.<br>
-        You're receiving it because you requested this resume via ${sourceLabel(requestSource)}.
+        You are receiving it because you requested this resume via ${sourceLabel(requestSource)}.
       </p>
 
       <p style="margin:14px 0 0;font-size:0.62rem;color:#122a34;">
-        © ${new Date().getFullYear()} Sahnawaz Ahmed Laskar. All rights reserved.
+        &copy; ${new Date().getFullYear()} Sahnawaz Ahmed Laskar. All rights reserved.
       </p>
     </td>
   </tr>
@@ -539,7 +847,7 @@ async function handlePost(req, res) {
       from:    `"Sahnawaz Ahmed Laskar" <${process.env.GMAIL_USER}>`,
       to:      email,
       replyTo: process.env.GMAIL_USER,
-      subject: `📄 Sahnawaz's Resume — ${name}, it's attached!`,
+      subject: `Your Requested Resume & Professional Profile — Sahnawaz Ahmed Laskar [Ref: ${refId}]`,
       html: visitorResumeEmail({ name, refId, now, requestSource }),
       attachments: [{
         filename:    'Sahnawaz_Resume.pdf',
