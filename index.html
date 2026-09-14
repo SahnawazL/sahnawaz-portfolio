@@ -2272,248 +2272,6 @@ section p {
   filter: drop-shadow(0 0 4px rgba(0,255,255,0.6));
 }
 
-/* ════════════════════════════════════════════════
-   LIVE RESUME PREVIEW POPUP  (v3 — instant open)
-   ════════════════════════════════════════════════ */
-#resumePopup {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 99999;
-  background: rgba(4, 12, 24, 0.92);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  align-items: center;
-  justify-content: center;
-  padding: 12px;
-}
-#resumePopup.rp-visible {
-  display: flex;
-  animation: rpBgIn 0.22s ease both;
-}
-@keyframes rpBgIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-/* ── Main card ── */
-.resume-popup-card {
-  position: relative;
-  width: 100%;
-  max-width: 860px;
-  height: 90vh;
-  max-height: 92vh;
-  border-radius: 18px;
-  background: linear-gradient(160deg, #06141f 0%, #081e30 100%);
-  border: 1px solid rgba(0,255,255,0.18);
-  box-shadow:
-    0 0 0 1px rgba(0,255,255,0.06),
-    0 30px 80px rgba(0,0,0,0.75),
-    0 0 60px rgba(0,200,255,0.07),
-    inset 0 1px 0 rgba(255,255,255,0.05);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  animation: rpCardIn 0.28s cubic-bezier(.2,.9,.2,1) both;
-}
-@keyframes rpCardIn {
-  from { opacity: 0; transform: scale(0.97) translateY(18px); }
-  to   { opacity: 1; transform: scale(1)    translateY(0); }
-}
-/* Corner accent lines */
-.resume-popup-card::before {
-  content: "";
-  position: absolute;
-  top: -1px; left: -1px;
-  width: 50px; height: 50px;
-  border-top: 2px solid rgba(0,255,255,0.45);
-  border-left: 2px solid rgba(0,255,255,0.45);
-  border-radius: 18px 0 0 0;
-  pointer-events: none;
-  z-index: 3;
-}
-.resume-popup-card::after {
-  content: "";
-  position: absolute;
-  bottom: -1px; right: -1px;
-  width: 50px; height: 50px;
-  border-bottom: 2px solid rgba(0,255,255,0.25);
-  border-right: 2px solid rgba(0,255,255,0.25);
-  border-radius: 0 0 18px 0;
-  pointer-events: none;
-  z-index: 3;
-}
-/* ── Toolbar ── */
-.rp-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0,255,255,0.1);
-  background: rgba(0,20,35,0.6);
-  flex-shrink: 0;
-  gap: 10px;
-}
-.rp-toolbar-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-.rp-toolbar-left .rp-icon {
-  font-size: 1.3rem;
-  flex-shrink: 0;
-  filter: drop-shadow(0 0 6px rgba(0,220,255,0.55));
-}
-.rp-toolbar-left .rp-name {
-  font-size: 1rem;
-  font-weight: 800;
-  letter-spacing: 2.5px;
-  text-transform: uppercase;
-  background: linear-gradient(90deg, #c9a84c, #f5e27a, #fff8dc, #f5e27a, #c9a84c);
-  background-size: 300% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: premiumShine 4s linear infinite;
-  white-space: nowrap;
-  filter: drop-shadow(0 0 8px rgba(215,175,80,0.45));
-}
-@keyframes premiumShine {
-  0%   { background-position: 0% center; }
-  100% { background-position: 300% center; }
-}
-.rp-toolbar-left .rp-sub {
-  font-size: 0.68rem;
-  color: rgba(140,200,220,0.55);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.rp-toolbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-/* Download button in toolbar */
-.rp-dl-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border-radius: 8px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  text-decoration: none;
-  color: #001a22;
-  background: linear-gradient(135deg, #00f0ff 0%, #00ccdd 100%);
-  border: none;
-  box-shadow: 0 3px 14px rgba(0,255,255,0.32);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  cursor: pointer;
-}
-.rp-dl-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 22px rgba(0,255,255,0.45);
-}
-/* Close X */
-.resume-popup-close {
-  width: 30px; height: 30px;
-  border-radius: 8px;
-  border: 1px solid rgba(0,255,255,0.18);
-  background: rgba(0,255,255,0.05);
-  color: rgba(0,255,255,0.65);
-  font-size: 1rem;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-}
-.resume-popup-close:hover {
-  background: rgba(255,60,60,0.15);
-  border-color: rgba(255,80,80,0.4);
-  color: #ff6868;
-  transform: scale(1.1);
-}
-/* ── iframe container ── */
-.rp-frame-wrap {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-  background: #0a1520;
-}
-/* Loading spinner shown before iframe loads */
-.rp-loading {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  color: rgba(0,220,255,0.6);
-  font-size: 0.8rem;
-  letter-spacing: 1px;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
-.rp-loading.hidden { opacity: 0; }
-.rp-spinner {
-  width: 36px; height: 36px;
-  border: 3px solid rgba(0,220,255,0.12);
-  border-top-color: rgba(0,220,255,0.7);
-  border-radius: 50%;
-  animation: rpSpin 0.75s linear infinite;
-}
-@keyframes rpSpin { to { transform: rotate(360deg); } }
-#rp-iframe {
-  position: absolute;
-  inset: 0;
-  width: 100%; height: 100%;
-  border: none;
-  opacity: 0;
-  transition: opacity 0.35s ease;
-}
-#rp-iframe.loaded { opacity: 1; }
-/* ── Fallback bar shown if iframe blocked ── */
-.rp-fallback {
-  display: none;
-  position: absolute;
-  inset: 0;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  gap: 16px;
-  text-align: center;
-  padding: 2rem;
-  color: rgba(160,220,240,0.8);
-  font-size: 0.85rem;
-  line-height: 1.6;
-}
-.rp-fallback.show { display: flex; }
-.rp-fallback-icon { font-size: 2.8rem; }
-/* Thin cyan progress bar at top */
-.rp-progress {
-  position: absolute;
-  top: 0; left: 0;
-  height: 2px;
-  background: linear-gradient(90deg, #00e5ff, #00aaff);
-  width: 0%;
-  transition: width 1.2s ease;
-  pointer-events: none;
-}
-/* Mobile responsive */
-@media (max-width: 600px) {
-  .resume-popup-card {
-    height: 95vh;
-    max-height: 95vh;
-    border-radius: 14px;
-  }
-  .rp-toolbar-left .rp-sub { display: none; }
-  .rp-dl-btn { padding: 6px 10px; font-size: 0.68rem; }
-}
 
 /* ── KEEP old popup-btn-download class for any stray references ── */
 .popup-btn-preview {
@@ -4443,8 +4201,8 @@ h1.prem-name {
 
   <!-- ── Resume button ── -->
   <div style="margin-top:1rem;text-align:center;">
-    <button class="glassy-resume" onclick="openResumePopup()" style="border:none;">
-      <span class="resume-btn-icon">📄</span> View Resume
+    <button class="glassy-resume" onclick="openResumeEmailModal()" style="border:none;">
+      <span class="resume-btn-icon">📄</span> Get Resume
     </button>
   </div>
 
@@ -6850,153 +6608,6 @@ function ptestiToggle(card) {
 
 </section>
 
-<!-- ══════════════════════════════════════════════════════
-     LIVE RESUME PREVIEW POPUP  (instant iframe viewer)
-     ══════════════════════════════════════════════════════ -->
-<div id="resumePopup" onclick="if(event.target===this)closeResumePopup();">
-  <div class="resume-popup-card">
-
-    <!-- ── Toolbar ── -->
-    <div class="rp-toolbar">
-      <div class="rp-toolbar-left">
-        <span class="rp-icon">📄</span>
-        <div>
-          <div class="rp-name">Sahnawaz Ahmed Laskar</div>
-          <div class="rp-sub">Full Stack Developer &amp; UI/UX Designer · resume.pdf</div>
-        </div>
-      </div>
-      <div class="rp-toolbar-actions">
-        <div class="resume-popup-close" onclick="closeResumePopup()" title="Close">✕</div>
-      </div>
-    </div>
-
-    <!-- ── iframe viewer ── -->
-    <div class="rp-frame-wrap">
-      <!-- Thin progress bar -->
-      <div class="rp-progress" id="rpProgress"></div>
-
-      <!-- Loading spinner -->
-      <div class="rp-loading" id="rpLoading">
-        <div class="rp-spinner"></div>
-        <span>Loading preview…</span>
-      </div>
-
-      <!-- The actual PDF iframe (src injected on open — zero preload lag) -->
-      <iframe id="rp-iframe" title="Resume Preview" allow="fullscreen"></iframe>
-
-      <!-- Fallback if iframe is blocked (e.g. GitHub raw CORS) -->
-      <div class="rp-fallback" id="rpFallback">
-        <div class="rp-fallback-icon">📋</div>
-        <p style="color:rgba(0,220,255,0.8);font-weight:700;margin:0;">Preview blocked by browser</p>
-        <p style="color:rgba(140,200,220,0.6);font-size:0.78rem;margin:4px 0 12px;">Use the button below to open the PDF directly.</p>
-        <button class="rp-dl-btn" onclick="window._gatedResumeOpen()" style="font-size:0.8rem;padding:9px 20px;">
-           👁 Open in New Tab
-        </button>
-        <button class="rp-dl-btn" onclick="window._gatedResumeDownload()"
-           style="background:linear-gradient(135deg,#0a4060,#0d5070);color:#a0eeff;box-shadow:none;font-size:0.8rem;padding:9px 20px;">
-           ⬇ Download PDF
-        </button>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<script>
-(function () {
-  /* ── PDF sources ──────────────────────────────────────────────── */
-  /* Google Drive direct embed — no CORS issues */
-  /* Resume served from Vercel — auth-gated, no Google Drive direct link */
-  const GDOC_SRC = null; /* set dynamically after token fetch */
-
-  const popup    = document.getElementById('resumePopup');
-  const frame    = document.getElementById('rp-iframe');
-  const loading  = document.getElementById('rpLoading');
-  const fallback = document.getElementById('rpFallback');
-  const progress = document.getElementById('rpProgress');
-
-  let opened = false;
-
-  /* ── Open ── */
-  window.openResumePopup = function () {
-
-    /* ── Mobile: Android/iPhone can't render PDFs in iframes ──
-       Skip the popup entirely — open PDF in a new tab instead.
-       _gatedResumeOpen() fetches a fresh Firebase token and opens
-       /api/resume?mode=view in a new tab, which Chrome handles natively. */
-    var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    if (isMobile) {
-      window._gatedResumeOpen && window._gatedResumeOpen();
-      return;
-    }
-
-    /* ── Desktop: show the iframe popup as normal ── */
-    popup.classList.add('rp-visible');
-    document.body.style.overflow = 'hidden';
-
-    /* Inject src only on first open — avoids preload lag */
-    if (!opened) {
-      opened = true;
-      /* Animate progress bar while loading */
-      progress.style.width = '60%';
-
-      /* Fetch Firebase ID token first, then load into iframe */
-      (function() {
-        var auth = window._firebaseAuth;
-        if (!auth || !auth.currentUser) {
-          /* Not signed in — should not reach here, but fallback gracefully */
-          loading.classList.add('hidden');
-          fallback.classList.add('show');
-          progress.style.opacity = '0';
-          return;
-        }
-        auth.currentUser.getIdToken(true).then(function(token) {
-          frame.src = 'https://sahnawaz-portfolio.vercel.app/api/resume?token=' + encodeURIComponent(token) + '&mode=view';
-        }).catch(function(err) {
-          console.error('Token error:', err);
-          loading.classList.add('hidden');
-          fallback.classList.add('show');
-          progress.style.opacity = '0';
-        });
-      })();
-
-      frame.onload = function () {
-        loading.classList.add('hidden');
-        frame.classList.add('loaded');
-        progress.style.transition = 'width 0.4s ease';
-        progress.style.width = '100%';
-        setTimeout(() => { progress.style.opacity = '0'; }, 500);
-      };
-
-      /* Fallback: if not loaded in 9 s, show fallback panel */
-      setTimeout(function () {
-        if (!frame.classList.contains('loaded')) {
-          loading.classList.add('hidden');
-          fallback.classList.add('show');
-          progress.style.opacity = '0';
-        }
-      }, 9000);
-    }
-  };
-
-  /* ── Close ── */
-  window.closeResumePopup = function () {
-    popup.style.transition = 'opacity 0.22s ease';
-    popup.style.opacity    = '0';
-    setTimeout(function () {
-      popup.classList.remove('rp-visible');
-      popup.style.opacity    = '';
-      popup.style.transition = '';
-      document.body.style.overflow = '';
-    }, 230);
-  };
-
-  /* ── Keyboard ESC ── */
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && popup.classList.contains('rp-visible')) closeResumePopup();
-  });
-})();
-</script>
 <!-- Modal Popup -->
 <div id="demoPopup" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85);">
 <div style="background-color: #122b3a; margin: auto; margin-top: 20vh; padding: 1.5rem; width: 90%; max-width: 380px; border-radius: 14px; box-shadow: 0 0 15px rgba(0,255,255,0.3); text-align: center; color: white;">
@@ -25107,7 +24718,7 @@ div#popup.popup {
 </div>
 
 
-<!-- ══ RESUME GATE MODAL ════════════════════════════════════ -->
+<!-- ══ RESUME REQUEST MODAL — email delivery (same pipeline as the AI chat assistant) ════════════════════════════ -->
 <style>
 #resumeGateModal {
   display: none;
@@ -25167,11 +24778,31 @@ div#popup.popup {
   font-size: 0.88rem;
   color: rgba(255,255,255,0.5);
   line-height: 1.7;
-  margin-bottom: 28px;
+  margin-bottom: 22px;
 }
 .rg-body strong {
   color: rgba(0,220,255,0.85);
   font-weight: 600;
+}
+#resumeGateForm { text-align: left; }
+.rg-input {
+  width: 100%;
+  padding: 13px 16px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,255,255,0.18);
+  background: rgba(255,255,255,0.04);
+  color: #e8f6ff;
+  font-size: 0.92rem;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: border-color 0.2s, background 0.2s;
+}
+.rg-input::placeholder { color: rgba(200,230,240,0.32); }
+.rg-input:focus {
+  outline: none;
+  border-color: rgba(0,220,255,0.6);
+  background: rgba(0,220,255,0.06);
 }
 .rg-signin-btn {
   width: 100%;
@@ -25185,16 +24816,20 @@ div#popup.popup {
   cursor: pointer;
   font-family: inherit;
   box-shadow: 0 4px 20px rgba(0,255,255,0.3);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  margin-top: 4px;
   margin-bottom: 14px;
 }
-.rg-signin-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0,255,255,0.5);
+.rg-signin-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,255,255,0.5); }
+.rg-signin-btn:disabled { opacity: 0.6; cursor: default; transform: none; }
+.rg-status {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin-bottom: 14px;
 }
 .rg-skip {
   background: none;
@@ -25229,99 +24864,137 @@ div#popup.popup {
 .rg-close:hover { color:#fff; background:rgba(255,255,255,0.1); }
 </style>
 
-<div id="resumeGateModal" role="dialog" aria-modal="true" aria-label="Sign in to view resume">
+<div id="resumeGateModal" role="dialog" aria-modal="true" aria-label="Get Sahnawaz's resume by email">
   <div id="resumeGateCard">
-    <button class="rg-close" id="resumeGateClose" aria-label="Close">✕</button>
+    <button class="rg-close" id="resumeGateClose" type="button" aria-label="Close">✕</button>
     <span class="rg-icon">📄</span>
-    <div class="rg-title">One quick step</div>
+    <div class="rg-title">Get the Resume</div>
     <div class="rg-body">
-      Sahnawaz's resume is available to <strong>signed-in visitors</strong> only.<br><br>
-      This helps him know who's interested in his work — and lets him follow up personally if you'd like to connect.
+      Drop your name and email — Sahnawaz's resume lands in your inbox in seconds, the <strong>same way</strong> it does through the chat assistant.
     </div>
-    <button class="rg-signin-btn" id="resumeGateSignIn">
-      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-      Sign in with Google
-    </button>
-    <button class="rg-skip" id="resumeGateSkip">Maybe later</button>
-    <div class="rg-privacy">Your information is never shared with third parties.<br>Sign-in is handled securely by Google.</div>
+
+    <form id="resumeGateForm" novalidate>
+      <input class="rg-input" type="text"  id="rgName"  placeholder="Your name"        autocomplete="name"  required>
+      <input class="rg-input" type="email" id="rgEmail" placeholder="you@example.com"  autocomplete="email" required>
+      <input class="rg-input" type="tel"   id="rgPhone" placeholder="Phone (optional)" autocomplete="tel">
+      <!-- Honeypot — invisible to real visitors, catches basic bots -->
+      <input type="text" id="rgHoneypot" name="company" autocomplete="off" tabindex="-1"
+             style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;">
+      <button class="rg-signin-btn" id="rgSubmitBtn" type="submit">
+        <span id="rgSubmitLabel">📧 Send Me the Resume</span>
+      </button>
+    </form>
+
+    <div class="rg-status" id="rgStatus" style="display:none;"></div>
+
+    <button class="rg-skip" id="resumeGateSkip" type="button">Maybe later</button>
+    <div class="rg-privacy">Used only to send the resume and let Sahnawaz follow up if you'd like — never shared with third parties.</div>
   </div>
 </div>
 
 <script>
 (function(){
-  var modal     = document.getElementById('resumeGateModal');
-  var closeBtn  = document.getElementById('resumeGateClose');
-  var signInBtn = document.getElementById('resumeGateSignIn');
-  var skipBtn   = document.getElementById('resumeGateSkip');
+  var RESUME_API = 'https://sahnawaz-portfolio.vercel.app/api/resume';
 
-  function openGateModal() { modal.classList.add('rg-open'); }
+  var modal        = document.getElementById('resumeGateModal');
+  var closeBtn     = document.getElementById('resumeGateClose');
+  var skipBtn      = document.getElementById('resumeGateSkip');
+  var form         = document.getElementById('resumeGateForm');
+  var nameEl       = document.getElementById('rgName');
+  var emailEl      = document.getElementById('rgEmail');
+  var phoneEl      = document.getElementById('rgPhone');
+  var honeypotEl   = document.getElementById('rgHoneypot');
+  var statusEl     = document.getElementById('rgStatus');
+  var submitBtn    = document.getElementById('rgSubmitBtn');
+  var submitLabel  = document.getElementById('rgSubmitLabel');
+
+  function isValidEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+  function showStatus(msg, isError) {
+    statusEl.style.display = msg ? 'block' : 'none';
+    statusEl.textContent   = msg || '';
+    statusEl.style.color   = isError ? '#ff8b8b' : '#8ef0d0';
+  }
+
+  function resetModalUI() {
+    form.style.display = '';
+    form.reset();
+    showStatus('');
+    submitBtn.disabled = false;
+    submitLabel.textContent = '📧 Send Me the Resume';
+  }
+
+  function openGateModal() {
+    resetModalUI();
+    /* Pre-fill from an existing chat-assistant visitor record, if any,
+       so returning visitors don't have to retype their details. */
+    try {
+      var sv = JSON.parse(localStorage.getItem('shnz_visitor_v1') || 'null');
+      if (sv) {
+        if (sv.fullName)  nameEl.value  = sv.fullName;
+        else if (sv.firstName) nameEl.value = sv.firstName;
+        if (sv.email) emailEl.value = sv.email;
+      }
+    } catch (e) {}
+    modal.classList.add('rg-open');
+  }
   function closeGateModal() { modal.classList.remove('rg-open'); }
+
+  /* Public entry point — called by the "Get Resume" button in the bio section */
+  window.openResumeEmailModal = openGateModal;
 
   if (closeBtn) closeBtn.addEventListener('click', closeGateModal);
   if (skipBtn)  skipBtn.addEventListener('click', closeGateModal);
-  modal.addEventListener('click', function(e){ if(e.target===modal) closeGateModal(); });
+  modal.addEventListener('click', function (e) { if (e.target === modal) closeGateModal(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && modal.classList.contains('rg-open')) closeGateModal();
+  });
 
-  /* Sign In button — opens Google login, then auto-opens resume on success */
-  if (signInBtn) {
-    signInBtn.addEventListener('click', function(){
-      closeGateModal();
-      /* Hook into post-login flow — patch applyVisitorSession once */
-      var _origApply = window.applyVisitorSession;
-      window.applyVisitorSession = function(visitor, showBanner){
-        if (_origApply) _origApply.apply(this, arguments);
-        /* Restore original immediately so this only fires once */
-        window.applyVisitorSession = _origApply;
-        /* Open resume after sign-in completes */
-        setTimeout(function(){ window._openResumeDirectly && window._openResumeDirectly(); }, 400);
-      };
-      if (window.openLoginModal) window.openLoginModal();
+  if (form) {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      /* Bot check — real visitors never fill this hidden field */
+      if (honeypotEl && honeypotEl.value) { closeGateModal(); return; }
+
+      var name  = (nameEl.value  || '').trim();
+      var email = (emailEl.value || '').trim();
+      var phone = (phoneEl.value || '').trim();
+
+      if (!name)              { showStatus('Please enter your name.', true); return; }
+      if (!isValidEmail(email)) { showStatus('Please enter a valid email address.', true); return; }
+
+      submitBtn.disabled = true;
+      submitLabel.textContent = 'Sending…';
+      showStatus('');
+
+      var payload = { name: name, email: email, source: 'bio-cta' };
+      if (phone) payload.phone = phone;
+
+      fetch(RESUME_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+      .then(function (res) {
+        if (res.ok && res.data && res.data.success) {
+          form.style.display = 'none';
+          showStatus('✅ Sent! Check ' + email + ' (and spam, just in case).', false);
+          setTimeout(closeGateModal, 3200);
+        } else {
+          submitBtn.disabled = false;
+          submitLabel.textContent = '📧 Send Me the Resume';
+          showStatus((res.data && res.data.error) || 'Something went wrong. Please try again or email shzthedigitalalchemist@gmail.com directly.', true);
+        }
+      })
+      .catch(function () {
+        submitBtn.disabled = false;
+        submitLabel.textContent = '📧 Send Me the Resume';
+        showStatus('Network error. Please try again or email shzthedigitalalchemist@gmail.com directly.', true);
+      });
     });
   }
-
-  /* Override openResumePopup to check auth first */
-  var _originalOpen = window.openResumePopup;
-  window._openResumeDirectly = _originalOpen;
-
-  window.openResumePopup = function(){
-    var visitor = null;
-    try { visitor = JSON.parse(localStorage.getItem('shnz_visitor_v1') || 'null'); } catch(e){}
-    if (visitor && visitor.uid) {
-      /* Signed in — open resume directly */
-      window._openResumeDirectly && window._openResumeDirectly();
-    } else {
-      /* Not signed in — show polite awareness modal */
-      openGateModal();
-    }
-  };
-
-  /* Gated open in new tab — fetches Firebase token → /api/resume */
-  window._gatedResumeOpen = function(){
-    var visitor = null;
-    try { visitor = JSON.parse(localStorage.getItem('shnz_visitor_v1') || 'null'); } catch(e){}
-    if (!visitor || !visitor.uid) { openGateModal(); return; }
-    var auth = window._firebaseAuth;
-    if (!auth || !auth.currentUser) { openGateModal(); return; }
-    auth.currentUser.getIdToken(true).then(function(token){
-      window.open('https://sahnawaz-portfolio.vercel.app/api/resume?token=' + encodeURIComponent(token) + '&mode=view', '_blank', 'noopener');
-    }).catch(function(){ openGateModal(); });
-  };
-
-  /* Gated download — fetches Firebase token → /api/resume?mode=download */
-  window._gatedResumeDownload = function(){
-    var visitor = null;
-    try { visitor = JSON.parse(localStorage.getItem('shnz_visitor_v1') || 'null'); } catch(e){}
-    if (!visitor || !visitor.uid) { openGateModal(); return; }
-    var auth = window._firebaseAuth;
-    if (!auth || !auth.currentUser) { openGateModal(); return; }
-    auth.currentUser.getIdToken(true).then(function(token){
-      var a = document.createElement('a');
-      a.href = 'https://sahnawaz-portfolio.vercel.app/api/resume?token=' + encodeURIComponent(token) + '&mode=download';
-      a.download = 'Sahnawaz_Resume.pdf';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    }).catch(function(){ openGateModal(); });
-  };
 })();
 </script>
 
