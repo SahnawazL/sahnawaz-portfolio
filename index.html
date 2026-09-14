@@ -4233,30 +4233,48 @@ h1.prem-name {
   background: linear-gradient(90deg, transparent, rgba(0,200,255,0.2), transparent);
 }
 
-/* ── Header ── */
+/* ── Header — matches the Work Experience header style exactly ── */
 .ts-head {
   margin-bottom: 1.8rem;
 }
 .ts-eyebrow {
-  font-size: 0.58rem;
-  letter-spacing: 3.5px;
-  text-transform: uppercase;
-  color: rgba(0,200,255,0.4);
+  display: flex; justify-content: center; align-items: center; gap: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.62rem; font-weight: 600;
+  letter-spacing: 3px; text-transform: uppercase;
+  color: rgba(80,210,255,0.5);
   margin-bottom: 0.55rem;
-  display: block;
 }
+.ts-eyebrow-dot {
+  width: 4px; height: 4px;
+  background: #50d2ff; border-radius: 50%;
+  animation: ts-eyebrow-blink 2.4s infinite;
+}
+@keyframes ts-eyebrow-blink { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
 .ts-title {
-  font-size: 1.45rem;
-  font-weight: 800;
-  letter-spacing: -0.2px;
-  background: linear-gradient(130deg, #ffffff 0%, #a8e8ff 55%, #e8f9ff 100%);
+  display: flex; justify-content: center; align-items: center; gap: 0.5rem;
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.45rem, 5vw, 1.95rem);
+  font-weight: 700;
+  letter-spacing: normal;
+  background: linear-gradient(135deg, #e8f8ff 0%, #50d2ff 45%, #0099cc 100%);
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent;
-  display: block;
-  margin-bottom: 0;
+  margin: 0 0 0.3rem; line-height: 1.2;
 }
-.ts-title-icon { display: none; }
-.ts-subtitle, .ts-divider { display: none; }
+.ts-title-icon { display: inline-flex; flex-shrink: 0; }
+.ts-subtitle {
+  display: block;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem; color: rgba(150,210,240,0.4);
+  letter-spacing: 0.4px; margin: 0 0 1.8rem;
+}
+.ts-divider {
+  display: block;
+  width: 44px; height: 1.5px;
+  background: linear-gradient(90deg, transparent, #50d2ff, transparent);
+  margin: 0 auto 1.6rem; border-radius: 2px;
+}
 
 /* ── Bridge connecting the galaxy map above to this grid ── */
 .ts-connector {
@@ -4468,7 +4486,10 @@ h1.prem-name {
 <section class="ts-section tech-stack" data-aos="fade-up">
 
   <div class="ts-head">
-    <h2 class="ts-title">My Tech Stack</h2>
+    <div class="ts-eyebrow"><span class="ts-eyebrow-dot"></span>Tools &amp; Technologies<span class="ts-eyebrow-dot"></span></div>
+    <h2 class="ts-title"><svg class="ts-title-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#50d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>My Tech Stack</h2>
+    <p class="ts-subtitle">The languages, frameworks and tools I reach for to build fast, reliable products.</p>
+    <div class="ts-divider"></div>
   </div>
 
   <!-- Connector -->
@@ -4699,34 +4720,36 @@ h1.prem-name {
 .blog-heading-wrap { text-align: center; margin-bottom: 1.2rem; }
 
 .blog-eyebrow {
-  display: inline-flex; align-items: center; gap: 6px;
+  display: flex; justify-content: center; align-items: center; gap: 6px;
   font-family: 'DM Sans', sans-serif;
   font-size: 0.62rem; font-weight: 600;
   letter-spacing: 3px; text-transform: uppercase;
-  color: rgba(0,255,200,0.5); margin-bottom: 0.55rem;
+  color: rgba(80,210,255,0.5); margin-bottom: 0.55rem;
 }
 .blog-eyebrow-dot {
-  width: 4px; height: 4px; background: #00ffc8;
-  border-radius: 50%; animation: blink-dot 2.2s infinite;
+  width: 4px; height: 4px; background: #50d2ff;
+  border-radius: 50%; animation: blink-dot 2.4s infinite;
 }
 @keyframes blink-dot { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
 
 .blog-main-title {
+  display: flex; justify-content: center; align-items: center; gap: 0.5rem;
   font-family: 'Playfair Display', serif;
-  font-size: clamp(1.4rem, 5vw, 1.9rem); font-weight: 700;
-  background: linear-gradient(135deg, #e0fffa 0%, #00e5c8 40%, #00b4d8 100%);
+  font-size: clamp(1.45rem, 5vw, 1.95rem); font-weight: 700;
+  background: linear-gradient(135deg, #e8f8ff 0%, #50d2ff 45%, #0099cc 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   margin: 0 0 0.3rem; line-height: 1.2;
 }
+.blog-title-icon { display: inline-flex; flex-shrink: 0; }
 .blog-subtitle-line {
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.72rem; color: rgba(160,210,240,0.4);
-  letter-spacing: 0.4px; margin-bottom: 0;
+  font-size: 0.72rem; color: rgba(150,210,240,0.4);
+  letter-spacing: 0.4px; margin: 0 0 1.8rem;
 }
 .blog-divider {
   width: 44px; height: 1.5px;
-  background: linear-gradient(90deg, transparent, #00ffc8, transparent);
-  margin: 0.9rem auto 0; border-radius: 2px;
+  background: linear-gradient(90deg, transparent, #50d2ff, transparent);
+  margin: 0 auto 1.6rem; border-radius: 2px;
 }
 
 /* ── PILL WRAP ── mirrors shz-stats-wrap */
@@ -5170,7 +5193,7 @@ h1.prem-name {
       Thoughts &amp; Insights
       <span class="blog-eyebrow-dot"></span>
     </div>
-    <h2 class="blog-main-title">📰 My Blog</h2>
+    <h2 class="blog-main-title"><svg class="blog-title-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#50d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h13a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"/><path d="M18 8v13a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1h-1"/><path d="M8 8h7"/><path d="M8 12h7"/><path d="M8 16h3"/></svg>My Blog</h2>
     <p class="blog-subtitle-line">Real knowledge from real experience — tap a card to reveal the story.</p>
     <div class="blog-divider"></div>
   </div>
@@ -5365,32 +5388,34 @@ function toggleBlogCard(card) {
 
 /* ── HEADING ── */
 .ptesti-eyebrow {
-  display: inline-flex; align-items: center; gap: 6px;
+  display: flex; justify-content: center; align-items: center; gap: 6px;
   font-family: 'DM Sans', sans-serif;
   font-size: 0.62rem; font-weight: 600;
   letter-spacing: 3px; text-transform: uppercase;
-  color: rgba(0,200,255,0.5);
+  color: rgba(80,210,255,0.5);
   margin-bottom: 0.55rem;
 }
-.ptesti-dot { width:4px;height:4px;background:#00c8ff;border-radius:50%;animation:ptesti-blink 2.2s infinite; }
+.ptesti-eyebrow-dot { width:4px;height:4px;background:#50d2ff;border-radius:50%;animation:ptesti-blink 2.4s infinite; }
 @keyframes ptesti-blink{0%,100%{opacity:1;}50%{opacity:0.2;}}
 .ptesti-title {
+  display: flex; justify-content: center; align-items: center; gap: 0.5rem;
   font-family: 'Playfair Display', serif;
-  font-size: clamp(1.4rem, 5vw, 1.9rem);
+  font-size: clamp(1.45rem, 5vw, 1.95rem);
   font-weight: 700;
-  background: linear-gradient(135deg, #e0f8ff 0%, #00c8ff 50%, #0099dd 100%);
+  background: linear-gradient(135deg, #e8f8ff 0%, #50d2ff 45%, #0099cc 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   margin: 0 0 0.3rem; line-height: 1.2;
 }
+.ptesti-title-icon { display: inline-flex; flex-shrink: 0; }
 .ptesti-sub {
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.72rem; color: rgba(160,210,240,0.4);
-  letter-spacing: 0.4px; margin-bottom: 1.6rem;
+  font-size: 0.72rem; color: rgba(150,210,240,0.4);
+  letter-spacing: 0.4px; margin-bottom: 1.8rem;
 }
 .ptesti-divider {
   width: 44px; height: 1.5px;
-  background: linear-gradient(90deg, transparent, #00c8ff, transparent);
-  margin: 0 auto 2rem; border-radius: 2px;
+  background: linear-gradient(90deg, transparent, #50d2ff, transparent);
+  margin: 0 auto 1.6rem; border-radius: 2px;
 }
 
 /* ══ FEATURED GRID — Stats-Dashboard pill style ══ */
@@ -5802,11 +5827,11 @@ function toggleBlogCard(card) {
 <section class="ptesti-section testimonials" data-aos="fade-up" data-aos-duration="1200" id="testimonials">
   <div style="text-align:center;">
     <div class="ptesti-eyebrow">
-      <span class="ptesti-dot"></span>
+      <span class="ptesti-eyebrow-dot"></span>
       Voice of Trust
-      <span class="ptesti-dot"></span>
+      <span class="ptesti-eyebrow-dot"></span>
     </div>
-    <h2 class="ptesti-title">🧾 What Clients Say</h2>
+    <h2 class="ptesti-title"><svg class="ptesti-title-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#50d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2h16v20l-4-3-4 3-4-3-4 3V2z"/><path d="M8 7h8"/><path d="M8 11h8"/><path d="M8 15h5"/></svg>What Clients Say</h2>
     <p class="ptesti-sub">Real words from real people — colleagues, managers &amp; team leads.</p>
     <div class="ptesti-divider"></div>
   </div>
@@ -6126,7 +6151,7 @@ function ptestiToggle(card) {
 <!-- ===== STATS DASHBOARD ===== -->
 <style>
 /* ===== COMPACT PREMIUM STATS DASHBOARD ===== */
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Syne:wght@700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Syne:wght@700;800&family=Space+Grotesk:wght@600;700&display=swap');
 
 .shz-stats-wrap {
   padding: 1.2rem 1rem 1.4rem;
@@ -6273,27 +6298,33 @@ function ptestiToggle(card) {
 
 /* Number */
 .shz-stat-num {
-  font-family: 'Syne', sans-serif;
-  font-size: 1.75rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #00ffcc 0%, #00d4ff 100%);
+  font-family: 'Space Grotesk', 'Syne', sans-serif;
+  font-size: 1.85rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1, 'ss01' 1;
+  letter-spacing: -0.02em;
+  background: linear-gradient(180deg, #e8fffa 0%, #4dffd6 35%, #00c8ff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   line-height: 1;
   display: block;
-  min-height: 1.75rem;
-  letter-spacing: -0.5px;
-  transition: transform 0.3s ease;
+  min-height: 1.85rem;
+  position: relative;
+  filter: drop-shadow(0 0 8px rgba(0,255,200,0.28));
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), filter 0.3s ease;
 }
 .shz-stat:hover .shz-stat-num {
   transform: scale(1.06);
+  filter: drop-shadow(0 0 14px rgba(0,255,200,0.45));
 }
 .shz-stat-suffix {
-  font-family: 'Syne', sans-serif;
-  font-size: 1.1rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #00ffcc, #00d4ff);
+  font-family: 'Space Grotesk', 'Syne', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  background: linear-gradient(180deg, #e8fffa 0%, #4dffd6 35%, #00c8ff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -6829,7 +6860,7 @@ function ptestiToggle(card) {
 
 /* ── heading ── */
 .pwork-eyebrow {
-  display: inline-flex; align-items: center; gap: 6px;
+  display: flex; justify-content: center; align-items: center; gap: 6px;
   font-family: 'DM Sans', sans-serif;
   font-size: 0.62rem; font-weight: 600;
   letter-spacing: 3px; text-transform: uppercase;
@@ -7140,7 +7171,7 @@ function ptestiToggle(card) {
       Professional Journey
       <span class="pwork-dot"></span>
     </div>
-    <h2 class="pwork-title" style="display:inline-flex; align-items:center; gap:0.5rem;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#50d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>Work Experience</h2>
+    <h2 class="pwork-title" style="display:flex; align-items:center; justify-content:center; gap:0.5rem;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#50d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>Work Experience</h2>
     <p class="pwork-sub">Every role sharpened a different edge — tap any entry to explore the story.</p>
     <div class="pwork-divider"></div>
   </div>
@@ -7510,37 +7541,42 @@ document.addEventListener('keydown', function(e) {
 
 /* ── header ── */
 .kta3-eyebrow {
-  display: inline-flex; align-items: center; gap: 7px;
-  font-size: 0.6rem; font-weight: 700;
-  letter-spacing: 3.5px; text-transform: uppercase;
-  color: rgba(167,139,250,0.6);
-  margin-bottom: 0.6rem;
+  display: flex; justify-content: center; align-items: center; gap: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.62rem; font-weight: 600;
+  letter-spacing: 3px; text-transform: uppercase;
+  color: rgba(80,210,255,0.5);
+  margin-bottom: 0.55rem;
 }
 .kta3-dot {
-  width: 5px; height: 5px; border-radius: 50%;
-  background: #a78bfa;
-  animation: kta3-blink 2s infinite;
+  width: 4px; height: 4px; border-radius: 50%;
+  background: #50d2ff;
+  animation: kta3-blink 2.4s infinite;
 }
 .kta3-dot:nth-child(3) { animation-delay: 0.4s; }
-@keyframes kta3-blink { 0%,100%{opacity:1;} 50%{opacity:0.18;} }
+@keyframes kta3-blink { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
 
 .kta3-title {
-  font-size: clamp(1.45rem, 5vw, 2rem);
-  font-weight: 800;
-  background: linear-gradient(130deg, #f0f4ff 0%, #c4b5fd 45%, #67e8f9 100%);
+  display: flex; justify-content: center; align-items: center; gap: 0.5rem;
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.45rem, 5vw, 1.95rem);
+  font-weight: 700;
+  background: linear-gradient(135deg, #e8f8ff 0%, #50d2ff 45%, #0099cc 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin: 0 0 0.4rem; line-height: 1.2;
-  letter-spacing: -0.3px;
+  margin: 0 0 0.3rem; line-height: 1.2;
+  letter-spacing: normal;
 }
+.kta3-title-icon { display: inline-flex; flex-shrink: 0; }
 .kta3-sub {
-  font-size: 0.78rem; color: rgba(176,155,225,0.45);
-  letter-spacing: 0.3px; margin-bottom: 2.4rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem; color: rgba(150,210,240,0.4);
+  letter-spacing: 0.4px; margin-bottom: 1.8rem;
 }
 .kta3-rule {
-  width: 48px; height: 2px;
-  background: linear-gradient(90deg, transparent, #a78bfa, transparent);
-  margin: 0 auto 2.4rem; border-radius: 2px;
+  width: 44px; height: 1.5px;
+  background: linear-gradient(90deg, transparent, #50d2ff, transparent);
+  margin: 0 auto 1.6rem; border-radius: 2px;
 }
 
 /* ── category row ── */
@@ -7731,7 +7767,7 @@ document.addEventListener('keydown', function(e) {
       Crafted with Precision
       <span class="kta3-dot"></span>
     </div>
-    <h2 class="kta3-title"><svg viewBox="0 0 24 24" fill="currentColor" style="width:0.85em;height:0.85em;vertical-align:-0.05em;"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg> Key Technical Achievements</h2>
+    <h2 class="kta3-title section-underline"><svg class="kta3-title-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#50d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>Key Technical Achievements</h2>
     <p class="kta3-sub">Real milestones, real impact — click any card to explore the full story.</p>
     <div class="kta3-rule"></div>
   </div>
@@ -8024,37 +8060,37 @@ document.addEventListener('keydown', function(e) {
 
 /* ── header ── */
 .wio-eyebrow {
-  display: inline-flex; align-items: center; gap: 8px;
-  font-size: 0.6rem; font-weight: 700;
-  letter-spacing: 3.5px; text-transform: uppercase;
-  color: rgba(52,211,153,0.55); margin-bottom: 0.7rem;
+  display: flex; justify-content: center; align-items: center; gap: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.62rem; font-weight: 600;
+  letter-spacing: 3px; text-transform: uppercase;
+  color: rgba(80,210,255,0.5); margin-bottom: 0.55rem;
 }
 .wio-pulse {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: #34d399;
-  animation: wio-ping 2s infinite;
-  box-shadow: 0 0 0 0 rgba(52,211,153,0.5);
+  width: 4px; height: 4px; border-radius: 50%;
+  background: #50d2ff;
+  animation: wio-ping 2.4s infinite;
 }
-@keyframes wio-ping {
-  0%   { box-shadow: 0 0 0 0 rgba(52,211,153,0.55); }
-  70%  { box-shadow: 0 0 0 8px rgba(52,211,153,0); }
-  100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
-}
+@keyframes wio-ping { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
 .wio-title {
-  font-size: clamp(1.55rem, 5vw, 2.1rem);
-  font-weight: 800; letter-spacing: -0.4px;
-  background: linear-gradient(130deg, #f0fdf9 0%, #6ee7b7 45%, #38bdf8 100%);
+  display: flex; justify-content: center; align-items: center; gap: 0.5rem;
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.45rem, 5vw, 1.95rem);
+  font-weight: 700; letter-spacing: normal;
+  background: linear-gradient(135deg, #e8f8ff 0%, #50d2ff 45%, #0099cc 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  background-clip: text; margin: 0 0 0.45rem;
+  background-clip: text; margin: 0 0 0.3rem; line-height: 1.2;
 }
+.wio-title-icon { display: inline-flex; flex-shrink: 0; }
 .wio-sub {
-  font-size: 0.8rem; color: rgba(148,225,190,0.4);
-  letter-spacing: 0.4px; margin-bottom: 0.6rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem; color: rgba(150,210,240,0.4);
+  letter-spacing: 0.4px; margin-bottom: 1.8rem;
 }
 .wio-rule {
-  width: 52px; height: 2px;
-  background: linear-gradient(90deg, transparent, #34d399, transparent);
-  margin: 0 auto 3rem; border-radius: 2px;
+  width: 44px; height: 1.5px;
+  background: linear-gradient(90deg, transparent, #50d2ff, transparent);
+  margin: 0 auto 1.6rem; border-radius: 2px;
 }
 
 /* ── grid ── */
@@ -8248,9 +8284,9 @@ document.addEventListener('keydown', function(e) {
     <div class="wio-eyebrow">
       <span class="wio-pulse"></span>
       Services &amp; Pricing
-      <span class="wio-pulse" style="animation-delay:0.5s;"></span>
+      <span class="wio-pulse"></span>
     </div>
-    <h2 class="wio-title">💼 What I Offer</h2>
+    <h2 class="wio-title"><svg class="wio-title-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#50d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>What I Offer</h2>
     <p class="wio-sub">Click any card to reveal full pricing &amp; what's included</p>
     <div class="wio-rule"></div>
   </div>
@@ -8441,36 +8477,38 @@ document.addEventListener('keydown', function(e) {
 
 /* ── header ── */
 .syb-eyebrow {
-  display: inline-flex; align-items: center; gap: 8px;
-  font-size: 0.6rem; font-weight: 700;
-  letter-spacing: 3.5px; text-transform: uppercase;
-  color: rgba(99,102,241,0.6); margin-bottom: 0.7rem;
+  display: flex; justify-content: center; align-items: center; gap: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.62rem; font-weight: 600;
+  letter-spacing: 3px; text-transform: uppercase;
+  color: rgba(80,210,255,0.5); margin-bottom: 0.55rem;
 }
 .syb-orb {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: #818cf8;
-  animation: syb-orbit 2.4s infinite ease-in-out;
+  width: 4px; height: 4px; border-radius: 50%;
+  background: #50d2ff;
+  animation: syb-orbit 2.4s infinite;
 }
-.syb-orb:nth-child(3){ animation-delay: 0.6s; }
-@keyframes syb-orbit {
-  0%,100%{ transform: scale(1); opacity:1; }
-  50%{ transform: scale(1.6); opacity:0.4; }
-}
+@keyframes syb-orbit { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
 .syb-title {
-  font-size: clamp(1.55rem, 5vw, 2.1rem);
-  font-weight: 800; letter-spacing: -0.4px;
-  background: linear-gradient(130deg, #f0f4ff 0%, #a5b4fc 40%, #38bdf8 100%);
+  display: flex; justify-content: center; align-items: center; gap: 0.5rem;
+  justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.45rem, 5vw, 1.95rem);
+  font-weight: 700; letter-spacing: normal;
+  background: linear-gradient(135deg, #e8f8ff 0%, #50d2ff 45%, #0099cc 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  background-clip: text; margin: 0 0 0.45rem;
+  background-clip: text; margin: 0 0 0.3rem; line-height: 1.2;
 }
+.syb-title-icon { display: inline-flex; flex-shrink: 0; }
 .syb-sub {
-  font-size: 0.8rem; color: rgba(148,163,220,0.42);
-  letter-spacing: 0.4px; margin-bottom: 0.6rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem; color: rgba(150,210,240,0.4);
+  letter-spacing: 0.4px; margin-bottom: 1.8rem;
 }
 .syb-rule {
-  width: 52px; height: 2px;
-  background: linear-gradient(90deg, transparent, #818cf8, transparent);
-  margin: 0 auto 3rem; border-radius: 2px;
+  width: 44px; height: 1.5px;
+  background: linear-gradient(90deg, transparent, #50d2ff, transparent);
+  margin: 0 auto 1.6rem; border-radius: 2px;
 }
 
 /* ── grid ── */
@@ -8706,51 +8744,54 @@ document.addEventListener('keydown', function(e) {
   z-index: 1;
 }
 .wnw-eyebrow {
-  display: inline-flex;
+  display: flex; justify-content: center;
   align-items: center;
-  gap: 8px;
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 3.5px;
+  gap: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 3px;
   text-transform: uppercase;
-  color: rgba(0,255,255,0.55);
-  margin-bottom: 0.7rem;
+  color: rgba(80,210,255,0.5);
+  margin-bottom: 0.55rem;
 }
 .wnw-eyebrow-dot {
   width: 4px; height: 4px;
   border-radius: 50%;
-  background: #00ffff;
-  box-shadow: 0 0 6px #00ffff;
-  animation: wnw-blink 2s ease-in-out infinite;
+  background: #50d2ff;
+  animation: wnw-blink 2.4s infinite;
 }
-@keyframes wnw-blink { 0%,100%{opacity:1;} 50%{opacity:0.15;} }
+@keyframes wnw-blink { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
 
 .wnw-title {
-  font-size: clamp(1.55rem, 5vw, 2.1rem);
-  font-weight: 800;
-  letter-spacing: -0.4px;
-  background: linear-gradient(130deg, #f0fdff 0%, #a0f5ff 45%, #38bdf8 100%);
+  display: flex; justify-content: center; align-items: center; gap: 0.5rem;
+  justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.45rem, 5vw, 1.95rem);
+  font-weight: 700;
+  letter-spacing: normal;
+  background: linear-gradient(135deg, #e8f8ff 0%, #50d2ff 45%, #0099cc 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin: 0 0 0.45rem;
-  line-height: 1.15;
+  margin: 0 0 0.3rem;
+  line-height: 1.2;
 }
+.wnw-title-icon { display: inline-flex; flex-shrink: 0; }
 .wnw-subtitle {
-  font-size: 0.8rem;
-  color: rgba(148,225,220,0.4);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem;
+  color: rgba(150,210,240,0.4);
   letter-spacing: 0.4px;
-  margin-bottom: 0.6rem;
+  margin: 0 auto 1.8rem;
   max-width: 500px;
-  margin-left: auto;
-  margin-right: auto;
-  line-height: 1.7;
+  line-height: 1.65;
 }
 .wnw-divider {
-  width: 52px;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, #00ffff, transparent);
-  margin: 0 auto 3rem;
+  width: 44px;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, #50d2ff, transparent);
+  margin: 0 auto 1.6rem;
   border-radius: 2px;
 }
 
@@ -9221,7 +9262,7 @@ document.addEventListener('keydown', function(e) {
       For Every Person · Every Business
       <span class="wnw-eyebrow-dot"></span>
     </div>
-    <h2 class="wnw-title">🌐 Why Do You Need a Website?</h2>
+    <h2 class="wnw-title section-underline"><svg class="wnw-title-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#50d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>Why Do You Need a Website?</h2>
     <p class="wnw-subtitle">Tap any card to discover how a website transforms your life, business, or career — explained in a way that actually makes sense.</p>
     <div class="wnw-divider"></div>
   </div>
@@ -9543,7 +9584,7 @@ document.addEventListener('keydown', function(e) {
       Skill-Based Services
       <span class="syb-orb"></span>
     </div>
-    <h2 class="syb-title">🛠️ Services You Can Book</h2>
+    <h2 class="syb-title section-underline"><svg class="syb-title-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#50d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Services You Can Book</h2>
     <p class="syb-sub">Click any card to reveal pricing &amp; what's included</p>
     <div class="syb-rule"></div>
   </div>
@@ -9796,59 +9837,58 @@ document.addEventListener('keydown', function(e) {
 
 /* ── section header ── */
 .mpj-eyebrow {
-  display: flex;
+  display: flex; justify-content: center;
   align-items: center;
   justify-content: center;
-  gap: 0.6rem;
-  font-size: 0.65rem;
-  font-family: 'Courier New', monospace;
+  gap: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 600;
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: rgba(0,255,200,0.5);
-  margin-bottom: 0.65rem;
+  color: rgba(80,210,255,0.5);
+  margin-bottom: 0.55rem;
 }
 .mpj-dot {
-  width: 5px; height: 5px;
+  width: 4px; height: 4px;
   border-radius: 50%;
-  background: rgba(0,255,200,0.5);
-  animation: mpjDotPulse 2s ease-in-out infinite;
+  background: #50d2ff;
+  animation: mpjDotPulse 2.4s infinite;
 }
-@keyframes mpjDotPulse {
-  0%,100% { opacity: 0.4; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.4); }
-}
+@keyframes mpjDotPulse { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
 
 .mpj-title {
-  font-size: clamp(1.75rem, 5.5vw, 2.4rem);
-  font-weight: 900;
+  display: flex; align-items: center; gap: 0.5rem;
+  justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.45rem, 5vw, 1.95rem);
+  font-weight: 700;
   text-align: center;
-  background: linear-gradient(120deg, #00ffe7 0%, #ffffff 45%, #00c6ff 100%);
-  background-size: 220% auto;
+  background: linear-gradient(135deg, #e8f8ff 0%, #50d2ff 45%, #0099cc 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: mpjTitleShimmer 4s linear infinite;
-  margin-bottom: 0.5rem;
-  letter-spacing: -0.5px;
+  margin: 0 0 0.3rem; line-height: 1.2;
+  letter-spacing: normal;
 }
-@keyframes mpjTitleShimmer {
-  0% { background-position: 0% center; }
-  100% { background-position: 220% center; }
-}
+.mpj-title-icon { display: inline-flex; flex-shrink: 0; }
 
 .mpj-subtitle {
-  font-size: 0.84rem;
-  color: rgba(160,210,230,0.6);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem;
+  color: rgba(150,210,240,0.4);
   text-align: center;
-  margin-bottom: 0.5rem;
+  letter-spacing: 0.4px;
+  margin-bottom: 1.8rem;
   line-height: 1.5;
 }
 
 .mpj-divider {
-  width: 60px; height: 3px;
-  background: linear-gradient(90deg, transparent, #00ffe7, transparent);
+  width: 48px; height: 2px;
+  background: linear-gradient(90deg, transparent, #7fe0ff, transparent);
   border-radius: 2px;
-  margin: 0 auto 2.5rem;
+  margin: 0 auto 1.6rem;
+  box-shadow: 0 0 6px rgba(120,220,255,0.9), 0 0 14px rgba(80,210,255,0.5);
 }
 
 /* ── filter pills ── */
@@ -10371,7 +10411,7 @@ document.addEventListener('keydown', function(e) {
       Built &amp; Shipped
       <span class="mpj-dot"></span>
     </div>
-    <h2 class="mpj-title">My Projects</h2>
+    <h2 class="mpj-title section-underline"><svg class="mpj-title-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#50d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>My Projects</h2>
     <p class="mpj-subtitle">Real products, real problems solved — every line hand-coded, zero templates.</p>
     <div class="mpj-divider"></div>
   </div>
@@ -14319,90 +14359,63 @@ textarea.ct-field { resize: none; height: 90px; }
 .ct-eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.58rem;
+  gap: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.62rem; font-weight: 600;
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: rgba(0,210,255,0.5);
-  margin-bottom: 0.8rem;
+  color: rgba(80,210,255,0.5);
+  margin-bottom: 0.55rem;
 }
-.ct-eyebrow::before,
-.ct-eyebrow::after {
-  content: '';
-  display: inline-block;
-  width: 24px; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(0,200,255,0.45));
+.ct-eyebrow-dot {
+  width: 4px; height: 4px; border-radius: 50%;
+  background: #50d2ff;
+  animation: ct-eyebrow-blink 2.4s infinite;
 }
-.ct-eyebrow::after {
-  background: linear-gradient(90deg, rgba(0,200,255,0.45), transparent);
-}
+@keyframes ct-eyebrow-blink { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
 
 /* Main title */
 .ct-title {
   width: 100%;
   text-align: center;
   display: block;
-  margin-bottom: 0.55rem;
+  margin-bottom: 0.3rem;
 }
 .ct-title-word1 {
-  display: block;
-  font-size: clamp(1.8rem, 6vw, 2.5rem);
-  font-weight: 900;
-  letter-spacing: 0px;
-  line-height: 1.1;
-  background: linear-gradient(135deg, #ffffff 0%, #b8ecff 50%, #e8f9ff 100%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.45rem, 5vw, 1.95rem);
+  font-weight: 700;
+  letter-spacing: normal;
+  line-height: 1.2;
+  background: linear-gradient(135deg, #e8f8ff 0%, #50d2ff 45%, #0099cc 100%);
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-.ct-title-word2 {
-  display: block;
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 2.5px;
-  text-transform: uppercase;
-  background: linear-gradient(90deg, #00d4ff 0%, #80f0ff 50%, #00aaff 100%);
-  background-size: 200% auto;
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: ctTitleFlow 3.5s ease-in-out infinite;
-  margin-top: 4px;
-  opacity: 0.75;
-}
-@keyframes ctTitleFlow {
-  0%   { background-position: 0%   center; }
-  50%  { background-position: 100% center; }
-  100% { background-position: 0%   center; }
-}
+.ct-title-icon { display: inline-flex; flex-shrink: 0; }
+.ct-title-word2 { display: none; }
 
 /* Decorative rule under title */
 .ct-title-rule {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin: 0.6rem auto 0.85rem;
+  width: 48px; height: 2px;
+  background: linear-gradient(90deg, transparent, #7fe0ff, transparent);
+  margin: 0 auto 1.6rem; border-radius: 2px;
+  box-shadow: 0 0 6px rgba(120,220,255,0.9), 0 0 14px rgba(80,210,255,0.5);
 }
-.ct-title-rule-line {
-  height: 1px; width: 44px;
-  background: linear-gradient(90deg, transparent, rgba(0,200,255,0.4));
-}
-.ct-title-rule-line:last-child {
-  background: linear-gradient(90deg, rgba(0,200,255,0.4), transparent);
-}
-.ct-title-rule-dot {
-  width: 5px; height: 5px; border-radius: 50%;
-  background: rgba(0,220,255,0.65);
-  box-shadow: 0 0 7px rgba(0,220,255,0.55);
-}
+.ct-title-rule-line, .ct-title-rule-dot { display: none; }
 
 .ct-subtitle {
   text-align: center;
-  font-size: 0.75rem;
-  letter-spacing: 0.2px;
-  color: rgba(180,230,255,0.42);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  color: rgba(150,210,240,0.4);
   line-height: 1.65;
-  max-width: 320px;
-  margin: 0 auto 1.6rem;
+  margin: 0 auto 1.8rem;
   font-weight: 400;
 }
 
@@ -14503,7 +14516,7 @@ textarea.ct-field { resize: none; height: 90px; }
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
-  color: var(--ct-color, #00ffff);
+  color: #50d2ff;
   line-height: 1.1;
 }
 .ct-card-desc {
@@ -15114,7 +15127,7 @@ textarea.ct-field { min-height: 90px; }
 }
 .ct-card-showcase:active { transform: scale(0.98); }
 .ct-card-showcase .ct-card-icon { opacity: 0.85; }
-.ct-card-showcase .ct-card-name { font-size: 0.78rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,100,100,0.75); line-height: 1.1; position: relative; z-index: 2; }
+.ct-card-showcase .ct-card-name { font-size: 0.78rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #50d2ff; line-height: 1.1; position: relative; z-index: 2; }
 .ct-card-showcase .ct-card-desc { font-size: 0.6rem; color: rgba(255,255,255,0.3); letter-spacing: 0.5px; margin-top: 1px; position: relative; z-index: 2; }
 .ct-showcase-badge {
   position: absolute;
@@ -15153,18 +15166,11 @@ textarea.ct-field { min-height: 90px; }
 
   <!-- Title -->
   <div class="ct-head-wrap">
-    <div class="ct-eyebrow">Let's connect</div>
+    <div class="ct-eyebrow"><span class="ct-eyebrow-dot"></span>Let's Connect<span class="ct-eyebrow-dot"></span></div>
     <div class="ct-title">
-      <span class="ct-title-word1">📬 Get In Touch</span>
-      <span class="ct-title-word2">Choose your channel</span>
+      <span class="ct-title-word1 section-underline"><svg class="ct-title-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#50d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 17a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"/><path d="m2 7 8.97 6.21a1.94 1.94 0 0 0 2.06 0L22 7"/></svg>Get In Touch</span>
     </div>
-    <div class="ct-title-rule">
-      <div class="ct-title-rule-line"></div>
-      <div class="ct-title-rule-dot"></div>
-      <div class="ct-title-rule-dot" style="width:7px;height:7px;opacity:0.55;"></div>
-      <div class="ct-title-rule-dot"></div>
-      <div class="ct-title-rule-line"></div>
-    </div>
+    <div class="ct-title-rule"></div>
     <div class="ct-subtitle">Reach out via any channel below — I personally read every message and respond within a few hours.</div>
   </div>
 
@@ -19090,7 +19096,7 @@ function createStarsAndEmojis(){
   flex-direction: column;
   align-items: center;
   gap: 0;
-  margin: 2rem auto 0;
+  margin: 2rem auto 2.5rem;
   width: min(420px, 92vw);
   cursor: pointer;
   position: relative;
