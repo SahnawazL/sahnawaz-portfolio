@@ -4,10 +4,12 @@
 //   GET  /api/resume?token=<firebaseIdToken>&mode=view|download
 //        — Verifies Firebase ID token, logs to Firestore, serves resume.pdf
 //
-//   POST /api/resume  { name, email, phone?, source? }
+//   POST /api/resume  { name, email, phone?, source?, role? }
+//        — role is one of 'developer' | 'recruiter' | 'client' | 'browsing',
+//          optional, tapped from chips on the frontend (not free text)
 //        — Emails resume.pdf as attachment to the requester
 //          (portfolio bio "Get Resume" form + chatbot flow)
-//        — Notifies Sahnawaz, logs to Firestore
+//        — Notifies Sahnawaz (flags role if present), logs to Firestore
 //        — No auth token needed (public flow)
 
 const path       = require('path');
@@ -58,6 +60,20 @@ function sourceLabel(requestSource) {
   return requestSource === 'bio-cta'
     ? 'Portfolio bio — "Get Resume" button'
     : 'Chat assistant';
+}
+
+/* Visitor-supplied "what brings you here" tag — optional, so any of
+   these (or none) may come through. Unknown values are shown as-is
+   rather than dropped, in case the frontend ever adds a new option. */
+const ROLE_LABELS = {
+  developer: '🧑\u200d💻 Fellow developer',
+  recruiter: '🧑\u200d💼 Recruiter / HR',
+  client:    '🏢 Hiring / client',
+  browsing:  '👀 Just browsing',
+};
+function roleLabel(role) {
+  if (!role) return '';
+  return ROLE_LABELS[role] || role;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -608,7 +624,18 @@ function visitorResumeEmail({ name, refId, now, requestSource }) {
 /* ═══════════════════════════════════════════════════════════
    EMAIL 2 — Internal notification → SAHNAWAZ
 ═══════════════════════════════════════════════════════════ */
-function adminResumeEmail({ name, email, phone, refId, now, requestSource }) {
+function adminResumeEmail({ name, email, phone, role, refId, now, requestSource }) {
+  const roleRow = role
+    ? `<tr style="background:rgba(255,149,0,0.05);">
+         <td style="padding:10px 16px;font-size:0.78rem;color:#2e5a6e;width:34%;
+                    border-right:1px solid rgba(255,255,255,0.04);
+                    border-bottom:1px solid rgba(255,255,255,0.04);">Who they are</td>
+         <td style="padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.04);">
+           <span style="font-size:0.85rem;color:#ffcc00;font-weight:700;">${roleLabel(role)}</span>
+         </td>
+       </tr>`
+    : '';
+
   const phoneRow = phone
     ? `<tr>
          <td style="padding:10px 16px;font-size:0.78rem;color:#2e5a6e;width:34%;
@@ -661,6 +688,11 @@ function adminResumeEmail({ name, email, phone, refId, now, requestSource }) {
         ${name} just got your resume
       </div>
       <div style="font-size:0.75rem;color:#2e5a6e;margin-top:4px;">${now} IST &nbsp;·&nbsp; Ref ${refId}</div>
+      ${role ? `<div style="display:inline-block;margin-top:10px;padding:4px 12px;
+                  background:rgba(255,204,0,0.1);border:1px solid rgba(255,204,0,0.3);
+                  border-radius:20px;font-size:0.75rem;color:#ffcc00;font-weight:700;">
+                  ${roleLabel(role)}
+                </div>` : ''}
     </td>
   </tr>
 
@@ -685,6 +717,7 @@ function adminResumeEmail({ name, email, phone, refId, now, requestSource }) {
                style="font-size:0.85rem;color:#00dcff;text-decoration:none;">${email}</a>
           </td>
         </tr>
+        ${roleRow}
         ${phoneRow}
         <tr style="background:rgba(255,255,255,0.02);">
           <td style="padding:10px 16px;font-size:0.78rem;color:#2e5a6e;">Source</td>
@@ -804,7 +837,7 @@ async function handleGet(req, res) {
    Body: { name: string, email: string, phone?: string, source?: string }
 ═══════════════════════════════════════════════════════════ */
 async function handlePost(req, res) {
-  const { name, email, phone, source } = req.body || {};
+  const { name, email, phone, source, role } = req.body || {};
 
   /* 1. Basic validation — unchanged, so the chatbot's existing
         { name, email } calls keep working exactly as before. */
@@ -824,6 +857,10 @@ async function handlePost(req, res) {
      emails. Defaults to 'chatbot' so existing chat-assistant calls (which never
      send `source`) are logged exactly the way they were before this change. */
   const requestSource = typeof source === 'string' && source.trim() ? source.trim() : 'chatbot';
+  /* role is optional and visitor-supplied via tappable chips (not free text),
+     so only accept the known set — anything else is silently dropped. */
+  const KNOWN_ROLES = ['developer', 'recruiter', 'client', 'browsing'];
+  const cleanRole = typeof role === 'string' && KNOWN_ROLES.includes(role.trim()) ? role.trim() : null;
 
   /* 2. Load PDF from disk */
   const pdfPath = path.join(process.cwd(), 'resume.pdf');
@@ -861,7 +898,7 @@ async function handlePost(req, res) {
       from:    `"Portfolio Bot" <${process.env.GMAIL_USER}>`,
       to:      process.env.GMAIL_USER,   // notify himself
       subject: `📄 Resume requested by ${name}`,
-      html: adminResumeEmail({ name, email, phone: cleanPhone, refId, now, requestSource }),
+      html: adminResumeEmail({ name, email, phone: cleanPhone, role: cleanRole, refId, now, requestSource }),
     });
 
   } catch (err) {
@@ -877,6 +914,7 @@ async function handlePost(req, res) {
       name:         name,
       email:        email,
       phone:        cleanPhone || null,
+      role:         cleanRole || null,
       picture:      '',
       mode:         'email',            // distinguishes from 'view' / 'download'
       source:       requestSource,      // 'chatbot' or 'bio-cta'
