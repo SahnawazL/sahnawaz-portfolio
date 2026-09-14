@@ -5617,79 +5617,184 @@ function toggleBlogCard(card) {
   .ptesti-name { font-size: 0.65rem; }
 }
 
-/* ══ MORE FEEDBACK SLIDER (custom, no Swiper dependency) ══ */
+/* ══ MORE FEEDBACK — PREMIUM 3D COVERFLOW CAROUSEL ══ */
 .pfeedback-wrap {
   background: rgba(4,15,28,0.6);
   border: 1px solid rgba(0,160,210,0.1);
-  border-radius: 18px;
-  padding: 1.4rem 1rem 1.2rem;
+  border-radius: 20px;
+  padding: 1.6rem 0.5rem 1.3rem;
   overflow: hidden;
   position: relative;
+  isolation: isolate;
 }
+/* slow rotating conic glow behind the whole carousel — premium ambient light */
+.pfeedback-wrap::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 140%; height: 400px;
+  background: conic-gradient(from 0deg, transparent 0%, rgba(0,200,255,0.08) 15%, transparent 30%, rgba(0,255,200,0.06) 55%, transparent 70%);
+  transform: translate(-50%,-50%);
+  animation: pfeedRotateGlow 14s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+@keyframes pfeedRotateGlow { to { transform: translate(-50%,-50%) rotate(360deg); } }
+
 .pfeedback-header {
+  position: relative; z-index: 1;
   display: flex; align-items: center; justify-content: center;
-  gap: 0.7rem; margin-bottom: 1.1rem;
+  gap: 0.7rem; margin-bottom: 1.2rem;
 }
 .pfeedback-title {
   font-family: 'DM Sans', sans-serif;
   font-size: 0.7rem; font-weight: 600;
   letter-spacing: 2px; text-transform: uppercase;
-  color: rgba(0,200,255,0.6);
+  color: rgba(0,200,255,0.65);
 }
-.pfeedback-star-icon { font-size: 0.85rem; color: #f0a500; }
+.pfeedback-star-icon {
+  font-size: 0.85rem; color: #f0a500;
+  animation: pfeedStarTwinkle 2.4s ease-in-out infinite;
+}
+.pfeedback-star-icon:last-of-type { animation-delay: 1.2s; }
+@keyframes pfeedStarTwinkle { 0%,100%{opacity:0.6; transform:scale(1);} 50%{opacity:1; transform:scale(1.25);} }
+
 .pfeedback-nav {
-  background: none; border: 1px solid rgba(0,200,255,0.25);
-  border-radius: 50%; width: 28px; height: 28px;
+  background: rgba(0,200,255,0.04); border: 1px solid rgba(0,200,255,0.25);
+  border-radius: 50%; width: 30px; height: 30px;
   display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: all 0.3s ease;
-  color: rgba(0,200,255,0.6); font-size: 0.75rem;
-  flex-shrink: 0;
+  cursor: pointer; transition: all 0.3s cubic-bezier(.34,1.56,.64,1);
+  color: rgba(0,200,255,0.7); font-size: 0.78rem;
+  flex-shrink: 0; position: relative; z-index: 1;
+}
+.pfeedback-nav::after {
+  content: ''; position: absolute; inset: -3px; border-radius: 50%;
+  border: 1px solid rgba(0,200,255,0.35);
+  opacity: 0; transform: scale(0.8);
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 .pfeedback-nav:hover {
-  background: rgba(0,200,255,0.12);
-  border-color: rgba(0,200,255,0.5);
-  color: #00c8ff;
-  transform: scale(1.1);
+  background: rgba(0,200,255,0.14);
+  border-color: rgba(0,200,255,0.55);
+  color: #00e0ff;
+  box-shadow: 0 0 16px rgba(0,200,255,0.35);
 }
-.pfeedback-nav:active { transform: scale(0.93); }
+.pfeedback-nav:hover::after { opacity: 1; transform: scale(1); }
+.pfeedback-nav:active { transform: scale(0.9); }
 
-/* track */
-.pfeedback-track-outer {
-  overflow: hidden; border-radius: 12px;
-  user-select: none;
+/* ── stage: 3D perspective coverflow ── */
+.pfeedback-stage {
+  position: relative; z-index: 1;
+  height: 190px;
+  perspective: 1200px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: grab;
+  touch-action: pan-y;
+  outline: none;
 }
-.pfeedback-track {
-  display: flex;
-  transition: transform 0.45s cubic-bezier(.23,1,.32,1);
-  will-change: transform;
+.pfeedback-stage.dragging { cursor: grabbing; }
+
+.pfeedback-card {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: min(78%, 340px);
+  min-height: 150px;
+  box-sizing: border-box;
+  padding: 1.15rem 1.2rem 1rem;
+  border-radius: 16px;
+  background: linear-gradient(155deg, rgba(10,28,44,0.9), rgba(6,18,30,0.85));
+  border: 1px solid rgba(0,200,255,0.14);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.04);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 0.45rem;
+  text-align: center;
+  transition: transform 0.55s cubic-bezier(.22,1,.36,1), opacity 0.5s ease, filter 0.5s ease, box-shadow 0.5s ease;
+  will-change: transform, opacity;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
-.pfeedback-slide {
-  min-width: 100%; box-sizing: border-box;
-  padding: 0.9rem 1rem;
-  background: rgba(6,22,38,0.5);
-  border-radius: 12px;
-  border: 1px solid rgba(0,160,210,0.08);
-  position: relative;
+/* every state now starts from a true dead-center anchor (translate(-50%,-50%))
+   before applying its own offset/scale/rotation — this is what was missing:
+   the old rules relied on flex to center an absolutely-positioned element,
+   which browsers don't do reliably, so the active card drifted off-center
+   and got sliced by the wrap's overflow:hidden. */
+.pfeedback-card.is-active {
+  transform: translate(-50%,-50%) translateX(0) scale(1) rotateY(0deg);
+  opacity: 1; filter: none; z-index: 3;
+  border-color: rgba(0,220,255,0.4);
+  box-shadow: 0 16px 44px rgba(0,0,0,0.55), 0 0 30px rgba(0,200,255,0.15), inset 0 1px 0 rgba(255,255,255,0.06);
+  cursor: default;
 }
+.pfeedback-card.is-prev {
+  transform: translate(-50%,-50%) translateX(-58%) scale(0.82) rotateY(18deg);
+  opacity: 0.5; filter: blur(0.5px) brightness(0.7); z-index: 1;
+}
+.pfeedback-card.is-next {
+  transform: translate(-50%,-50%) translateX(58%) scale(0.82) rotateY(-18deg);
+  opacity: 0.5; filter: blur(0.5px) brightness(0.7); z-index: 1;
+}
+.pfeedback-card.is-hidden {
+  transform: translate(-50%,-50%) translateX(0) scale(0.7);
+  opacity: 0; pointer-events: none; z-index: 0;
+}
+/* animated gradient border sweep — active card only */
+.pfeedback-card.is-active::before {
+  content: '';
+  position: absolute; inset: 0; border-radius: 16px; padding: 1px;
+  background: linear-gradient(120deg, transparent, rgba(0,220,255,0.55), transparent 60%);
+  background-size: 220% 220%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  animation: pfeedBorderSweep 3.2s linear infinite;
+  pointer-events: none;
+}
+@keyframes pfeedBorderSweep { 0%{background-position:0% 50%;} 100%{background-position:220% 50%;} }
+
+.pfeedback-quote-icon {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.6rem; line-height: 1; color: rgba(0,200,255,0.45);
+}
+.pfeedback-stars-mini { display: flex; gap: 2px; }
+.pfeedback-stars-mini span { font-size: 0.55rem; color: #f0a500; }
 .pfeedback-slide-text {
   font-family: 'DM Sans', sans-serif;
   font-size: 0.78rem; font-style: italic;
   color: rgba(190,225,245,0.7);
   line-height: 1.6; text-align: center;
+  overflow-wrap: break-word; word-wrap: break-word; max-width: 100%;
 }
-/* dots */
-.pfeedback-dots {
-  display: flex; justify-content: center; gap: 5px; margin-top: 1rem;
+.pfeedback-card.is-active .pfeedback-slide-text { color: rgba(210,238,255,0.92); }
+.pfeedback-verified {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-family: 'DM Sans', sans-serif; font-size: 0.42rem;
+  letter-spacing: 0.6px; text-transform: uppercase;
+  color: rgba(0,255,180,0.55);
+  margin-top: 0.1rem;
 }
-.pfeedback-dot {
-  width: 5px; height: 5px; border-radius: 50%;
-  background: rgba(0,180,230,0.2);
-  transition: background 0.3s ease, transform 0.3s ease;
-  cursor: pointer;
+
+/* ── progress: story-style segmented bar ── */
+.pfeedback-progress {
+  position: relative; z-index: 1;
+  display: flex; gap: 4px;
+  max-width: 320px; margin: 1.1rem auto 0.2rem;
 }
-.pfeedback-dot.active {
-  background: #00c8ff;
-  transform: scale(1.3);
+.pfeedback-seg {
+  flex: 1; height: 2.5px; border-radius: 99px;
+  background: rgba(0,180,230,0.15);
+  overflow: hidden;
+}
+.pfeedback-seg-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, #00c8ff, #00ffcc);
+  box-shadow: 0 0 6px rgba(0,200,255,0.6);
+}
+
+@media (max-width: 500px) {
+  .pfeedback-stage { height: 210px; }
+  .pfeedback-card { width: 84%; padding: 1rem 1rem 0.9rem; }
+  .pfeedback-card.is-prev { transform: translate(-50%,-50%) translateX(-50%) scale(0.8) rotateY(14deg); }
+  .pfeedback-card.is-next { transform: translate(-50%,-50%) translateX(50%) scale(0.8) rotateY(-14deg); }
 }
 /* ═══════════════════════════════════════════════════ */
 </style>
@@ -5809,7 +5914,7 @@ function toggleBlogCard(card) {
 
   </div><!-- end ptesti-grid-wrap -->
 
-  <!-- ── More Client Feedback slider ── -->
+  <!-- ── More Client Feedback — Premium 3D Coverflow Carousel ── -->
   <div class="pfeedback-wrap">
     <div class="pfeedback-header">
       <button class="pfeedback-nav" id="pfeedPrev" aria-label="Previous">&#8592;</button>
@@ -5819,20 +5924,63 @@ function toggleBlogCard(card) {
       <button class="pfeedback-nav" id="pfeedNext" aria-label="Next">&#8594;</button>
     </div>
 
-    <div class="pfeedback-track-outer" id="pfeedTrackOuter">
-      <div class="pfeedback-track" id="pfeedTrack">
-        <div class="pfeedback-slide"><p class="pfeedback-slide-text">"Not only technically sound, but also incredibly charming. A rare combination you almost never find in one person."</p></div>
-        <div class="pfeedback-slide"><p class="pfeedback-slide-text">"A smart developer who delivers pixel-perfect work every time, without needing a second reminder or follow-up."</p></div>
-        <div class="pfeedback-slide"><p class="pfeedback-slide-text">"Working with him is an absolute delight — a tech genius who genuinely cares about the people he builds for."</p></div>
-        <div class="pfeedback-slide"><p class="pfeedback-slide-text">"He's not just talented — his confidence and clarity win over clients from the very first conversation."</p></div>
-        <div class="pfeedback-slide"><p class="pfeedback-slide-text">"Tech-savvy, elegant in execution, and someone who elevates the standard of every project he touches."</p></div>
-        <div class="pfeedback-slide"><p class="pfeedback-slide-text">"Super professional, lightning-fast delivery, and zero compromise on quality. Would recommend without hesitation."</p></div>
-        <div class="pfeedback-slide"><p class="pfeedback-slide-text">"Exceptional design sense paired with deep UX knowledge. He thinks in systems, not just screens."</p></div>
-        <div class="pfeedback-slide"><p class="pfeedback-slide-text">"Very cooperative, warm to work with, and always prompt. A developer who also makes the process enjoyable."</p></div>
+    <div class="pfeedback-stage" id="pfeedStage">
+      <div class="pfeedback-cards" id="pfeedCards">
+
+        <div class="pfeedback-card">
+          <span class="pfeedback-quote-icon">&#10077;</span>
+          <div class="pfeedback-stars-mini"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+          <p class="pfeedback-slide-text">Not only technically sound, but also incredibly charming. A rare combination you almost never find in one person.</p>
+          <span class="pfeedback-verified">✓ Verified Client</span>
+        </div>
+        <div class="pfeedback-card">
+          <span class="pfeedback-quote-icon">&#10077;</span>
+          <div class="pfeedback-stars-mini"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+          <p class="pfeedback-slide-text">A smart developer who delivers pixel-perfect work every time, without needing a second reminder or follow-up.</p>
+          <span class="pfeedback-verified">✓ Verified Client</span>
+        </div>
+        <div class="pfeedback-card">
+          <span class="pfeedback-quote-icon">&#10077;</span>
+          <div class="pfeedback-stars-mini"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+          <p class="pfeedback-slide-text">Working with him is an absolute delight — a tech genius who genuinely cares about the people he builds for.</p>
+          <span class="pfeedback-verified">✓ Verified Client</span>
+        </div>
+        <div class="pfeedback-card">
+          <span class="pfeedback-quote-icon">&#10077;</span>
+          <div class="pfeedback-stars-mini"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+          <p class="pfeedback-slide-text">He's not just talented — his confidence and clarity win over clients from the very first conversation.</p>
+          <span class="pfeedback-verified">✓ Verified Client</span>
+        </div>
+        <div class="pfeedback-card">
+          <span class="pfeedback-quote-icon">&#10077;</span>
+          <div class="pfeedback-stars-mini"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+          <p class="pfeedback-slide-text">Tech-savvy, elegant in execution, and someone who elevates the standard of every project he touches.</p>
+          <span class="pfeedback-verified">✓ Verified Client</span>
+        </div>
+        <div class="pfeedback-card">
+          <span class="pfeedback-quote-icon">&#10077;</span>
+          <div class="pfeedback-stars-mini"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+          <p class="pfeedback-slide-text">Super professional, lightning-fast delivery, and zero compromise on quality. Would recommend without hesitation.</p>
+          <span class="pfeedback-verified">✓ Verified Client</span>
+        </div>
+        <div class="pfeedback-card">
+          <span class="pfeedback-quote-icon">&#10077;</span>
+          <div class="pfeedback-stars-mini"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+          <p class="pfeedback-slide-text">Exceptional design sense paired with deep UX knowledge. He thinks in systems, not just screens.</p>
+          <span class="pfeedback-verified">✓ Verified Client</span>
+        </div>
+        <div class="pfeedback-card">
+          <span class="pfeedback-quote-icon">&#10077;</span>
+          <div class="pfeedback-stars-mini"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+          <p class="pfeedback-slide-text">Very cooperative, warm to work with, and always prompt. A developer who also makes the process enjoyable.</p>
+          <span class="pfeedback-verified">✓ Verified Client</span>
+        </div>
+
       </div>
     </div>
 
-    <div class="pfeedback-dots" id="pfeedDots"></div>
+    <div class="pfeedback-progress" id="pfeedProgress"></div>
+  </div>
   </div>
 
 </section>
@@ -5866,78 +6014,113 @@ function ptestiToggle(card) {
   obs.observe(section);
 })();
 
-/* ── Custom feedback slider ── */
+/* ── Premium 3D coverflow feedback carousel ── */
 (function() {
-  const track   = document.getElementById('pfeedTrack');
-  const outer   = document.getElementById('pfeedTrackOuter');
-  const dotsWrap= document.getElementById('pfeedDots');
-  const btnPrev = document.getElementById('pfeedPrev');
-  const btnNext = document.getElementById('pfeedNext');
-  if (!track) return;
+  const stage      = document.getElementById('pfeedStage');
+  const cardsWrap  = document.getElementById('pfeedCards');
+  const progressEl = document.getElementById('pfeedProgress');
+  const btnPrev    = document.getElementById('pfeedPrev');
+  const btnNext    = document.getElementById('pfeedNext');
+  if (!stage || !cardsWrap) return;
 
-  const slides  = track.querySelectorAll('.pfeedback-slide');
-  const total   = slides.length;
+  const cards = Array.from(cardsWrap.querySelectorAll('.pfeedback-card'));
+  const total = cards.length;
+  if (!total) return;
+
+  const AUTOPLAY_MS = 4200;
   let current   = 0;
   let autoTimer = null;
-  let touchStartX = 0;
-  let isDragging  = false;
-  let dragStartX  = 0;
 
-  /* build dots */
-  slides.forEach((_, i) => {
-    const d = document.createElement('div');
-    d.className = 'pfeedback-dot' + (i === 0 ? ' active' : '');
-    d.addEventListener('click', () => goTo(i));
-    dotsWrap.appendChild(d);
+  /* build story-style progress segments */
+  cards.forEach(() => {
+    const seg = document.createElement('div');
+    seg.className = 'pfeedback-seg';
+    const fill = document.createElement('div');
+    fill.className = 'pfeedback-seg-fill';
+    seg.appendChild(fill);
+    progressEl.appendChild(seg);
   });
+  const segFills = progressEl.querySelectorAll('.pfeedback-seg-fill');
 
-  function updateDots() {
-    dotsWrap.querySelectorAll('.pfeedback-dot').forEach((d, i) => {
-      d.classList.toggle('active', i === current);
+  function render() {
+    cards.forEach((card, i) => {
+      const diff = (i - current + total) % total;
+      card.classList.remove('is-active', 'is-prev', 'is-next', 'is-hidden');
+      if (diff === 0) card.classList.add('is-active');
+      else if (diff === 1) card.classList.add('is-next');
+      else if (diff === total - 1) card.classList.add('is-prev');
+      else card.classList.add('is-hidden');
+    });
+    segFills.forEach((f, i) => {
+      f.style.transition = 'none';
+      if (i < current) {
+        f.style.width = '100%';
+      } else if (i === current) {
+        f.style.width = '0%';
+        void f.offsetWidth; /* force reflow so the animation restarts */
+        f.style.transition = `width ${AUTOPLAY_MS}ms linear`;
+        f.style.width = '100%';
+      } else {
+        f.style.width = '0%';
+      }
     });
   }
 
-  function goTo(idx) {
-    current = (idx + total) % total;
-    track.style.transform = `translateX(-${current * 100}%)`;
-    updateDots();
-  }
-
+  function goTo(idx) { current = (idx + total) % total; render(); }
   function next() { goTo(current + 1); }
   function prev() { goTo(current - 1); }
 
-  btnNext.addEventListener('click', () => { next(); resetAuto(); });
-  btnPrev.addEventListener('click', () => { prev(); resetAuto(); });
+  function startAuto() { clearInterval(autoTimer); autoTimer = setInterval(next, AUTOPLAY_MS); }
+  function resetAuto() { startAuto(); }
 
-  /* auto-play */
-  function startAuto() { autoTimer = setInterval(next, 4200); }
-  function resetAuto() { clearInterval(autoTimer); startAuto(); }
-  startAuto();
-  outer.addEventListener('mouseenter', () => clearInterval(autoTimer));
-  outer.addEventListener('mouseleave', startAuto);
+  btnNext && btnNext.addEventListener('click', () => { next(); resetAuto(); });
+  btnPrev && btnPrev.addEventListener('click', () => { prev(); resetAuto(); });
+
+  /* tap a peeking side card to jump straight to it */
+  cards.forEach(card => {
+    card.addEventListener('click', () => {
+      if (card.classList.contains('is-next')) { next(); resetAuto(); }
+      else if (card.classList.contains('is-prev')) { prev(); resetAuto(); }
+    });
+  });
+
+  /* pause on hover (desktop) */
+  stage.addEventListener('mouseenter', () => clearInterval(autoTimer));
+  stage.addEventListener('mouseleave', startAuto);
 
   /* touch swipe */
-  outer.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
-  outer.addEventListener('touchend', e => {
+  let touchStartX = 0;
+  stage.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; clearInterval(autoTimer); }, { passive: true });
+  stage.addEventListener('touchend', e => {
     const diff = touchStartX - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 40) { diff > 0 ? next() : prev(); resetAuto(); }
+    if (Math.abs(diff) > 35) { diff > 0 ? next() : prev(); }
+    startAuto();
   }, { passive: true });
 
   /* mouse drag */
-  outer.addEventListener('mousedown', e => { isDragging = true; dragStartX = e.clientX; track.style.transition = 'none'; });
-  document.addEventListener('mousemove', e => {
-    if (!isDragging) return;
-    const dx = e.clientX - dragStartX;
-    track.style.transform = `translateX(calc(-${current * 100}% + ${dx}px))`;
+  let isDragging = false, dragStartX = 0;
+  stage.addEventListener('mousedown', e => {
+    isDragging = true; dragStartX = e.clientX;
+    stage.classList.add('dragging'); clearInterval(autoTimer);
   });
   document.addEventListener('mouseup', e => {
     if (!isDragging) return;
     isDragging = false;
-    track.style.transition = 'transform 0.45s cubic-bezier(.23,1,.32,1)';
+    stage.classList.remove('dragging');
     const diff = dragStartX - e.clientX;
-    if (Math.abs(diff) > 50) { diff > 0 ? next() : prev(); resetAuto(); }
-    else { track.style.transform = `translateX(-${current * 100}%)`; }
+    if (Math.abs(diff) > 50) { diff > 0 ? next() : prev(); }
+    startAuto();
   });
+
+  /* keyboard nav when the stage has focus */
+  stage.setAttribute('tabindex', '0');
+  stage.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft') { prev(); resetAuto(); }
+    if (e.key === 'ArrowRight') { next(); resetAuto(); }
+  });
+
+  render();
+  startAuto();
 })();
 </script>
 <!-- ===== STATS DASHBOARD ===== -->
@@ -24805,20 +24988,22 @@ div#popup.popup {
 #resumeGateCard {
   background: linear-gradient(145deg, #060f1c, #0a1a2e);
   border: 1px solid rgba(0,255,255,0.18);
-  border-radius: 24px;
-  padding: 40px 32px 36px;
+  border-radius: 20px;
+  padding: 24px 22px 18px;
   width: 100%;
-  max-width: 420px;
+  max-width: 360px;
+  max-height: min(88vh, 620px);
+  overflow-y: auto;
   text-align: center;
   position: relative;
   box-shadow:
     0 0 0 1px rgba(0,255,255,0.06),
     0 30px 80px rgba(0,0,0,0.7),
     0 0 50px rgba(0,200,255,0.06);
-  animation: rgCardIn 0.32s cubic-bezier(.34,1.56,.64,1) both;
+  animation: rgCardIn 0.4s cubic-bezier(.22,1,.36,1) both;
 }
 @keyframes rgCardIn {
-  from { opacity:0; transform: scale(0.9) translateY(20px); }
+  from { opacity:0; transform: scale(0.94) translateY(14px); }
   to   { opacity:1; transform: scale(1)   translateY(0); }
 }
 #resumeGateCard::before {
@@ -24829,23 +25014,23 @@ div#popup.popup {
   border-radius: 24px 24px 0 0;
 }
 .rg-icon {
-  font-size: 2.8rem;
-  margin-bottom: 14px;
+  font-size: 1.7rem;
+  margin-bottom: 6px;
   display: block;
-  filter: drop-shadow(0 0 12px rgba(0,220,255,0.4));
+  filter: drop-shadow(0 0 10px rgba(0,220,255,0.4));
 }
 .rg-title {
-  font-size: 1.25rem;
+  font-size: 1.05rem;
   font-weight: 800;
   color: #fff;
-  margin-bottom: 10px;
+  margin-bottom: 4px;
   letter-spacing: 0.3px;
 }
 .rg-body {
-  font-size: 0.88rem;
+  font-size: 0.78rem;
   color: rgba(255,255,255,0.5);
-  line-height: 1.7;
-  margin-bottom: 22px;
+  line-height: 1.45;
+  margin-bottom: 14px;
 }
 .rg-body strong {
   color: rgba(0,220,255,0.85);
@@ -24854,16 +25039,16 @@ div#popup.popup {
 #resumeGateForm { text-align: left; }
 .rg-input {
   width: 100%;
-  padding: 13px 16px;
-  margin-bottom: 12px;
-  border-radius: 12px;
+  padding: 10px 13px;
+  margin-bottom: 8px;
+  border-radius: 10px;
   border: 1px solid rgba(0,255,255,0.18);
   background: rgba(255,255,255,0.04);
   color: #e8f6ff;
-  font-size: 0.92rem;
+  font-size: 0.85rem;
   font-family: inherit;
   box-sizing: border-box;
-  transition: border-color 0.2s, background 0.2s;
+  transition: border-color 0.25s cubic-bezier(.4,0,.2,1), background 0.25s cubic-bezier(.4,0,.2,1);
 }
 .rg-input::placeholder { color: rgba(200,230,240,0.32); }
 .rg-input:focus {
@@ -24878,9 +25063,9 @@ div#popup.popup {
 .rg-field-error {
   display: none;
   color: #ff8b8b;
-  font-size: 0.76rem;
-  line-height: 1.4;
-  margin: -8px 0 12px 2px;
+  font-size: 0.7rem;
+  line-height: 1.35;
+  margin: -5px 0 8px 2px;
 }
 .rg-field-error.rg-show { display: block; }
 .rg-signin-btn:disabled {
@@ -24890,91 +25075,120 @@ div#popup.popup {
 }
 .rg-signin-btn {
   width: 100%;
-  padding: 14px;
+  padding: 11px;
   border-radius: 50px;
   background: linear-gradient(135deg, #00ffff, #0066ff);
   color: #000;
   font-weight: 800;
-  font-size: 0.95rem;
+  font-size: 0.86rem;
   border: none;
   cursor: pointer;
   font-family: inherit;
   box-shadow: 0 4px 20px rgba(0,255,255,0.3);
-  transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+  transition: transform 0.28s cubic-bezier(.22,1,.36,1), box-shadow 0.28s cubic-bezier(.22,1,.36,1), opacity 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-top: 4px;
-  margin-bottom: 14px;
+  margin-top: 2px;
+  margin-bottom: 6px;
 }
 .rg-signin-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,255,255,0.5); }
 .rg-signin-btn:disabled { opacity: 0.6; cursor: default; transform: none; }
 .rg-status {
-  font-size: 0.85rem;
-  line-height: 1.5;
-  margin-bottom: 14px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  margin-bottom: 8px;
 }
 .rg-role-label {
-  font-size: 0.72rem;
-  color: rgba(255,255,255,0.32);
-  letter-spacing: 0.3px;
-  margin: 2px 2px 8px;
+  font-size: 0.68rem;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 0.2px;
+  margin: 0 2px 6px;
+}
+.rg-role-optional {
+  color: rgba(255,255,255,0.24);
+  font-weight: 400;
 }
 .rg-role-group {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 6px;
+  margin-bottom: 10px;
 }
 .rg-role-chip {
-  flex: 1 1 calc(50% - 8px);
-  min-width: 130px;
-  padding: 10px 10px;
-  border-radius: 12px;
+  flex: 1 1 calc(50% - 6px);
+  min-width: 0;
+  padding: 8px 8px;
+  border-radius: 11px;
   border: 1px solid rgba(0,255,255,0.16);
   background: rgba(255,255,255,0.03);
   color: rgba(232,246,255,0.68);
-  font-size: 0.78rem;
+  font-size: 0.72rem;
+  line-height: 1.3;
   font-family: inherit;
   cursor: pointer;
   text-align: center;
-  transition: border-color 0.2s, background 0.2s, color 0.2s, transform 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: border-color 0.28s cubic-bezier(.4,0,.2,1),
+              background 0.28s cubic-bezier(.4,0,.2,1),
+              color 0.28s cubic-bezier(.4,0,.2,1),
+              box-shadow 0.28s cubic-bezier(.4,0,.2,1),
+              transform 0.18s cubic-bezier(.4,0,.2,1);
 }
-.rg-role-chip:hover { border-color: rgba(0,255,255,0.4); background: rgba(0,255,255,0.05); }
-.rg-role-chip:active { transform: scale(0.96); }
+.rg-role-chip .rg-chip-emoji { font-size: 0.9rem; line-height: 1; flex: none; }
+.rg-role-chip:hover {
+  border-color: rgba(0,255,255,0.4);
+  background: rgba(0,255,255,0.06);
+  color: rgba(255,255,255,0.9);
+  transform: translateY(-1px);
+}
+.rg-role-chip:active { transform: translateY(0) scale(0.97); }
 .rg-role-chip.rg-role-selected {
   border-color: rgba(0,255,255,0.7);
   background: rgba(0,255,255,0.12);
   color: #fff;
   box-shadow: 0 0 14px rgba(0,255,255,0.18);
+  transform: translateY(-1px);
+}
+.rg-role-hint {
+  font-size: 0.64rem;
+  color: rgba(255,255,255,0.22);
+  line-height: 1.3;
+  margin: 0 2px 12px;
 }
 .rg-skip {
   background: none;
   border: none;
   color: rgba(255,255,255,0.28);
-  font-size: 0.8rem;
+  font-size: 0.76rem;
   cursor: pointer;
   font-family: inherit;
   transition: color 0.2s;
-  padding: 4px 8px;
+  padding: 2px 8px;
 }
 .rg-skip:hover { color: rgba(255,255,255,0.5); }
 .rg-privacy {
-  margin-top: 18px;
-  font-size: 0.72rem;
+  margin-top: 8px;
+  font-size: 0.64rem;
   color: rgba(255,255,255,0.18);
-  line-height: 1.5;
+  line-height: 1.4;
 }
 .rg-close {
   position: absolute;
-  top: 14px; right: 14px;
+  top: 10px; right: 10px;
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.1);
   color: rgba(255,255,255,0.35);
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   cursor: pointer;
-  padding: 5px 9px;
+  padding: 4px 8px;
   border-radius: 50%;
   font-family: inherit;
   transition: all 0.2s;
@@ -24988,7 +25202,7 @@ div#popup.popup {
     <span class="rg-icon">📄</span>
     <div class="rg-title">Get the Resume</div>
     <div class="rg-body">
-      Drop your name and email — Sahnawaz's resume lands in your inbox in seconds, the <strong>same way</strong> it does through the chat assistant.
+      Get Sahnawaz's resume delivered straight to your inbox — <strong>same way</strong> the chat assistant sends it.
     </div>
 
     <form id="resumeGateForm" novalidate>
@@ -24998,13 +25212,14 @@ div#popup.popup {
       <div class="rg-field-error" id="rgEmailError">Please enter a valid email address (e.g. you@gmail.com).</div>
       <input class="rg-input" type="tel"   id="rgPhone" placeholder="Phone (optional)" autocomplete="tel">
 
-      <div class="rg-role-label">Quick one (optional) — what brings you here?</div>
-      <div class="rg-role-group" id="rgRoleGroup" role="group" aria-label="What brings you here">
-        <button type="button" class="rg-role-chip" data-role="developer">🧑&zwj;💻 Fellow dev</button>
-        <button type="button" class="rg-role-chip" data-role="recruiter">🧑&zwj;💼 Recruiter / HR</button>
-        <button type="button" class="rg-role-chip" data-role="client">🏢 Hiring / client</button>
-        <button type="button" class="rg-role-chip" data-role="browsing">👀 Just browsing</button>
+      <div class="rg-role-label">Which one are you? <span class="rg-role-optional">(optional)</span></div>
+      <div class="rg-role-group" id="rgRoleGroup" role="group" aria-label="Which one are you">
+        <button type="button" class="rg-role-chip" data-role="developer"><span class="rg-chip-emoji">🧑&zwj;💻</span>Fellow dev</button>
+        <button type="button" class="rg-role-chip" data-role="recruiter"><span class="rg-chip-emoji">🧑&zwj;💼</span>Recruiter / HR</button>
+        <button type="button" class="rg-role-chip" data-role="client"><span class="rg-chip-emoji">🏢</span>Hiring / client</button>
+        <button type="button" class="rg-role-chip" data-role="browsing"><span class="rg-chip-emoji">👀</span>Just browsing</button>
       </div>
+      <div class="rg-role-hint">Just helps Sahnawaz tailor how he follows up with you.</div>
       <input type="hidden" id="rgRole" value="">
 
       <!-- Honeypot — invisible to real visitors, catches basic bots -->
@@ -25018,7 +25233,7 @@ div#popup.popup {
     <div class="rg-status" id="rgStatus" style="display:none;"></div>
 
     <button class="rg-skip" id="resumeGateSkip" type="button">Maybe later</button>
-    <div class="rg-privacy">Used only to send the resume and let Sahnawaz follow up if you'd like — never shared with third parties.</div>
+    <div class="rg-privacy">Used only to send the resume and follow up — never shared with third parties.</div>
   </div>
 </div>
 
