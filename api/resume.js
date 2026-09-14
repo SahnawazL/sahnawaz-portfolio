@@ -123,9 +123,10 @@ async function handleGet(req, res) {
    Body: { name: string, email: string }
 ═══════════════════════════════════════════════════════════ */
 async function handlePost(req, res) {
-  const { name, email } = req.body || {};
+  const { name, email, phone, source } = req.body || {};
 
-  /* 1. Basic validation */
+  /* 1. Basic validation — unchanged, so the chatbot's existing
+        { name, email } calls keep working exactly as before. */
   if (!name || !email) {
     return res.status(400).json({ success: false, error: 'Name and email are required.' });
   }
@@ -133,6 +134,15 @@ async function handlePost(req, res) {
   if (!emailRegex.test(email)) {
     return res.status(400).json({ success: false, error: 'Invalid email address.' });
   }
+  /* phone is optional everywhere; only validate shape if provided */
+  const cleanPhone = typeof phone === 'string' ? phone.trim() : '';
+  if (cleanPhone && !/^[0-9+\-\s()]{7,20}$/.test(cleanPhone)) {
+    return res.status(400).json({ success: false, error: 'Invalid phone number.' });
+  }
+  /* source distinguishes where the request came from in Firestore/notification
+     emails. Defaults to 'chatbot' so existing chat-assistant calls (which never
+     send `source`) are logged exactly the way they were before this change. */
+  const requestSource = typeof source === 'string' && source.trim() ? source.trim() : 'chatbot';
 
   /* 2. Load PDF from disk */
   const pdfPath = path.join(process.cwd(), 'resume.pdf');
@@ -175,6 +185,15 @@ async function handlePost(req, res) {
     });
 
     /* ── Notification TO Sahnawaz — who just requested the resume ── */
+    const sourceLabel = requestSource === 'bio-cta'
+      ? 'Portfolio bio — "Get Resume" button'
+      : 'Chatbot — email flow';
+
+    const phoneRow = cleanPhone
+      ? `<tr><td style="padding:6px 12px;font-weight:bold;background:#f5f5f5;">Phone</td>
+             <td style="padding:6px 12px;"><a href="tel:${cleanPhone.replace(/\s/g,'')}">${cleanPhone}</a></td></tr>`
+      : '';
+
     await transporter.sendMail({
       from:    `"Portfolio Bot" <${process.env.GMAIL_USER}>`,
       to:      process.env.GMAIL_USER,   // notify himself
@@ -187,10 +206,11 @@ async function handlePost(req, res) {
                 <td style="padding:6px 12px;">${name}</td></tr>
             <tr><td style="padding:6px 12px;font-weight:bold;background:#f5f5f5;">Email</td>
                 <td style="padding:6px 12px;"><a href="mailto:${email}">${email}</a></td></tr>
+            ${phoneRow}
             <tr><td style="padding:6px 12px;font-weight:bold;background:#f5f5f5;">Time</td>
                 <td style="padding:6px 12px;">${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST</td></tr>
             <tr><td style="padding:6px 12px;font-weight:bold;background:#f5f5f5;">Source</td>
-                <td style="padding:6px 12px;">Chatbot — email flow</td></tr>
+                <td style="padding:6px 12px;">${sourceLabel}</td></tr>
           </table>
           <p style="margin-top:20px;">Their resume has been auto-sent. You can follow up directly. 🚀</p>
         </div>
@@ -206,12 +226,13 @@ async function handlePost(req, res) {
   try {
     const { db } = getAdmin();
     await db.collection('resumeDownloads').add({
-      uid:          null,               // no Firebase auth in chatbot flow
+      uid:          null,               // no Firebase auth in the email flow
       name:         name,
       email:        email,
+      phone:        cleanPhone || null,
       picture:      '',
       mode:         'email',            // distinguishes from 'view' / 'download'
-      source:       'chatbot',
+      source:       requestSource,      // 'chatbot' or 'bio-cta'
       country:      req.headers['x-vercel-ip-country'] || 'unknown',
       city:         req.headers['x-vercel-ip-city']    || 'unknown',
       accessedAt:   FieldValue.serverTimestamp(),
