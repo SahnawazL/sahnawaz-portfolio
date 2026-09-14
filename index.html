@@ -6745,31 +6745,44 @@ function ptestiToggle(card) {
 
 /* card body */
 .pwork-card {
-  background: rgba(6, 20, 36, 0.75);
-  border: 1px solid rgba(80,200,255,0.08);
+  background: rgba(8, 24, 42, 0.85);
+  border: 1px solid rgba(80,200,255,0.22);
   border-radius: 16px;
   overflow: hidden;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 18px rgba(0,0,0,0.35);
   transition: border-color 0.35s ease, box-shadow 0.35s ease;
 }
 .pwork-entry:hover .pwork-card {
-  border-color: rgba(80,200,255,0.22);
-  box-shadow: 0 8px 28px rgba(0,0,0,0.45), 0 0 14px rgba(80,200,255,0.08);
+  border-color: rgba(80,200,255,0.4);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.45), 0 0 14px rgba(80,200,255,0.1);
 }
 .pwork-entry.pwork-open .pwork-card {
-  border-color: rgba(80,200,255,0.35);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.55), 0 0 20px rgba(80,200,255,0.12);
+  border-color: rgba(80,200,255,0.55);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.55), 0 0 20px rgba(80,200,255,0.16);
 }
 
 /* card top strip (always visible) */
 .pwork-card-head {
   display: flex;
-  align-items: center;
-  gap: 0.8rem;
+  flex-direction: column;
+  gap: 0.6rem;
   padding: 0.9rem 1rem;
   position: relative;
   overflow: hidden;
+}
+.pwork-head-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+}
+.pwork-head-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding-left: calc(38px + 0.8rem); /* align under the head text, past the logo */
 }
 .pwork-card-head::before {
   content: '';
@@ -6812,16 +6825,46 @@ function ptestiToggle(card) {
   flex-shrink: 0;
   text-align: right;
 }
-.pwork-chevron {
-  font-size: 0.65rem;
-  color: rgba(80,200,255,0.4);
-  transition: transform 0.35s cubic-bezier(.23,1,.32,1), color 0.3s ease;
+/* ── tap-to-expand hint badge (visible by default, no hover needed) ── */
+.pwork-hint {
+  display: flex; align-items: center; gap: 5px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.56rem; font-weight: 700;
+  letter-spacing: 0.5px; text-transform: uppercase;
+  color: rgba(140,210,245,0.75);
+  background: rgba(80,200,255,0.08);
+  border: 1px solid rgba(80,200,255,0.28);
+  padding: 5px 9px;
+  border-radius: 20px;
   flex-shrink: 0;
-  margin-left: 4px;
+  margin-left: 6px;
+  white-space: nowrap;
+  transition: color 0.3s ease, background 0.3s ease, border-color 0.3s ease;
 }
-.pwork-entry.pwork-open .pwork-chevron {
-  transform: rotate(180deg);
+.pwork-entry:hover .pwork-hint {
   color: #50d2ff;
+  background: rgba(80,200,255,0.14);
+  border-color: rgba(80,200,255,0.45);
+}
+.pwork-entry.pwork-open .pwork-hint {
+  color: #50d2ff;
+  background: rgba(80,200,255,0.18);
+  border-color: rgba(80,200,255,0.55);
+}
+.pwork-hint-arrow {
+  font-size: 0.6rem;
+  line-height: 1;
+  transition: transform 0.35s cubic-bezier(.23,1,.32,1);
+}
+.pwork-entry.pwork-open .pwork-hint-arrow { transform: rotate(180deg); }
+
+/* first card teaches the interaction on load, then settles down */
+@keyframes pwork-hint-teach {
+  0%, 100% { box-shadow: 0 0 0 rgba(80,200,255,0); }
+  50%      { box-shadow: 0 0 0 5px rgba(80,200,255,0.12); }
+}
+.pwork-timeline > .pwork-entry:first-child:not(.pwork-open) .pwork-hint {
+  animation: pwork-hint-teach 1.6s ease-in-out 3;
 }
 
 /* ── expandable body ── */
@@ -6927,13 +6970,17 @@ function ptestiToggle(card) {
       <div class="pwork-card">
         <div class="pwork-corner"></div>
         <div class="pwork-card-head">
-          <div class="pwork-logo" style="background:rgba(243,108,33,0.12); border-color:rgba(243,108,33,0.25); color:#f36c21;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg></div>
-          <div class="pwork-head-text">
+          <div class="pwork-head-main">
+            <div class="pwork-logo" style="background:rgba(243,108,33,0.12); border-color:rgba(243,108,33,0.25); color:#f36c21;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg></div>
+            <div class="pwork-head-text">
             <div class="pwork-company">Xiaomi India — One Point One Solutions</div>
             <div class="pwork-role">L1 Inbound Support → MSM Troubleshooting (Pilot Batch)</div>
           </div>
-          <div class="pwork-period">2022 – 2023</div>
-          <span class="pwork-chevron">▼</span>
+          </div>
+          <div class="pwork-head-meta">
+            <div class="pwork-period">2022 – 2023</div>
+            <span class="pwork-hint"><span class="pwork-hint-text">Tap for details</span><span class="pwork-hint-arrow">▼</span></span>
+          </div>
         </div>
         <div class="pwork-card-body">
           <div class="pwork-body-inner">
@@ -6960,13 +7007,17 @@ function ptestiToggle(card) {
       <div class="pwork-card">
         <div class="pwork-corner"></div>
         <div class="pwork-card-head">
-          <div class="pwork-logo" style="background:rgba(40,116,240,0.12); border-color:rgba(40,116,240,0.25); color:#2874f0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg></div>
-          <div class="pwork-head-text">
+          <div class="pwork-head-main">
+            <div class="pwork-logo" style="background:rgba(40,116,240,0.12); border-color:rgba(40,116,240,0.25); color:#2874f0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg></div>
+            <div class="pwork-head-text">
             <div class="pwork-company">Flipkart — Ienergizer</div>
             <div class="pwork-role">L2 Support — Returns &amp; Refunds</div>
           </div>
-          <div class="pwork-period">2023</div>
-          <span class="pwork-chevron">▼</span>
+          </div>
+          <div class="pwork-head-meta">
+            <div class="pwork-period">2023</div>
+            <span class="pwork-hint"><span class="pwork-hint-text">Tap for details</span><span class="pwork-hint-arrow">▼</span></span>
+          </div>
         </div>
         <div class="pwork-card-body">
           <div class="pwork-body-inner">
@@ -6992,13 +7043,17 @@ function ptestiToggle(card) {
       <div class="pwork-card">
         <div class="pwork-corner"></div>
         <div class="pwork-card-head">
-          <div class="pwork-logo" style="background:rgba(255,204,0,0.1); border-color:rgba(255,204,0,0.25); color:#ffcc00;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="18" r="2.2"/><circle cx="18" cy="18" r="2.2"/><path d="M7 18h6l3-6h3"/><path d="M13 12l-2-5H8"/><path d="M16 5h2"/></svg></div>
-          <div class="pwork-head-text">
+          <div class="pwork-head-main">
+            <div class="pwork-logo" style="background:rgba(255,204,0,0.1); border-color:rgba(255,204,0,0.25); color:#ffcc00;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="18" r="2.2"/><circle cx="18" cy="18" r="2.2"/><path d="M7 18h6l3-6h3"/><path d="M13 12l-2-5H8"/><path d="M16 5h2"/></svg></div>
+            <div class="pwork-head-text">
             <div class="pwork-company">Rapido — Ienergizer</div>
             <div class="pwork-role">IT / Developer</div>
           </div>
-          <div class="pwork-period">2023 – 2024</div>
-          <span class="pwork-chevron">▼</span>
+          </div>
+          <div class="pwork-head-meta">
+            <div class="pwork-period">2023 – 2024</div>
+            <span class="pwork-hint"><span class="pwork-hint-text">Tap for details</span><span class="pwork-hint-arrow">▼</span></span>
+          </div>
         </div>
         <div class="pwork-card-body">
           <div class="pwork-body-inner">
@@ -7027,13 +7082,17 @@ function ptestiToggle(card) {
       <div class="pwork-card">
         <div class="pwork-corner"></div>
         <div class="pwork-card-head">
-          <div class="pwork-logo" style="background:rgba(0,229,200,0.1); border-color:rgba(0,229,200,0.25); color:#00e5c8;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
-          <div class="pwork-head-text">
+          <div class="pwork-head-main">
+            <div class="pwork-logo" style="background:rgba(0,229,200,0.1); border-color:rgba(0,229,200,0.25); color:#00e5c8;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+            <div class="pwork-head-text">
             <div class="pwork-company">Freelance &amp; Personal Projects</div>
             <div class="pwork-role">Full Stack Developer &amp; UI/UX Designer</div>
           </div>
-          <div class="pwork-period">2021 – Present</div>
-          <span class="pwork-chevron">▼</span>
+          </div>
+          <div class="pwork-head-meta">
+            <div class="pwork-period">2021 – Present</div>
+            <span class="pwork-hint"><span class="pwork-hint-text">Tap for details</span><span class="pwork-hint-arrow">▼</span></span>
+          </div>
         </div>
         <div class="pwork-card-body">
           <div class="pwork-body-inner">
@@ -7062,12 +7121,20 @@ function ptestiToggle(card) {
 function pworkToggle(entry) {
   const isOpen = entry.classList.contains('pwork-open');
   // close all
-  document.querySelectorAll('.pwork-entry.pwork-open').forEach(e => e.classList.remove('pwork-open'));
+  document.querySelectorAll('.pwork-entry.pwork-open').forEach(e => {
+    e.classList.remove('pwork-open');
+    const hintText = e.querySelector('.pwork-hint-text');
+    if (hintText) hintText.textContent = 'Tap for details';
+  });
   // ripple
   entry.classList.add('pwork-ripple');
   setTimeout(() => entry.classList.remove('pwork-ripple'), 650);
   // toggle open
-  if (!isOpen) entry.classList.add('pwork-open');
+  if (!isOpen) {
+    entry.classList.add('pwork-open');
+    const hintText = entry.querySelector('.pwork-hint-text');
+    if (hintText) hintText.textContent = 'Tap to collapse';
+  }
 }
 </script>
 <style>
@@ -24804,6 +24871,23 @@ div#popup.popup {
   border-color: rgba(0,220,255,0.6);
   background: rgba(0,220,255,0.06);
 }
+.rg-input.rg-invalid {
+  border-color: rgba(255,90,90,0.65);
+  background: rgba(255,60,60,0.06);
+}
+.rg-field-error {
+  display: none;
+  color: #ff8b8b;
+  font-size: 0.76rem;
+  line-height: 1.4;
+  margin: -8px 0 12px 2px;
+}
+.rg-field-error.rg-show { display: block; }
+.rg-signin-btn:disabled {
+  background: linear-gradient(135deg, #4a5a5f, #3a4550);
+  color: rgba(255,255,255,0.45);
+  box-shadow: none;
+}
 .rg-signin-btn {
   width: 100%;
   padding: 14px;
@@ -24830,6 +24914,40 @@ div#popup.popup {
   font-size: 0.85rem;
   line-height: 1.5;
   margin-bottom: 14px;
+}
+.rg-role-label {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.32);
+  letter-spacing: 0.3px;
+  margin: 2px 2px 8px;
+}
+.rg-role-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.rg-role-chip {
+  flex: 1 1 calc(50% - 8px);
+  min-width: 130px;
+  padding: 10px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,255,255,0.16);
+  background: rgba(255,255,255,0.03);
+  color: rgba(232,246,255,0.68);
+  font-size: 0.78rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.2s, background 0.2s, color 0.2s, transform 0.15s;
+}
+.rg-role-chip:hover { border-color: rgba(0,255,255,0.4); background: rgba(0,255,255,0.05); }
+.rg-role-chip:active { transform: scale(0.96); }
+.rg-role-chip.rg-role-selected {
+  border-color: rgba(0,255,255,0.7);
+  background: rgba(0,255,255,0.12);
+  color: #fff;
+  box-shadow: 0 0 14px rgba(0,255,255,0.18);
 }
 .rg-skip {
   background: none;
@@ -24875,12 +24993,24 @@ div#popup.popup {
 
     <form id="resumeGateForm" novalidate>
       <input class="rg-input" type="text"  id="rgName"  placeholder="Your name"        autocomplete="name"  required>
+      <div class="rg-field-error" id="rgNameError">Please enter your name.</div>
       <input class="rg-input" type="email" id="rgEmail" placeholder="you@example.com"  autocomplete="email" required>
+      <div class="rg-field-error" id="rgEmailError">Please enter a valid email address (e.g. you@gmail.com).</div>
       <input class="rg-input" type="tel"   id="rgPhone" placeholder="Phone (optional)" autocomplete="tel">
+
+      <div class="rg-role-label">Quick one (optional) — what brings you here?</div>
+      <div class="rg-role-group" id="rgRoleGroup" role="group" aria-label="What brings you here">
+        <button type="button" class="rg-role-chip" data-role="developer">🧑&zwj;💻 Fellow dev</button>
+        <button type="button" class="rg-role-chip" data-role="recruiter">🧑&zwj;💼 Recruiter / HR</button>
+        <button type="button" class="rg-role-chip" data-role="client">🏢 Hiring / client</button>
+        <button type="button" class="rg-role-chip" data-role="browsing">👀 Just browsing</button>
+      </div>
+      <input type="hidden" id="rgRole" value="">
+
       <!-- Honeypot — invisible to real visitors, catches basic bots -->
       <input type="text" id="rgHoneypot" name="company" autocomplete="off" tabindex="-1"
              style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;">
-      <button class="rg-signin-btn" id="rgSubmitBtn" type="submit">
+      <button class="rg-signin-btn" id="rgSubmitBtn" type="submit" disabled>
         <span id="rgSubmitLabel">📧 Send Me the Resume</span>
       </button>
     </form>
@@ -24907,8 +25037,97 @@ div#popup.popup {
   var statusEl     = document.getElementById('rgStatus');
   var submitBtn    = document.getElementById('rgSubmitBtn');
   var submitLabel  = document.getElementById('rgSubmitLabel');
+  var roleGroup    = document.getElementById('rgRoleGroup');
+  var roleInput    = document.getElementById('rgRole');
+  var nameErrorEl  = document.getElementById('rgNameError');
+  var emailErrorEl = document.getElementById('rgEmailError');
 
-  function isValidEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+  /* Strict email check — not just "@ + dot + letters".
+     1) The shape must match a real address: no spaces, no leading/
+        trailing/double dots, valid local-part characters, valid
+        domain labels.
+     2) The TLD (the part after the last dot, or the last two labels
+        for things like "co.in"/"com.au") must be a TLD that actually
+        exists — this is what catches nonsense like
+        "name@domain.codhtroriritif" that a plain regex would accept. */
+  var ONE_PART_TLDS = ['com','net','org','edu','gov','mil','int','co','io','ai',
+    'app','dev','tech','xyz','online','site','store','blog','info','biz','me',
+    'tv','cc','name','pro','mobi','asia','cloud','live','news','agency','digital',
+    'email','expert','works','world','life','today','solutions','systems','network',
+    'services','software','studio','team','tools','zone','shop','club','fun','vip',
+    'top','link','click','run','page','wiki','games','media','group','company',
+    'center','city','education','institute','academy','training',
+    'in','us','uk','ca','au','de','fr','jp','cn','ru','br','mx','es','it','nl',
+    'se','no','fi','dk','pl','ch','at','be','pt','gr','ie','nz','sg','hk','tw',
+    'kr','id','my','ph','th','vn','ae','sa','za','ng','ke','eg','tr','il','pk',
+    'bd','lk','np'];
+  var TWO_PART_TLDS = ['co.in','co.uk','co.jp','co.nz','co.za','com.au','com.br',
+    'com.sg','com.hk','com.mx','com.tr','org.in','net.in','gov.in','edu.in','ac.in',
+    'ac.uk','gov.uk','org.uk'];
+
+  var EMAIL_SHAPE_RE = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+
+  function isValidEmail(v) {
+    if (!v || /\s/.test(v)) return false;
+    if (v.indexOf('..') !== -1) return false;
+    if (!EMAIL_SHAPE_RE.test(v)) return false;
+
+    var domain = v.slice(v.lastIndexOf('@') + 1).toLowerCase();
+    var labels = domain.split('.');
+    if (labels.length < 2) return false;
+
+    var last2 = labels.slice(-2).join('.');
+    var last1 = labels[labels.length - 1];
+    if (TWO_PART_TLDS.indexOf(last2) !== -1) return true;
+    if (ONE_PART_TLDS.indexOf(last1) !== -1) return true;
+    return false;
+  }
+
+  /* Re-checks name + email on every keystroke, paints inline errors
+     directly under the offending field, and keeps the submit button
+     disabled until both are valid — this runs the same way whether
+     the fields were typed fresh or came pre-filled from a signed-in
+     session, so being logged in never bypasses validation. */
+  function validateForm() {
+    var name  = (nameEl.value  || '').trim();
+    var email = (emailEl.value || '').trim();
+
+    var nameTouched  = name.length > 0;
+    var emailTouched = email.length > 0;
+    var nameOk  = nameTouched;
+    var emailOk = emailTouched && isValidEmail(email);
+
+    nameEl.classList.toggle('rg-invalid', nameTouched && !nameOk);
+    if (nameErrorEl) nameErrorEl.classList.toggle('rg-show', nameTouched && !nameOk);
+
+    emailEl.classList.toggle('rg-invalid', emailTouched && !emailOk);
+    if (emailErrorEl) emailErrorEl.classList.toggle('rg-show', emailTouched && !emailOk);
+
+    var formValid = nameOk && emailOk;
+    if (submitBtn) submitBtn.disabled = !formValid;
+    return formValid;
+  }
+
+  if (nameEl)  nameEl.addEventListener('input', validateForm);
+  if (emailEl) emailEl.addEventListener('input', validateForm);
+  if (emailEl) emailEl.addEventListener('blur', validateForm);
+
+  /* Tap a chip to pick it, tap again to clear — stays fully optional */
+  if (roleGroup) {
+    roleGroup.addEventListener('click', function (e) {
+      var chip = e.target.closest('.rg-role-chip');
+      if (!chip) return;
+      var already = chip.classList.contains('rg-role-selected');
+      var chips = roleGroup.querySelectorAll('.rg-role-chip');
+      for (var i = 0; i < chips.length; i++) chips[i].classList.remove('rg-role-selected');
+      if (already) {
+        roleInput.value = '';
+      } else {
+        chip.classList.add('rg-role-selected');
+        roleInput.value = chip.getAttribute('data-role');
+      }
+    });
+  }
 
   function showStatus(msg, isError) {
     statusEl.style.display = msg ? 'block' : 'none';
@@ -24920,8 +25139,19 @@ div#popup.popup {
     form.style.display = '';
     form.reset();
     showStatus('');
-    submitBtn.disabled = false;
     submitLabel.textContent = '📧 Send Me the Resume';
+    nameEl.classList.remove('rg-invalid');
+    emailEl.classList.remove('rg-invalid');
+    if (nameErrorEl)  nameErrorEl.classList.remove('rg-show');
+    if (emailErrorEl) emailErrorEl.classList.remove('rg-show');
+    if (roleGroup) {
+      var chips = roleGroup.querySelectorAll('.rg-role-chip');
+      for (var i = 0; i < chips.length; i++) chips[i].classList.remove('rg-role-selected');
+    }
+    if (roleInput) roleInput.value = '';
+    /* Button starts disabled — an empty form is never "valid" whether
+       or not the visitor happens to be signed in. */
+    submitBtn.disabled = true;
   }
 
   function openGateModal() {
@@ -24936,6 +25166,10 @@ div#popup.popup {
         if (sv.email) emailEl.value = sv.email;
       }
     } catch (e) {}
+    /* Whether that pre-fill came from a logged-in session or the form
+       is empty for a first-time visitor, run the same check so the
+       button only ever unlocks for a real name + a valid email. */
+    validateForm();
     modal.classList.add('rg-open');
   }
   function closeGateModal() { modal.classList.remove('rg-open'); }
@@ -24957,12 +25191,14 @@ div#popup.popup {
       /* Bot check — real visitors never fill this hidden field */
       if (honeypotEl && honeypotEl.value) { closeGateModal(); return; }
 
+      /* Final guard — mirrors the live per-keystroke check so a
+         disabled button can never be forced past via Enter or a
+         programmatic submit. */
+      if (!validateForm()) { return; }
+
       var name  = (nameEl.value  || '').trim();
       var email = (emailEl.value || '').trim();
       var phone = (phoneEl.value || '').trim();
-
-      if (!name)              { showStatus('Please enter your name.', true); return; }
-      if (!isValidEmail(email)) { showStatus('Please enter a valid email address.', true); return; }
 
       submitBtn.disabled = true;
       submitLabel.textContent = 'Sending…';
@@ -24970,6 +25206,7 @@ div#popup.popup {
 
       var payload = { name: name, email: email, source: 'bio-cta' };
       if (phone) payload.phone = phone;
+      if (roleInput && roleInput.value) payload.role = roleInput.value;
 
       fetch(RESUME_API, {
         method: 'POST',
