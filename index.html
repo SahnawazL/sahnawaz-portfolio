@@ -3419,13 +3419,24 @@ header::after {
   </div>
 
   <!-- Name block -->
-  <div class="prem-name-wrap pop-in" onclick="this.classList.add('clicked'); setTimeout(()=>this.classList.remove('clicked'),600);">
-    <h1 class="prem-name">
-      <span class="prem-word" style="animation-delay:0.3s">Sahnawaz</span>
-      <span class="prem-word" style="animation-delay:0.46s">Ahmed</span>
-      <span class="prem-word" style="animation-delay:0.62s">Laskar</span>
+  <div class="prem-name-wrap pop-in" onclick="this.classList.add('clicked'); setTimeout(()=>this.classList.remove('clicked'),1600);">
+    <h1 class="prem-name sheen-pop-in">
+      <span class="prem-word prem-word-fill" style="animation-delay:0.3s">Sahnawaz</span>
+      <span class="prem-word prem-word-fill" style="animation-delay:0.46s">Ahmed</span>
+      <span class="prem-word prem-word-outline" style="animation-delay:0.62s">Laskar</span>
     </h1>
-    <div class="prem-underline" aria-hidden="true"></div>
+    <svg class="prem-signature" viewBox="0 0 300 20" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="premSigGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stop-color="#50d2ff" stop-opacity="0"/>
+          <stop offset="16%"  stop-color="#50d2ff"/>
+          <stop offset="50%"  stop-color="#bdeeff"/>
+          <stop offset="84%"  stop-color="#0099cc"/>
+          <stop offset="100%" stop-color="#0099cc" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path class="prem-signature-path sig-pop-in" d="M4 10 C 50 1, 100 19, 150 9 S 250 1, 296 9" stroke="url(#premSigGrad)"/>
+    </svg>
   </div>
 
   <!-- Typing Role Rotator -->
@@ -3465,6 +3476,8 @@ header::after {
   }
   stripOnceDone('.prem-name-wrap.pop-in', 'premFadeScaleIn', 'pop-in');
   stripOnceDone('.pfp-stage.pop-in', 'pfpStageIn', 'pop-in');
+  stripOnceDone('.prem-signature-path.sig-pop-in', 'premSigDraw', 'sig-pop-in');
+  stripOnceDone('.prem-name.sheen-pop-in', 'premSheenSweep', 'sheen-pop-in');
 })();
 </script>
 
@@ -3549,26 +3562,45 @@ header::after {
   animation: premFadeScaleIn 0.9s cubic-bezier(.2,.9,.2,1) 0.28s forwards;
 }
 .prem-name-wrap:hover .prem-word {
-  filter: drop-shadow(0 0 22px rgba(80,210,255,0.5));
-}
-.prem-name-wrap:hover .prem-underline {
-  box-shadow: 0 0 16px rgba(80,210,255,0.85);
-  width: 78px;
+  filter: drop-shadow(0 0 2px rgba(255,255,255,0.4)) drop-shadow(0 0 24px rgba(80,210,255,0.55)) drop-shadow(0 8px 22px rgba(0,0,0,0.25));
 }
 .prem-name-wrap.clicked .prem-name {
-  animation: premNamePulse 0.5s cubic-bezier(.22,.9,.25,1);
+  animation: premNamePulse 0.6s cubic-bezier(.22,1,.36,1) forwards;
 }
 @keyframes premNamePulse {
   0%   { transform: scale(1); }
-  45%  { transform: scale(0.978); }
+  32%  { transform: scale(0.962); }
+  62%  { transform: scale(1.028); }
   100% { transform: scale(1); }
 }
+
+/* Expanding glow ring — a soft shockwave from the center of the name on tap */
+.prem-name-wrap::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(80,210,255,0.65);
+  transform: translate(-50%,-50%) scale(0);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.prem-name-wrap.clicked::before {
+  animation: premClickRing 0.75s cubic-bezier(.16,1,.3,1) forwards;
+}
+@keyframes premClickRing {
+  0%   { transform: translate(-50%,-50%) scale(0);  opacity: 0.85; border-width: 2px; }
+  100% { transform: translate(-50%,-50%) scale(15); opacity: 0;    border-width: 0.5px; }
+}
+
 .prem-name {
   position: relative;
   z-index: 1;
   margin: 0;
   font-family: 'Playfair Display', serif;
-  font-size: clamp(2.2rem, 9vw, 3.4rem);
+  font-size: clamp(2.3rem, 9.5vw, 3.6rem);
   font-weight: 900;
   letter-spacing: -0.5px;
   line-height: 1.18;
@@ -3578,35 +3610,103 @@ header::after {
   gap: 0 0.3em;
   user-select: none;
 }
+/* Light sweep across the name — plays once on load, replays smoothly on tap.
+   Base rule stays static (no animation-name) so toggling .clicked on/off
+   never falls back to an animation still declared on a parent rule. */
+.prem-name::after {
+  content: '';
+  position: absolute;
+  top: -10%; left: -60%;
+  width: 34%; height: 120%;
+  background: linear-gradient(115deg, transparent 0%, rgba(255,255,255,0.65) 50%, transparent 100%);
+  transform: skewX(-18deg);
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0;
+  z-index: 2;
+}
+.prem-name.sheen-pop-in::after {
+  animation: premSheenSweep 1.5s cubic-bezier(.4,0,.2,1) 1.55s 1 forwards;
+}
+.prem-name-wrap.clicked .prem-name::after {
+  animation: premSheenSweep 1.5s cubic-bezier(.4,0,.2,1) forwards;
+}
+@keyframes premSheenSweep {
+  0%   { left: -60%; opacity: 0; }
+  22%  { opacity: 1; }
+  70%  { left: 130%; opacity: 1; }
+  100% { left: 130%; opacity: 0; }
+}
 .prem-word {
   display: inline-block;
   opacity: 0;
-  transform: translateY(18px);
+  transform: translateY(16px);
+  letter-spacing: 0.14em;
+  transition: filter 0.35s ease;
+}
+/* First & middle name — solid gradient fill, the bold headline weight */
+.prem-word-fill {
   background: linear-gradient(135deg, #ffffff 0%, #bdeeff 35%, #50d2ff 65%, #0099cc 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  filter: drop-shadow(0 0 16px rgba(80,210,255,0.32));
-  transition: filter 0.35s ease;
-  animation: premWordIn 0.75s cubic-bezier(.16,1,.3,1) forwards, premWordShimmer 7s ease-in-out infinite;
+  filter: blur(5px) drop-shadow(0 0 16px rgba(80,210,255,0.32));
+  animation: premWordIn 0.8s cubic-bezier(.16,1,.3,1) forwards, premWordShimmer 7s ease-in-out infinite;
+}
+/* Surname — outlined, a lighter, more refined counterpoint to the fill */
+.prem-word-outline {
+  color: transparent;
+  -webkit-text-stroke: 1.6px #7fe0ff;
+  filter: blur(5px) drop-shadow(0 0 14px rgba(80,210,255,0.4));
+  animation: premWordInOutline 0.8s cubic-bezier(.16,1,.3,1) forwards;
 }
 @keyframes premWordIn {
-  from { opacity: 0; transform: translateY(18px); }
-  to   { opacity: 1; transform: translateY(0); }
+  0%   { opacity: 0; transform: translateY(16px); letter-spacing: 0.14em; filter: blur(5px) drop-shadow(0 0 16px rgba(80,210,255,0.32)); }
+  65%  { filter: blur(0px) drop-shadow(0 0 16px rgba(80,210,255,0.32)); }
+  100% { opacity: 1; transform: translateY(0); letter-spacing: normal; filter: blur(0px) drop-shadow(0 0 16px rgba(80,210,255,0.32)); }
+}
+@keyframes premWordInOutline {
+  0%   { opacity: 0; transform: translateY(16px); letter-spacing: 0.14em; filter: blur(5px) drop-shadow(0 0 14px rgba(80,210,255,0.4)); }
+  65%  { filter: blur(0px) drop-shadow(0 0 14px rgba(80,210,255,0.4)); }
+  100% { opacity: 1; transform: translateY(0); letter-spacing: normal; filter: blur(0px) drop-shadow(0 0 14px rgba(80,210,255,0.4)); }
 }
 @keyframes premWordShimmer {
   0%, 100% { background-position: 0% center; }
   50%      { background-position: 100% center; }
 }
-.prem-underline {
-  width: 64px;
-  height: 2px;
-  margin-top: 14px;
-  border-radius: 2px;
-  background: linear-gradient(90deg, transparent, #50d2ff, transparent);
-  box-shadow: 0 0 10px rgba(80,210,255,0.6);
-  transition: box-shadow 0.35s ease, width 0.35s ease;
+
+/* ── Signature flourish — hand-drawn underline that signs itself in ── */
+.prem-signature {
+  width: 108px;
+  height: 16px;
+  margin-top: 10px;
+  overflow: visible;
+}
+.prem-signature-path {
+  fill: none;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 360;
+  stroke-dashoffset: 0;
+  filter: drop-shadow(0 0 6px rgba(80,210,255,0.55));
+}
+.prem-signature-path.sig-pop-in {
+  stroke-dashoffset: 360;
+  animation: premSigDraw 1.1s cubic-bezier(.4,0,.2,1) 0.95s forwards;
+}
+@keyframes premSigDraw { from { stroke-dashoffset: 360; } to { stroke-dashoffset: 0; } }
+.prem-name-wrap.clicked .prem-signature-path {
+  animation: premSigRedraw 0.6s cubic-bezier(.4,0,.2,1) forwards;
+}
+@keyframes premSigRedraw {
+  0%   { stroke-dashoffset: 0; }
+  45%  { stroke-dashoffset: 360; }
+  100% { stroke-dashoffset: 0; }
+}
+.prem-name-wrap:hover .prem-signature-path {
+  filter: drop-shadow(0 0 10px rgba(80,210,255,0.8));
 }
 .prem-role-tag {
   display: flex;
@@ -3658,9 +3758,9 @@ header::after {
 }
 
 @media (max-width: 480px) {
-  .prem-name-wrap { padding: 0.45rem 1rem 0.5rem; }
   .prem-role-text { font-size: 0.68rem; letter-spacing: 1px; }
   .prem-greeting-bar { width: 22px; }
+  .prem-signature { width: 92px; }
 }
 </style><div class="btn-group"><div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;"><div style="text-align: center;"></div><div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;"><a class="btn" href="#projects" style="font-size: 0.8rem; padding: 6px 12px; border-radius: 20px; text-decoration: none; box-shadow: 0 0 5px #00ffff;">View Experience</a><a class="btn" href="#contact" style="font-size: 0.8rem; padding: 6px 12px; border-radius: 20px; text-decoration: none; box-shadow: 0 0 5px #00ffff;">Contact Me</a></div></div></div>
 
