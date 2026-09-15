@@ -914,33 +914,6 @@ img {
 #contact form {
   margin-top: 6px !important;
 }
-.name-line {
-  font-size: 2.4rem;
-  font-weight: 900;
-  letter-spacing: 0.5px;
-  background: linear-gradient(120deg, #00f0ff 0%, #a0fff0 20%, #ffffff 40%, #ffd6ff 60%, #66ffdd 80%, #00f0ff 100%);
-  background-size: 300% 100%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: premiumNameFlow 5s ease infinite;
-  cursor: pointer;
-  display: inline-block;
-  transition: transform 0.35s cubic-bezier(.2,.9,.2,1), filter 0.3s ease, letter-spacing 0.3s ease;
-  filter: drop-shadow(0 0 8px rgba(0,255,255,0.4));
-  will-change: transform, filter;
-}
-.name-line:hover {
-  transform: perspective(600px) rotateX(4deg) rotateY(-4deg) scale(1.04) translateY(-2px);
-  filter: drop-shadow(0 0 18px rgba(0,255,255,0.75)) drop-shadow(0 4px 12px rgba(0,200,255,0.4));
-  letter-spacing: 1px;
-}
-@keyframes premiumNameFlow {
-  0%   { background-position: 0%   50%; filter: drop-shadow(0 0  8px rgba(0,255,255,0.35)); }
-  33%  { background-position: 60%  50%; filter: drop-shadow(0 0 14px rgba(160,255,240,0.5)); }
-  66%  { background-position: 120% 50%; filter: drop-shadow(0 0 18px rgba(255,214,255,0.5)); }
-  100% { background-position: 0%   50%; filter: drop-shadow(0 0  8px rgba(0,255,255,0.35)); }
-}
 /* ===== CERTIFICATIONS ===== */
 .certifications {
   padding: 3.5rem 1rem 4rem !important;
@@ -2069,112 +2042,6 @@ section p {
 @keyframes scan {
     from { background-position: 0 0; }
     to { background-position: 0 100%; }
-}
-</style><style>
-/* >>> holographic name override (applies only to the name under your profile) */
-.intro-line .name-line {
-  font-size: clamp(2rem, 7vw, 2.6rem);
-  font-weight: 900;
-  letter-spacing: 0.5px;
-  display: inline-block;
-  background: linear-gradient(120deg,
-    #00f0ff  0%,
-    #a0fff0 18%,
-    #ffffff  36%,
-    #ffd6ff 52%,
-    #a0fff0 68%,
-    #66ffdd 84%,
-    #00f0ff 100%
-  );
-  background-size: 280% 100%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  position: relative;
-  overflow: visible;
-  transition:
-    transform  280ms cubic-bezier(.2,.9,.2,1),
-    filter     280ms cubic-bezier(.2,.9,.2,1),
-    letter-spacing 280ms ease;
-  cursor: pointer;
-  -webkit-font-smoothing: antialiased;
-  z-index: 1;
-  filter: drop-shadow(0 0 10px rgba(0,255,255,0.45));
-}
-/* Continuous holographic shimmer */
-@keyframes holo-gradient {
-  0%   { background-position: 0%   50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0%   50%; }
-}
-.intro-line .name-line { animation: holo-gradient 5s linear infinite; }
-
-/* Hover lift */
-.intro-line .name-line:hover {
-  transform: perspective(700px) rotateX(3deg) rotateY(-3deg) scale(1.045) translateY(-3px);
-  filter: drop-shadow(0 0 22px rgba(0,255,255,0.8)) drop-shadow(0 6px 16px rgba(0,200,255,0.45));
-  letter-spacing: 1.2px;
-}
-
-/* Light-sweep shine overlay */
-.intro-line .name-line::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -130%;
-  width: 55%;
-  height: 100%;
-  background: linear-gradient(
-    118deg,
-    rgba(255,255,255,0)   0%,
-    rgba(255,255,255,0.88) 50%,
-    rgba(255,255,255,0)   100%
-  );
-  transform: skewX(-18deg);
-  pointer-events: none;
-  will-change: left, opacity;
-  opacity: 0;
-  z-index: 2;
-  mix-blend-mode: screen;
-}
-.intro-line .name-line.load-wipe::after { animation: holo-wipe 1.8s cubic-bezier(.4,0,.2,1) 0.5s 1 forwards; opacity: 1; }
-.intro-line .name-line:hover::after,
-.intro-line .name-line:focus::after { animation: holo-wipe 1.3s cubic-bezier(.4,0,.2,1) 0s 1 forwards; opacity: 1; }
-@keyframes holo-wipe {
-  0%   { left: -130%; opacity: 0;   }
-  20%  { opacity: 0.95; }
-  65%  { left:  130%; opacity: 0;   }
-  100% { left:  130%; opacity: 0;   }
-}
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 8px;
-  height: 8px;
-  background: rgba(255,255,255,0.18);
-  border-radius: 50%;
-  transform: translate(-50%,-50%) scale(0);
-  pointer-events: none;
-  z-index: 0;
-  mix-blend-mode: screen;
-}
-  from { transform: translate(-50%,-50%) scale(0); opacity: 0.9; }
-  to { transform: translate(-50%,-50%) scale(18); opacity: 0; }
-}
-.intro-line .name-line::after { z-index: 2; }
-.intro-line .name-line::before { z-index: 0; }
-.intro-line .name-line:active { transform: scale(0.993); }</style><style>
-/* Premium click: springy press + burst glow */
-.intro-line .name-line.clicked {
-  animation: premiumClick 0.55s cubic-bezier(.2,.9,.2,1) forwards;
-}
-@keyframes premiumClick {
-  0%   { transform: perspective(700px) rotateX(0deg)  rotateY(0deg)   scale(1);    filter: drop-shadow(0 0 10px rgba(0,255,255,0.45)); }
-  18%  { transform: perspective(700px) rotateX(8deg)  rotateY(-8deg)  scale(0.94); filter: drop-shadow(0 0 28px rgba(0,255,255,0.9)) drop-shadow(0 0 12px rgba(255,214,255,0.7)); }
-  45%  { transform: perspective(700px) rotateX(-4deg) rotateY(4deg)   scale(1.055); filter: drop-shadow(0 0 20px rgba(102,255,221,0.8)); }
-  70%  { transform: perspective(700px) rotateX(2deg)  rotateY(-2deg)  scale(1.02);  filter: drop-shadow(0 0 14px rgba(0,255,255,0.6)); }
-  100% { transform: perspective(700px) rotateX(0deg)  rotateY(0deg)   scale(1);    filter: drop-shadow(0 0 10px rgba(0,255,255,0.45)); }
 }
 </style><style>
 /* Bright cyan glassy style for resume button */
@@ -3477,31 +3344,6 @@ header::after {
   transition: opacity 0.3s ease;
 }
 
-/* ── Sweep flash that runs on load ── */
-.pfp-sweep {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 4;
-}
-.pfp-sweep::after {
-  content: "";
-  position: absolute;
-  top: 0; left: -120%;
-  width: 60%; height: 100%;
-  background: linear-gradient(118deg, transparent 0%, rgba(255,255,255,0.45) 50%, transparent 100%);
-  transform: skewX(-20deg);
-  animation: pfpSweepFlash 3.5s ease-in-out 0.5s infinite;
-}
-@keyframes pfpSweepFlash {
-  0%,40% { left: -120%; opacity: 0; }
-  45%     { opacity: 1; }
-  75%     { left: 140%; opacity: 0; }
-  100%    { left: 140%; opacity: 0; }
-}
-
 /* pfp-status dot removed */
 
 /* ── HOVER: 3D tilt + brighten ── */
@@ -3524,20 +3366,19 @@ header::after {
   transform: scale(1.12);
 }
 
-/* ── CLICK burst ── */
+/* ── CLICK feedback: one smooth pulse, no bounce ── */
 .pfp-stage.clicked .pfp-img-wrap {
-  animation: pfpClickBurst 0.55s cubic-bezier(.2,.9,.2,1) forwards;
+  animation: pfpClickPulse 0.5s cubic-bezier(.2,.9,.2,1) forwards;
 }
-@keyframes pfpClickBurst {
-  0%   { transform: perspective(600px) scale(1);    box-shadow: 0 0 0 1px rgba(0,255,255,0.2), 0 8px 32px rgba(0,0,0,0.5); }
-  20%  { transform: perspective(600px) scale(0.94); box-shadow: 0 0 0 6px rgba(0,255,255,0.5), 0 0 50px rgba(0,255,255,0.4); }
-  55%  { transform: perspective(600px) scale(1.06); box-shadow: 0 0 0 3px rgba(0,255,255,0.8), 0 0 70px rgba(0,255,255,0.5), 0 0 100px rgba(160,255,240,0.3); }
-  100% { transform: perspective(600px) scale(1);    box-shadow: 0 0 0 1px rgba(0,255,255,0.2), 0 8px 32px rgba(0,0,0,0.5); }
+@keyframes pfpClickPulse {
+  0%   { transform: scale(1);    box-shadow: 0 0 0 1px rgba(0,255,255,0.2), 0 8px 32px rgba(0,0,0,0.5); }
+  45%  { transform: scale(1.045); box-shadow: 0 0 0 5px rgba(0,255,255,0.4), 0 0 46px rgba(0,255,255,0.32), 0 8px 32px rgba(0,0,0,0.5); }
+  100% { transform: scale(1);    box-shadow: 0 0 0 1px rgba(0,255,255,0.2), 0 8px 32px rgba(0,0,0,0.5); }
 }
 .pfp-stage.clicked .pfp-ring1 { animation-duration: 0.5s; }
 
-/* Entrance animation for whole stage */
-.pfp-stage {
+/* Entrance animation for whole stage — runs once, then .pop-in is removed by JS */
+.pfp-stage.pop-in {
   opacity: 0;
   animation: pfpStageIn 0.9s cubic-bezier(.2,.9,.2,1) 0.2s forwards;
 }
@@ -3548,7 +3389,7 @@ header::after {
 </style>
 
 <!-- ── PREMIUM PROFILE PICTURE ── -->
-<div class="pfp-stage" id="pfpStage" onclick="
+<div class="pfp-stage pop-in" id="pfpStage" onclick="
   this.classList.add('clicked');
   setTimeout(()=>this.classList.remove('clicked'), 600);
 " title="Sahnawaz Ahmed Laskar">
@@ -3562,7 +3403,6 @@ header::after {
   <div class="pfp-img-wrap">
     <img src="profile.jpg" alt="Sahnawaz Ahmed Laskar" loading="lazy"/>
     <div class="pfp-glare"></div>
-    <div class="pfp-sweep"></div>
   </div>
 
   <!-- Online status dot -->
@@ -3579,20 +3419,13 @@ header::after {
   </div>
 
   <!-- Name block -->
-  <div class="prem-name-wrap" onclick="this.classList.add('clicked'); setTimeout(()=>this.classList.remove('clicked'),900);" title="Sahnawaz Ahmed Laskar">
-    <div class="prem-scanline" aria-hidden="true"></div>
-    <span class="prem-corner tl" aria-hidden="true"></span>
-    <span class="prem-corner tr" aria-hidden="true"></span>
-    <span class="prem-corner bl" aria-hidden="true"></span>
-    <span class="prem-corner br" aria-hidden="true"></span>
-    <h1 class="prem-name load-wipe name-line">
+  <div class="prem-name-wrap pop-in" onclick="this.classList.add('clicked'); setTimeout(()=>this.classList.remove('clicked'),600);">
+    <h1 class="prem-name">
       <span class="prem-word" style="animation-delay:0.3s">Sahnawaz</span>
-      <span class="prem-word" style="animation-delay:0.48s">Ahmed</span>
-      <span class="prem-word" style="animation-delay:0.64s">Laskar</span>
+      <span class="prem-word" style="animation-delay:0.46s">Ahmed</span>
+      <span class="prem-word" style="animation-delay:0.62s">Laskar</span>
     </h1>
-    <div class="prem-underline" aria-hidden="true">
-      <div class="prem-underline-track"></div>
-    </div>
+    <div class="prem-underline" aria-hidden="true"></div>
   </div>
 
   <!-- Typing Role Rotator -->
@@ -3618,6 +3451,22 @@ header::after {
   50%      { opacity: 0; }
 }
 </style>
+
+<script>
+/* Remove the one-time entrance animation classes once each finishes, so
+   they never replay when a later click-pulse class is toggled. */
+(function(){
+  function stripOnceDone(selector, animName, className){
+    var el = document.querySelector(selector);
+    if (!el) return;
+    el.addEventListener('animationend', function(e){
+      if (e.animationName === animName) el.classList.remove(className);
+    });
+  }
+  stripOnceDone('.prem-name-wrap.pop-in', 'premFadeScaleIn', 'pop-in');
+  stripOnceDone('.pfp-stage.pop-in', 'pfpStageIn', 'pop-in');
+})();
+</script>
 
 <script>
 (function(){
@@ -3689,105 +3538,75 @@ header::after {
 }
 .prem-name-wrap {
   position: relative;
-  display: inline-block;
-  padding: 0.55rem 1.6rem 0.65rem;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
   cursor: pointer;
-  border-radius: 14px;
-  background: linear-gradient(135deg, rgba(0,255,255,0.04), rgba(255,255,255,0.03), rgba(0,200,255,0.05));
-  backdrop-filter: blur(3px);
-  transition: background 0.4s ease, box-shadow 0.4s ease, transform 0.35s cubic-bezier(.2,.9,.2,1);
+  opacity: 1;
+}
+.prem-name-wrap.pop-in {
   opacity: 0;
-  animation: premFadeScaleIn 0.85s cubic-bezier(.2,.9,.2,1) 0.28s forwards;
-  overflow: visible;
+  animation: premFadeScaleIn 0.9s cubic-bezier(.2,.9,.2,1) 0.28s forwards;
 }
-.prem-name-wrap:hover {
-  background: linear-gradient(135deg, rgba(0,255,255,0.08), rgba(255,255,255,0.05), rgba(0,200,255,0.09));
-  box-shadow: 0 0 28px rgba(0,255,255,0.12), 0 8px 24px rgba(0,0,0,0.18);
-  transform: translateY(-2px);
+.prem-name-wrap:hover .prem-word {
+  filter: drop-shadow(0 0 22px rgba(80,210,255,0.5));
 }
-.prem-name-wrap.clicked {
-  animation: premWrapClick 0.5s cubic-bezier(.2,.9,.2,1) forwards !important;
+.prem-name-wrap:hover .prem-underline {
+  box-shadow: 0 0 16px rgba(80,210,255,0.85);
+  width: 78px;
 }
-@keyframes premWrapClick {
-  0%   { transform: scale(1);    box-shadow: 0 0 10px rgba(0,255,255,0.2); }
-  20%  { transform: scale(0.97); box-shadow: 0 0 30px rgba(0,255,255,0.6); }
-  55%  { transform: scale(1.03); box-shadow: 0 0 40px rgba(160,255,240,0.5), 0 0 60px rgba(0,255,255,0.25); }
-  100% { transform: scale(1);    box-shadow: 0 0 12px rgba(0,255,255,0.15); }
+.prem-name-wrap.clicked .prem-name {
+  animation: premNamePulse 0.5s cubic-bezier(.22,.9,.25,1);
 }
-.prem-corner {
-  position: absolute;
-  width: 12px;
-  height: 12px;
-  opacity: 0.55;
-  transition: opacity 0.3s ease, width 0.3s ease, height 0.3s ease;
-}
-.prem-name-wrap:hover .prem-corner { opacity: 1; width: 16px; height: 16px; }
-.prem-corner.tl { top:4px;    left:4px;    border-top: 1.5px solid #00ffff; border-left: 1.5px solid #00ffff;  border-radius: 3px 0 0 0; }
-.prem-corner.tr { top:4px;    right:4px;   border-top: 1.5px solid #00ffff; border-right: 1.5px solid #00ffff; border-radius: 0 3px 0 0; }
-.prem-corner.bl { bottom:4px; left:4px;    border-bottom: 1.5px solid #00ffff; border-left: 1.5px solid #00ffff;  border-radius: 0 0 0 3px; }
-.prem-corner.br { bottom:4px; right:4px;   border-bottom: 1.5px solid #00ffff; border-right: 1.5px solid #00ffff; border-radius: 0 0 3px 0; }
-.prem-scanline {
-  position: absolute; inset: 0;
-  background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,255,255,0.012) 3px, rgba(0,255,255,0.012) 4px);
-  border-radius: 14px;
-  pointer-events: none;
-  z-index: 0;
+@keyframes premNamePulse {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(0.978); }
+  100% { transform: scale(1); }
 }
 .prem-name {
   position: relative;
   z-index: 1;
   margin: 0;
-  font-size: clamp(2rem, 8vw, 3rem);
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.2rem, 9vw, 3.4rem);
   font-weight: 900;
-  letter-spacing: 1px;
-  line-height: 1.15;
+  letter-spacing: -0.5px;
+  line-height: 1.18;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 0 0.4em;
-  cursor: pointer;
+  gap: 0 0.3em;
   user-select: none;
-  filter: drop-shadow(0 0 10px rgba(0,255,255,0.45));
 }
 .prem-word {
   display: inline-block;
   opacity: 0;
-  transform: translateY(22px);
-  background: linear-gradient(120deg, #00f0ff 0%, #a0fff0 18%, #ffffff 36%, #ffd6ff 52%, #a0fff0 68%, #66ffdd 84%, #00f0ff 100%);
-  background-size: 300% 100%;
+  transform: translateY(18px);
+  background: linear-gradient(135deg, #ffffff 0%, #bdeeff 35%, #50d2ff 65%, #0099cc 100%);
+  background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: premWordIn 0.6s cubic-bezier(.2,.9,.2,1) forwards, holo-gradient 5s linear infinite;
+  filter: drop-shadow(0 0 16px rgba(80,210,255,0.32));
+  transition: filter 0.35s ease;
+  animation: premWordIn 0.75s cubic-bezier(.16,1,.3,1) forwards, premWordShimmer 7s ease-in-out infinite;
 }
 @keyframes premWordIn {
-  from { opacity: 0; transform: translateY(22px); }
+  from { opacity: 0; transform: translateY(18px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+@keyframes premWordShimmer {
+  0%, 100% { background-position: 0% center; }
+  50%      { background-position: 100% center; }
+}
 .prem-underline {
-  position: relative;
-  height: 3px;
-  width: 100%;
-  margin-top: 6px;
-  border-radius: 3px;
-  overflow: hidden;
-  background: rgba(0,255,255,0.08);
-  z-index: 1;
-}
-.prem-underline-track {
-  position: absolute;
-  top: 0; left: -60%;
-  width: 60%;
-  height: 100%;
-  border-radius: 3px;
-  background: linear-gradient(90deg, transparent 0%, rgba(0,255,255,0.9) 40%, rgba(160,255,240,1) 60%, rgba(255,255,255,0.8) 75%, transparent 100%);
-  animation: premUnderlineSweep 2.8s cubic-bezier(.4,0,.2,1) 0.9s infinite;
-  box-shadow: 0 0 8px rgba(0,255,255,0.7);
-}
-@keyframes premUnderlineSweep {
-  0%   { left: -60%; }
-  60%  { left: 110%; }
-  100% { left: 110%; }
+  width: 64px;
+  height: 2px;
+  margin-top: 14px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, #50d2ff, transparent);
+  box-shadow: 0 0 10px rgba(80,210,255,0.6);
+  transition: box-shadow 0.35s ease, width 0.35s ease;
 }
 .prem-role-tag {
   display: flex;
@@ -3838,14 +3657,6 @@ header::after {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Fix: h1.prem-name must NOT inherit text-fill:transparent from .name-line rules */
-h1.prem-name {
-  -webkit-text-fill-color: unset !important;
-  background: none !important;
-  background-clip: unset !important;
-  -webkit-background-clip: unset !important;
-  color: transparent; /* let child spans show through */
-}
 @media (max-width: 480px) {
   .prem-name-wrap { padding: 0.45rem 1rem 0.5rem; }
   .prem-role-text { font-size: 0.68rem; letter-spacing: 1px; }
@@ -4695,7 +4506,7 @@ h1.prem-name {
 })();
 </script></section><style>
 /* ═══════════ PREMIUM BLOG SECTION ═══════════ */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&family=Caveat:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&family=Caveat:wght@500;600;700&display=swap');
 
 /* ══ BLOG SECTION — Stats Dashboard pill style ══ */
 .premium-blog-section {
@@ -7089,7 +6900,7 @@ function ptestiToggle(card) {
   opacity: 0;
 }
 .pwork-entry.pwork-open .pwork-card-body {
-  max-height: 500px;
+  max-height: 2000px;
   opacity: 1;
 }
 
@@ -7334,11 +7145,13 @@ function ptestiToggle(card) {
 <script>
 function pworkToggle(entry) {
   const isOpen = entry.classList.contains('pwork-open');
-  // close all
+  // close all (and release their measured height so they collapse cleanly)
   document.querySelectorAll('.pwork-entry.pwork-open').forEach(e => {
     e.classList.remove('pwork-open');
     const hintText = e.querySelector('.pwork-hint-text');
     if (hintText) hintText.textContent = 'Tap for details';
+    const body = e.querySelector('.pwork-card-body');
+    if (body) body.style.maxHeight = '';
   });
   // ripple
   entry.classList.add('pwork-ripple');
@@ -7348,8 +7161,22 @@ function pworkToggle(entry) {
     entry.classList.add('pwork-open');
     const hintText = entry.querySelector('.pwork-hint-text');
     if (hintText) hintText.textContent = 'Tap to collapse';
+    const body = entry.querySelector('.pwork-card-body');
+    if (body) {
+      // Measure the card's real content height instead of relying on a
+      // fixed guess — this is what fixes the bottom clipping: every card
+      // (regardless of text length, font-size setting, or screen width)
+      // always animates to exactly the height it actually needs.
+      body.style.maxHeight = body.scrollHeight + 'px';
+    }
   }
 }
+/* Re-measure the open card if the viewport changes (rotation, text-size
+   change, etc.) so it can never end up clipped after the fact either. */
+window.addEventListener('resize', () => {
+  const openBody = document.querySelector('.pwork-entry.pwork-open .pwork-card-body');
+  if (openBody) openBody.style.maxHeight = openBody.scrollHeight + 'px';
+});
 </script>
 <style>
 .gallery-title {
