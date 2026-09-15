@@ -743,14 +743,14 @@
         email:     visitor.email   || '',
         avatar:    visitor.avatar  || '',
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      }, { merge: true }).catch(function(){});
+      }, { merge: true }).catch(function(err){ console.error('Chat history (profile doc) save error:', err); });
       /* Save the message in subcollection */
       db.collection('chatHistory').doc(visitor.uid)
         .collection('messages').add({
           role, content: String(content).slice(0,800),
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           time: new Date().toISOString()
-        }).catch(function(){});
+        }).catch(function(err){ console.error('Chat message save error:', err); });
     };
 
     window._loadChatHistory = function(cb) {
@@ -794,7 +794,7 @@
             msgs.unshift(d);
           });
           if(cb) cb(msgs);
-        }).catch(function(){ if(cb) cb([]); });
+        }).catch(function(err){ console.error('Chat history load error:', err); if(cb) cb([]); });
     };
 
     /* Auto-patch chat send button */
