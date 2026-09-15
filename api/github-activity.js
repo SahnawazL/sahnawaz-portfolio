@@ -222,23 +222,41 @@ function toISTHour(iso) {
 }
 
 async function fetchActivity(headers) {
-  const ghRes = await fetch(
-    `https://api.github.com/users/${GITHUB_USER}/events/public?per_page=100`,
-    { headers }
-  );
-  if (!ghRes.ok) return { activity: [], hourHistogram: null, error: `events:${ghRes.status}` };
+  try {
+    const ghRes = await fetch(
+      `https://api.github.com/users/${GITHUB_USER}/events/public?per_page=100`,
+      { headers }
+    );
+    if (!ghRes.ok) return { activity: [], hourHistogram: null, error: `events:${ghRes.status}` };
 
-  const events = await ghRes.json();
-  const activity = events.map(describeEvent).filter(Boolean).slice(0, 15);
+    const events = await ghRes.json();
+    // GitHub can return a 200 with a non-array body in edge cases (e.g. a
+    // rate-limit/abuse-detection message object instead of the expected
+    // events list) — same defensive check fetchLanguageBreakdown already
+    // does below. Without this, a single unexpected reply here used to
+    // throw uncaught and take the ENTIRE endpoint down with it (every
+    // other field too, not just activity), since this ran inside the same
+    // Promise.all as everything else with no isolation of its own.
+    if (!Array.isArray(events)) {
+      return { activity: [], hourHistogram: null, error: 'events:non-array-response' };
+    }
 
-  const histogram = new Array(24).fill(0);
-  events.forEach((e) => {
-    if (!e.created_at) return;
-    histogram[toISTHour(e.created_at)] += 1;
-  });
-  const hasData = histogram.some((c) => c > 0);
+    const activity = events.map(describeEvent).filter(Boolean).slice(0, 15);
 
-  return { activity, hourHistogram: hasData ? histogram : null };
+    const histogram = new Array(24).fill(0);
+    events.forEach((e) => {
+      if (!e.created_at) return;
+      histogram[toISTHour(e.created_at)] += 1;
+    });
+    const hasData = histogram.some((c) => c > 0);
+
+    return { activity, hourHistogram: hasData ? histogram : null };
+  } catch (err) {
+    // Same graceful-degradation pattern as every other fetch* function in
+    // this file — a hiccup here should only cost the activity feed, never
+    // the whole response.
+    return { activity: [], hourHistogram: null, error: 'events:exception' };
+  }
 }
 
 // Finds the 3-hour rolling window with the most events, and describes it
