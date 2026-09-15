@@ -4757,18 +4757,6 @@ header::after {
 }
 
 /* pulsing dot */
-.pblog-dot {
-  position: absolute; top: 8px; right: 9px;
-  width: 5px; height: 5px;
-  background: rgba(0,255,200,0.4); border-radius: 50%;
-  box-shadow: 0 0 5px rgba(0,255,200,0.5);
-  animation: blogDotPulse 2.6s ease-in-out infinite;
-}
-@keyframes blogDotPulse {
-  0%,100%{ opacity:0.3; transform:scale(1); }
-  50%    { opacity:1;   transform:scale(1.6); }
-}
-
 /* tag pill */
 .pblog-tag {
   display: inline-block;
@@ -5114,7 +5102,6 @@ header::after {
 
     <div class="pblog-card" onclick="toggleBlogCard(this)">
       <div class="pblog-shimmer"></div>
-      <div class="pblog-dot"></div>
       <span class="pblog-tag" style="color:#00e5c8;">Dev Story</span>
       <p class="pblog-card-title">Building Live Engineering Telemetry Into This Portfolio</p>
       <div class="pblog-bar-track"><div class="pblog-bar-fill" data-fill="100"></div></div>
@@ -5124,7 +5111,6 @@ header::after {
 
     <div class="pblog-card" onclick="toggleBlogCard(this)">
       <div class="pblog-shimmer" style="animation-delay:0.2s"></div>
-      <div class="pblog-dot" style="animation-delay:0.7s"></div>
       <span class="pblog-tag" style="color:#4dd9ff;">Productivity</span>
       <p class="pblog-card-title">Excel Techniques That Actually Save Hours</p>
       <div class="pblog-bar-track"><div class="pblog-bar-fill" data-fill="100"></div></div>
@@ -5134,7 +5120,6 @@ header::after {
 
     <div class="pblog-card" onclick="toggleBlogCard(this)">
       <div class="pblog-shimmer" style="animation-delay:0.4s"></div>
-      <div class="pblog-dot" style="animation-delay:1.1s"></div>
       <span class="pblog-tag" style="color:#a78bfa;">Design</span>
       <p class="pblog-card-title">Why Responsive Design Matters</p>
       <div class="pblog-bar-track"><div class="pblog-bar-fill" data-fill="100"></div></div>
@@ -5144,7 +5129,6 @@ header::after {
 
     <div class="pblog-card" onclick="toggleBlogCard(this)">
       <div class="pblog-shimmer" style="animation-delay:0.6s"></div>
-      <div class="pblog-dot" style="animation-delay:1.4s"></div>
       <span class="pblog-tag" style="color:#f9a825;">Engineering</span>
       <p class="pblog-card-title">Why I Ditched Exact-Version Dependency Matching</p>
       <div class="pblog-bar-track"><div class="pblog-bar-fill" data-fill="100"></div></div>
@@ -5154,7 +5138,6 @@ header::after {
 
     <div class="pblog-card" onclick="toggleBlogCard(this)">
       <div class="pblog-shimmer" style="animation-delay:0.8s"></div>
-      <div class="pblog-dot" style="animation-delay:1.8s"></div>
       <span class="pblog-tag" style="color:#34d399;">Performance</span>
       <p class="pblog-card-title">Optimizing Frontend for Speed</p>
       <div class="pblog-bar-track"><div class="pblog-bar-fill" data-fill="100"></div></div>
@@ -5164,7 +5147,6 @@ header::after {
 
     <div class="pblog-card" onclick="toggleBlogCard(this)">
       <div class="pblog-shimmer" style="animation-delay:1.0s"></div>
-      <div class="pblog-dot" style="animation-delay:2.1s"></div>
       <span class="pblog-tag" style="color:#ff8fa3;">Mindset</span>
       <p class="pblog-card-title">What Handling Angry Customers Taught Me About Debugging</p>
       <div class="pblog-bar-track"><div class="pblog-bar-fill" data-fill="100"></div></div>
@@ -5174,7 +5156,6 @@ header::after {
 
     <div class="pblog-card" onclick="toggleBlogCard(this)">
       <div class="pblog-shimmer" style="animation-delay:1.2s"></div>
-      <div class="pblog-dot" style="animation-delay:2.4s"></div>
       <span class="pblog-tag" style="color:#60a5fa;">Clarity</span>
       <p class="pblog-card-title">Writing for People Who've Never Opened a Government Form</p>
       <div class="pblog-bar-track"><div class="pblog-bar-fill" data-fill="100"></div></div>
@@ -5184,7 +5165,6 @@ header::after {
 
     <div class="pblog-card" onclick="toggleBlogCard(this)">
       <div class="pblog-shimmer" style="animation-delay:1.4s"></div>
-      <div class="pblog-dot" style="animation-delay:2.7s"></div>
       <span class="pblog-tag" style="color:#c084fc;">Ownership</span>
       <p class="pblog-card-title">Why I'd Rather Ship Late Than Let Something Break Quietly</p>
       <div class="pblog-bar-track"><div class="pblog-bar-fill" data-fill="100"></div></div>
@@ -19300,6 +19280,12 @@ function createStarsAndEmojis(){
   transform: translateY(14px) scale(0.97);
   transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.16,1,0.3,1), width 0.28s cubic-bezier(0.16,1,0.3,1);
   bottom: 80px;
+  /* Safety ceiling — the widget can never grow taller than the viewport
+     allows, regardless of how much conversation history or how long a
+     reply gets. #chatMessages below is flex:1 (can shrink), so it's the
+     one that absorbs the limit — the header and footer never get pushed
+     off the top of the screen. */
+  max-height: calc(100vh - 100px);
 }
 #chatWidget.chat-open {
   opacity:1; pointer-events:auto;
@@ -19316,7 +19302,7 @@ function createStarsAndEmojis(){
 /* header */
 #chatHeader {
   display:flex; align-items:center; justify-content:space-between;
-  padding:8px 8px 8px 8px; flex-shrink:0;
+  padding:7px 8px 7px 8px; flex-shrink:0;
   background: linear-gradient(180deg, rgba(0,200,255,0.055) 0%, rgba(255,255,255,0.02) 100%);
   border-bottom: 1px solid rgba(0,200,255,0.18);
   position: relative;
@@ -19747,7 +19733,7 @@ function createStarsAndEmojis(){
   right: 16px;
 }
 #chatWidget.chat-expanded #chatMessages {
-  max-height: 460px;
+  max-height: 400px;
 }
 /* On narrow mobile screens, go edge-to-edge when expanded */
 @media (max-width: 520px) {
@@ -19760,10 +19746,10 @@ function createStarsAndEmojis(){
 /* Messages */
 #chatMessages {
   flex:1; overflow-y:auto;
-  padding:8px 10px 6px;
-  display:flex; flex-direction:column; gap:5px;
+  padding:7px 10px 5px;
+  display:flex; flex-direction:column; gap:4px;
   min-height: 100px;
-  max-height: 280px;
+  max-height: 256px;
   width: 100%;
   background: rgba(0,0,0,0.25);
   scrollbar-width:thin; scrollbar-color:rgba(0,255,255,0.15) transparent;
@@ -19825,7 +19811,7 @@ function createStarsAndEmojis(){
 }
 
 .chat-msg {
-  max-width:86%; padding:8px 13px; border-radius:18px;
+  max-width:86%; padding:7px 12px; border-radius:18px;
   font-size:0.74rem; line-height:1.5;
   will-change: opacity, transform;
   position: relative;
@@ -20045,7 +20031,7 @@ function createStarsAndEmojis(){
 
 #chatFooter {
   display:flex; align-items:center; gap:8px;
-  padding:8px 11px 8px 11px; flex-shrink:0;
+  padding:7px 11px 7px 11px; flex-shrink:0;
   border-top: 1px solid rgba(0,180,255,0.08);
   background: rgba(8,16,28,0.97);
 }
@@ -20494,7 +20480,7 @@ function createStarsAndEmojis(){
 /* Rich message container — wider than plain bubble */
 .chat-msg.bot.rich-reply {
   max-width: 94%;
-  padding: 13px 15px 11px;
+  padding: 11px 13px 9px;
   background: linear-gradient(160deg, rgba(5,18,38,0.82) 0%, rgba(8,24,50,0.78) 100%);
   border: 1px solid rgba(0,200,255,0.20);
   box-shadow:
@@ -20513,13 +20499,13 @@ function createStarsAndEmojis(){
   font-weight: 700;
   color: #00dcff;
   letter-spacing: 0.3px;
-  margin: 10px 0 6px;
-  padding-bottom: 5px;
+  margin: 8px 0 5px;
+  padding-bottom: 4px;
   border-bottom: 1px solid rgba(0,200,255,0.15);
   opacity: 0;
   animation: lineReveal 0.4s ease forwards;
 }
-.bot-section-header:first-child { margin-top: 2px; }
+.bot-section-header:first-child { margin-top: 1px; }
 @keyframes lineReveal {
   from { opacity:0; transform:translateX(-8px); }
   to   { opacity:1; transform:translateX(0); }
@@ -20530,14 +20516,14 @@ function createStarsAndEmojis(){
   font-size: 0.74rem;
   line-height: 1.65;
   color: #cde8ff;
-  margin: 4px 0;
+  margin: 3px 0;
 }
 
 /* Divider line between sections */
 .bot-divider {
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(0,200,255,0.22), transparent);
-  margin: 10px 0;
+  margin: 8px 0;
   border: none;
   opacity: 0;
   animation: dividerIn 0.5s ease forwards;
@@ -20551,10 +20537,10 @@ function createStarsAndEmojis(){
 .bot-list {
   list-style: none;
   padding: 0;
-  margin: 4px 0 6px;
+  margin: 3px 0 5px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 .bot-list li {
   display: flex;
@@ -20595,8 +20581,8 @@ function createStarsAndEmojis(){
   border: 1px solid rgba(0,200,255,0.25);
   border-left: 3px solid #00dcff;
   border-radius: 8px;
-  padding: 8px 11px;
-  margin: 8px 0;
+  padding: 7px 10px;
+  margin: 7px 0;
   font-size: 0.73rem;
   line-height: 1.55;
   color: #e0f6ff;
@@ -20615,7 +20601,7 @@ function createStarsAndEmojis(){
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 6px 10px;
+  padding: 5px 10px;
   border-radius: 8px;
   margin: 3px 0;
   background: rgba(0,150,255,0.06);
@@ -20646,8 +20632,8 @@ function createStarsAndEmojis(){
 .bot-cta-line {
   font-size: 0.70rem;
   color: rgba(0,220,255,0.65);
-  margin-top: 8px;
-  padding-top: 7px;
+  margin-top: 7px;
+  padding-top: 6px;
   border-top: 1px solid rgba(0,200,255,0.10);
   text-align: center;
   letter-spacing: 0.1px;
@@ -21641,6 +21627,11 @@ document.addEventListener('DOMContentLoaded', function(){
       ts.style.transition = 'opacity 0.4s ease';
       ts.style.opacity = '1';
       addToHistory('bot', text);
+      /* Save the greeting to Firestore too (logged-in visitors only —
+         _saveChatMessage no-ops harmlessly if no one is signed in), so a
+         restored session doesn't jump straight to the visitor's first
+         question with no assistant message before it. */
+      if (window._saveChatMessage) window._saveChatMessage('bot', text);
       return;
     }
 
@@ -21668,6 +21659,8 @@ document.addEventListener('DOMContentLoaded', function(){
         ts.style.transition = 'opacity 0.4s ease';
         ts.style.opacity = '1';
         addToHistory('bot', text);
+        /* Same reasoning as above — save the greeting once it's fully typed out. */
+        if (window._saveChatMessage) window._saveChatMessage('bot', text);
       }
     }
 
