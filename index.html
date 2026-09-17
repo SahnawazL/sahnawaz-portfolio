@@ -6281,8 +6281,7 @@ function ptestiToggle(card) {
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.44s cubic-bezier(0.4,0,0.2,1),
-              opacity 0.35s ease,
-              padding 0.35s ease;
+              opacity 0.35s ease;
   opacity: 0;
   font-family: 'DM Sans', sans-serif;
   font-size: 0.6rem;
@@ -6292,7 +6291,7 @@ function ptestiToggle(card) {
   padding: 0 0.3rem;
 }
 .shz-stat.shz-open .shz-stat-desc {
-  max-height: 90px;
+  max-height: 300px;
   opacity: 1;
   padding: 0.45rem 0.3rem 0;
 }
@@ -6454,9 +6453,24 @@ function ptestiToggle(card) {
     card.addEventListener('click', function() {
       /* toggle description open/close */
       var isOpen = card.classList.contains('shz-open');
-      /* close all others */
-      document.querySelectorAll('.shz-stat').forEach(function(c){ c.classList.remove('shz-open'); });
-      if (!isOpen) card.classList.add('shz-open');
+      /* close all others (and release their measured height so they collapse cleanly) */
+      document.querySelectorAll('.shz-stat').forEach(function(c){
+        c.classList.remove('shz-open');
+        var d = c.querySelector('.shz-stat-desc');
+        if (d) d.style.maxHeight = '';
+      });
+      if (!isOpen) {
+        card.classList.add('shz-open');
+        var desc = card.querySelector('.shz-stat-desc');
+        if (desc) {
+          /* Measure the real content height instead of relying on a fixed
+             90px guess — that guess was too small for the longer "Brand
+             Ops Experience" description, cutting it off mid-sentence. This
+             way every card's description always gets exactly the height
+             it actually needs, no matter how long the text is. */
+          desc.style.maxHeight = desc.scrollHeight + 'px';
+        }
+      }
 
       /* ripple burst */
       card.classList.remove('shz-clicked');
@@ -8353,7 +8367,7 @@ document.addEventListener('keydown', function(e) {
   }, 3200);
 })();
 </script>
-<script>const slider = document.getElementById('slider');const rightSide = document.querySelector('#comparison-container .right');slider.addEventListener('input', () => { rightSide.style.clipPath = `inset(0 0 0 ${slider.value}%)`;});</script><script src="https://unpkg.com/aos@2.3.1/dist/aos.js" defer></script><script>window.addEventListener("load",function(){if(window.AOS&&!window._aosInited){AOS.init({once:true,disable:"mobile",throttleDelay:99,offset:80});window._aosInited=true;}});</script><script> (function(){var isMobile=/Mobi|Android/i.test(navigator.userAgent);var pCount=isMobile?12:25;var config={"particles":{"number":{"value":pCount,"density":{"enable":true,"value_area":900}},"color":{"value":"#00ffff"},"shape":{"type":"circle"},"opacity":{"value":0.35,"random":true},"size":{"value":2.5,"random":true},"line_linked":{"enable":!isMobile,"distance":140,"color":"#00ffff","opacity":0.25,"width":1},"move":{"enable":true,"speed":isMobile?1:1.5}},"interactivity":{"events":{"onhover":{"enable":!isMobile,"mode":"repulse"},"onclick":{"enable":true,"mode":"push"}},"modes":{"repulse":{"distance":60},"push":{"particles_nb":2}}},"retina_detect":false};function initParticles(){if(typeof particlesJS==='function'){particlesJS("particles-js",config);}else{setTimeout(initParticles,200);}}initParticles();})() </script><style>
+<script>const slider = document.getElementById('slider');const rightSide = document.querySelector('#comparison-container .right');slider.addEventListener('input', () => { rightSide.style.clipPath = `inset(0 0 0 ${slider.value}%)`;});</script><script src="https://unpkg.com/aos@2.3.1/dist/aos.js" defer></script><script>window.addEventListener("load",function(){if(window.AOS&&!window._aosInited){AOS.init({once:true,disable:"mobile",throttleDelay:99,offset:80});window._aosInited=true;}});</script><script> (function(){var isMobile=/Mobi|Android/i.test(navigator.userAgent);var pCount=isMobile?12:25;var config={"particles":{"number":{"value":pCount,"density":{"enable":true,"value_area":900}},"color":{"value":"#00ffff"},"shape":{"type":"circle"},"opacity":{"value":0.35,"random":true},"size":{"value":2.5,"random":true},"line_linked":{"enable":!isMobile,"distance":140,"color":"#00ffff","opacity":0.25,"width":1},"move":{"enable":true,"speed":isMobile?1:1.5}},"interactivity":{"events":{"onhover":{"enable":!isMobile,"mode":"repulse"},"onclick":{"enable":true,"mode":"push"}},"modes":{"repulse":{"distance":60},"push":{"particles_nb":2}}},"retina_detect":false};function initParticles(){if(typeof particlesJS==='function'){particlesJS("particles-js",config);}else{setTimeout(initParticles,200);}}/* initParticles(); -- disabled: this ran a full-viewport canvas particle animation continuously at 60fps forever, regardless of scroll position or tab focus. It was one of the biggest contributors to the site feeling laggy — the #ts-particles-canvas above was already disabled for the same reason, this was a live duplicate that got missed. */})() </script><style>
 /* ══════════ SERVICES YOU CAN BOOK – PREMIUM V2 ══════════ */
 .syb-section {
   padding: 5rem 1.5rem 4.5rem !important;
@@ -25377,4 +25391,63 @@ div#popup.popup {
 })();
 </script>
 
+<script>
+/* ── Pause off-screen infinite animations ──────────────────────────────
+   This page has ~140 small decorative animations (shimmer/glow/pulse
+   effects on headers, badges, cards, icons) declared to run "infinite" —
+   forever, continuously, whether or not the element is even visible.
+   At any given scroll position only a small fraction of them are on
+   screen, so the rest are pure wasted work: repainting elements nobody
+   can see, competing with scrolling and click interactions for the main
+   thread. This pauses each one the moment it scrolls out of view and
+   resumes it (with a little buffer, so it's already running again just
+   before it re-enters the viewport) rather than touching any of the 140
+   individual animations directly — safer than rewriting each one, and
+   covers new ones automatically without needing to be listed by name.
+   One-shot entrance animations (word reveals, pop-ins, etc.) aren't
+   "infinite", so they're untouched — this only ever affects things that
+   would otherwise run forever regardless of visibility. */
+(function(){
+  function isInfinite(cs){
+    return cs.animationName !== 'none' && cs.animationIterationCount.indexOf('infinite') !== -1;
+  }
+
+  function start(){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        entry.target.style.animationPlayState = entry.isIntersecting ? 'running' : 'paused';
+      });
+    }, { rootMargin: '150px 0px 150px 0px', threshold: 0 });
+
+    function considerAndObserve(el){
+      var cs = getComputedStyle(el);
+      if (isInfinite(cs)) io.observe(el);
+    }
+
+    /* Initial sweep of everything already on the page */
+    document.querySelectorAll('*').forEach(considerAndObserve);
+
+    /* Cover elements added later — chat replies, dynamically built cards,
+       anything rendered after this initial sweep runs */
+    var mo = new MutationObserver(function(mutations){
+      mutations.forEach(function(m){
+        m.addedNodes.forEach(function(node){
+          if (node.nodeType !== 1) return;
+          considerAndObserve(node);
+          if (node.querySelectorAll) node.querySelectorAll('*').forEach(considerAndObserve);
+        });
+      });
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+  }
+
+  /* Defer the initial full-page scan to idle time so it never competes
+     with the critical first render/paint. */
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(start, { timeout: 3000 });
+  } else {
+    setTimeout(start, 1500);
+  }
+})();
+</script>
 </body></html>
