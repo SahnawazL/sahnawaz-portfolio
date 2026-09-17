@@ -233,28 +233,18 @@ Parallel to every professional role above, built, shipped and iterated on real w
 
 ---
 
-## 📊 Contribution Snake
-
-<div align="center">
-
-<picture>
-  <source media="(prefers-color-scheme: dark)"
-    srcset="https://raw.githubusercontent.com/SahnawazL/SahnawazL/output/github-snake-dark.svg" />
-  <source media="(prefers-color-scheme: light)"
-    srcset="https://raw.githubusercontent.com/SahnawazL/SahnawazL/output/github-snake.svg" />
-  <img alt="Contribution Snake" src="https://raw.githubusercontent.com/SahnawazL/SahnawazL/output/github-snake-dark.svg" />
-</picture>
-
-</div>
-
----
-
 <div align="center">
 
 ### 🌐 Let's Build Something Great Together
 
 <a href="https://sahnawaz-portfolio.vercel.app" target="_blank">
   <img src="https://img.shields.io/badge/🌐_Portfolio-sahnawaz--portfolio.vercel.app-00ffff?style=for-the-badge" alt="Portfolio"/>
+</a>
+
+<br/><br/>
+
+<a href="https://yojanasahay.vercel.app" target="_blank">
+  <img src="https://img.shields.io/badge/🏛️_Yojana_Sahay-yojanasahay.vercel.app-00cc88?style=for-the-badge" alt="Yojana Sahay"/>
 </a>
 
 <br/><br/>
