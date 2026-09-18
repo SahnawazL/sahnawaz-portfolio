@@ -6776,21 +6776,13 @@ function ptestiToggle(card) {
 
 </section>
 
-<!-- Modal Popup -->
-<div id="demoPopup" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85);">
-<div style="background-color: #122b3a; margin: auto; margin-top: 20vh; padding: 1.5rem; width: 90%; max-width: 380px; border-radius: 14px; box-shadow: 0 0 15px rgba(0,255,255,0.3); text-align: center; color: white;">
-<h3 style="color: #00ffff; margin-bottom: 1rem;">🚧 Full Demo Coming Soon</h3>
-<p style="color: #ccc;">This feature will be updated in a smart and tech-driven way soon. Stay tuned!</p>
-<button onclick="document.getElementById('demoPopup').style.display='none'" style="margin-top: 1.5rem; padding: 8px 16px; background: #00ffff; border: none; color: #001a22; font-weight: bold; border-radius: 8px; box-shadow: 0 0 10px rgba(0,255,255,0.4); cursor: pointer;">
-      Okay
-    </button>
-</div>
-</div>
-<script>
-  document.getElementById('demoPopupTrigger').addEventListener('click', () => {
-    document.getElementById('demoPopup').style.display = 'flex';
-  });
-</script>
+<!-- demoPopup modal removed (2026 cleanup): its trigger button
+     (#demoPopupTrigger) never existed in the DOM, so this modal could
+     never be opened by anyone — 100% unreachable. The addEventListener
+     call below was throwing "Cannot read properties of null" on every
+     single page load. A prior changelog entry claimed this was already
+     fixed (see file header, item 16) but the actual dead code remained;
+     removed for real this time instead of re-patching around it. -->
 <style>
 /* ═══════════ PREMIUM WORK EXPERIENCE ═══════════ */
 .pwork-section {
@@ -7322,166 +7314,16 @@ window.addEventListener('resize', () => {
   if (openBody) openBody.style.maxHeight = openBody.scrollHeight + 'px';
 });
 </script>
-<style>
-.gallery-title {
-  font-size: 2rem;
-  font-weight: 500;
-  background: linear-gradient(90deg, #a0faff 0%, #00e0ff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  letter-spacing: 0.6px;
-  margin-bottom: 1.8rem;
-  position: relative;
-  display: inline-block;
-  padding-bottom: 6px;
-}
-.gallery-title::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60%;
-  height: 2px;
-  background: linear-gradient(90deg, rgba(160,250,255,0.6), rgba(0,224,255,0.9));
-  border-radius: 2px;
-  box-shadow: 0 0 8px rgba(0,224,255,0.6);
-  transition: width 0.4s ease;
-}
-.gallery-title:hover::after {
-  width: 90%;
-}
-
-/* Work Gallery base */
-.work-gallery {
-  padding: 3rem 1rem;
-  text-align: center;
-  background: #0a1727;
-  border-top: 2px solid rgba(255,255,255,0.06);
-}
-
-.gallery-box.apple-box {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  justify-items: center;
-  align-items: center;
-  gap: 1rem;
-  max-width: 420px;
-  margin: 0.4rem auto 0;
-  padding: 16px;
-  border-radius: 20px;
-  background: rgba(255,255,255,0.02);
-  backdrop-filter: blur(10px) saturate(140%);
-  border: 1.5px solid rgba(255,255,255,0.10);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-  transition: transform 280ms ease, box-shadow 280ms ease;
-}
-.gallery-box.apple-box:hover {
-  transform: translateY(-6px);
-  box-shadow:
-    0 14px 32px rgba(0,0,0,0.6),
-    0 0 20px rgba(0,224,255,0.5);
-}
-.gallery-item img {
-  width: 100px;
-  height: auto;
-  border-radius: 12px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.45);
-  border: 1px solid rgba(255,255,255,0.06);
-  transition: transform 220ms ease, box-shadow 220ms ease;
-  display: block;
-}
-.gallery-item:hover img {
-  transform: scale(1.08);
-  box-shadow: 0 14px 30px rgba(0,0,0,0.6);
-}
-
-.gallery-box.apple-box:hover {
-  transform: translateY(-6px);
-  border-color: rgba(255,255,255,0.16);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.03);
-}
-.gallery-box.apple-box:hover::after {
-  transform: translateX(8%) rotate(-12deg);
-  opacity: 0.7;
-}
-.gallery-item {
-  cursor: pointer;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 12px;
-  transition: transform 220ms ease;
-  padding: 6px;
-}
-.gallery-item img {
-  width: 56px;
-  height: auto;
-  border-radius: 10px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.45);
-  border: 1px solid rgba(255,255,255,0.06);
-  transition: transform 220ms ease, box-shadow 220ms ease;
-  display: block;
-}
-.gallery-item:hover img {
-  transform: scale(1.12);
-  box-shadow: 0 14px 30px rgba(0,0,0,0.6);
-}
-#lightbox {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: rgba(0,0,0,0.85);
-  backdrop-filter: blur(6px);
-  z-index: 12000;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 320ms ease;
-}
-#lightbox.visible {
-  opacity: 1;
-  pointer-events: auto;
-}
-#lightbox img {
-  max-width: 88%;
-  max-height: 82%;
-  border-radius: 14px;
-  box-shadow: 0 16px 40px rgba(0,0,0,0.65);
-  transform: scale(0.92);
-  transition: transform 320ms ease, opacity 320ms ease;
-  opacity: 0;
-}
-#lightbox.visible img {
-  transform: scale(1);
-  opacity: 1;
-}
-</style>
-<script>
-function openLightbox(imgElement) {
-  const lightbox = document.getElementById('lightbox');
-  const lightboxImg = document.getElementById('lightbox-img');
-  lightboxImg.src = imgElement.src;
-  lightbox.classList.add('visible');
-  lightbox.setAttribute('aria-hidden', 'false');
-}
-function closeLightbox() {
-  const lightbox = document.getElementById('lightbox');
-  const lightboxImg = document.getElementById('lightbox-img');
-  lightbox.classList.remove('visible');
-  lightbox.setAttribute('aria-hidden', 'true');
-  setTimeout(() => { lightboxImg.src = ''; }, 300);
-}
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') {
-    const lightbox = document.getElementById('lightbox');
-    if (lightbox.classList.contains('visible')) closeLightbox();
-  }
-});
-</script>
+<!-- Dead 'Work Gallery' feature CSS removed (2026 cleanup): .gallery-title, .work-gallery, .gallery-box, .apple-box, .gallery-item, and #lightbox were all completely unreferenced anywhere in the HTML — the gallery UI these styled was removed at some point, this leftover CSS (plus the JS in the block removed just above) was the only trace left. Confirmed via full-file class-usage search before removing. -->
+<!-- Dead lightbox script removed (2026 cleanup): openLightbox()/
+     closeLightbox() were never called from anywhere on the page — no
+     image has an onclick wired to them, so the whole feature was
+     unreachable. Worse, the keydown listener below was LIVE: it ran on
+     every Escape keypress, anywhere on the page, and directly
+     dereferenced document.getElementById('lightbox').classList with no
+     null check — since #lightbox doesn't exist, this threw "Cannot read
+     properties of null (reading 'classList')" the moment anyone pressed
+     Escape. That's a real, user-triggerable crash, not just dead weight. -->
 <style>
 /* ══════════ KTA V3 – FRESH PREMIUM SECTION ══════════ */
 .kta3-section {
@@ -8457,7 +8299,11 @@ document.addEventListener('keydown', function(e) {
   }, 3200);
 })();
 </script>
-<script>const slider = document.getElementById('slider');const rightSide = document.querySelector('#comparison-container .right');slider.addEventListener('input', () => { rightSide.style.clipPath = `inset(0 0 0 ${slider.value}%)`;});</script><script src="https://unpkg.com/aos@2.3.1/dist/aos.js" defer></script><script>window.addEventListener("load",function(){if(window.AOS&&!window._aosInited){AOS.init({once:true,disable:"mobile",throttleDelay:99,offset:80});window._aosInited=true;}});</script><script> (function(){var isMobile=/Mobi|Android/i.test(navigator.userAgent);var pCount=isMobile?12:25;var config={"particles":{"number":{"value":pCount,"density":{"enable":true,"value_area":900}},"color":{"value":"#00ffff"},"shape":{"type":"circle"},"opacity":{"value":0.35,"random":true},"size":{"value":2.5,"random":true},"line_linked":{"enable":!isMobile,"distance":140,"color":"#00ffff","opacity":0.25,"width":1},"move":{"enable":true,"speed":isMobile?1:1.5}},"interactivity":{"events":{"onhover":{"enable":!isMobile,"mode":"repulse"},"onclick":{"enable":true,"mode":"push"}},"modes":{"repulse":{"distance":60},"push":{"particles_nb":2}}},"retina_detect":false};function initParticles(){if(typeof particlesJS==='function'){particlesJS("particles-js",config);}else{setTimeout(initParticles,200);}}/* initParticles(); -- disabled: this ran a full-viewport canvas particle animation continuously at 60fps forever, regardless of scroll position or tab focus. It was one of the biggest contributors to the site feeling laggy — the #ts-particles-canvas above was already disabled for the same reason, this was a live duplicate that got missed. */})() </script><style>
+<!-- dead before/after comparison slider script removed (2026 cleanup):
+     referenced #slider and #comparison-container, neither of which exist
+     anywhere in this file — the comparison UI itself was removed at some
+     point but this leftover script wasn't, throwing "Cannot read
+     properties of null (reading 'addEventListener')" on every page load. --><script src="https://unpkg.com/aos@2.3.1/dist/aos.js" defer></script><script>window.addEventListener("load",function(){if(window.AOS&&!window._aosInited){AOS.init({once:true,disable:"mobile",throttleDelay:99,offset:80});window._aosInited=true;}});</script><script> (function(){var isMobile=/Mobi|Android/i.test(navigator.userAgent);var pCount=isMobile?12:25;var config={"particles":{"number":{"value":pCount,"density":{"enable":true,"value_area":900}},"color":{"value":"#00ffff"},"shape":{"type":"circle"},"opacity":{"value":0.35,"random":true},"size":{"value":2.5,"random":true},"line_linked":{"enable":!isMobile,"distance":140,"color":"#00ffff","opacity":0.25,"width":1},"move":{"enable":true,"speed":isMobile?1:1.5}},"interactivity":{"events":{"onhover":{"enable":!isMobile,"mode":"repulse"},"onclick":{"enable":true,"mode":"push"}},"modes":{"repulse":{"distance":60},"push":{"particles_nb":2}}},"retina_detect":false};function initParticles(){if(typeof particlesJS==='function'){particlesJS("particles-js",config);}else{setTimeout(initParticles,200);}}/* initParticles(); -- disabled: this ran a full-viewport canvas particle animation continuously at 60fps forever, regardless of scroll position or tab focus. It was one of the biggest contributors to the site feeling laggy — the #ts-particles-canvas above was already disabled for the same reason, this was a live duplicate that got missed. */})() </script><style>
 /* ══════════ SERVICES YOU CAN BOOK – PREMIUM V2 ══════════ */
 .syb-section {
   padding: 5rem 1.5rem 4.5rem !important;
@@ -19060,16 +18906,12 @@ function createStarsAndEmojis(){
 })();
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/lightgallery@2/lightgallery.umd.min.js"></script><script>
-    document.addEventListener("DOMContentLoaded", function() {
-      lightGallery(document.getElementById('lightgallery'), {
-        selector: 'a',
-        download: false,
-        swipeThreshold: 50,
-        speed: 500,
-      });
-    });
-    </script>
+<!-- lightGallery removed (2026 cleanup): it loaded a whole external CDN
+     library then initialized it against #lightgallery, which does not
+     exist anywhere in this file — the gallery UI it was meant to power
+     was never built here, so this always threw "lightGallery is not
+     defined" (when the CDN didn't load) or would have targeted null (even
+     if it had). Removing both the CDN script and the dead init call. -->
 <!-- YouTube Popup -->
 <!-- PREMIUM YouTube Apple-Style Modal (inserted by assistant) -->
 <style>
@@ -24960,7 +24802,13 @@ div#popup.popup {
         device: /Mobi|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
         referrer: document.referrer || 'direct'
       })
-    });
+    }).catch(function(){ /* analytics is best-effort — a network hiccup,
+      ad-blocker, or the endpoint being briefly down should never surface
+      as a console error for a real visitor. The try/catch below only
+      ever caught synchronous errors from calling fetch() itself; it
+      never caught the fetch PROMISE rejecting, which is the actual
+      failure mode (and was still showing up as an uncaught error even
+      with the try/catch in place). */ });
   } catch(e) {}
 })();
 </script>
