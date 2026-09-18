@@ -8078,7 +8078,7 @@ document.addEventListener('keydown', function(e) {
   position: relative;
   border-radius: 20px;
   cursor: pointer;
-  height: 190px;
+  height: 230px;
   perspective: 1200px;
   outline: none;
   -webkit-tap-highlight-color: transparent;
@@ -8242,7 +8242,7 @@ document.addEventListener('keydown', function(e) {
 /* ── responsive ── */
 @media (max-width: 520px) {
   .wio-grid { grid-template-columns: 1fr 1fr; gap: 0.85rem; }
-  .wio-card { height: 175px; }
+  .wio-card { height: 230px; }
   .wio-price { font-size: 1.5rem; }
 }
 @media (max-width: 360px) {
@@ -8372,6 +8372,47 @@ document.addEventListener('keydown', function(e) {
 (function(){
   var cards = document.querySelectorAll('.wio-card');
   var compareEl = document.getElementById('wio-compare');
+
+  /* Size every card to fit its own content instead of a fixed 175/190px
+     guess. Front and back are position:absolute (needed for the 3D flip
+     to work), so neither one naturally grows the card — whichever face
+     had more content than the fixed guess (here, cards with a longer
+     feature checklist, like Portfolio Website's 4 items) got silently
+     clipped by the back face's overflow:hidden. This measures each
+     face's real content height once — briefly taking it out of absolute
+     positioning to read its natural scrollHeight, then putting it right
+     back — and sets the card to fit the taller of the two, so nothing
+     is ever cut off regardless of how many features a service lists. */
+  function measureNaturalHeight(el){
+    if (!el) return 0;
+    var prevPosition = el.style.position;
+    var prevHeight = el.style.height;
+    el.style.position = 'static';
+    el.style.height = 'auto';
+    var h = el.scrollHeight;
+    el.style.position = prevPosition;
+    el.style.height = prevHeight;
+    return h;
+  }
+
+  function sizeCard(card){
+    var front = card.querySelector('.wio-front');
+    var back = card.querySelector('.wio-back');
+    var frontH = measureNaturalHeight(front);
+    var backH = measureNaturalHeight(back);
+    var needed = Math.max(frontH, backH, 175) + 4; /* +4px breathing room */
+    card.style.height = needed + 'px';
+  }
+
+  function sizeAllCards(){ cards.forEach(sizeCard); }
+  sizeAllCards();
+  /* Re-measure on resize/orientation change — text wraps differently at
+     different widths, so the height each card actually needs can change. */
+  var resizeTimer;
+  window.addEventListener('resize', function(){
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(sizeAllCards, 150);
+  }, { passive: true });
 
   // stagger entrance delays
   cards.forEach(function(c, i){
