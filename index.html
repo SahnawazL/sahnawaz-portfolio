@@ -3762,7 +3762,56 @@ header::after {
   .prem-greeting-bar { width: 22px; }
   .prem-signature { width: 92px; }
 }
-</style><div class="btn-group"><div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;"><div style="text-align: center;"></div><div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;"><a class="btn" href="#projects" style="font-size: 0.8rem; padding: 6px 12px; border-radius: 20px; text-decoration: none; box-shadow: 0 0 5px #00ffff;">View Experience</a><a class="btn" href="#contact" style="font-size: 0.8rem; padding: 6px 12px; border-radius: 20px; text-decoration: none; box-shadow: 0 0 5px #00ffff;">Contact Me</a></div></div></div>
+</style><style>
+/* ══ Hero shortcut buttons — glassy, matching the Stats Dashboard /
+   Contact card language (dark translucent glass, thin cyan border,
+   backdrop blur, soft glow) instead of the old flat solid-cyan pill. ══ */
+.hero-cta-group {
+  display: flex; gap: 0.7rem; flex-wrap: wrap; justify-content: center;
+  margin-top: 1rem;
+}
+.hero-cta-btn {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 0.6rem 1.15rem;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(80,210,255,0.09), rgba(255,255,255,0.02));
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(80,210,255,0.22);
+  color: #d9f4ff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem; font-weight: 600;
+  letter-spacing: 0.2px;
+  text-decoration: none;
+  overflow: hidden;
+  isolation: isolate;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  transition: transform 0.3s cubic-bezier(.2,.9,.2,1), border-color 0.3s ease,
+              box-shadow 0.3s ease, background 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.hero-cta-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+.hero-cta-btn::before {
+  content: '';
+  position: absolute; top: 0; left: -75%; width: 50%; height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255,255,255,0.16), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.65s ease;
+  z-index: -1;
+}
+.hero-cta-btn:hover::before { left: 125%; }
+.hero-cta-btn:hover {
+  transform: translateY(-3px);
+  border-color: rgba(80,210,255,0.5);
+  background: linear-gradient(135deg, rgba(80,210,255,0.16), rgba(255,255,255,0.04));
+  box-shadow: 0 10px 26px rgba(0,0,0,0.35), 0 0 20px rgba(80,210,255,0.22);
+}
+.hero-cta-btn:active { transform: translateY(-1px) scale(0.97); }
+@media (max-width: 480px) {
+  .hero-cta-btn { font-size: 0.72rem; padding: 0.55rem 0.95rem; }
+  .hero-cta-btn svg { width: 13px; height: 13px; }
+}
+</style><div class="btn-group"><div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;"><div style="text-align: center;"></div><div class="hero-cta-group"><a class="hero-cta-btn" href="#projects"><svg viewBox="0 0 24 24" fill="none" stroke="#50d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>View Experience</a><a class="hero-cta-btn" href="#recent-activity"><svg viewBox="0 0 24 24" fill="none" stroke="#50d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>View Telemetry</a><a class="hero-cta-btn" href="#contact"><svg viewBox="0 0 24 24" fill="none" stroke="#50d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 17a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"/><path d="m2 7 8.97 6.21a1.94 1.94 0 0 0 2.06 0L22 7"/></svg>Contact Me</a></div></div></div>
 
 <!-- ══ LIVE STATS BAR ══ -->
 <div class="hero-stats-bar" id="heroStatsBar">
@@ -5106,7 +5155,7 @@ header::after {
       <p class="pblog-card-title">Building Live Engineering Telemetry Into This Portfolio</p>
       <div class="pblog-bar-track"><div class="pblog-bar-fill" data-fill="100"></div></div>
       <div class="pblog-hint">tap to read ↓</div>
-      <p class="pblog-card-desc">The "Recently Shipped" section above isn't a static timeline — it calls GitHub's REST and GraphQL APIs live, computes real commit streaks and CI pass rates, and snapshots language drift to Firestore once a day so the trend line is real history, not a guess.</p>
+      <p class="pblog-card-desc">The "Recently Shipped" section below isn't a static timeline — it calls GitHub's REST and GraphQL APIs live, computes real commit streaks and CI pass rates, and snapshots language drift to Firestore once a day so the trend line is real history, not a guess.</p>
     </div>
 
     <div class="pblog-card" onclick="toggleBlogCard(this)">
@@ -5133,7 +5182,7 @@ header::after {
       <p class="pblog-card-title">Why I Ditched Exact-Version Dependency Matching</p>
       <div class="pblog-bar-track"><div class="pblog-bar-fill" data-fill="100"></div></div>
       <div class="pblog-hint">tap to read ↓</div>
-      <p class="pblog-card-desc">My first pass at the Dependency Freshness score above flagged anything that wasn't npm's literal newest release — so a healthy project one patch behind looked neglected. Switched to comparing major versions instead: React 17 vs 18 is a real gap, 18.2 vs 18.3 isn't.</p>
+      <p class="pblog-card-desc">My first pass at the Dependency Freshness score (part of the "Recently Shipped" panel below) flagged anything that wasn't npm's literal newest release — so a healthy project one patch behind looked neglected. Switched to comparing major versions instead: React 17 vs 18 is a real gap, 18.2 vs 18.3 isn't.</p>
     </div>
 
     <div class="pblog-card" onclick="toggleBlogCard(this)">
