@@ -8546,7 +8546,7 @@ document.addEventListener('keydown', function(e) {
   position: relative;
   border-radius: 18px;
   cursor: pointer;
-  height: 170px;
+  height: 210px;
   perspective: 1200px;
   outline: none;
   -webkit-tap-highlight-color: transparent;
@@ -8710,12 +8710,12 @@ document.addEventListener('keydown', function(e) {
 
 /* ── responsive ── */
 @media (max-width: 700px) {
-  .syb-card  { height: 170px; }
+  .syb-card  { height: 210px; }
   .syb-price { font-size: 1.35rem; }
   .syb-name  { font-size: 0.76rem; }
 }
 @media (max-width: 400px) {
-  .syb-card  { height: 165px; }
+  .syb-card  { height: 220px; }
   .syb-name  { font-size: 0.72rem; }
   .syb-feats li { font-size: 0.57rem; }
 }
@@ -9790,6 +9790,39 @@ document.addEventListener('keydown', function(e) {
 <script>
 (function(){
   var sybCards = document.querySelectorAll('.syb-card');
+
+  /* Same fix as the What I Offer cards above: size each card to fit its
+     own content instead of a fixed 165/170px guess. Front/back must stay
+     position:absolute for the 3D flip to work, so neither naturally grows
+     the card — whichever face had more content than the fixed guess (here
+     it only shows up at narrower widths, where longer service names like
+     "Node.js / PHP / Firebase" wrap to more lines) got silently clipped. */
+  function sybMeasureNaturalHeight(el){
+    if (!el) return 0;
+    var prevPosition = el.style.position;
+    var prevHeight = el.style.height;
+    el.style.position = 'static';
+    el.style.height = 'auto';
+    var h = el.scrollHeight;
+    el.style.position = prevPosition;
+    el.style.height = prevHeight;
+    return h;
+  }
+  function sybSizeCard(card){
+    var front = card.querySelector('.syb-front');
+    var back = card.querySelector('.syb-back');
+    var frontH = sybMeasureNaturalHeight(front);
+    var backH = sybMeasureNaturalHeight(back);
+    var needed = Math.max(frontH, backH, 165) + 4;
+    card.style.height = needed + 'px';
+  }
+  function sybSizeAllCards(){ sybCards.forEach(sybSizeCard); }
+  sybSizeAllCards();
+  var sybResizeTimer;
+  window.addEventListener('resize', function(){
+    clearTimeout(sybResizeTimer);
+    sybResizeTimer = setTimeout(sybSizeAllCards, 150);
+  }, { passive: true });
 
   // stagger entrance
   sybCards.forEach(function(c, i){
