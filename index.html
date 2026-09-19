@@ -2265,44 +2265,8 @@ body.hacker-mode::before {
 <!-- ===== SEO AUGMENTATION (NON‑VISUAL) — robots & schema consolidated in <head> ===== -->
 <!-- Consolidated schema moved to head — no duplicate blocks -->
 <!-- ===== END SEO AUGMENTATION ===== -->
-<style>
-.clock-tooltip-container {
-  position: relative;
-  display: inline-block;
-}
-.clock-tooltip {
-  visibility: hidden;
-  width: max-content;
-  background-color: rgba(0, 255, 255, 0.15);
-  color: #00ffff;
-  text-align: center;
-  padding: 3px 6px;
-  border-radius: 4px;
-  position: absolute;
-  z-index: 1;
-  bottom: 125%; /* Position above clock */
-  left: 50%;
-  transform: translateX(-50%);
-  opacity: 0;
-  transition: opacity 0.3s;
-  font-size: 0.7rem;
-  white-space: nowrap;
-}
-.clock-tooltip-container:hover .clock-tooltip {
-  visibility: visible;
-  opacity: 1;
-}
-.clock-tooltip::after {
-  content: "";
-  position: absolute;
-  top: 100%; /* Arrow below tooltip */
-  left: 50%;
-  transform: translateX(-50%);
-  border-width: 5px;
-  border-style: solid;
-  border-color: rgba(0, 255, 255, 0.15) transparent transparent transparent;
-}
-</style>
+<!-- Dead clock-tooltip CSS removed (2026 cleanup): styled a hidden legacy
+     footer clock/tooltip pair that's covered further down. -->
 <style>
 .global-xp-bar { width: 100%; height: 6px; background: rgba(0,255,255,0.15); border-radius: 3px; overflow: hidden; margin: 8px 0 20px 0; position: relative; }
 .global-xp-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #00ffff, #00ccff); box-shadow: 0 0 6px #00ffff; transition: width 0.4s ease; }
@@ -16696,9 +16660,8 @@ function sendMail(e) { if(e) e.preventDefault(); ctSendMail(); }
   text-transform: uppercase;
 }
 
-/* hidden legacy clock (JS still writes to it — keep in DOM) */
-#footer-clock { display: none; }
-.clock-tooltip-container { display: none; }
+/* legacy #footer-clock / .clock-tooltip-container rules removed —
+   those elements no longer exist (see cleanup note above) */
 </style>
 
 <div id="shz-footer-inner">
@@ -16733,11 +16696,13 @@ function sendMail(e) { if(e) e.preventDefault(); ctSendMail(); }
 
   </div>
 
-  <!-- Legacy clock element kept for existing JS compatibility -->
-  <span class="clock-tooltip-container no-select" style="display:none">
-    <div class="no-select" id="footer-clock"></div>
-    <span class="clock-tooltip no-select" id="last-updated-tooltip"></span>
-  </span>
+  <!-- Legacy hidden footer-clock + last-updated-tooltip elements removed
+       (2026 cleanup): both were display:none three layers deep (class,
+       ID, and inline style) and nothing anywhere read their content —
+       purely write-only. Their two setInterval loops (updateFooterClock
+       running every second, forever) were pure wasted work for something
+       no visitor could ever see. The real, visible footer clock above
+       (#shz-pro-clock) is unaffected. -->
 </div><!-- /shz-footer-inner -->
 
 <style>
@@ -16927,20 +16892,11 @@ function suraiyaFinalEffect() {
   }
 }
 
-function waitForFinaleAnchor(retries=600){
-  const id = "suraiya-finale-anchor";
-  const iv = setInterval(()=>{
-    const el = document.getElementById(id);
-    if (el){
-      clearInterval(iv);
-      setTimeout(suraiyaFinalEffect, 400);
-    } else if (--retries <= 0){
-      clearInterval(iv);
-      // Fallback in case anchor never renders
-      setTimeout(suraiyaFinalEffect, 1500);
-    }
-  }, 200);
-}
+/* waitForFinaleAnchor() removed (2026 cleanup) — was polling for
+   #suraiya-finale-anchor, which never exists anywhere in the DOM, so it
+   always burned its full 600-retry/200ms budget (up to 2 real minutes)
+   before falling back anyway. suraiyaFinalEffect() is now called
+   directly with a short fixed delay instead — see the call site above. */
 </script>
 </div>
 <!-- /Retro Hacker Mode Terminal -->
@@ -17226,7 +17182,14 @@ case "suraiya":
     "",
     "— End of log —"
   ], 40, function(){ });
-  waitForFinaleAnchor();
+  /* suraiya-finale-anchor never exists anywhere on the page — the old
+     waitForFinaleAnchor() polling (600 retries × 200ms = up to 2 real
+     minutes) always ran its full course before falling back anyway,
+     since suraiyaFinalEffect() below doesn't actually use the anchor for
+     anything. Calling it directly on the same 400ms delay the "anchor
+     found" success path used, instead of leaving anyone who finds this
+     easter egg waiting two full minutes for it to fire. */
+  setTimeout(suraiyaFinalEffect, 400);
   break;
 
         
@@ -18391,45 +18354,20 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('resize', initMatrix, {passive: true});
   }
 
-  // 6. Footer console in hacker mode
-  const footerConsole = document.createElement('div');
-  footerConsole.id = 'footer-console';
-  footerConsole.innerHTML = ""; // old footer console removed
-  // footer.appendChild(footerConsole); // old footer console container not appended
-
-  const log = null; const input = null; // old console elements removed
-
-  const fakeCommands = {
-    help: 'Available commands: help, about, hack, clear',
-    about: 'This is a hidden hacker mode console for fun!',
-    hack: 'Initializing hack... [ACCESS GRANTED]',
-    clear: ''
-  };
-
-  /* old footer console keydown handler removed */
+  /* Dead "footer console" scaffolding removed (2026 cleanup) — this was
+     the tail end of an already-half-finished cleanup: the div it created
+     was never appended to the DOM (the .appendChild call was already
+     commented out), log/input were already hardcoded to null, and
+     fakeCommands was a separate, much smaller command set than the real
+     hacker terminal (which has reboot, selfdestruct, earthquake, etc.) —
+     entirely disconnected from anything a visitor could ever trigger. */
 });
 </script>
-<script>
-function updateFooterClock() {
-  const now = new Date();
-  const time = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-  const date = now.toLocaleDateString([], {year: 'numeric', month: 'short', day: 'numeric'});
-  document.getElementById('footer-clock').textContent = `🕒 ${time} · ${date}`;
-}
-setInterval(updateFooterClock, 1000);
-updateFooterClock();
-</script>
-<script>
-(function setLastUpdatedTooltip(){
-  var el = document.getElementById('last-updated-tooltip');
-  if (!el) return;
-  var mod = new Date(document.lastModified);
-  var d = isNaN(mod) ? new Date() : mod;
-  var time = d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-  var date = d.toLocaleDateString([], {year:'numeric', month:'short', day:'numeric'});
-  el.textContent = 'Last updated: ' + date + ' · ' + time;
-})();
-</script>
+<!-- updateFooterClock() and setLastUpdatedTooltip() removed (2026
+     cleanup) along with the hidden elements they targeted above —
+     removing the elements without removing these would have made
+     updateFooterClock() throw "Cannot read properties of null" every
+     single second, forever. Both go together. -->
 <script>
 </script>
 <script>
