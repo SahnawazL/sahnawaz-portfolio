@@ -696,6 +696,44 @@ img {
   border-bottom: 1px solid rgba(140, 220, 255, 0.11);
 }
 
+/* ══ BATCH 1: window states ══ */
+#codePopup.cp-minimised {
+  height: auto !important;
+  min-height: 0 !important;
+  resize: none !important;
+  cursor: pointer;
+}
+#codePopup.cp-minimised #codePopup-titlebar {
+  border-bottom: none;
+  border-radius: 12px;
+}
+#codePopup.cp-maximised {
+  left: 3vw !important;
+  right: 3vw !important;
+  bottom: 3vh !important;
+  width: auto !important;
+  max-width: none !important;
+  height: 76vh !important;
+  max-height: 76vh !important;
+  z-index: 10050 !important;
+}
+#codePopup.cp-maximised #codePopup-body {
+  max-height: calc(76vh - 92px) !important;
+  height: calc(76vh - 92px) !important;
+}
+/* on phones a "maximised" window should just be the whole screen */
+@media (max-width: 560px){
+  #codePopup.cp-maximised {
+    left: 2vw !important; right: 2vw !important;
+    bottom: 2vh !important; height: 82vh !important; max-height: 82vh !important;
+  }
+  #codePopup.cp-maximised #codePopup-body {
+    max-height: calc(82vh - 92px) !important;
+    height: calc(82vh - 92px) !important;
+  }
+}
+#codePopup { transition: height .22s ease, width .22s ease; }
+
 /* ── Traffic light dots ── */
 #codePopup-dots {
   display: flex;
@@ -16939,8 +16977,9 @@ body.hacker-mode #retro-terminal { display:block; }
 }
 #retro-terminal .hidden { display:none; }
 #retro-terminal canvas.matrix {
-  width:100%; height:160px; display:block;
+  width:100%; height:190px; display:block;
   background: rgba(0,20,12,0.95); border:1px solid #004b3f; margin:6px 0;
+  touch-action:manipulation;   /* taps register immediately on mobile */
 }
 @supports (-webkit-touch-callout: none) { #retro-terminal #in { font-size:16px; } }
 
@@ -17363,54 +17402,87 @@ function suraiyaFinalEffect() {
   /* Interactive glyph rain. Most glyphs are decoration, but a few fall
      GOLD and are catchable. Catching three yields the access key for the
      `connect` chain — so `matrix` is a puzzle path, not a screensaver. */
+  /* Interactive glyph rain.
+     Timing notes: the canvas is only ~13 rows tall, so advancing one row
+     per animation frame crossed it in 0.2s and read as static noise. The
+     loop is now throttled to ~24fps with a fractional descent, so a column
+     takes ~1.2s to fall and actually looks like rain. Gold glyphs fall
+     slower still, with a generous hitbox, so they are tappable on a phone. */
   function matrixAnim(done){
+    const cssH=190;
     const cv=document.createElement('canvas');
     cv.className='matrix';
-    cv.width=Math.max(160,out.clientWidth-20); cv.height=170;
-    cv.style.cursor='crosshair';
-    out.appendChild(cv);
+    out.appendChild(cv);                       /* append first, then measure */
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    const cssW=Math.max(160,cv.clientWidth||out.clientWidth-20);
+    cv.width=Math.floor(cssW*dpr);
+    cv.height=Math.floor(cssH*dpr);
     const ctx=cv.getContext('2d');
+    ctx.scale(dpr,dpr);                        /* draw in CSS pixels, sharply */
+    cv.style.cursor='crosshair';
+
     const glyphs='アカサタナハマヤラワ0123456789ABCDEF!@#$%^&*';
-    const f=14, cols=Math.max(1,Math.floor(cv.width/f));
-    const drops=Array(cols).fill(1);
-    let raf, live=[], caught=0, ended=false;
+    const f=15, cols=Math.max(1,Math.floor(cssW/f));
+    const drops=[], speed=[];
+    for(let i=0;i<cols;i++){
+      drops[i]=Math.random()*-12;              /* stagger the start */
+      speed[i]=0.32+Math.random()*0.30;        /* rows per tick */
+    }
+    let raf=null, live=[], caught=0, ended=false, last=0;
+    const FPS=24, STEP=1000/FPS;
 
     function spawnGold(){
       if(ended) return;
-      if(live.length<2 && Math.random()>0.55){
+      if(live.length<2 && Math.random()>0.45){
         live.push({col:Math.floor(Math.random()*cols), y:0,
                    ch:glyphs[Math.floor(Math.random()*glyphs.length)]});
       }
-      setTimeout(spawnGold,520);
+      setTimeout(spawnGold,700);
     }
-    function draw(){
-      ctx.fillStyle='rgba(0,0,0,0.08)'; ctx.fillRect(0,0,cv.width,cv.height);
-      ctx.font=f+'px monospace'; ctx.fillStyle='#00ff88';
-      for(let i=0;i<drops.length;i++){
-        ctx.fillText(glyphs[Math.floor(Math.random()*glyphs.length)],i*f,drops[i]*f);
-        if(drops[i]*f>cv.height&&Math.random()>0.975) drops[i]=0;
-        drops[i]++;
+
+    function frame(ts){
+      raf=requestAnimationFrame(frame);
+      if(ended) return;
+      if(ts-last<STEP) return;                 /* throttle to ~24fps */
+      last=ts;
+
+      /* stronger fade than before, so trails read as trails */
+      ctx.fillStyle='rgba(0,16,10,0.16)';
+      ctx.fillRect(0,0,cssW,cssH);
+      ctx.font=f+'px monospace';
+      for(let i=0;i<cols;i++){
+        const y=drops[i]*f;
+        if(y>0){
+          ctx.fillStyle='#d8ffe8';             /* bright leading character */
+          ctx.fillText(glyphs[Math.floor(Math.random()*glyphs.length)],i*f,y);
+          ctx.fillStyle='#00c46a';             /* dimmer tail behind it */
+          ctx.fillText(glyphs[Math.floor(Math.random()*glyphs.length)],i*f,y-f);
+        }
+        drops[i]+=speed[i];
+        if(y>cssH+f && Math.random()>0.94) drops[i]=Math.random()*-6;
       }
+
       ctx.save();
-      ctx.shadowColor='#ffd24d'; ctx.shadowBlur=12; ctx.fillStyle='#ffd24d';
-      ctx.font='bold '+(f+3)+'px monospace';
+      ctx.shadowColor='#ffd24d'; ctx.shadowBlur=14; ctx.fillStyle='#ffd24d';
+      ctx.font='bold '+(f+7)+'px monospace';
       live=live.filter(g=>{
-        g.y+=1.5;
-        if(g.y>cv.height+10) return false;
+        g.y+=1.9;                              /* ~45px/s: catchable */
+        if(g.y>cssH+14) return false;
         ctx.fillText(g.ch,g.col*f,g.y);
         return true;
       });
       ctx.restore();
-      raf=requestAnimationFrame(draw);
     }
+
     function hit(ev){
       if(ended) return;
       const r=cv.getBoundingClientRect();
       const pt=(ev.touches&&ev.touches[0])||ev;
-      const mx=pt.clientX-r.left, my=pt.clientY-r.top;
+      const mx=(pt.clientX-r.left)*(cssW/r.width);
+      const my=(pt.clientY-r.top)*(cssH/r.height);
       for(let i=0;i<live.length;i++){
         const g=live[i];
-        if(Math.abs(mx-(g.col*f+f/2))<24 && Math.abs(my-(g.y-f/2))<24){
+        if(Math.abs(mx-(g.col*f+f/2))<34 && Math.abs(my-(g.y-f/2))<34){
           live.splice(i,1); caught++; hackerState.glyphsCaught=caught;
           _playOK();
           if(caught<3){
@@ -17428,15 +17500,21 @@ function suraiyaFinalEffect() {
     }
     cv.addEventListener('click',hit);
     cv.addEventListener('touchstart',hit,{passive:false});
-    spawnGold(); draw();
-    tdefer(7000,()=>{
-      ended=true; live=[]; cancelAnimationFrame(raf);
+
+    printRaw('<span style="color:#ffd24d">Tap the GOLD glyphs — catch 3 '+
+             'to earn the access key.</span>');
+    spawnGold();
+    raf=requestAnimationFrame(frame);
+    tdefer(14000,()=>{                          /* 14s: time to actually play */
+      ended=true; live=[];
+      if(raf) cancelAnimationFrame(raf);
       typeLine(caught===0
-        ? 'Matrix ended. (Some glyphs fall gold — those can be caught.)'
+        ? 'Matrix ended. (The gold glyphs are tappable — try again.)'
         : 'Matrix ended. Glyphs caught: '+caught+'/3');
       if(done) done();
     });
   }
+
 
 
   /* ─── Data pools ────────────────────────────────────────────────── */
@@ -17507,6 +17585,7 @@ function suraiyaFinalEffect() {
     'git','npm','node','python3','vim','nano','exit','quit',
     'sudo','chmod','ssh','nmap','curl','neofetch',
     'ps','top','df','free','uname','uptime','exploit','crack','connect','vault',
+    'sahnawaz','shz','laskar','bytewithsahnawaz','alchemist',
   ];
 
   function tabComplete(partial){
@@ -18080,20 +18159,47 @@ function suraiyaFinalEffect() {
           _playErr(); break;
         }
         printSeq([
-          '╔══ VAULT ══╗','',
-          'This terminal is the portfolio piece.',
-          'Not a template, not a library. Hand-built:',
-          '  • a parsed shell over a virtual filesystem',
+          '╔═════════════════════════╗',
+          '   VAULT — ACCESS GRANTED',
+          '╚═════════════════════════╝',
+          '',
+          'Sahnawaz Ahmed Laskar — "The Digital Alchemist"',
+          'Full Stack Developer & UI/UX Designer',
+          'Silchar, Assam, India',
+          '',
+          '── WHAT I DO ──',
+          'Designing smart, modern interfaces with code and',
+          'creativity. Blending structure, storytelling and',
+          'seamless user journeys — focused on clarity,',
+          'responsiveness and impact.',
+          '',
+          '── DELIVERED FOR ──',
+          '  Flipkart  ·  Xiaomi India  ·  Rapido',
+          '',
+          '── STACK ──',
+          '  React.js · Node.js · Tailwind CSS',
+          '  HTML5 · CSS3 · JavaScript · Vite · PWA',
+          '',
+          '── BUILT ──',
+          '  YojanaSahay   React/Vite PWA — helps Indian',
+          '                citizens discover welfare schemes',
+          '  StudyLens AI  Groq + Gemini homework helper',
+          '                for students, KG–12',
+          '  This site     16k+ lines, hand-written,',
+          '                zero frameworks, zero templates',
+          '',
+          '── THIS TERMINAL ──',
+          'Not a library. Built from scratch:',
+          '  • parsed shell over a virtual filesystem',
           '  • stateful chains (scan → connect → vault)',
-          '  • an async output lock so nothing interleaves',
-          '  • a canvas puzzle with a second solution path','',
-          'Shipped products:',
-          '  YojanaSahay  — React/Vite PWA, govt welfare schemes',
-          '  StudyLens AI — Groq + Gemini helper, KG–12',
-          '  This site    — 16k+ lines, zero frameworks','',
-          'You found this by exploring, not by being told.',
-          'That is exactly how I debug. — SHZ','',
-          '╚══ type `social` or `website` ══╝'
+          '  • async output lock so nothing interleaves',
+          '  • interactive canvas puzzle, two solution paths',
+          '',
+          'You reached this by exploring, not by being told.',
+          'That is exactly how I build and debug.',
+          '',
+          '→ `website` or `social` to reach me.',
+          '──────────────────────────'
         ]);
         break;
       }
@@ -18261,6 +18367,26 @@ function suraiyaFinalEffect() {
       case 'suraiya':
         typeSeqSmart(["Unknown command: 'suraiya'.",'','No active record found.','This identifier has been archived due to irrelevance.','','Some stories fade from the system — intentionally.','Moving forward with cleaner code and clearer purpose.','','Autoclean: performative affection detected and purged.','System note: identity updated — operating as THE DIGITAL ALCHEMIST.','','— End of log —'],40,function(){});
         setTimeout(suraiyaFinalEffect,400);
+        break;
+
+      /* ── Owner identity (deliberately undocumented in `help`) ── */
+      case 'sahnawaz': case 'shz': case 'laskar':
+      case 'bytewithsahnawaz': case 'alchemist': case 'sahnawaz ahmed laskar':
+        printSeq([
+          '[ IDENTIFYING SYSTEM OWNER … ]',
+          '',
+          'root@shz — Sahnawaz Ahmed Laskar',
+          'alias   : The Digital Alchemist / ByteWithSahnawaz',
+          'role    : Full Stack Developer & UI/UX Designer',
+          'origin  : Silchar, Assam, India',
+          'worked  : Flipkart · Xiaomi India · Rapido',
+          'stack   : React · Node · Tailwind · Vite · PWA',
+          '',
+          'Every line of this site — including this terminal',
+          'you are typing into — was written by hand.',
+          '',
+          'You are a guest in a machine I built. Welcome. ✨'
+        ]);
         break;
 
       /* ── Family & relatives ── */
@@ -25339,6 +25465,75 @@ body.hacker-mode #hacker-toggle {
     if (window.MutationObserver) {
       new MutationObserver(syncLines).observe(tc, { childList: true, subtree: true, characterData: true });
     }
+
+    /* ══ BATCH 1: real window controls ══
+       The yellow and green dots previously had hover affordances
+       (− and +) but no listeners. Now they behave like a real window. */
+    var winState = 'normal';          /* normal | minimised | maximised */
+
+    function applyState(next){
+      var body = document.getElementById('codePopup-body');
+      var tabs = document.getElementById('codePopup-tabbar');
+      if(!body) return;
+      winState = next;
+      popup.classList.remove('cp-minimised','cp-maximised');
+      if(next==='minimised'){
+        popup.classList.add('cp-minimised');
+        body.style.display='none';
+        if(tabs) tabs.style.display='none';
+      } else if(next==='maximised'){
+        popup.classList.add('cp-maximised');
+        body.style.display='';
+        if(tabs) tabs.style.display='';
+      } else {
+        body.style.display='';
+        if(tabs) tabs.style.display='';
+      }
+      /* remember across the session */
+      try{ sessionStorage.setItem('cpWinState', next); }catch(e){}
+    }
+
+    var dotYellow = document.getElementById('codePopup-dot-yellow');
+    if(dotYellow) dotYellow.addEventListener('click', function(e){
+      e.stopPropagation();
+      applyState(winState==='minimised' ? 'normal' : 'minimised');
+    });
+
+    var dotGreen = document.getElementById('codePopup-dot-green');
+    if(dotGreen) dotGreen.addEventListener('click', function(e){
+      e.stopPropagation();
+      applyState(winState==='maximised' ? 'normal' : 'maximised');
+    });
+
+    /* Double-clicking the titlebar toggles maximise, like a real window */
+    var tbar = document.getElementById('codePopup-titlebar');
+    if(tbar) tbar.addEventListener('dblclick', function(e){
+      if(e.target.closest('#codePopup-dots')) return;
+      applyState(winState==='maximised' ? 'normal' : 'maximised');
+    });
+
+    /* Minimised titlebar click restores */
+    if(tbar) tbar.addEventListener('click', function(e){
+      if(winState==='minimised' && !e.target.closest('#codePopup-dots')
+         && e.target.id!=='codePopup-closex'){
+        applyState('normal');
+      }
+    });
+
+    /* Escape closes — expected of any modal-ish surface */
+    document.addEventListener('keydown', function(e){
+      if(e.key!=='Escape') return;
+      if(popup.style.display==='none'||!popup.style.display) return;
+      doClose();
+    });
+
+    /* restore last state when reopened */
+    try{
+      var saved = sessionStorage.getItem('cpWinState');
+      if(saved && saved!=='normal') applyState(saved);
+    }catch(e){}
+
+    window._cpSetWindowState = applyState;
 
     /* ── Tooltip on hover over laptop button ── */
     var codeBtn = document.getElementById('codeBtn');
