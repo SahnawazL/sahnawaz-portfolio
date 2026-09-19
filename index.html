@@ -696,6 +696,98 @@ img {
   border-bottom: 1px solid rgba(140, 220, 255, 0.11);
 }
 
+/* ══ BATCH 5: output panel ══ */
+#codePopup-output{
+  margin-top:12px;
+  border-top:1px solid rgba(100,180,255,0.16);
+  background:rgba(6,11,20,0.72);
+  border-radius:8px;
+  overflow:hidden;
+}
+#codePopup-output[hidden]{ display:none; }
+#codePopup-output-head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:6px 10px;
+  font-family:-apple-system,'SF Pro Text',sans-serif;
+  font-size:0.58rem; letter-spacing:1.4px;
+  color:rgba(150,195,225,0.72);
+  background:rgba(120,190,255,0.07);
+  border-bottom:1px solid rgba(100,180,255,0.1);
+}
+#codePopup-output-close{
+  background:transparent; border:none; cursor:pointer; padding:0;
+  width:18px; height:18px; border-radius:4px; line-height:1;
+  color:rgba(160,200,230,0.6); font-size:0.7rem;
+}
+#codePopup-output-close:hover{ color:#fff; background:rgba(255,255,255,0.1); }
+#codePopup-output-body{
+  margin:0; padding:9px 11px 11px;
+  font-family:'SF Mono','Fira Code','JetBrains Mono','Courier New',monospace;
+  font-size:0.66rem; line-height:1.55;
+  white-space:pre-wrap; word-break:break-word;
+  max-height:170px; overflow-y:auto;
+  color:#cfe3f2;
+}
+.cpo-ok{   color:#43d17a; }
+.cpo-err{  color:#ff6b6b; }
+.cpo-note{ color:#7fa8c9; }
+.cpo-val{  color:#9cdcfe; }
+.cpo-time{ color:#6b8199; font-style:italic; }
+#codePopup-run.cp-busy{ opacity:.55; pointer-events:none; }
+#codePopup-run{ color:rgba(120,230,160,0.8) !important; }
+#codePopup-run:hover{ color:#7dffb0 !important; background:rgba(80,220,140,0.15) !important; }
+@media (max-width:560px){
+  #codePopup-output-body{ font-size:0.7rem; max-height:150px; }
+}
+
+/* ══ BATCH 4: titlebar actions ══ */
+#codePopup-actions{
+  display:flex; align-items:center; gap:4px; flex-shrink:0;
+}
+#codePopup-actions button{
+  background:transparent; border:none; padding:0;
+  width:24px; height:24px; line-height:1;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:6px; cursor:pointer;
+  color:rgba(170,205,235,0.62);
+  font-size:0.86rem; font-family:inherit;
+  transition:color .16s ease, background .16s ease, transform .16s ease;
+}
+#codePopup-actions button:hover{
+  color:rgba(210,240,255,0.98);
+  background:rgba(120,200,255,0.13);
+}
+#codePopup-actions button:active{ transform:scale(0.9); }
+#codePopup-actions button.cp-ok{  color:#43d17a; background:rgba(67,209,122,0.16); }
+#codePopup-actions button.cp-err{ color:#ff6b6b; background:rgba(255,107,107,0.16); }
+#codePopup-replay.cp-spin{ animation:cpSpin .6s ease; }
+@keyframes cpSpin{ from{ transform:rotate(0); } to{ transform:rotate(-360deg); } }
+/* phones: bigger tap targets */
+@media (max-width:560px){
+  #codePopup-actions button{ width:30px; height:30px; font-size:0.95rem; }
+}
+@media (prefers-reduced-motion: reduce){
+  #codePopup-replay.cp-spin{ animation:none; }
+}
+
+/* ══ BATCH 2: drag affordances ══ */
+#codePopup-titlebar{
+  cursor: grab;
+  touch-action: none;          /* titlebar drags, page does not scroll */
+  -webkit-user-select: none;
+  user-select: none;
+}
+#codePopup-titlebar:active{ cursor: grabbing; }
+#codePopup.cp-dragging{
+  transition: none !important;  /* no lag while following the pointer */
+  cursor: grabbing;
+  box-shadow: 0 24px 60px rgba(0,0,0,.55), 0 0 0 1px rgba(120,210,255,.30) !important;
+}
+#codePopup.cp-dragging #codePopup-body{ pointer-events: none; }
+/* the controls keep their own cursor */
+#codePopup-dots span, #codePopup-closex{ cursor: pointer; }
+#codePopup.cp-maximised #codePopup-titlebar{ cursor: default; }
+
 /* ══ BATCH 1: window states ══ */
 #codePopup.cp-minimised {
   height: auto !important;
@@ -822,25 +914,37 @@ img {
   z-index: 2;
   padding: 0 12px;
 }
-#codePopup-tab {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px 6px 10px;
-  font-family: -apple-system, 'SF Pro Text', monospace;
-  font-size: 0.67rem;
-  color: rgba(200, 230, 255, 0.75);
-  border-top: 2px solid #00bfff;
-  background: rgba(14, 22, 38, 0.85);
-  border-right: 1px solid rgba(100,180,255,0.1);
-  letter-spacing: 0.2px;
-  margin-top: 1px;
+/* ══ BATCH 3: real tabs ══ */
+#codePopup-tabbar{ overflow-x:auto; scrollbar-width:none; }
+#codePopup-tabbar::-webkit-scrollbar{ display:none; }
+.cp-tab{
+  display:flex; align-items:center; gap:6px;
+  padding:6px 13px 6px 10px;
+  font-family:-apple-system,'SF Pro Text',monospace;
+  font-size:0.67rem;
+  color:rgba(170,200,225,0.55);
+  border-top:2px solid transparent;
+  background:rgba(10,16,28,0.4);
+  border-right:1px solid rgba(100,180,255,0.1);
+  letter-spacing:0.2px; margin-top:1px;
+  cursor:pointer; white-space:nowrap; flex-shrink:0;
+  transition:color .18s ease, background .18s ease, border-color .18s ease;
+  -webkit-user-select:none; user-select:none;
 }
-#codePopup-tab .tab-icon { font-size: 0.75rem; }
-#codePopup-tab .tab-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: rgba(0,200,255,0.55);
-  flex-shrink: 0;
+.cp-tab:hover{ color:rgba(210,235,255,0.85); background:rgba(14,22,38,0.7); }
+.cp-tab.is-active{
+  color:rgba(200,230,255,0.95);
+  border-top-color:#00bfff;
+  background:rgba(14,22,38,0.92);
+}
+.cp-tab .tab-icon{ font-size:0.72rem; }
+.cp-tab .tab-dot{
+  width:6px; height:6px; border-radius:50%;
+  background:rgba(0,200,255,0.55); flex-shrink:0;
+}
+/* comfortable tap targets on phones */
+@media (max-width:560px){
+  .cp-tab{ padding:9px 13px; font-size:0.7rem; }
 }
 
 /* ── Code body ── */
@@ -17584,7 +17688,7 @@ function suraiyaFinalEffect() {
     'echo','env','history','alias','which','man',
     'git','npm','node','python3','vim','nano','exit','quit',
     'sudo','chmod','ssh','nmap','curl','neofetch',
-    'ps','top','df','free','uname','uptime','exploit','crack','connect','vault',
+    'ps','top','df','free','uname','uptime','exploit','crack','connect','vault','code','vscode','editor',
     'sahnawaz','shz','laskar','bytewithsahnawaz','alchemist',
   ];
 
@@ -18122,6 +18226,33 @@ function suraiyaFinalEffect() {
         hackerState.secretUnlocked=true;
         hackerState.scanDone=false;
         break;
+
+      case 'code': case 'vscode': case 'editor':{
+        var wanted = (args[0]||'').toLowerCase();
+        var known  = (window._cpFileNames||['portfolio.js','about.json','session.js','contact.sh']);
+        if(typeof window._openCodePopup !== 'function'){
+          printLine('code: editor module not loaded.');
+          _playErr(); break;
+        }
+        window._openCodePopup();
+        if(wanted){
+          var match = known.filter(function(f){
+            return f.toLowerCase().indexOf(wanted) === 0;
+          })[0];
+          if(match && window._cpOpenFile){
+            window._cpOpenFile(match);
+            printLine('Opened ' + match + ' in the editor.');
+          } else {
+            printLine("code: no such file '" + wanted + "'");
+            printLine('  available: ' + known.join(' \u00b7 '));
+          }
+        } else {
+          printLine('Editor opened. \u25b6 runs the file, \u29c9 copies it.');
+          printLine('  files: ' + known.join(' \u00b7 '));
+          printLine('  tip: `code session.js` shows live data about your visit.');
+        }
+        break;
+      }
 
       case 'connect':{
         if(!hackerState.scanDone && !hackerState.vaultOpen){
@@ -18667,10 +18798,71 @@ function suraiyaFinalEffect() {
     [ {text:'// \u2728 Open to freelance & full-time roles',color:'#6a9955'} ],
   ];
 
+  /* ══ BATCH 3: multiple files ══
+     Same {text,color} segment shape as LINES, so one renderer serves all. */
+  var C = { com:'#6a9955', key:'#569cd6', prop:'#9cdcfe', str:'#ce9178',
+            fn:'#dcdcaa', plain:'#d4d4d4', num:'#b5cea8' };
+
+  var FILES = {
+    'portfolio.js': LINES,
+
+    'about.json': [
+      [ {text:'{',color:C.plain} ],
+      [ {text:'  "name"',color:C.prop}, {text:': ',color:C.plain}, {text:'"Sahnawaz Ahmed Laskar"',color:C.str}, {text:',',color:C.plain} ],
+      [ {text:'  "alias"',color:C.prop}, {text:': ',color:C.plain}, {text:'"The Digital Alchemist"',color:C.str}, {text:',',color:C.plain} ],
+      [ {text:'  "role"',color:C.prop}, {text:': ',color:C.plain}, {text:'"Full Stack Developer & UI/UX Designer"',color:C.str}, {text:',',color:C.plain} ],
+      [ {text:'  "location"',color:C.prop}, {text:': ',color:C.plain}, {text:'"Silchar, Assam, India"',color:C.str}, {text:',',color:C.plain} ],
+      [ {text:'  "worked_with"',color:C.prop}, {text:': ',color:C.plain}, {text:'["Flipkart", "Xiaomi India", "Rapido"]',color:C.str}, {text:',',color:C.plain} ],
+      [ {text:'  "focus"',color:C.prop}, {text:': ',color:C.plain}, {text:'["clarity", "responsiveness", "impact"]',color:C.str}, {text:',',color:C.plain} ],
+      [ {text:'  "open_to"',color:C.prop}, {text:': ',color:C.plain}, {text:'"freelance & full-time"',color:C.str} ],
+      [ {text:'}',color:C.plain} ]
+    ],
+
+    'session.js': [
+      [ {text:'// live telemetry \u2014 read at the moment you opened this',color:C.com} ],
+      [ {text:'// nothing below is hard-coded. press \u25b6 to execute.',color:C.com} ],
+      [],
+      [ {text:'const ',color:C.key}, {text:'session',color:C.plain}, {text:' = {',color:C.plain} ],
+      [ {text:'  date',color:C.prop},      {text:':      ',color:C.plain}, {text:'@@DATE@@',color:C.str},    {text:',',color:C.plain} ],
+      [ {text:'  time',color:C.prop},      {text:':      ',color:C.plain}, {text:'@@TIME@@',color:C.str},    {text:',',color:C.plain} ],
+      [ {text:'  timeZone',color:C.prop},  {text:':  ',color:C.plain},     {text:'@@TZ@@',color:C.str},      {text:',',color:C.plain} ],
+      [ {text:'  battery',color:C.prop},   {text:':   ',color:C.plain},    {text:'@@BATT@@',color:C.str},    {text:',',color:C.plain} ],
+      [ {text:'  network',color:C.prop},   {text:':   ',color:C.plain},    {text:'@@NET@@',color:C.str},     {text:',',color:C.plain} ],
+      [ {text:'  browser',color:C.prop},   {text:':   ',color:C.plain},    {text:'@@BROWSER@@',color:C.str}, {text:',',color:C.plain} ],
+      [ {text:'  os',color:C.prop},        {text:':        ',color:C.plain},{text:'@@OS@@',color:C.str},     {text:',',color:C.plain} ],
+      [ {text:'  screen',color:C.prop},    {text:':    ',color:C.plain},   {text:'@@SCREEN@@',color:C.str},  {text:',',color:C.plain} ],
+      [ {text:'  viewport',color:C.prop},  {text:':  ',color:C.plain},     {text:'@@VIEW@@',color:C.str},    {text:',',color:C.plain} ],
+      [ {text:'  cpuCores',color:C.prop},  {text:':  ',color:C.plain},     {text:'@@CORES@@',color:C.num},   {text:',',color:C.plain} ],
+      [ {text:'  memoryGB',color:C.prop},  {text:':  ',color:C.plain},     {text:'@@MEM@@',color:C.num},     {text:',',color:C.plain} ],
+      [ {text:'  touch',color:C.prop},     {text:':     ',color:C.plain},  {text:'@@TOUCH@@',color:C.num},   {text:',',color:C.plain} ],
+      [ {text:'  language',color:C.prop},  {text:':  ',color:C.plain},     {text:'@@LANG@@',color:C.str},    {text:',',color:C.plain} ],
+      [ {text:'  theme',color:C.prop},     {text:':     ',color:C.plain},  {text:'@@THEME@@',color:C.str},   {text:',',color:C.plain} ],
+      [ {text:'  online',color:C.prop},    {text:':    ',color:C.plain},   {text:'@@ONLINE@@',color:C.num},  {text:',',color:C.plain} ],
+      [ {text:'  onPage',color:C.prop},    {text:':    ',color:C.plain},   {text:'@@DWELL@@',color:C.str} ],
+      [ {text:'};',color:C.plain} ],
+      [],
+      [ {text:'// fields marked "unavailable" are not supported by',color:C.com} ],
+      [ {text:'// your browser \u2014 shown honestly, never guessed.',color:C.com} ]
+    ],
+
+    'contact.sh': [
+      [ {text:'#!/bin/bash',color:C.com} ],
+      [ {text:'# reach the developer',color:C.com} ],
+      [],
+      [ {text:'SITE',color:C.prop}, {text:'=',color:C.plain}, {text:'"sahnawaz-portfolio.vercel.app"',color:C.str} ],
+      [ {text:'IG',color:C.prop},   {text:'=',color:C.plain}, {text:'"@sahnawaz.ui.dev"',color:C.str} ],
+      [],
+      [ {text:'echo ',color:C.fn}, {text:'"Available for freelance & full-time."',color:C.str} ],
+      [ {text:'open ',color:C.fn}, {text:'"$SITE"',color:C.str} ],
+      [],
+      [ {text:'# psst: the terminal below has a vault \ud83d\udd10',color:C.com} ]
+    ]
+  };
+
   /* ── Build a flat sequence of {ch, color} atoms ── */
-  function buildSeq() {
+  function buildSeq(lines) {
     var seq = [];
-    LINES.forEach(function(segments, li) {
+    (lines || LINES).forEach(function(segments, li) {
       if (li > 0) seq.push({ch:'\n', color:''});
       segments.forEach(function(seg) {
         for (var k = 0; k < seg.text.length; k++) {
@@ -18693,17 +18885,59 @@ function suraiyaFinalEffect() {
   }
 
   /* ── Audio ── */
-  var _aud = null;
+  /* ══ BATCH 4: audio with a synthesized fallback ══
+     typing.mp3 stays the preferred voice, but a missing or blocked file
+     used to mean silence. A shared Web Audio context now covers that,
+     matching how the terminal already makes its sounds — one context
+     reused for every keystroke, never one per character. */
+  var _aud = null, _mp3ok = false, _actx = null, _muted = false;
+
   function initAudio() {
     if (_aud) return;
-    _aud = new Audio('typing.mp3');
-    _aud.volume = 0.45;
-    window._codePopupAudio = _aud;
+    try {
+      _aud = new Audio('typing.mp3');
+      _aud.volume = 0.45;
+      _aud.addEventListener('canplaythrough', function(){ _mp3ok = true; });
+      _aud.addEventListener('error', function(){ _mp3ok = false; });
+      _aud.load();
+      window._codePopupAudio = _aud;
+    } catch(e) { _aud = null; }
   }
+
+  function _ctx(){
+    if(_actx) return _actx;
+    try { _actx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch(e) { _actx = null; }
+    return _actx;
+  }
+
+  /* short, dry keyswitch click — cheap enough to fire per character */
+  function _synthKey(){
+    var c = _ctx();
+    if(!c) return;
+    try{
+      var t = c.currentTime;
+      var o = c.createOscillator(), g = c.createGain();
+      o.type = 'square';
+      o.frequency.setValueAtTime(1600 + Math.random()*900, t);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.045, t + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
+      o.connect(g); g.connect(c.destination);
+      o.start(t); o.stop(t + 0.04);
+    }catch(e){}
+  }
+
   function tick(ch) {
-    if (!_aud || ch==='\n' || ch===' ') return;
-    try { _aud.currentTime = 0; var p = _aud.play(); if(p&&p.catch) p.catch(function(){}); } catch(e){}
+    if (_muted || ch === '\n' || ch === ' ') return;
+    if (_mp3ok && _aud) {
+      try { _aud.currentTime = 0; var p = _aud.play(); if(p && p.catch) p.catch(function(){}); return; }
+      catch(e) { /* fall through to synth */ }
+    }
+    _synthKey();
   }
+
+  window._cpToggleMute = function(){ _muted = !_muted; return _muted; };
 
   /* ── Timer registry ── */
   window._codeTypingTimers = [];
@@ -18727,9 +18961,9 @@ function suraiyaFinalEffect() {
   }
 
   /* ── Main runner ── */
-  function runTyping(container) {
+  function runTyping(container, fileName) {
     initAudio();
-    var seq = buildSeq();
+    var seq = buildSeq(resolvedLines(fileName));
     var i   = 0;
 
     /* Create cursor once, append to container — text inserts before it */
@@ -18748,7 +18982,8 @@ function suraiyaFinalEffect() {
           sched(function() {
             if (cursor.parentNode) cursor.parentNode.removeChild(cursor);
           }, 520);
-          sessionStorage.setItem('codeTyped', 'true');
+          try{ sessionStorage.setItem('codeTyped','true');
+                sessionStorage.setItem('cpTyped:'+(window._cpActiveFile||'portfolio.js'),'1'); }catch(e){}
           window._codeTypingTimers = [];
           try { _aud.pause(); _aud.currentTime = 0; } catch(e){}
         }, 700);
@@ -18787,7 +19022,7 @@ function suraiyaFinalEffect() {
       window._codeTypingTimers.forEach(clearTimeout);
       window._codeTypingTimers = [];
     }
-    sched(function(){ runTyping(tc); }, 340);
+    sched(function(){ runTyping(tc, window._cpActiveFile || 'portfolio.js'); }, 340);
   }
 
   /* ── Synthesized techy click for #codeBtn — no mp3 dependency.
@@ -18825,6 +19060,321 @@ function suraiyaFinalEffect() {
       openPopup();               /* then open popup */
     });
   });
+
+  /* ══ BATCH 3: switch the open file ══
+     Retypes on first view of a file; instant re-render afterwards so
+     tab switching stays snappy once a file has been seen. */
+  window._cpActiveFile = 'portfolio.js';
+  window._cpFileNames  = Object.keys(FILES);
+
+  window._cpOpenFile = function(name){
+    var tc = document.getElementById('typedContent');
+    if(!tc || !FILES[name]) return;
+    window._cpActiveFile = name;
+
+    /* cancel anything mid-type */
+    if(window._codeTypingTimers){
+      window._codeTypingTimers.forEach(clearTimeout);
+      window._codeTypingTimers = [];
+    }
+    try{ if(_aud){ _aud.pause(); _aud.currentTime = 0; } }catch(e){}
+    tc.innerHTML = '';
+
+    var seen = false;
+    try{ seen = sessionStorage.getItem('cpTyped:'+name) === '1'; }catch(e){}
+    if(name === 'session.js') seen = false;   /* live data is never cached */
+
+    if(seen){
+      /* render instantly, no animation */
+      var lines = resolvedLines(name);
+      lines.forEach(function(segs, li){
+        if(li > 0) tc.appendChild(document.createTextNode('\n'));
+        segs.forEach(function(s){
+          var sp = document.createElement('span');
+          sp.style.color = s.color;
+          sp.textContent = s.text;
+          tc.appendChild(sp);
+        });
+      });
+    } else {
+      sched(function(){ runTyping(tc, name); }, 120);
+    }
+
+    /* keep the window title honest */
+    var t = document.getElementById('codePopup-title');
+    if(t) t.innerHTML = name + ' &mdash; Visual Studio Code';
+    return true;
+  };
+
+  /* ══ BATCH 4: plain text + replay ══ */
+  /* ══ BATCH 5: live values ══
+     session.js carries @@TOKENS@@ that are replaced with real readings
+     the moment the file is rendered, so the snippet is generated, not
+     canned. _cpStart is set when the page loads. */
+  var _cpStart = Date.now();
+
+  /* Battery is asynchronous AND Chromium-only — Firefox and Safari
+     removed it. We subscribe once at load and cache the readings, so
+     token resolution stays synchronous. Unsupported browsers report
+     "unavailable" rather than a fabricated number. */
+  var _batt = { supported:false, level:null, charging:null, ready:false };
+  (function initBattery(){
+    if(!navigator.getBattery){ _batt.ready = true; return; }
+    try{
+      navigator.getBattery().then(function(b){
+        _batt.supported = true; _batt.ready = true;
+        function read(){ _batt.level = b.level; _batt.charging = b.charging; }
+        read();
+        b.addEventListener('levelchange', read);
+        b.addEventListener('chargingchange', read);
+      }).catch(function(){ _batt.ready = true; });
+    }catch(e){ _batt.ready = true; }
+  })();
+
+  function _q(v){ return '"' + v + '"'; }
+
+  function _liveVals(){
+    var ua = navigator.userAgent;
+
+    /* browser: order matters — Edge and Opera both contain "Chrome" */
+    /* Each brand's version must come from ITS OWN token. A generic
+       alternation matches whichever appears first, and Chromium-based
+       browsers all carry "Chrome/<ver>" earlier in the string — which
+       made Opera report Chrome's version instead of its own. */
+    var brands = [
+      ['Edge',             /Edg\//,             /Edg\/(\d+)/],
+      ['Opera',            /OPR\//,             /OPR\/(\d+)/],
+      ['Samsung Internet', /SamsungBrowser\//,  /SamsungBrowser\/(\d+)/],
+      ['Firefox',          /Firefox\//,         /Firefox\/(\d+)/],
+      ['Chrome',           /Chrome\//,          /Chrome\/(\d+)/],
+      ['Safari',           /Safari\//,          /Version\/(\d+)/]
+    ];
+    var br = 'Unknown';
+    for(var bi = 0; bi < brands.length; bi++){
+      if(!brands[bi][1].test(ua)) continue;
+      br = brands[bi][0];
+      var vm = ua.match(brands[bi][2]);
+      if(vm) br += ' ' + vm[1];
+      break;
+    }
+
+    /* OS: check iOS/iPadOS before macOS — iPadOS reports as Macintosh */
+    var os = 'Unknown';
+    if(/Android/.test(ua)){
+      os = 'Android';
+      var am = ua.match(/Android\s+([\d.]+)/); if(am) os += ' ' + am[1];
+    } else if(/iPhone|iPad|iPod/.test(ua) ||
+              (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)){
+      os = /iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)
+           ? 'iPadOS' : 'iOS';
+      var im = ua.match(/OS\s+(\d+[_\d]*)/); if(im) os += ' ' + im[1].replace(/_/g, '.');
+    }
+    else if(/Windows NT 10/.test(ua))  os = 'Windows 10/11';
+    else if(/Windows/.test(ua))        os = 'Windows';
+    else if(/Mac OS X/.test(ua))       os = 'macOS';
+    else if(/CrOS/.test(ua))           os = 'ChromeOS';
+    else if(/Linux/.test(ua))          os = 'Linux';
+
+    /* battery */
+    var batt;
+    if(!_batt.supported || _batt.level === null){
+      batt = 'unavailable (browser blocks it)';
+    } else {
+      batt = Math.round(_batt.level * 100) + '%' +
+             (_batt.charging ? ' \u26a1 charging' : '');
+    }
+
+    /* network: Network Information API is Chromium-only */
+    var net = 'unavailable';
+    var ci = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    if(ci && ci.effectiveType){
+      net = ci.effectiveType;
+      if(typeof ci.downlink === 'number') net += ' \u00b7 ~' + ci.downlink + ' Mbps';
+      if(ci.saveData) net += ' \u00b7 data saver';
+    }
+
+    /* preferences */
+    var theme = 'unknown';
+    try{
+      if(window.matchMedia){
+        if(window.matchMedia('(prefers-color-scheme: dark)').matches) theme = 'dark';
+        else if(window.matchMedia('(prefers-color-scheme: light)').matches) theme = 'light';
+        if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+          theme += ' \u00b7 reduced motion';
+      }
+    }catch(e){}
+
+    var now  = new Date();
+    var secs = Math.max(0, Math.round((Date.now() - _cpStart) / 1000));
+    var dwell = secs < 60 ? secs + 's'
+              : secs < 3600 ? Math.floor(secs/60) + 'm ' + (secs%60) + 's'
+              : Math.floor(secs/3600) + 'h ' + Math.floor((secs%3600)/60) + 'm';
+
+    var tz = '';
+    try{ tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; }catch(e){}
+    var offMin = -now.getTimezoneOffset();
+    var offStr = (offMin >= 0 ? '+' : '-') +
+                 String(Math.floor(Math.abs(offMin)/60)).replace(/^(\d)$/,'0$1') + ':' +
+                 String(Math.abs(offMin)%60).replace(/^(\d)$/,'0$1');
+
+    var mem = (typeof navigator.deviceMemory === 'number')
+              ? navigator.deviceMemory : null;
+
+    return {
+      '@@DATE@@'   : _q(now.toLocaleDateString(undefined,
+                        {weekday:'long', year:'numeric', month:'long', day:'numeric'})),
+      '@@TIME@@'   : _q(now.toLocaleTimeString(undefined,
+                        {hour:'2-digit', minute:'2-digit', second:'2-digit'})),
+      '@@TZ@@'     : _q((tz || 'n/a') + ' (UTC' + offStr + ')'),
+      '@@BATT@@'   : _q(batt),
+      '@@NET@@'    : _q(net),
+      '@@BROWSER@@': _q(br),
+      '@@OS@@'     : _q(os),
+      '@@SCREEN@@' : _q(window.screen.width + '\u00d7' + window.screen.height +
+                        ' @' + (window.devicePixelRatio || 1) + 'x'),
+      '@@VIEW@@'   : _q(window.innerWidth + '\u00d7' + window.innerHeight),
+      '@@CORES@@'  : (navigator.hardwareConcurrency || 'null'),
+      '@@MEM@@'    : (mem === null ? 'null' : mem),
+      '@@TOUCH@@'  : (navigator.maxTouchPoints > 0 ? 'true' : 'false'),
+      '@@LANG@@'   : _q(navigator.language || 'n/a'),
+      '@@THEME@@'  : _q(theme),
+      '@@ONLINE@@' : (navigator.onLine ? 'true' : 'false'),
+      '@@DWELL@@'  : _q(dwell)
+    };
+  }
+
+  /* Return a file's lines with live tokens resolved. */
+  function resolvedLines(name){
+    var lines = FILES[name] || LINES;
+    if(name !== 'session.js') return lines;
+    var v = _liveVals();
+    return lines.map(function(segs){
+      return segs.map(function(s){
+        var t = s.text;
+        for(var k in v){ if(t.indexOf(k) !== -1) t = t.split(k).join(v[k]); }
+        return { text: t, color: s.color };
+      });
+    });
+  }
+  window._cpResolvedLines = resolvedLines;
+
+  window._cpPlainText = function(name){
+    var lines = resolvedLines(name || window._cpActiveFile);
+    return lines.map(function(segs){
+      return segs.map(function(s){ return s.text; }).join('');
+    }).join('\n');
+  };
+
+  window._cpReplay = function(){
+    var tc = document.getElementById('typedContent');
+    var name = window._cpActiveFile || 'portfolio.js';
+    if(!tc) return;
+    if(window._codeTypingTimers){
+      window._codeTypingTimers.forEach(clearTimeout);
+      window._codeTypingTimers = [];
+    }
+    try{ if(_aud){ _aud.pause(); _aud.currentTime = 0; } }catch(e){}
+    tc.innerHTML = '';
+    try{ sessionStorage.removeItem('cpTyped:'+name); }catch(e){}
+    sched(function(){ runTyping(tc, name); }, 120);
+  };
+
+  /* ══ BATCH 5: real execution ══
+     This genuinely runs the code rather than printing a canned result.
+     JS files go through `new Function` on author-controlled static text
+     (never user input); JSON goes through a real JSON.parse; the shell
+     file is interpreted for the handful of constructs it uses. If a CSP
+     blocks Function construction we say so honestly instead of faking it. */
+  window._cpRun = function(name){
+    name = name || window._cpActiveFile || 'portfolio.js';
+    var code = window._cpPlainText(name);
+    var out  = [];
+    var t0   = (window.performance && performance.now) ? performance.now() : Date.now();
+
+    function fmt(v, depth){
+      depth = depth || 0;
+      if(v === null) return 'null';
+      if(typeof v === 'string')  return '"' + v + '"';
+      if(typeof v === 'number' || typeof v === 'boolean') return String(v);
+      var pad = new Array(depth + 2).join('  ');
+      var padEnd = new Array(depth + 1).join('  ');
+      if(Array.isArray(v)){
+        if(!v.length) return '[]';
+        var allPrim = v.every(function(x){ return typeof x !== 'object' || x === null; });
+        if(allPrim) return '[ ' + v.map(function(x){ return fmt(x, depth); }).join(', ') + ' ]';
+        return '[\n' + v.map(function(x){ return pad + fmt(x, depth+1); }).join(',\n') + '\n' + padEnd + ']';
+      }
+      var ks = Object.keys(v);
+      if(!ks.length) return '{}';
+      return '{\n' + ks.map(function(k){
+        return pad + k + ': ' + fmt(v[k], depth+1);
+      }).join(',\n') + '\n' + padEnd + '}';
+    }
+
+    try{
+      if(/\.json$/.test(name)){
+        var parsed = JSON.parse(code);                       /* genuinely parsed */
+        out.push({t:'ok',  v:'\u2713 Valid JSON \u2014 ' + Object.keys(parsed).length + ' keys'});
+        out.push({t:'val', v:fmt(parsed)});
+
+      } else if(/\.sh$/.test(name)){
+        /* interpret the few constructs this script actually uses */
+        var vars = {};
+        code.split('\n').forEach(function(raw){
+          var line = raw.trim();
+          if(!line || line.charAt(0) === '#') return;
+          var as = line.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
+          if(as){ vars[as[1]] = as[2].replace(/^"|"$/g, ''); return; }
+          var ec = line.match(/^echo\s+(.*)$/);
+          if(ec){
+            var s = ec[1].replace(/^"|"$/g, '');
+            s = s.replace(/\$([A-Za-z_][A-Za-z0-9_]*)/g, function(_, n){ return vars[n] || ''; });
+            out.push({t:'val', v:s});
+            return;
+          }
+          var op = line.match(/^open\s+(.*)$/);
+          if(op){
+            var u = op[1].replace(/^"|"$/g, '')
+                         .replace(/\$([A-Za-z_][A-Za-z0-9_]*)/g, function(_, n){ return vars[n] || ''; });
+            out.push({t:'note', v:'\u2192 would open: ' + u});
+          }
+        });
+        out.push({t:'ok', v:'\u2713 exit 0'});
+
+      } else {
+        /* real JS execution */
+        var runner = new Function(
+          code + '\n;return {' +
+          '  sahnawaz: typeof sahnawaz !== "undefined" ? sahnawaz : undefined,' +
+          '  projects: typeof projects !== "undefined" ? projects : undefined,' +
+          '  session:  typeof session  !== "undefined" ? session  : undefined' +
+          '};'
+        );
+        var res = runner() || {};
+        var shown = 0;
+        ['sahnawaz','projects','session'].forEach(function(k){
+          if(res[k] === undefined) return;
+          shown++;
+          out.push({t:'note', v:'> ' + k});
+          out.push({t:'val',  v:fmt(res[k])});
+        });
+        if(!shown) out.push({t:'note', v:'(no exported bindings)'});
+        out.push({t:'ok', v:'\u2713 executed without errors'});
+      }
+    }catch(err){
+      var msg = (err && err.message) ? err.message : String(err);
+      if(/Function|unsafe-eval|CSP/i.test(msg)){
+        out.push({t:'err', v:'\u2715 Blocked by Content-Security-Policy'});
+        out.push({t:'note', v:'This page forbids runtime code evaluation.'});
+      } else {
+        out.push({t:'err', v:'\u2715 ' + (err && err.name ? err.name + ': ' : '') + msg});
+      }
+    }
+
+    var t1 = (window.performance && performance.now) ? performance.now() : Date.now();
+    out.push({t:'time', v:'finished in ' + (t1 - t0).toFixed(1) + ' ms'});
+    return out;
+  };
 
   window._openCodePopup = openPopup;
 })();
@@ -25396,19 +25946,39 @@ body.hacker-mode #hacker-toggle {
           '<span id="codePopup-dot-green"  title="Maximise"></span>' +
         '</div>' +
         '<span id="codePopup-title">portfolio.js &mdash; Visual Studio Code</span>' +
-        '<div id="codePopup-closex" title="Close">&#x2715;</div>' +
+        '<div id="codePopup-actions">' +
+          '<button id="codePopup-run" type="button" title="Run code" aria-label="Run code">&#x25B6;</button>' +
+          '<button id="codePopup-replay" type="button" title="Replay typing" aria-label="Replay typing">&#x21BB;</button>' +
+          '<button id="codePopup-copy" type="button" title="Copy code" aria-label="Copy code">&#x29C9;</button>' +
+          '<div id="codePopup-closex" title="Close">&#x2715;</div>' +
+        '</div>' +
       '</div>' +
       '<div id="codePopup-tabbar">' +
-        '<div id="codePopup-tab">' +
-          '<span class="tab-icon">&#x1F7E1;</span>' +
-          'portfolio.js' +
+        '<div class="cp-tab is-active" data-file="portfolio.js">' +
+          '<span class="tab-icon">&#x1F7E1;</span>portfolio.js' +
           '<span class="tab-dot"></span>' +
+        '</div>' +
+        '<div class="cp-tab" data-file="about.json">' +
+          '<span class="tab-icon">&#x1F7E0;</span>about.json' +
+        '</div>' +
+        '<div class="cp-tab" data-file="session.js">' +
+          '<span class="tab-icon">&#x1F535;</span>session.js' +
+        '</div>' +
+        '<div class="cp-tab" data-file="contact.sh">' +
+          '<span class="tab-icon">&#x1F7E2;</span>contact.sh' +
         '</div>' +
       '</div>' +
       '<div id="codePopup-body">' +
         '<div id="codePopup-code-wrap">' +
           '<div id="codePopup-lines">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16</div>' +
           '<div id="codePopup-inner-content"></div>' +
+        '</div>' +
+        '<div id="codePopup-output" hidden>' +
+          '<div id="codePopup-output-head">' +
+            '<span>OUTPUT</span>' +
+            '<button id="codePopup-output-close" type="button" aria-label="Hide output">&#x2715;</button>' +
+          '</div>' +
+          '<pre id="codePopup-output-body"></pre>' +
         '</div>' +
       '</div>';
 
@@ -25488,6 +26058,8 @@ body.hacker-mode #hacker-toggle {
       } else {
         body.style.display='';
         if(tabs) tabs.style.display='';
+        /* returning to normal re-docks to the default corner */
+        if(window._cpResetPosition) window._cpResetPosition();
       }
       /* remember across the session */
       try{ sessionStorage.setItem('cpWinState', next); }catch(e){}
@@ -25534,6 +26106,260 @@ body.hacker-mode #hacker-toggle {
     }catch(e){}
 
     window._cpSetWindowState = applyState;
+
+    /* Soft click for tab switching. Previously _cpTabSound was called
+       but never defined, so switching files was the one silent control. */
+    var _cpTabCtx = null;
+    function _cpTabSound(){
+      try{
+        if(!_cpTabCtx) _cpTabCtx = new (window.AudioContext || window.webkitAudioContext)();
+        var c = _cpTabCtx, t = c.currentTime;
+        var o = c.createOscillator(), g = c.createGain();
+        o.type = 'triangle';
+        o.frequency.setValueAtTime(880, t);
+        o.frequency.exponentialRampToValueAtTime(1320, t + 0.05);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.09, t + 0.008);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+        o.connect(g); g.connect(c.destination);
+        o.start(t); o.stop(t + 0.1);
+      }catch(e){}
+    }
+
+    /* ══ BATCH 5: run ══ */
+    (function wireRun(){
+      var runBtn  = document.getElementById('codePopup-run');
+      var panel   = document.getElementById('codePopup-output');
+      var bodyEl  = document.getElementById('codePopup-output-body');
+      var closeOut= document.getElementById('codePopup-output-close');
+      if(!runBtn || !panel || !bodyEl) return;
+
+      var CLS = { ok:'cpo-ok', err:'cpo-err', note:'cpo-note',
+                  val:'cpo-val', time:'cpo-time' };
+
+      function esc(s){
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      }
+
+      runBtn.addEventListener('click', function(e){
+        e.stopPropagation();
+        if(!window._cpRun) return;
+        panel.hidden = false;
+        bodyEl.innerHTML = '<span class="cpo-note">\u25b8 running\u2026</span>';
+        runBtn.classList.add('cp-busy');
+
+        /* let the browser paint the running state before we block on exec */
+        setTimeout(function(){
+          var rows = window._cpRun();
+          bodyEl.innerHTML = rows.map(function(r){
+            return '<span class="' + (CLS[r.t] || 'cpo-val') + '">' + esc(r.v) + '</span>';
+          }).join('\n');
+          runBtn.classList.remove('cp-busy');
+          panel.scrollTop = 0;
+          var bodyWrap = document.getElementById('codePopup-body');
+          if(bodyWrap) bodyWrap.scrollTop = bodyWrap.scrollHeight;
+        }, 60);
+      });
+
+      if(closeOut) closeOut.addEventListener('click', function(e){
+        e.stopPropagation();
+        panel.hidden = true;
+      });
+
+      /* switching files clears stale output */
+      document.addEventListener('cp:filechange', function(){ panel.hidden = true; });
+    })();
+
+    /* ══ BATCH 4: copy + replay ══ */
+    (function wireActions(){
+      var copyBtn   = document.getElementById('codePopup-copy');
+      var replayBtn = document.getElementById('codePopup-replay');
+
+      function flash(btn, glyph, ok){
+        if(!btn) return;
+        var prev = btn.innerHTML;
+        btn.innerHTML = glyph;
+        btn.classList.add(ok ? 'cp-ok' : 'cp-err');
+        setTimeout(function(){
+          btn.innerHTML = prev;
+          btn.classList.remove('cp-ok','cp-err');
+        }, 1100);
+      }
+
+      /* navigator.clipboard needs a secure context; fall back to a
+         hidden textarea + execCommand so this still works on http. */
+      function copyText(text){
+        if(navigator.clipboard && window.isSecureContext){
+          return navigator.clipboard.writeText(text);
+        }
+        return new Promise(function(resolve, reject){
+          try{
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.setAttribute('readonly','');
+            ta.style.position = 'fixed';
+            ta.style.top = '-1000px';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            ta.setSelectionRange(0, text.length);   /* iOS needs the range */
+            var ok = document.execCommand('copy');
+            document.body.removeChild(ta);
+            ok ? resolve() : reject(new Error('execCommand failed'));
+          }catch(err){ reject(err); }
+        });
+      }
+
+      if(copyBtn) copyBtn.addEventListener('click', function(e){
+        e.stopPropagation();
+        if(!window._cpPlainText) return;
+        var text = window._cpPlainText();
+        copyText(text).then(function(){
+          flash(copyBtn, '&#x2713;', true);
+        }).catch(function(){
+          flash(copyBtn, '&#x2715;', false);
+        });
+      });
+
+      if(replayBtn) replayBtn.addEventListener('click', function(e){
+        e.stopPropagation();
+        if(window._cpReplay) window._cpReplay();
+        replayBtn.classList.add('cp-spin');
+        setTimeout(function(){ replayBtn.classList.remove('cp-spin'); }, 620);
+      });
+    })();
+
+    /* ══ BATCH 3: functional tabs ══ */
+    (function wireTabs(){
+      var tabEls = popup.querySelectorAll ? popup.querySelectorAll('.cp-tab') : [];
+      function activate(name, el){
+        if(!window._cpOpenFile) return;
+        if(window._cpActiveFile === name) return;      /* already open */
+        Array.prototype.forEach.call(tabEls, function(t){
+          t.classList.remove('is-active');
+        });
+        if(el) el.classList.add('is-active');
+        window._cpOpenFile(name);
+        try{ document.dispatchEvent(new CustomEvent('cp:filechange')); }catch(err){}
+        if(typeof _cpTabSound === 'function') _cpTabSound();
+      }
+      Array.prototype.forEach.call(tabEls, function(t){
+        t.addEventListener('click', function(e){
+          e.stopPropagation();
+          activate(t.getAttribute('data-file'), t);
+        });
+      });
+      /* keyboard: Ctrl/Cmd + 1..3 cycles files, like a real editor */
+      document.addEventListener('keydown', function(e){
+        if(popup.style.display === 'none' || !popup.style.display) return;
+        if(!(e.ctrlKey || e.metaKey)) return;
+        var n = parseInt(e.key, 10);
+        if(!n || n < 1 || n > tabEls.length) return;
+        e.preventDefault();
+        activate(tabEls[n-1].getAttribute('data-file'), tabEls[n-1]);
+      });
+    })();
+
+    /* ══ BATCH 2: draggable window ══
+       Pointer Events so mouse, touch and pen all work through one path.
+       The popup is anchored bottom/left in CSS; on first drag we convert
+       to top/left so clamping math is straightforward. A movement
+       threshold keeps a real click (restore-from-minimised) distinct
+       from a drag. */
+    (function makeDraggable(){
+      if(!tbar || !window.PointerEvent) return;
+      var dragging=false, moved=false;
+      var startX=0, startY=0, baseL=0, baseT=0, pid=null;
+      var THRESH=4;
+
+      function clamp(l,t,w,h){
+        var maxL=Math.max(0, window.innerWidth  - w);
+        var maxT=Math.max(0, window.innerHeight - h);
+        return [Math.min(Math.max(0,l),maxL), Math.min(Math.max(0,t),maxT)];
+      }
+
+      function toTopLeft(){
+        var r=popup.getBoundingClientRect();
+        popup.style.top    = r.top+'px';
+        popup.style.left   = r.left+'px';
+        popup.style.bottom = 'auto';
+        popup.style.right  = 'auto';
+        return r;
+      }
+
+      tbar.addEventListener('pointerdown', function(e){
+        /* never start a drag from the controls */
+        if(e.target.closest && (e.target.closest('#codePopup-dots') ||
+           e.target.closest('#codePopup-closex'))) return;
+        if(popup.classList.contains('cp-maximised')) return;   /* maximised is pinned */
+        var r=toTopLeft();
+        dragging=true; moved=false;
+        startX=e.clientX; startY=e.clientY;
+        baseL=r.left; baseT=r.top;
+        pid=e.pointerId;
+        try{ tbar.setPointerCapture(pid); }catch(err){}
+        popup.classList.add('cp-dragging');
+      });
+
+      tbar.addEventListener('pointermove', function(e){
+        if(!dragging || e.pointerId!==pid) return;
+        var dx=e.clientX-startX, dy=e.clientY-startY;
+        if(!moved && Math.abs(dx)<THRESH && Math.abs(dy)<THRESH) return;
+        moved=true;
+        e.preventDefault();
+        var r=popup.getBoundingClientRect();
+        var pos=clamp(baseL+dx, baseT+dy, r.width, r.height);
+        popup.style.left=pos[0]+'px';
+        popup.style.top =pos[1]+'px';
+      });
+
+      function endDrag(e){
+        if(!dragging || (e && e.pointerId!==pid)) return;
+        dragging=false;
+        popup.classList.remove('cp-dragging');
+        try{ tbar.releasePointerCapture(pid); }catch(err){}
+        if(moved){
+          try{
+            sessionStorage.setItem('cpPos', JSON.stringify({
+              l:parseFloat(popup.style.left), t:parseFloat(popup.style.top)
+            }));
+          }catch(err){}
+          /* swallow the click that follows a drag, so minimise-restore
+             and dblclick-maximise do not fire spuriously */
+          var swallow=function(ev){ ev.stopPropagation(); ev.preventDefault(); };
+          tbar.addEventListener('click', swallow, {capture:true, once:true});
+        }
+        moved=false; pid=null;
+      }
+      tbar.addEventListener('pointerup', endDrag);
+      tbar.addEventListener('pointercancel', endDrag);
+
+      /* restore a remembered position, clamped to the current viewport */
+      try{
+        var sp=JSON.parse(sessionStorage.getItem('cpPos')||'null');
+        if(sp && typeof sp.l==='number' && typeof sp.t==='number'){
+          popup.style.bottom='auto'; popup.style.right='auto';
+          popup.style.left=sp.l+'px'; popup.style.top=sp.t+'px';
+        }
+      }catch(err){}
+
+      /* a resized/rotated viewport must never strand the window off-screen */
+      window.addEventListener('resize', function(){
+        if(popup.style.display==='none'||!popup.style.top) return;
+        if(popup.classList.contains('cp-maximised')) return;
+        var r=popup.getBoundingClientRect();
+        var pos=clamp(r.left, r.top, r.width, r.height);
+        popup.style.left=pos[0]+'px';
+        popup.style.top =pos[1]+'px';
+      });
+
+      /* reset position: green dot returning to normal re-docks the window */
+      window._cpResetPosition=function(){
+        popup.style.left=''; popup.style.top='';
+        popup.style.bottom=''; popup.style.right='';
+        try{ sessionStorage.removeItem('cpPos'); }catch(err){}
+      };
+    })();
 
     /* ── Tooltip on hover over laptop button ── */
     var codeBtn = document.getElementById('codeBtn');
