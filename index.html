@@ -16928,6 +16928,133 @@ body.hacker-mode #retro-terminal { display:block; }
 }
 @supports (-webkit-touch-callout: none) { #retro-terminal #in { font-size:16px; } }
 
+/* ══════════════════════════════════════════════════════════════════
+   CRT VISUAL FIDELITY LAYER
+   Note: body.hacker-mode::before / ::after are already used elsewhere,
+   so these are real injected elements. And because `body.hacker-mode *`
+   forces color/background with !important, everything here needs
+   ID-level specificity (0,1,x,x) to win the cascade.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Scanlines: fine horizontal raster + slow brightness roll ── */
+#crt-scanlines{
+  position:fixed; inset:0; z-index:9996; pointer-events:none;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(0,0,0,0)    0px,
+      rgba(0,0,0,0)    1px,
+      rgba(0,0,0,.28)  2px,
+      rgba(0,0,0,.28)  3px
+    ) !important;
+  mix-blend-mode:multiply;
+  opacity:.75;
+}
+/* the slow bright band that rolls down a real CRT */
+#crt-roll{
+  position:fixed; left:0; right:0; height:38vh; z-index:9997;
+  pointer-events:none;
+  background:linear-gradient(
+    to bottom,
+    rgba(255,255,255,0) 0%,
+    rgba(120,255,190,.035) 45%,
+    rgba(160,255,210,.06) 50%,
+    rgba(120,255,190,.035) 55%,
+    rgba(255,255,255,0) 100%) !important;
+  animation:crtRoll 7s linear infinite;
+}
+@keyframes crtRoll{ 0%{top:-40vh;} 100%{top:100vh;} }
+
+/* ── 2. Screen curvature: vignette + corner darkening + glass sheen ── */
+#crt-vignette{
+  position:fixed; inset:0; z-index:9998; pointer-events:none;
+  background:
+    radial-gradient(ellipse 120% 115% at 50% 50%,
+      rgba(0,0,0,0) 55%,
+      rgba(0,0,0,.35) 82%,
+      rgba(0,0,0,.72) 100%),
+    radial-gradient(ellipse 80% 60% at 50% 0%,
+      rgba(180,255,220,.05) 0%,
+      rgba(0,0,0,0) 60%) !important;
+  box-shadow:
+    inset 0 0 90px rgba(0,0,0,.55),
+    inset 0 0 200px rgba(0,40,20,.35);
+  border-radius:22px;
+}
+
+/* ── 3. Power-on: flash → collapse to scanline → bloom open ── */
+#crt-power{
+  position:fixed; inset:0; z-index:10000; pointer-events:none;
+  background:#dfffe9 !important;
+  transform-origin:center center;
+  animation:crtPowerOn .62s cubic-bezier(.2,.8,.25,1) forwards;
+}
+@keyframes crtPowerOn{
+  0%   { opacity:1; transform:scale(1,.004); filter:brightness(2.4); }
+  35%  { opacity:1; transform:scale(1,.004); filter:brightness(2.4); }
+  55%  { opacity:.9; transform:scale(1,1);   filter:brightness(1.5); }
+  100% { opacity:0; transform:scale(1,1);    filter:brightness(1); }
+}
+/* brief analogue static during the flash */
+#crt-static{
+  position:fixed; inset:0; z-index:9999; pointer-events:none;
+  opacity:.16;
+  background-image:url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'>\
+<filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/></filter>\
+<rect width='120' height='120' filter='url(%23n)' opacity='.85'/></svg>") !important;
+  animation:crtStatic .28s steps(2) 6, crtStaticOut .1s .9s forwards;
+}
+@keyframes crtStatic{
+  0%{transform:translate(0,0);} 25%{transform:translate(-3%,2%);}
+  50%{transform:translate(2%,-3%);} 75%{transform:translate(-2%,-1%);}
+  100%{transform:translate(0,0);}
+}
+@keyframes crtStaticOut{ to{ opacity:0; } }
+
+/* ── 4. Chromatic aberration (RGB split) on terminal text ──
+   This is what actually reads as "CRT" rather than "green text". */
+#retro-terminal #out,
+#retro-terminal #out *,
+#retro-terminal #in,
+#terminal .prompt{
+  text-shadow:
+    -0.7px 0 rgba(255,40,90,.42),
+     0.7px 0 rgba(40,170,255,.38),
+     0 0 7px rgba(0,255,150,.30) !important;
+}
+/* subtle horizontal jitter, like an unstable signal */
+#retro-terminal #out{ animation:crtDrift 9s ease-in-out infinite; }
+@keyframes crtDrift{
+  0%,100%{ transform:translateX(0); }
+  47%    { transform:translateX(.35px); }
+  49%    { transform:translateX(-.5px); }
+  51%    { transform:translateX(.25px); }
+}
+
+/* ── 5. Phosphor palette — beats `body.hacker-mode *` via ID specificity.
+   A real terminal is not one flat green. */
+#retro-terminal .help-title { color:#8ef7ff !important; }
+#retro-terminal .help-label { color:#ffc44d !important; }   /* amber */
+#retro-terminal .help-cmds  { color:#b7ffd8 !important; }
+#retro-terminal .help-note  { color:#9ef5ff !important; border-left-color:#ffc44d !important; }
+#retro-terminal .help-note b{ color:#ffd98a !important; }
+#retro-terminal .help-foot  { color:#6fcfae !important; }
+#retro-terminal .help-foot b{ color:#ffc44d !important; }
+#retro-terminal #out .cmd-echo { color:#ffffff !important; }
+
+/* ── 6. Accessibility / performance ── */
+@media (prefers-reduced-motion: reduce){
+  #crt-roll, #crt-static, #crt-power { animation:none !important; }
+  #retro-terminal #out { animation:none !important; }
+  #crt-roll { display:none !important; }
+}
+/* low-end phones: drop the costliest layers, keep the look */
+@media (max-width:480px){
+  #crt-roll{ opacity:.6; }
+  #crt-scanlines{ opacity:.6; }
+}
+
 </style>
 <!-- Retro Hacker Mode Terminal (footer) -->
 <div aria-live="polite" id="retro-terminal">
@@ -18099,20 +18226,61 @@ function suraiyaFinalEffect() {
     })();
   }
 
+  /* ─── CRT visual layers ──────────────────────────────────────────
+     Injected as real elements because body.hacker-mode::before and
+     ::after are already used by the legacy theme. Persistent layers
+     (scanlines, roll, vignette) live for as long as hacker mode is on;
+     the power-on layers (flash, static) remove themselves once done. */
+  const CRT_PERSIST=['crt-scanlines','crt-roll','crt-vignette'];
+  const CRT_ONESHOT=['crt-power','crt-static'];
+
+  function crtMake(id){
+    let el=document.getElementById(id);
+    if(!el){
+      el=document.createElement('div');
+      el.id=id;
+      el.setAttribute('aria-hidden','true');
+      document.body.appendChild(el);
+    }
+    return el;
+  }
+  function crtOn(withPowerOn){
+    CRT_PERSIST.forEach(crtMake);
+    if(!withPowerOn) return;
+    /* power-on flash + static, self-removing */
+    CRT_ONESHOT.forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.remove();          /* restart the animation cleanly */
+      crtMake(id);
+    });
+    setTimeout(()=>CRT_ONESHOT.forEach(id=>{
+      const el=document.getElementById(id); if(el) el.remove();
+    }),1100);
+  }
+  function crtOff(){
+    CRT_PERSIST.concat(CRT_ONESHOT).forEach(id=>{
+      const el=document.getElementById(id); if(el) el.remove();
+    });
+  }
+
   /* Watch for hacker mode activation */
   (function initBoot(){
-    const mo=new MutationObserver(()=>{
-      if(document.body.classList.contains('hacker-mode')&&!hackerState.bootDone){
+    let wasOn=document.body.classList.contains('hacker-mode');
+    const sync=()=>{
+      const isOn=document.body.classList.contains('hacker-mode');
+      if(isOn&&!wasOn) crtOn(true);        /* just switched on */
+      else if(isOn)    crtOn(false);       /* already on, keep layers */
+      else if(!isOn&&wasOn) crtOff();      /* switched off */
+      wasOn=isOn;
+      if(isOn&&!hackerState.bootDone){
         hackerState.bootDone=true;
         out.innerHTML='';
-        setTimeout(()=>runBoot(()=>{ updatePrompt(); input.focus(); }),200);
+        setTimeout(()=>runBoot(()=>{ updatePrompt(); input.focus(); }),620);
       }
-    });
+    };
+    const mo=new MutationObserver(sync);
     mo.observe(document.body,{attributes:true,attributeFilter:['class']});
-    if(document.body.classList.contains('hacker-mode')&&!hackerState.bootDone){
-      hackerState.bootDone=true;
-      setTimeout(()=>runBoot(()=>{ updatePrompt(); input.focus(); }),200);
-    }
+    sync();
   })();
 
   /* ─── Keydown ───────────────────────────────────────────────────── */
