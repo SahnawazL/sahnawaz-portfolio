@@ -16838,6 +16838,17 @@ body.hacker-mode #retro-terminal { display:block; }
 #retro-terminal #out { white-space: pre-wrap; word-break: break-word; margin-bottom: 6px; max-height: 58vh; overflow-y: auto; }
 #retro-terminal .row { display:flex; align-items:center; gap:8px; }
 #retro-terminal .prompt { color: var(--green2, #00ffaa); user-select:none; }
+#retro-terminal #out .cmd-echo {
+  color: #eafffa;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  margin-top: 12px;
+  padding: 4px 10px;
+  border-left: 2px solid var(--green2, #00ffaa);
+  background: linear-gradient(90deg, rgba(0,255,170,0.10), rgba(0,255,170,0.02) 65%, transparent);
+  text-shadow: 0 0 8px rgba(0,255,204,0.35);
+}
+#retro-terminal #out .cmd-echo:first-child { margin-top: 0; }
 #retro-terminal #in {
   flex:1; background:transparent; border:none; outline:none;
   color: var(--green, #00ffcc); font: inherit; caret-color: var(--green, #00ffcc);
@@ -16951,8 +16962,8 @@ function suraiyaFinalEffect() {
   function playKey(){
     try { if(beep){ beep.currentTime = 0; const p = beep.play(); if(p && p.catch) p.catch(()=>{}); } } catch(e){}
   }
-  function typeLine(text, cb){
-    let i=0; const div = document.createElement('div'); out.appendChild(div);
+  function typeLine(text, cb, className){
+    let i=0; const div = document.createElement('div'); if (className) div.className = className; out.appendChild(div);
     (function tick(){
       if(i<text.length){
         div.textContent += text.charAt(i);
@@ -17104,8 +17115,6 @@ function suraiyaFinalEffect() {
     history.push(cmd); histIdx = history.length;
     typeLine("> "+cmd, ()=>{
       switch(lower){
-        
-        
         case "help":
           typeLine("==========[ GENERAL ]==========");
           typeLine("help, about, clear, secret, date, ping");
@@ -17503,7 +17512,7 @@ default:
     out.appendChild(div);
     autoscroll();
   }
-    });
+    }, "cmd-echo");
   }
 
   // --- Input key handling (NO form submit) ---
