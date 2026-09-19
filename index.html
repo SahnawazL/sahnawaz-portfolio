@@ -20,7 +20,24 @@
   17. AOS and Chart.js load deferred
 -->
 
-<html lang="en"><head><style>
+<html lang="en"><head>
+<!--
+  ============================================================
+   You opened the source. Good instinct - that's the job.
+
+   The terminal in the footer has a locked host at
+   192.168.0.42:1337. It wants an ACCESS KEY.
+
+        ACCESS KEY: ALCHEMIST-1337
+
+   Chain:  scan  ->  connect 192.168.0.42:1337  ->  key  ->  vault
+
+   (The other way in: catch three gold glyphs in `matrix`.
+    Two paths, one door.)
+                                              - SHZ
+  ============================================================
+-->
+<style>
 /* ══ PERFORMANCE MASTER PATCH ══════════════════════════════
    Injected optimisations — smooth scrolling, GPU hints,
    mobile backdrop-filter kill, touch improvements
@@ -16844,7 +16861,6 @@ body.hacker-mode #retro-terminal { display:block; }
 #retro-terminal *,
 #terminal,
 #terminal * { text-align: left !important; }
-/* the sign-off banner is the one thing that should stay centred */
 #retro-terminal .final-message,
 #terminal .final-message { text-align: center !important; }
 
@@ -16930,79 +16946,57 @@ body.hacker-mode #retro-terminal { display:block; }
 
 /* ══════════════════════════════════════════════════════════════════
    CRT VISUAL FIDELITY LAYER
-   Note: body.hacker-mode::before / ::after are already used elsewhere,
-   so these are real injected elements. And because `body.hacker-mode *`
-   forces color/background with !important, everything here needs
-   ID-level specificity (0,1,x,x) to win the cascade.
+   body.hacker-mode::before/::after are already used by the legacy
+   theme, so these are real injected elements. And because
+   `body.hacker-mode *` forces color/background with !important,
+   everything here needs ID-level specificity to win the cascade.
    ══════════════════════════════════════════════════════════════════ */
-
-/* ── 1. Scanlines: fine horizontal raster + slow brightness roll ── */
 #crt-scanlines{
   position:fixed; inset:0; z-index:9996; pointer-events:none;
-  background:
-    repeating-linear-gradient(
+  background:repeating-linear-gradient(
       to bottom,
-      rgba(0,0,0,0)    0px,
-      rgba(0,0,0,0)    1px,
-      rgba(0,0,0,.28)  2px,
-      rgba(0,0,0,.28)  3px
-    ) !important;
-  mix-blend-mode:multiply;
-  opacity:.75;
+      rgba(0,0,0,0)   0px, rgba(0,0,0,0)   1px,
+      rgba(0,0,0,.21) 2px, rgba(0,0,0,.21) 3px) !important;
+  /* No mix-blend-mode: over the theme's forced #000 backdrop it
+     resolves to identical pixels but forces a full-page recomposite. */
+  opacity:1;
 }
-/* the slow bright band that rolls down a real CRT */
 #crt-roll{
-  position:fixed; left:0; right:0; height:38vh; z-index:9997;
-  pointer-events:none;
-  background:linear-gradient(
-    to bottom,
-    rgba(255,255,255,0) 0%,
-    rgba(120,255,190,.035) 45%,
-    rgba(160,255,210,.06) 50%,
-    rgba(120,255,190,.035) 55%,
+  position:fixed; left:0; right:0; top:0; height:38vh; z-index:9997;
+  pointer-events:none; will-change:transform;
+  background:linear-gradient(to bottom,
+    rgba(255,255,255,0) 0%, rgba(120,255,190,.035) 45%,
+    rgba(160,255,210,.06) 50%, rgba(120,255,190,.035) 55%,
     rgba(255,255,255,0) 100%) !important;
   animation:crtRoll 7s linear infinite;
 }
-@keyframes crtRoll{ 0%{top:-40vh;} 100%{top:100vh;} }
+/* transform, NOT top: `top` relayouts every frame for 7s on loop. */
+@keyframes crtRoll{ 0%{transform:translate3d(0,-40vh,0);} 100%{transform:translate3d(0,100vh,0);} }
 
-/* ── 2. Screen curvature: vignette + corner darkening + glass sheen ── */
 #crt-vignette{
   position:fixed; inset:0; z-index:9998; pointer-events:none;
   background:
     radial-gradient(ellipse 120% 115% at 50% 50%,
-      rgba(0,0,0,0) 55%,
-      rgba(0,0,0,.35) 82%,
-      rgba(0,0,0,.72) 100%),
+      rgba(0,0,0,0) 55%, rgba(0,0,0,.35) 82%, rgba(0,0,0,.72) 100%),
     radial-gradient(ellipse 80% 60% at 50% 0%,
-      rgba(180,255,220,.05) 0%,
-      rgba(0,0,0,0) 60%) !important;
-  box-shadow:
-    inset 0 0 90px rgba(0,0,0,.55),
-    inset 0 0 200px rgba(0,40,20,.35);
+      rgba(180,255,220,.05) 0%, rgba(0,0,0,0) 60%) !important;
+  box-shadow: inset 0 0 90px rgba(0,0,0,.55), inset 0 0 200px rgba(0,40,20,.35);
   border-radius:22px;
 }
-
-/* ── 3. Power-on: flash → collapse to scanline → bloom open ── */
 #crt-power{
   position:fixed; inset:0; z-index:10000; pointer-events:none;
-  background:#dfffe9 !important;
-  transform-origin:center center;
+  background:#dfffe9 !important; transform-origin:center center;
   animation:crtPowerOn .62s cubic-bezier(.2,.8,.25,1) forwards;
 }
 @keyframes crtPowerOn{
-  0%   { opacity:1; transform:scale(1,.004); filter:brightness(2.4); }
-  35%  { opacity:1; transform:scale(1,.004); filter:brightness(2.4); }
-  55%  { opacity:.9; transform:scale(1,1);   filter:brightness(1.5); }
-  100% { opacity:0; transform:scale(1,1);    filter:brightness(1); }
+  0%{opacity:1;transform:scale(1,.004);filter:brightness(2.4);}
+  35%{opacity:1;transform:scale(1,.004);filter:brightness(2.4);}
+  55%{opacity:.9;transform:scale(1,1);filter:brightness(1.5);}
+  100%{opacity:0;transform:scale(1,1);filter:brightness(1);}
 }
-/* brief analogue static during the flash */
 #crt-static{
-  position:fixed; inset:0; z-index:9999; pointer-events:none;
-  opacity:.16;
-  background-image:url("data:image/svg+xml;utf8,\
-<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'>\
-<filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/></filter>\
-<rect width='120' height='120' filter='url(%23n)' opacity='.85'/></svg>") !important;
+  position:fixed; inset:0; z-index:9999; pointer-events:none; opacity:.16;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/></filter><rect width='120' height='120' filter='url(%23n)' opacity='.85'/></svg>") !important;
   animation:crtStatic .28s steps(2) 6, crtStaticOut .1s .9s forwards;
 }
 @keyframes crtStatic{
@@ -17012,30 +17006,21 @@ body.hacker-mode #retro-terminal { display:block; }
 }
 @keyframes crtStaticOut{ to{ opacity:0; } }
 
-/* ── 4. Chromatic aberration (RGB split) on terminal text ──
-   This is what actually reads as "CRT" rather than "green text". */
-#retro-terminal #out,
-#retro-terminal #out *,
-#retro-terminal #in,
-#terminal .prompt{
-  text-shadow:
-    -0.7px 0 rgba(255,40,90,.42),
-     0.7px 0 rgba(40,170,255,.38),
-     0 0 7px rgba(0,255,150,.30) !important;
+/* Chromatic aberration — this is what reads as "CRT" vs "green text" */
+#retro-terminal #out, #retro-terminal #out *,
+#retro-terminal #in, #terminal .prompt{
+  text-shadow:-0.7px 0 rgba(255,40,90,.42), 0.7px 0 rgba(40,170,255,.38),
+              0 0 7px rgba(0,255,150,.30) !important;
 }
-/* subtle horizontal jitter, like an unstable signal */
 #retro-terminal #out{ animation:crtDrift 9s ease-in-out infinite; }
 @keyframes crtDrift{
-  0%,100%{ transform:translateX(0); }
-  47%    { transform:translateX(.35px); }
-  49%    { transform:translateX(-.5px); }
-  51%    { transform:translateX(.25px); }
+  0%,100%{transform:translateX(0);} 47%{transform:translateX(.35px);}
+  49%{transform:translateX(-.5px);} 51%{transform:translateX(.25px);}
 }
 
-/* ── 5. Phosphor palette — beats `body.hacker-mode *` via ID specificity.
-   A real terminal is not one flat green. */
+/* Phosphor palette — beats `body.hacker-mode *` via ID specificity */
 #retro-terminal .help-title { color:#8ef7ff !important; }
-#retro-terminal .help-label { color:#ffc44d !important; }   /* amber */
+#retro-terminal .help-label { color:#ffc44d !important; }
 #retro-terminal .help-cmds  { color:#b7ffd8 !important; }
 #retro-terminal .help-note  { color:#9ef5ff !important; border-left-color:#ffc44d !important; }
 #retro-terminal .help-note b{ color:#ffd98a !important; }
@@ -17043,16 +17028,13 @@ body.hacker-mode #retro-terminal { display:block; }
 #retro-terminal .help-foot b{ color:#ffc44d !important; }
 #retro-terminal #out .cmd-echo { color:#ffffff !important; }
 
-/* ── 6. Accessibility / performance ── */
 @media (prefers-reduced-motion: reduce){
   #crt-roll, #crt-static, #crt-power { animation:none !important; }
   #retro-terminal #out { animation:none !important; }
   #crt-roll { display:none !important; }
 }
-/* low-end phones: drop the costliest layers, keep the look */
 @media (max-width:480px){
-  #crt-roll{ opacity:.6; }
-  #crt-scanlines{ opacity:.6; }
+  #crt-roll{ opacity:.6; } #crt-scanlines{ opacity:.6; }
 }
 
 </style>
@@ -17116,8 +17098,19 @@ function suraiyaFinalEffect() {
   if(!input || !out) return;
 
   /* ─── Session State ──────────────────────────────────────────────── */
+  /* Access key for the `connect` chain. Discoverable two ways:
+       (a) catch three gold glyphs in `matrix`
+       (b) read the page source — there is a comment in <head>
+     Neither is guessable; both are earned. */
+  const ACCESS_KEY='ALCHEMIST-1337';
+
   const hackerState = {
     cwd          : '/home/guest',
+    glyphsCaught : 0,
+    keyKnown     : false,
+    awaitingKey  : false,
+    keyTries     : 0,
+    vaultOpen    : false,
     scanDone     : false,
     exploitTarget: null,
     sudoIdx      : 0,
@@ -17367,30 +17360,84 @@ function suraiyaFinalEffect() {
       printLine(rand(tags)+' '+s); c++;
     });
   }
+  /* Interactive glyph rain. Most glyphs are decoration, but a few fall
+     GOLD and are catchable. Catching three yields the access key for the
+     `connect` chain — so `matrix` is a puzzle path, not a screensaver. */
   function matrixAnim(done){
     const cv=document.createElement('canvas');
     cv.className='matrix';
-    cv.width=out.clientWidth-20; cv.height=160;
+    cv.width=Math.max(160,out.clientWidth-20); cv.height=170;
+    cv.style.cursor='crosshair';
     out.appendChild(cv);
     const ctx=cv.getContext('2d');
-    const glyphs='ｱｶｻﾀﾅﾊﾏﾔﾗﾜ0123456789ABCDEF!@#$%^&*';
-    const f=14, cols=Math.floor(cv.width/f);
+    const glyphs='アカサタナハマヤラワ0123456789ABCDEF!@#$%^&*';
+    const f=14, cols=Math.max(1,Math.floor(cv.width/f));
     const drops=Array(cols).fill(1);
-    let raf;
+    let raf, live=[], caught=0, ended=false;
+
+    function spawnGold(){
+      if(ended) return;
+      if(live.length<2 && Math.random()>0.55){
+        live.push({col:Math.floor(Math.random()*cols), y:0,
+                   ch:glyphs[Math.floor(Math.random()*glyphs.length)]});
+      }
+      setTimeout(spawnGold,520);
+    }
     function draw(){
       ctx.fillStyle='rgba(0,0,0,0.08)'; ctx.fillRect(0,0,cv.width,cv.height);
-      ctx.fillStyle='#00ff88'; ctx.font=f+'px monospace';
+      ctx.font=f+'px monospace'; ctx.fillStyle='#00ff88';
       for(let i=0;i<drops.length;i++){
-        const ch=glyphs[Math.floor(Math.random()*glyphs.length)];
-        ctx.fillText(ch,i*f,drops[i]*f);
+        ctx.fillText(glyphs[Math.floor(Math.random()*glyphs.length)],i*f,drops[i]*f);
         if(drops[i]*f>cv.height&&Math.random()>0.975) drops[i]=0;
         drops[i]++;
       }
+      ctx.save();
+      ctx.shadowColor='#ffd24d'; ctx.shadowBlur=12; ctx.fillStyle='#ffd24d';
+      ctx.font='bold '+(f+3)+'px monospace';
+      live=live.filter(g=>{
+        g.y+=1.5;
+        if(g.y>cv.height+10) return false;
+        ctx.fillText(g.ch,g.col*f,g.y);
+        return true;
+      });
+      ctx.restore();
       raf=requestAnimationFrame(draw);
     }
-    draw();
-    tdefer(6000,()=>{ cancelAnimationFrame(raf); typeLine('Matrix simulation ended.'); if(done) done(); });
+    function hit(ev){
+      if(ended) return;
+      const r=cv.getBoundingClientRect();
+      const pt=(ev.touches&&ev.touches[0])||ev;
+      const mx=pt.clientX-r.left, my=pt.clientY-r.top;
+      for(let i=0;i<live.length;i++){
+        const g=live[i];
+        if(Math.abs(mx-(g.col*f+f/2))<24 && Math.abs(my-(g.y-f/2))<24){
+          live.splice(i,1); caught++; hackerState.glyphsCaught=caught;
+          _playOK();
+          if(caught<3){
+            printRaw('<span style="color:#ffd24d">✦ Glyph caught ('+caught+
+                     '/3) — fragment secured.</span>');
+          } else {
+            printRaw('<span style="color:#ffd24d">✦ Fragments assembled.</span>');
+            printRaw('<span style="color:#ffd24d">ACCESS KEY: <b>'+ACCESS_KEY+
+                     '</b> — use it with <b>connect</b>.</span>');
+            hackerState.keyKnown=true;
+          }
+          ev.preventDefault(); return;
+        }
+      }
+    }
+    cv.addEventListener('click',hit);
+    cv.addEventListener('touchstart',hit,{passive:false});
+    spawnGold(); draw();
+    tdefer(7000,()=>{
+      ended=true; live=[]; cancelAnimationFrame(raf);
+      typeLine(caught===0
+        ? 'Matrix ended. (Some glyphs fall gold — those can be caught.)'
+        : 'Matrix ended. Glyphs caught: '+caught+'/3');
+      if(done) done();
+    });
   }
+
 
   /* ─── Data pools ────────────────────────────────────────────────── */
   const pool={
@@ -17459,7 +17506,7 @@ function suraiyaFinalEffect() {
     'echo','env','history','alias','which','man',
     'git','npm','node','python3','vim','nano','exit','quit',
     'sudo','chmod','ssh','nmap','curl','neofetch',
-    'ps','top','df','free','uname','uptime','exploit','crack',
+    'ps','top','df','free','uname','uptime','exploit','crack','connect','vault',
   ];
 
   function tabComplete(partial){
@@ -17660,8 +17707,8 @@ function suraiyaFinalEffect() {
         printLine('');
         printRaw('<div class="help-foot">Tab autocompletes \u00b7 \u2191\u2193 history \u00b7 '+
                  'Ctrl+C cancels \u00b7 man &lt;cmd&gt; for docs</div>');
-        printRaw('<div class="help-foot">Try the chain: <b>scan</b> \u2192 <b>exploit</b> \u2192 '+
-                 '<b>cat secret.key</b> \ud83d\udd10</div>');
+        printRaw('<div class="help-foot">Chain 1: <b>scan</b> → <b>exploit</b> → <b>cat secret.key</b></div>');
+        printRaw('<div class="help-foot">Chain 2: <b>scan</b> → <b>connect</b> → key → <b>vault</b><br><span style="opacity:.85">the key is earned, not given — try <b>matrix</b>, or read the source</span></div>');
         break;
       }
 
@@ -17958,7 +18005,8 @@ function suraiyaFinalEffect() {
           hackerState.scanDone=true; hackerState.exploitTarget='192.168.0.42:1337';
           printLine('');
           printLine('✅ Scan complete. Target: 192.168.0.42:1337');
-          printLine('💡 Run `exploit` to access the vulnerability.');
+          printLine('→ `exploit`  breach the weak auth.');
+          printLine('→ `connect 192.168.0.42:1337`  needs an access key.');
         });
         break;
 
@@ -17995,6 +18043,60 @@ function suraiyaFinalEffect() {
         hackerState.secretUnlocked=true;
         hackerState.scanDone=false;
         break;
+
+      case 'connect':{
+        if(!hackerState.scanDone && !hackerState.vaultOpen){
+          printRaw('<span style="color:#ff6b6b">connect: no known host.</span>');
+          printLine('Run `scan` first to discover a reachable target.');
+          _playErr(); break;
+        }
+        const host=args[0]||'';
+        if(!host){ printLine('connect — usage: connect <host:port>'); break; }
+        if(host!=='192.168.0.42:1337'&&host!=='192.168.0.42'){
+          printRaw('<span style="color:#ff6b6b">connect: no route to host</span>');
+          printLine('Known target from last scan: 192.168.0.42:1337');
+          _playErr(); break;
+        }
+        printSeq(['[+] Resolving 192.168.0.42:1337 ...','[+] Handshake complete.',
+                  '[!] Host requires an ACCESS KEY.']);
+        tdefer(3200,()=>{
+          hackerState.awaitingKey=true; hackerState.keyTries=0;
+          printRaw('<span style="color:#ffd24d">Enter access key (or <b>abort</b>):</span>');
+          if(!hackerState.keyKnown){
+            printLine('');
+            printLine('No key? Two ways to earn one:');
+            printLine('  • run `matrix` and catch the gold glyphs');
+            printLine('  • read this page\'s source — devs leave notes');
+          }
+          renderBusy();
+        });
+        break;
+      }
+
+      case 'vault':{
+        if(!hackerState.vaultOpen){
+          printRaw('<span style="color:#ff6b6b">vault: sealed.</span>');
+          printLine('Chain: scan → connect 192.168.0.42:1337 → access key');
+          _playErr(); break;
+        }
+        printSeq([
+          '╔══ VAULT ══╗','',
+          'This terminal is the portfolio piece.',
+          'Not a template, not a library. Hand-built:',
+          '  • a parsed shell over a virtual filesystem',
+          '  • stateful chains (scan → connect → vault)',
+          '  • an async output lock so nothing interleaves',
+          '  • a canvas puzzle with a second solution path','',
+          'Shipped products:',
+          '  YojanaSahay  — React/Vite PWA, govt welfare schemes',
+          '  StudyLens AI — Groq + Gemini helper, KG–12',
+          '  This site    — 16k+ lines, zero frameworks','',
+          'You found this by exploring, not by being told.',
+          'That is exactly how I debug. — SHZ','',
+          '╚══ type `social` or `website` ══╝'
+        ]);
+        break;
+      }
 
       case 'crack':
         printSeq([
@@ -18226,20 +18328,17 @@ function suraiyaFinalEffect() {
     })();
   }
 
-  /* ─── CRT visual layers ──────────────────────────────────────────
+  /* ─── CRT visual layers ─────────────────────────────────────────
      Injected as real elements because body.hacker-mode::before and
      ::after are already used by the legacy theme. Persistent layers
-     (scanlines, roll, vignette) live for as long as hacker mode is on;
-     the power-on layers (flash, static) remove themselves once done. */
+     live while hacker mode is on; power-on layers self-remove. */
   const CRT_PERSIST=['crt-scanlines','crt-roll','crt-vignette'];
   const CRT_ONESHOT=['crt-power','crt-static'];
-
   function crtMake(id){
     let el=document.getElementById(id);
     if(!el){
       el=document.createElement('div');
-      el.id=id;
-      el.setAttribute('aria-hidden','true');
+      el.id=id; el.setAttribute('aria-hidden','true');
       document.body.appendChild(el);
     }
     return el;
@@ -18247,10 +18346,8 @@ function suraiyaFinalEffect() {
   function crtOn(withPowerOn){
     CRT_PERSIST.forEach(crtMake);
     if(!withPowerOn) return;
-    /* power-on flash + static, self-removing */
     CRT_ONESHOT.forEach(id=>{
-      const el=document.getElementById(id);
-      if(el) el.remove();          /* restart the animation cleanly */
+      const el=document.getElementById(id); if(el) el.remove();
       crtMake(id);
     });
     setTimeout(()=>CRT_ONESHOT.forEach(id=>{
@@ -18268,9 +18365,9 @@ function suraiyaFinalEffect() {
     let wasOn=document.body.classList.contains('hacker-mode');
     const sync=()=>{
       const isOn=document.body.classList.contains('hacker-mode');
-      if(isOn&&!wasOn) crtOn(true);        /* just switched on */
-      else if(isOn)    crtOn(false);       /* already on, keep layers */
-      else if(!isOn&&wasOn) crtOff();      /* switched off */
+      if(isOn&&!wasOn) crtOn(true);
+      else if(isOn)    crtOn(false);
+      else if(!isOn&&wasOn) crtOff();
       wasOn=isOn;
       if(isOn&&!hackerState.bootDone){
         hackerState.bootDone=true;
@@ -18304,6 +18401,40 @@ function suraiyaFinalEffect() {
       e.preventDefault();
       const raw=input.value.trim();
       if(!raw) return;
+
+      /* Access-key mode: this line is a secret, not a command. Echo it
+         masked and keep it out of shell history. */
+      if(hackerState.awaitingKey){
+        input.value='';
+        const ke=document.createElement('div');
+        ke.className='cmd-echo';
+        ke.textContent='key: '+'•'.repeat(Math.min(raw.length,24));
+        out.appendChild(ke);
+        if(raw.toLowerCase()==='abort'){
+          hackerState.awaitingKey=false;
+          printLine('Connection closed by user.'); renderBusy(); return;
+        }
+        if(raw===ACCESS_KEY){
+          hackerState.awaitingKey=false; hackerState.vaultOpen=true;
+          hackerState.keyKnown=true; _playOK();
+          FS['/home/guest/vault']={type:'dir'};
+          FS['/home/guest/vault/README.txt']={type:'file',
+            content:'Access granted via the connect chain.\nType `vault` to read it.'};
+          printSeq(['[+] Key accepted.','[+] Escalating … root@192.168.0.42',
+                    '[!] VAULT UNLOCKED — type `vault`.']);
+          renderBusy(); return;
+        }
+        hackerState.keyTries++; _playErr();
+        if(hackerState.keyTries>=3){
+          hackerState.awaitingKey=false;
+          printRaw('<span style="color:#ff6b6b">Too many attempts. Connection dropped.</span>');
+          printLine('Reconnect with: connect 192.168.0.42:1337');
+        } else {
+          printRaw('<span style="color:#ff6b6b">Access denied. ('+hackerState.keyTries+'/3)</span>');
+        }
+        renderBusy(); return;
+      }
+
       const {cmd}=parseCmd(raw);
       if(_validSet.has(cmd)||cmd==='git'||cmd==='npm'||cmd==='python3'||cmd==='python') _playOK();
       else _playErr();
