@@ -16835,6 +16835,49 @@ body.hacker-mode #retro-terminal { display:block; }
   overflow-y: auto;
 }
 #retro-terminal #out { white-space: pre-wrap; word-break: break-word; margin-bottom: 6px; max-height: 58vh; overflow-y: auto; }
+
+/* A terminal must be LEFT aligned. The <footer> carries an INLINE
+   text-align:center which inherits into every child, so this must be
+   broad and !important to win. Note #in and .prompt are direct children
+   of #terminal (NOT inside #out), so a #out-scoped rule misses them. */
+#retro-terminal,
+#retro-terminal *,
+#terminal,
+#terminal * { text-align: left !important; }
+/* the sign-off banner is the one thing that should stay centred */
+#retro-terminal .final-message,
+#terminal .final-message { text-align: center !important; }
+
+/* ── help layout: label stacks above its commands on narrow screens ── */
+#retro-terminal .help-title{
+  color:#00ffcc; font-weight:700; letter-spacing:.06em;
+  border-bottom:1px solid rgba(0,255,136,.35);
+  padding-bottom:4px; margin:2px 0 8px;
+}
+#retro-terminal .help-row{ margin:0 0 7px; line-height:1.45; }
+#retro-terminal .help-label{
+  display:block; color:#00ff88; font-weight:700;
+  font-size:.82em; letter-spacing:.12em;
+}
+#retro-terminal .help-cmds{ display:block; color:#cfe9e0; padding-left:10px; }
+#retro-terminal .help-note{
+  border-left:3px solid #00ffcc; padding:6px 0 6px 10px;
+  color:#8ff0d8; line-height:1.5;
+}
+#retro-terminal .help-note b{ color:#00ffcc; }
+#retro-terminal .help-foot{ color:#7fb8aa; font-size:.88em; line-height:1.5; }
+#retro-terminal .help-foot b{ color:#00ffcc; }
+
+/* wider screens: label and commands sit side by side */
+@media (min-width: 620px){
+  #retro-terminal .help-label{
+    display:inline-block; width:104px; vertical-align:top;
+  }
+  #retro-terminal .help-cmds{
+    display:inline-block; width:calc(100% - 112px);
+    vertical-align:top; padding-left:0;
+  }
+}
 #retro-terminal .row { display:flex; align-items:center; gap:8px; }
 #retro-terminal .prompt { color: var(--green2, #00ffaa); user-select:none; }
 #retro-terminal #out .cmd-echo {
@@ -17357,8 +17400,15 @@ function suraiyaFinalEffect() {
 
   /* ─── Main command handler ──────────────────────────────────────── */
   function handle(cmdRaw){
-    const raw=cmdRaw.trim();
+    let raw=cmdRaw.trim();
     if(!raw) return;
+
+    /* Bare subcommand routing — on mobile there is no Tab key, so people
+       naturally type `status` or `install` after reading help. Route them
+       to their real parent command instead of erroring out. */
+    const _first=raw.split(/\s+/)[0].toLowerCase();
+    if(['status','log','blame','push','clone'].includes(_first)) raw='git '+raw;
+    else if(['install','audit','start','run'].includes(_first)) raw='npm '+raw;
 
     /* Alias resolution */
     const fw=raw.split(/\s+/)[0].toLowerCase();
@@ -17408,7 +17458,13 @@ function suraiyaFinalEffect() {
         case 'push':
           printSeq(['Pushing to origin/main…','✅ Pushed. Vercel deployment triggered.']); break;
         default:
-          printLine("git: '"+(sub||'?')+"' is not a git command. Try: status · log · blame · diff · clone · push");
+          if(!sub){
+            printLine('git — usage: git <subcommand>');
+            printLine('  status · log · blame · diff · clone · push');
+          } else {
+            printLine("git: '"+sub+"' is not a git command.");
+            printLine('  Try: status · log · blame · diff · clone · push');
+          }
       }
       return;
     }
@@ -17424,12 +17480,23 @@ function suraiyaFinalEffect() {
           printSeq(['> portfolio@1.0.0 start','> vite --host',
             'VITE v5.0.0  ready in 312ms','➜  Local: http://localhost:5173/']); break;
         case 'run':
-          typeLine('Running script: '+(args[1]||'undefined')+'…');
+          if(!args[1]){
+            printLine('npm run — usage: npm run <script>');
+            printLine('  available: dev · build · preview · lint');
+            break;
+          }
+          typeLine('Running script: '+args[1]+'…');
           tdefer(1200,()=>typeLine('Done. ✅')); break;
         case 'audit':
           typeLine('found 0 vulnerabilities in 1337 packages ✅'); break;
         default:
-          printLine("npm: unknown command '"+(sub||'?')+"'. Try: install · start · run · audit");
+          if(!sub){
+            printLine('npm — usage: npm <subcommand>');
+            printLine('  install · start · run · audit');
+          } else {
+            printLine("npm: unknown command '"+sub+"'.");
+            printLine('  Try: install · start · run · audit');
+          }
       }
       return;
     }
@@ -17444,22 +17511,32 @@ function suraiyaFinalEffect() {
     switch(cmd){
 
       /* ── Help ── */
-      case 'help':
-        printRaw('<span style="color:#00ffcc;font-weight:bold">╔══════════ SHZ RETRO TERMINAL v2.0 ══════════╗</span>');
-        printRaw('<span style="color:#00ff88">  FILESYSTEM  </span><span style="color:#ccc">pwd · ls · cd · cat · mkdir · touch · rm · grep · find</span>');
-        printRaw('<span style="color:#00ff88">  SYSTEM      </span><span style="color:#ccc">whoami · neofetch · uname · uptime · ps · top · df · free</span>');
-        printRaw('<span style="color:#00ff88">  NETWORK     </span><span style="color:#ccc">ping · ipconfig · nmap · ssh · curl · scan → exploit</span>');
-        printRaw('<span style="color:#00ff88">  DEVELOPER   </span><span style="color:#ccc">git [status|log|blame|diff|clone|push] · npm · node · vim</span>');
-        printRaw('<span style="color:#00ff88">  INFO        </span><span style="color:#ccc">about · date · env · sysinfo · weather · website · social</span>');
-        printRaw('<span style="color:#00ff88">  FUN         </span><span style="color:#ccc">joke · fortune · quote · matrix · hack · banner · echo</span>');
-        printRaw('<span style="color:#00ff88">  SHELL       </span><span style="color:#ccc">history · alias · which · man · sudo · clear · exit</span>');
-        printRaw('<span style="color:#00ff88">  PREMIUM     </span><span style="color:#ccc">selfdestruct · earthquake · timewarp · blackout · warpdrive · reboot</span>');
-        printRaw('<span style="color:#00ff88">  EASTER EGGS </span><span style="color:#ccc">secret · diagnose · heartbeat · prescription · stethoscope · galaxy · key</span>');
-        printRaw('<span style="color:#00ff88">  FAMILY      </span><span style="color:#ccc">jamal · momotaz · afiya · fayaz · afaz · chufiya … (type a first name)</span>');
-        printRaw('<span style="color:#00ffcc;font-weight:bold">╚═════════════════════════════════════════════╝</span>');
+      case 'help':{
+        const H=(label,cmds)=>printRaw(
+          '<div class="help-row"><span class="help-label">'+label+'</span>'+
+          '<span class="help-cmds">'+cmds+'</span></div>');
+        printRaw('<div class="help-title">SHZ RETRO TERMINAL v2.0</div>');
+        H('FILESYSTEM','pwd · ls · cd · cat · mkdir · touch · rm · grep · find');
+        H('SYSTEM','whoami · neofetch · uname · uptime · ps · top · df · free · sysinfo');
+        H('NETWORK','ping · ipconfig · nmap · ssh · curl · scan · exploit');
+        H('GIT','git status · git log · git blame · git diff · git clone · git push');
+        H('NPM','npm install · npm start · npm run · npm audit');
+        H('INFO','about · date · env · weather · website · social · projects');
+        H('FUN','joke · fortune · quote · matrix · hack · banner · echo · crack');
+        H('SHELL','history · alias · which · man · sudo · chmod · clear · exit');
+        H('EFFECTS','selfdestruct · earthquake · timewarp · blackout · warpdrive · reboot');
+        H('SECRETS','secret · easteregg · key · galaxy · diagnose · heartbeat · prescription');
         printLine('');
-        printLine('  Tab → autocomplete   ↑↓ → history   man <cmd> → docs');
+        printRaw('<div class="help-note">\u2665 PERSONAL \u2014 if you are close to me,<br>'+
+                 'type <b>your own first name</b> as a command<br>'+
+                 'and the terminal will tell you who you are to me.</div>');
+        printLine('');
+        printRaw('<div class="help-foot">Tab autocompletes \u00b7 \u2191\u2193 history \u00b7 '+
+                 'Ctrl+C cancels \u00b7 man &lt;cmd&gt; for docs</div>');
+        printRaw('<div class="help-foot">Try the chain: <b>scan</b> \u2192 <b>exploit</b> \u2192 '+
+                 '<b>cat secret.key</b> \ud83d\udd10</div>');
         break;
+      }
 
       /* ── Filesystem ── */
       case 'pwd':
@@ -18039,7 +18116,8 @@ function suraiyaFinalEffect() {
   })();
 
   /* ─── Keydown ───────────────────────────────────────────────────── */
-  const _validSet=new Set(ALL_CMDS);
+  const _validSet=new Set(ALL_CMDS.concat(
+    ['status','log','blame','diff','clone','push','install','start','run','audit']));
 
   input.addEventListener('keydown', e=>{
     /* Ctrl+C — abandon anything queued and force-release the lock */
