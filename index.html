@@ -16821,7 +16821,7 @@ function sendMail(e) { if(e) e.preventDefault(); ctSendMail(); }
 <style>
 
 /* === Retro Terminal (footer merged) === */
-#retro-terminal { display:none; margin-top: 1rem; }
+#retro-terminal { display:none; margin-top: 0.6rem; }
 body.hacker-mode #retro-terminal { display:block; }
 #retro-terminal #terminal {
   position: relative;
@@ -16832,10 +16832,10 @@ body.hacker-mode #retro-terminal { display:block; }
   padding: 10px;
   font-size: 14px;
 
-  max-height: 60vh;
+  max-height: 75vh;
   overflow-y: auto;
-}}
-#retro-terminal #out { white-space: pre-wrap; word-break: break-word; margin-bottom: 6px; max-height: 40vh; overflow-y: auto; }
+}
+#retro-terminal #out { white-space: pre-wrap; word-break: break-word; margin-bottom: 6px; max-height: 58vh; overflow-y: auto; }
 #retro-terminal .row { display:flex; align-items:center; gap:8px; }
 #retro-terminal .prompt { color: var(--green2, #00ffaa); user-select:none; }
 #retro-terminal #in {
@@ -16844,6 +16844,15 @@ body.hacker-mode #retro-terminal { display:block; }
 }
 #retro-terminal #in::placeholder { color:#007a7a; }
 #retro-terminal .hint { font-size:12px; color:#62ffd5; margin-top:2px; }
+#retro-terminal .hint.hint-pulse {
+  animation: hintPulseGlow 2.2s ease-out;
+}
+@keyframes hintPulseGlow {
+  0%   { color: #62ffd5; text-shadow: 0 0 0 rgba(98,255,213,0); transform: scale(1); }
+  15%  { color: #baffe9; text-shadow: 0 0 10px rgba(98,255,213,0.85); transform: scale(1.06); }
+  50%  { color: #baffe9; text-shadow: 0 0 8px rgba(98,255,213,0.6); transform: scale(1.03); }
+  100% { color: #62ffd5; text-shadow: 0 0 0 rgba(98,255,213,0); transform: scale(1); }
+}
 #retro-terminal .hidden { display:none; }
 #retro-terminal canvas.matrix {
   width:100%; height:160px; display:block;
@@ -16917,8 +16926,16 @@ function suraiyaFinalEffect() {
   // --- Helpers (ported) ---
   function shell() { return out.parentElement; }
   function autoscroll(){
-  const s = shell();
-  s.scrollTop = s.scrollHeight; // internal scroll if terminal is scrollable
+  /* Bug: this used to scroll shell() (out.parentElement, i.e. #terminal)
+     — but #terminal has no overflow/scroll of its own; the CSS that
+     actually makes the output scrollable (overflow-y:auto; max-height:
+     40vh) is on #out itself, the child. So this line was scrolling an
+     element that was never scrollable in the first place — a complete
+     no-op — while the real scrollable box (#out) never had its scrollTop
+     touched, meaning new output silently stayed hidden below the fold
+     until the visitor manually scrolled inside the terminal. Scrolling
+     #out directly fixes it. */
+  out.scrollTop = out.scrollHeight;
   try {
     const term = document.getElementById('terminal');
     if (term) {
@@ -17985,6 +18002,29 @@ function syncHackerToggleIcon() {
   t.textContent = document.body.classList.contains('hacker-mode') ? '🖲️' : '🖥️';
 }
 
+/* Auto-scroll to the terminal's command input whenever Hacker Mode turns
+   on, with a brief pulse on the existing hint text so it's obvious where
+   to type — rather than leaving the visitor to notice/scroll to it
+   themselves. No auto-focus on the input itself (deliberate — would pop
+   the mobile keyboard open unexpectedly, which this site avoids elsewhere
+   too). Safe to call any time; no-ops if the terminal isn't in the DOM
+   or hacker mode isn't actually on. */
+function scrollToTerminalWithHint() {
+  if (!document.body.classList.contains('hacker-mode')) return;
+  var term = document.getElementById('retro-terminal');
+  if (!term) return;
+  setTimeout(function () {
+    term.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    var hint = term.querySelector('#hint');
+    if (hint) {
+      hint.classList.remove('hint-pulse');
+      void hint.offsetWidth; /* restart the animation if triggered again quickly */
+      hint.classList.add('hint-pulse');
+      setTimeout(function () { hint.classList.remove('hint-pulse'); }, 2200);
+    }
+  }, 350); /* small delay so the terminal has finished becoming visible first */
+}
+
 document.addEventListener('DOMContentLoaded', function () {
   // find or create the toggle element
   let toggle = document.getElementById('hacker-toggle');
@@ -17997,6 +18037,7 @@ document.addEventListener('DOMContentLoaded', function () {
     toggle.addEventListener('click', function () {
       document.body.classList.toggle('hacker-mode');
       syncHackerToggleIcon();
+      scrollToTerminalWithHint();
     });
   } else {
     // Ensure the element has the right content (emoji) in case it was empty
@@ -23424,6 +23465,7 @@ document.addEventListener('DOMContentLoaded', function(){
             } else {
               document.body.classList.add('hacker-mode');
               syncHackerToggleIcon();
+              scrollToTerminalWithHint();
             }
 
           } else if (cmd === 'hacker_off') {
@@ -23444,6 +23486,7 @@ document.addEventListener('DOMContentLoaded', function(){
           } else if (cmd === 'hacker_toggle') {
             document.body.classList.toggle('hacker-mode');
             syncHackerToggleIcon();
+            scrollToTerminalWithHint();
 
           /* Code popup */
           } else if (cmd === 'open_code_popup') {
