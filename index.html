@@ -542,7 +542,9 @@ img {
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
 <noscript><link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet"/></noscript>
 
-<!-- ─────────────────────────────────────────────────────────────── --><link rel="stylesheet" href="css/portfolio-core.css">
+<!-- ─────────────────────────────────────────────────────────────── --><!-- must load before first paint: LCP/CLS/FCP cannot be observed retroactively -->
+<script src="js/web-vitals.js"></script>
+<link rel="stylesheet" href="css/portfolio-core.css">
 <!-- Open Graph consolidated in head -->
 
 <!-- Standard Favicon -->
@@ -3474,6 +3476,23 @@ window.addEventListener('resize', () => {
     <span class="ra-eyebrow-text">Engineering Telemetry</span>
   </div>
   <p class="ra-eyebrow-note">Live engineering telemetry, pulled straight from GitHub — built for <b>developers, recruiters and technical reviewers</b> who know what these metrics mean.</p>
+
+  <!-- Live page vitals: populated by js/web-vitals.js from this device -->
+  <div class="wv-card" id="wvCard">
+    <div class="wv-card-head">
+      <span class="wv-card-title">
+        <span class="wv-card-dot" aria-hidden="true"></span>This Page, Right Now
+      </span>
+      <button type="button" class="wv-card-btn" data-web-vitals>Full report</button>
+    </div>
+    <p class="wv-card-sub">Core Web Vitals measured on <b>your</b> device during <b>this</b> visit — not a stored score.</p>
+    <div class="wv-card-grid" id="wvCardGrid">
+      <div class="wv-chip wv-na" data-m="LCP"><span class="wv-chip-k">LCP</span><span class="wv-chip-v">—</span></div>
+      <div class="wv-chip wv-na" data-m="CLS"><span class="wv-chip-k">CLS</span><span class="wv-chip-v">—</span></div>
+      <div class="wv-chip wv-na" data-m="INP"><span class="wv-chip-k">INP</span><span class="wv-chip-v">—</span></div>
+      <div class="wv-chip wv-na" data-m="PAGE"><span class="wv-chip-k">Page</span><span class="wv-chip-v">—</span></div>
+    </div>
+  </div>
 
   <div class="ra-header">
     <h2 class="ra-title"><span class="ra-live-dot" aria-hidden="true"></span><span class="ra-title-shimmer">Recently Shipped</span></h2>
