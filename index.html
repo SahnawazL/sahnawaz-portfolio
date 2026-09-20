@@ -800,6 +800,10 @@ img {
   border-radius: 12px;
 }
 #codePopup.cp-maximised {
+  /* `top` must be forced too: after a drag the element carries inline
+     top/bottom, and top+height together make `bottom` be ignored, so
+     the window stayed where it was dragged instead of maximising. */
+  top: auto !important;
   left: 3vw !important;
   right: 3vw !important;
   bottom: 3vh !important;
@@ -816,6 +820,7 @@ img {
 /* on phones a "maximised" window should just be the whole screen */
 @media (max-width: 560px){
   #codePopup.cp-maximised {
+    top: auto !important;
     left: 2vw !important; right: 2vw !important;
     bottom: 2vh !important; height: 82vh !important; max-height: 82vh !important;
   }
@@ -19421,18 +19426,37 @@ function suraiyaFinalEffect() {
 
       } else {
         /* real JS execution */
+        /* Only report what THIS snippet declares. Probing fixed names
+           leaked host-page globals: every element with an id creates a
+           window property, so `id="projects"` on the page made
+           `typeof projects !== "undefined"` true and printed the DOM
+           node as `{}`. Parsing the declarations avoids that entirely. */
+        var declared = [], dre = /^[ \t]*(?:const|let|var|class|function)\s+([A-Za-z_$][\w$]*)/gm, dm;
+        while((dm = dre.exec(code)) !== null){
+          if(declared.indexOf(dm[1]) === -1) declared.push(dm[1]);
+        }
+        if(!declared.length){
+          out.push({t:'note', v:'(no top-level declarations found)'});
+          out.push({t:'ok',   v:'\u2713 executed without errors'});
+          var te = (window.performance && performance.now) ? performance.now() : Date.now();
+          out.push({t:'time', v:'finished in ' + (te - t0).toFixed(1) + ' ms'});
+          return out;
+        }
         var runner = new Function(
           code + '\n;return {' +
-          '  result:   typeof result   !== "undefined" ? result   : undefined,' +
-          '  sahnawaz: typeof sahnawaz !== "undefined" ? sahnawaz : undefined,' +
-          '  projects: typeof projects !== "undefined" ? projects : undefined,' +
-          '  session:  typeof session  !== "undefined" ? session  : undefined' +
+          declared.map(function(n){ return JSON.stringify(n) + ':' + n; }).join(',') +
           '};'
         );
         var res = runner() || {};
         var shown = 0;
-        ['result','sahnawaz','projects','session'].forEach(function(k){
+        declared.forEach(function(k){
           if(res[k] === undefined) return;
+          if(typeof res[k] === 'function'){
+            shown++;
+            out.push({t:'note', v:'> ' + k});
+            out.push({t:'val',  v:'[' + (/^\s*class/.test(String(res[k])) ? 'class' : 'function') + ' ' + k + ']'});
+            return;
+          }
           shown++;
           out.push({t:'note', v:'> ' + k});
           out.push({t:'val',  v:fmt(res[k])});
@@ -26131,6 +26155,9 @@ body.hacker-mode #hacker-toggle {
         body.style.display='none';
         if(tabs) tabs.style.display='none';
       } else if(next==='maximised'){
+        /* drop any dragged inline offsets so the CSS can take over */
+        popup.style.top=''; popup.style.left='';
+        popup.style.right=''; popup.style.bottom='';
         popup.classList.add('cp-maximised');
         body.style.display='';
         if(tabs) tabs.style.display='';
