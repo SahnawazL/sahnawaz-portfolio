@@ -286,6 +286,12 @@
     list  = $('cmdp-list');
 
     overlay.addEventListener('click', function (e) { if (e.target === overlay) close(); });
+    /* tapping the search row focuses the field deliberately */
+    var head = $('cmdp-head');
+    if (head) head.addEventListener('click', function (e) {
+      if (e.target.closest && e.target.closest('#cmdp-close')) return;
+      try { input.focus(); } catch (err) {}
+    });
     var closeBtn = $('cmdp-close');
     if (closeBtn) closeBtn.addEventListener('click', function (e) { e.preventDefault(); close(); });
     input.addEventListener('input', function () { render(input.value); });
@@ -376,7 +382,15 @@
     input.value = '';
     render('');
     document.body.style.overflow = 'hidden';
-    setTimeout(function () { try { input.focus(); } catch (e) {} }, 40);
+    /* Only autofocus where there is a real keyboard. On touch devices
+       focusing the field summons the on-screen keyboard, which covers
+       most of the screen and hides the very list the visitor came to
+       browse. They can tap the field themselves when they want to type. */
+    if (hasKeyboard()) {
+      setTimeout(function () { try { input.focus(); } catch (e) {} }, 40);
+    } else {
+      try { input.blur(); } catch (e) {}
+    }
   }
 
   function close() {
@@ -387,6 +401,17 @@
   }
 
   /* ---------- global shortcuts ----------------------------- */
+  /* A device is treated as keyboard-driven only when it has a fine
+     pointer and real hover — that rules out phones and tablets, which
+     report (hover:none) and (pointer:coarse). */
+  function hasKeyboard() {
+    try {
+      if (navigator.maxTouchPoints > 0 &&
+          window.matchMedia('(hover: none)').matches) return false;
+      return window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    } catch (e) { return false; }   /* unsure? don't force the keyboard open */
+  }
+
   function typingInField(t) {
     if (!t) return false;
     var tag = (t.tagName || '').toLowerCase();
