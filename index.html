@@ -17189,7 +17189,7 @@ body.hacker-mode #retro-terminal { display:block; }
 <input aria-label="Type command" autocapitalize="off" autocorrect="off" enterkeyhint="send" id="in" inputmode="text" placeholder="Type a command..." spellcheck="false" type="text"/>
 <div class="hint" id="hint">💡 Type <b>help</b> to see available commands</div>
 </div>
-<audio id="beep" preload="auto" src="typing.mp3"></audio>
+
 <script>
 function suraiyaFinalEffect() {
   // Final glowing message
@@ -17337,8 +17337,22 @@ function suraiyaFinalEffect() {
       }
     }catch(e){}
   }
+  /* synthesized keystroke — no mp3 dependency */
+  let _tctx=null;
   function playKey(){
-    try{ if(beep){ beep.currentTime=0; const p=beep.play(); if(p&&p.catch) p.catch(()=>{}); } }catch(e){}
+    try{
+      if(!_tctx) _tctx=new (window.AudioContext||window.webkitAudioContext)();
+      if(_tctx.state==='suspended'&&_tctx.resume) _tctx.resume();
+      const t=_tctx.currentTime;
+      const o=_tctx.createOscillator(), g=_tctx.createGain();
+      o.type='square';
+      o.frequency.setValueAtTime(1400+Math.random()*900,t);
+      g.gain.setValueAtTime(0.0001,t);
+      g.gain.exponentialRampToValueAtTime(0.03,t+0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+0.03);
+      o.connect(g); g.connect(_tctx.destination);
+      o.start(t); o.stop(t+0.034);
+    }catch(e){}
   }
   /* ─── Input lock: prevents output interleaving ───────────────────
      Every async output path (typeLine, deferred setTimeout/setInterval)
@@ -18767,36 +18781,41 @@ function suraiyaFinalEffect() {
   /* ── Flat token list: each entry = one coloured segment on one line ─ */
   /* Each line is an array of {text, color} segments. Empty = blank line */
   var LINES = [
-    [ {text:'// portfolio.js — Sahnawaz Ahmed Laskar', color:'#6a9955'} ],
+    [ {text:'// portfolio.js \u2014 the build, not the bio',color:'#6a9955'} ],
+    [ {text:'// run it \u25b6 to see what it returns',color:'#6a9955'} ],
     [],
-    [ {text:'const ',color:'#569cd6'}, {text:'sahnawaz',color:'#d4d4d4'}, {text:' = {',color:'#d4d4d4'} ],
-    [ {text:'  role',color:'#9cdcfe'}, {text:': ',color:'#d4d4d4'}, {text:'"Full Stack Developer & UI/UX Designer"',color:'#ce9178'}, {text:',',color:'#d4d4d4'} ],
-    [ {text:'  stack',color:'#9cdcfe'}, {text:': ',color:'#d4d4d4'}, {text:'["React", "Node.js", "Python", "Figma"]',color:'#dcdcaa'}, {text:',',color:'#d4d4d4'} ],
-    [ {text:'  crafted',color:'#9cdcfe'}, {text:': ',color:'#d4d4d4'}, {text:'["Flipkart", "Xiaomi", "Rapido"]',color:'#dcdcaa'}, {text:',',color:'#d4d4d4'} ],
-    [ {text:'  location',color:'#9cdcfe'}, {text:': ',color:'#d4d4d4'}, {text:'"Silchar, Assam, India"',color:'#ce9178'}, {text:',',color:'#d4d4d4'} ],
-    [ {text:'  available',color:'#9cdcfe'}, {text:': ',color:'#d4d4d4'}, {text:'true',color:'#4ec9b0'} ],
-    [ {text:'};',color:'#d4d4d4'} ],
-    [],
-    [ {text:'const ',color:'#569cd6'}, {text:'projects',color:'#d4d4d4'}, {text:' = [',color:'#d4d4d4'} ],
-    [ {text:'  {',color:'#d4d4d4'} ],
-    [ {text:'    name',color:'#9cdcfe'}, {text:': ',color:'#d4d4d4'}, {text:'"YojanaSahay"',color:'#ce9178'}, {text:',',color:'#d4d4d4'} ],
-    [ {text:'    role',color:'#9cdcfe'}, {text:': ',color:'#d4d4d4'}, {text:'"Founder & Full Stack Developer"',color:'#ce9178'}, {text:',',color:'#d4d4d4'} ],
-    [ {text:'    about',color:'#9cdcfe'}, {text:': ',color:'#d4d4d4'}, {text:'"AI-powered platform helping Indian citizens discover government welfare schemes"',color:'#ce9178'}, {text:',',color:'#d4d4d4'} ],
-    [ {text:'    stack',color:'#9cdcfe'}, {text:': ',color:'#d4d4d4'}, {text:'["React", "Firebase", "Groq LLM", "Tavily API"]',color:'#dcdcaa'}, {text:',',color:'#d4d4d4'} ],
-    [ {text:'    features',color:'#9cdcfe'}, {text:': ',color:'#d4d4d4'}, {text:'["Bilingual EN/HI", "AI eligibility checker", "Admin dashboard"]',color:'#dcdcaa'}, {text:',',color:'#d4d4d4'} ],
-    [ {text:'    live',color:'#9cdcfe'}, {text:': ',color:'#d4d4d4'}, {text:'"yojanasahay.vercel.app"',color:'#ce9178'} ],
-    [ {text:'  },',color:'#d4d4d4'} ],
-    [ {text:'  {',color:'#d4d4d4'} ],
-    [ {text:'    name',color:'#9cdcfe'}, {text:': ',color:'#d4d4d4'}, {text:'"StudyLens AI"',color:'#ce9178'}, {text:',',color:'#d4d4d4'} ],
-    [ {text:'    role',color:'#9cdcfe'}, {text:': ',color:'#d4d4d4'}, {text:'"Founder & Full Stack Developer"',color:'#ce9178'}, {text:',',color:'#d4d4d4'} ],
-    [ {text:'    about',color:'#9cdcfe'}, {text:': ',color:'#d4d4d4'}, {text:'"AI-powered study companion for Class 1\u201312 students across Assam"',color:'#ce9178'}, {text:',',color:'#d4d4d4'} ],
-    [ {text:'    audience',color:'#9cdcfe'}, {text:': ',color:'#d4d4d4'}, {text:'"Students across Assam"',color:'#ce9178'}, {text:',',color:'#d4d4d4'} ],
-    [ {text:'    status',color:'#9cdcfe'}, {text:': ',color:'#d4d4d4'}, {text:'"In active development"',color:'#ce9178'} ],
+    [ {text:'class ',color:'#569cd6'}, {text:'Developer',color:'#4ec9b0'}, {text:' {',color:'#d4d4d4'} ],
+    [ {text:'  constructor',color:'#dcdcaa'}, {text:'(name) {',color:'#d4d4d4'} ],
+    [ {text:'    this',color:'#569cd6'}, {text:'.name    = name;',color:'#d4d4d4'} ],
+    [ {text:'    this',color:'#569cd6'}, {text:'.shipped = [];',color:'#d4d4d4'} ],
+    [ {text:'    this',color:'#569cd6'}, {text:'.coffee  = ',color:'#d4d4d4'}, {text:'Infinity',color:'#b5cea8'}, {text:';',color:'#d4d4d4'} ],
     [ {text:'  }',color:'#d4d4d4'} ],
-    [ {text:'];',color:'#d4d4d4'} ],
     [],
-    [ {text:'// \u2728 Open to freelance & full-time roles',color:'#6a9955'} ],
+    [ {text:'  ship',color:'#dcdcaa'}, {text:'(project, users) {',color:'#d4d4d4'} ],
+    [ {text:'    this',color:'#569cd6'}, {text:'.shipped.',color:'#d4d4d4'}, {text:'push',color:'#dcdcaa'}, {text:'({ project, users });',color:'#d4d4d4'} ],
+    [ {text:'    return ',color:'#569cd6'}, {text:'this',color:'#569cd6'}, {text:';',color:'#d4d4d4'}, {text:'   // chainable',color:'#6a9955'} ],
+    [ {text:'  }',color:'#d4d4d4'} ],
+    [],
+    [ {text:'  get ',color:'#569cd6'}, {text:'reach',color:'#dcdcaa'}, {text:'() {',color:'#d4d4d4'} ],
+    [ {text:'    return this',color:'#569cd6'}, {text:'.shipped.',color:'#d4d4d4'}, {text:'reduce',color:'#dcdcaa'}, {text:'(',color:'#d4d4d4'} ],
+    [ {text:'      (sum, p) => sum + p.users, ',color:'#d4d4d4'}, {text:'0',color:'#b5cea8'} ],
+    [ {text:'    );',color:'#d4d4d4'} ],
+    [ {text:'  }',color:'#d4d4d4'} ],
+    [ {text:'}',color:'#d4d4d4'} ],
+    [],
+    [ {text:'const ',color:'#569cd6'}, {text:'shz',color:'#d4d4d4'}, {text:' = ',color:'#d4d4d4'}, {text:'new ',color:'#569cd6'}, {text:'Developer',color:'#4ec9b0'}, {text:'(',color:'#d4d4d4'}, {text:'"Sahnawaz"',color:'#ce9178'}, {text:')',color:'#d4d4d4'} ],
+    [ {text:'  .',color:'#d4d4d4'}, {text:'ship',color:'#dcdcaa'}, {text:'(',color:'#d4d4d4'}, {text:'"YojanaSahay"',color:'#ce9178'}, {text:', ',color:'#d4d4d4'}, {text:'12000',color:'#b5cea8'}, {text:')',color:'#d4d4d4'} ],
+    [ {text:'  .',color:'#d4d4d4'}, {text:'ship',color:'#dcdcaa'}, {text:'(',color:'#d4d4d4'}, {text:'"StudyLens AI"',color:'#ce9178'}, {text:', ',color:'#d4d4d4'}, {text:'8500',color:'#b5cea8'}, {text:')',color:'#d4d4d4'} ],
+    [ {text:'  .',color:'#d4d4d4'}, {text:'ship',color:'#dcdcaa'}, {text:'(',color:'#d4d4d4'}, {text:'"this portfolio"',color:'#ce9178'}, {text:', ',color:'#d4d4d4'}, {text:'1',color:'#b5cea8'}, {text:');',color:'#d4d4d4'} ],
+    [],
+    [ {text:'const ',color:'#569cd6'}, {text:'result',color:'#d4d4d4'}, {text:' = {',color:'#d4d4d4'} ],
+    [ {text:'  builder',color:'#9cdcfe'}, {text:': shz.name,',color:'#d4d4d4'} ],
+    [ {text:'  projects',color:'#9cdcfe'}, {text:': shz.shipped.',color:'#d4d4d4'}, {text:'map',color:'#dcdcaa'}, {text:'(p => p.project),',color:'#d4d4d4'} ],
+    [ {text:'  totalReach',color:'#9cdcfe'}, {text:': shz.reach,',color:'#d4d4d4'} ],
+    [ {text:'  stillBuilding',color:'#9cdcfe'}, {text:': ',color:'#d4d4d4'}, {text:'true',color:'#569cd6'} ],
+    [ {text:'};',color:'#d4d4d4'} ]
   ];
+;
 
   /* ══ BATCH 3: multiple files ══
      Same {text,color} segment shape as LINES, so one renderer serves all. */
@@ -18828,12 +18847,13 @@ function suraiyaFinalEffect() {
       [ {text:'  timeZone',color:C.prop},  {text:':  ',color:C.plain},     {text:'@@TZ@@',color:C.str},      {text:',',color:C.plain} ],
       [ {text:'  battery',color:C.prop},   {text:':   ',color:C.plain},    {text:'@@BATT@@',color:C.str},    {text:',',color:C.plain} ],
       [ {text:'  network',color:C.prop},   {text:':   ',color:C.plain},    {text:'@@NET@@',color:C.str},     {text:',',color:C.plain} ],
+      [ {text:'  linkSpeed',color:C.prop}, {text:': ',color:C.plain},      {text:'@@LINK@@',color:C.str},    {text:',',color:C.plain} ],
       [ {text:'  browser',color:C.prop},   {text:':   ',color:C.plain},    {text:'@@BROWSER@@',color:C.str}, {text:',',color:C.plain} ],
       [ {text:'  os',color:C.prop},        {text:':        ',color:C.plain},{text:'@@OS@@',color:C.str},     {text:',',color:C.plain} ],
       [ {text:'  screen',color:C.prop},    {text:':    ',color:C.plain},   {text:'@@SCREEN@@',color:C.str},  {text:',',color:C.plain} ],
       [ {text:'  viewport',color:C.prop},  {text:':  ',color:C.plain},     {text:'@@VIEW@@',color:C.str},    {text:',',color:C.plain} ],
       [ {text:'  cpuCores',color:C.prop},  {text:':  ',color:C.plain},     {text:'@@CORES@@',color:C.num},   {text:',',color:C.plain} ],
-      [ {text:'  memoryGB',color:C.prop},  {text:':  ',color:C.plain},     {text:'@@MEM@@',color:C.num},     {text:',',color:C.plain} ],
+      [ {text:'  memory',color:C.prop},    {text:':    ',color:C.plain},   {text:'@@MEM@@',color:C.str},     {text:',',color:C.plain} ],
       [ {text:'  touch',color:C.prop},     {text:':     ',color:C.plain},  {text:'@@TOUCH@@',color:C.num},   {text:',',color:C.plain} ],
       [ {text:'  language',color:C.prop},  {text:':  ',color:C.plain},     {text:'@@LANG@@',color:C.str},    {text:',',color:C.plain} ],
       [ {text:'  theme',color:C.prop},     {text:':     ',color:C.plain},  {text:'@@THEME@@',color:C.str},   {text:',',color:C.plain} ],
@@ -18886,54 +18906,39 @@ function suraiyaFinalEffect() {
 
   /* ── Audio ── */
   /* ══ BATCH 4: audio with a synthesized fallback ══
-     typing.mp3 stays the preferred voice, but a missing or blocked file
-     used to mean silence. A shared Web Audio context now covers that,
-     matching how the terminal already makes its sounds — one context
-     reused for every keystroke, never one per character. */
-  var _aud = null, _mp3ok = false, _actx = null, _muted = false;
+*/
+  /* Audio is fully synthesized — typing.mp3 is no longer loaded or
+     referenced. One shared AudioContext, one oscillator per keystroke. */
+  var _actx = null, _muted = false;
 
-  function initAudio() {
-    if (_aud) return;
-    try {
-      _aud = new Audio('typing.mp3');
-      _aud.volume = 0.45;
-      _aud.addEventListener('canplaythrough', function(){ _mp3ok = true; });
-      _aud.addEventListener('error', function(){ _mp3ok = false; });
-      _aud.load();
-      window._codePopupAudio = _aud;
-    } catch(e) { _aud = null; }
-  }
+  function initAudio(){ /* nothing to preload any more */ }
 
   function _ctx(){
     if(_actx) return _actx;
-    try { _actx = new (window.AudioContext || window.webkitAudioContext)(); }
-    catch(e) { _actx = null; }
+    try{ _actx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch(e){ _actx = null; }
     return _actx;
   }
 
-  /* short, dry keyswitch click — cheap enough to fire per character */
   function _synthKey(){
     var c = _ctx();
     if(!c) return;
     try{
+      if(c.state === 'suspended' && c.resume) c.resume();
       var t = c.currentTime;
       var o = c.createOscillator(), g = c.createGain();
       o.type = 'square';
-      o.frequency.setValueAtTime(1600 + Math.random()*900, t);
+      o.frequency.setValueAtTime(1500 + Math.random()*1000, t);
       g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.045, t + 0.004);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
+      g.gain.exponentialRampToValueAtTime(0.04, t + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.032);
       o.connect(g); g.connect(c.destination);
-      o.start(t); o.stop(t + 0.04);
+      o.start(t); o.stop(t + 0.036);
     }catch(e){}
   }
 
-  function tick(ch) {
-    if (_muted || ch === '\n' || ch === ' ') return;
-    if (_mp3ok && _aud) {
-      try { _aud.currentTime = 0; var p = _aud.play(); if(p && p.catch) p.catch(function(){}); return; }
-      catch(e) { /* fall through to synth */ }
-    }
+  function tick(ch){
+    if(_muted || ch === '\n' || ch === ' ') return;
     _synthKey();
   }
 
@@ -18985,7 +18990,7 @@ function suraiyaFinalEffect() {
           try{ sessionStorage.setItem('codeTyped','true');
                 sessionStorage.setItem('cpTyped:'+(window._cpActiveFile||'portfolio.js'),'1'); }catch(e){}
           window._codeTypingTimers = [];
-          try { _aud.pause(); _aud.currentTime = 0; } catch(e){}
+    
         }, 700);
         return;
       }
@@ -19077,7 +19082,7 @@ function suraiyaFinalEffect() {
       window._codeTypingTimers.forEach(clearTimeout);
       window._codeTypingTimers = [];
     }
-    try{ if(_aud){ _aud.pause(); _aud.currentTime = 0; } }catch(e){}
+
     tc.innerHTML = '';
 
     var seen = false;
@@ -19117,6 +19122,34 @@ function suraiyaFinalEffect() {
      removed it. We subscribe once at load and cache the readings, so
      token resolution stays synchronous. Unsupported browsers report
      "unavailable" rather than a fabricated number. */
+  /* Chrome on Android freezes the UA string to "Android 10" for privacy,
+     so the UA can never give the real OS version. userAgentData's
+     high-entropy values can — they are async, so we prefetch and cache. */
+  var _uad = { ready:false, platform:null, platformVersion:null,
+               model:null, browser:null, browserVersion:null };
+  (function initUAData(){
+    var d = navigator.userAgentData;
+    if(!d || !d.getHighEntropyValues){ _uad.ready = true; return; }
+    try{
+      d.getHighEntropyValues(['platformVersion','model','fullVersionList'])
+       .then(function(v){
+         _uad.ready = true;
+         _uad.platform = d.platform || null;
+         _uad.platformVersion = v.platformVersion || null;
+         _uad.model = v.model || null;
+         var list = v.fullVersionList || d.brands || [];
+         for(var i=0;i<list.length;i++){
+           var b = list[i].brand || '';
+           if(/Not.?A.?Brand/i.test(b)) continue;
+           if(/Chromium/i.test(b) && list.length > 1) continue;
+           _uad.browser = b;
+           _uad.browserVersion = (list[i].version || '').split('.')[0];
+           break;
+         }
+       }).catch(function(){ _uad.ready = true; });
+    }catch(e){ _uad.ready = true; }
+  })();
+
   var _batt = { supported:false, level:null, charging:null, ready:false };
   (function initBattery(){
     if(!navigator.getBattery){ _batt.ready = true; return; }
@@ -19150,7 +19183,10 @@ function suraiyaFinalEffect() {
       ['Safari',           /Safari\//,          /Version\/(\d+)/]
     ];
     var br = 'Unknown';
-    for(var bi = 0; bi < brands.length; bi++){
+    if(_uad.browser){
+      br = _uad.browser + (_uad.browserVersion ? ' ' + _uad.browserVersion : '');
+    }
+    for(var bi = 0; !_uad.browser && bi < brands.length; bi++){
       if(!brands[bi][1].test(ua)) continue;
       br = brands[bi][0];
       var vm = ua.match(brands[bi][2]);
@@ -19158,22 +19194,34 @@ function suraiyaFinalEffect() {
       break;
     }
 
-    /* OS: check iOS/iPadOS before macOS — iPadOS reports as Macintosh */
-    var os = 'Unknown';
-    if(/Android/.test(ua)){
-      os = 'Android';
-      var am = ua.match(/Android\s+([\d.]+)/); if(am) os += ' ' + am[1];
-    } else if(/iPhone|iPad|iPod/.test(ua) ||
-              (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)){
-      os = /iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)
-           ? 'iPadOS' : 'iOS';
-      var im = ua.match(/OS\s+(\d+[_\d]*)/); if(im) os += ' ' + im[1].replace(/_/g, '.');
+    /* OS. The UA string's Android version is frozen at 10 by Chrome's
+       UA-reduction, so we only trust a version from userAgentData.
+       Otherwise we name the OS without a misleading number. */
+    var os = 'Unknown', osFromUAD = false;
+    if(_uad.platform){
+      os = _uad.platform === 'macOS' ? 'macOS' : _uad.platform;
+      if(_uad.platformVersion){
+        var maj = String(_uad.platformVersion).split('.')[0];
+        if(maj && maj !== '0'){ os += ' ' + maj; osFromUAD = true; }
+      }
+      if(_uad.model) os += ' (' + _uad.model + ')';
     }
-    else if(/Windows NT 10/.test(ua))  os = 'Windows 10/11';
-    else if(/Windows/.test(ua))        os = 'Windows';
-    else if(/Mac OS X/.test(ua))       os = 'macOS';
-    else if(/CrOS/.test(ua))           os = 'ChromeOS';
-    else if(/Linux/.test(ua))          os = 'Linux';
+    if(!osFromUAD && !_uad.platform){
+      if(/Android/.test(ua)) os = 'Android';           /* version unreliable */
+      else if(/iPhone|iPod/.test(ua)) {
+        os = 'iOS';
+        var im = ua.match(/OS\s+(\d+)[_\d]*/); if(im) os += ' ' + im[1];
+      }
+      else if(/iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)){
+        os = 'iPadOS';
+        var im2 = ua.match(/OS\s+(\d+)[_\d]*/); if(im2) os += ' ' + im2[1];
+      }
+      else if(/Windows NT 10/.test(ua)) os = 'Windows 10/11';
+      else if(/Windows/.test(ua))       os = 'Windows';
+      else if(/Mac OS X/.test(ua))      os = 'macOS';
+      else if(/CrOS/.test(ua))          os = 'ChromeOS';
+      else if(/Linux/.test(ua))         os = 'Linux';
+    }
 
     /* battery */
     var batt;
@@ -19184,13 +19232,35 @@ function suraiyaFinalEffect() {
              (_batt.charging ? ' \u26a1 charging' : '');
     }
 
-    /* network: Network Information API is Chromium-only */
-    var net = 'unavailable';
+    /* Network. Two separate things, previously conflated:
+         connection.type          — the actual transport (wifi/cellular). Rarely exposed.
+         connection.effectiveType — a SPEED CLASS ('4g' just means "4G-like
+                                    throughput"). It is NOT the radio. On
+                                    5G it commonly reads '4g'; on slow Wi-Fi
+                                    it reads '3g'. Reporting it as the
+                                    network generation was simply wrong.
+       So: name the transport only when the browser truly knows it, and
+       present the rest as the measured speed it actually is. */
+    var net = 'unavailable', link = 'unavailable';
     var ci = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    if(ci && ci.effectiveType){
-      net = ci.effectiveType;
-      if(typeof ci.downlink === 'number') net += ' \u00b7 ~' + ci.downlink + ' Mbps';
-      if(ci.saveData) net += ' \u00b7 data saver';
+    if(ci){
+      var parts = [];
+      if(ci.type){
+        var tmap = { wifi:'Wi-Fi', cellular:'Cellular', ethernet:'Ethernet',
+                     bluetooth:'Bluetooth', wimax:'WiMAX', none:'Offline',
+                     other:'Other', unknown:'Unknown' };
+        parts.push(tmap[ci.type] || ci.type);
+      } else {
+        parts.push('type hidden by browser');
+      }
+      if(ci.saveData) parts.push('data saver on');
+      net = parts.join(' \u00b7 ');
+
+      var lp = [];
+      if(typeof ci.downlink === 'number') lp.push('~' + ci.downlink + ' Mbps');
+      if(typeof ci.rtt === 'number' && ci.rtt > 0) lp.push(ci.rtt + ' ms RTT');
+      if(ci.effectiveType) lp.push(ci.effectiveType.toUpperCase() + '-class');
+      link = lp.length ? lp.join(' \u00b7 ') : 'unavailable';
     }
 
     /* preferences */
@@ -19217,8 +19287,15 @@ function suraiyaFinalEffect() {
                  String(Math.floor(Math.abs(offMin)/60)).replace(/^(\d)$/,'0$1') + ':' +
                  String(Math.abs(offMin)%60).replace(/^(\d)$/,'0$1');
 
-    var mem = (typeof navigator.deviceMemory === 'number')
-              ? navigator.deviceMemory : null;
+    /* deviceMemory is deliberately coarse: it snaps to 0.25/0.5/1/2/4/8
+       and is CAPPED AT 8, so a 12GB phone still reports 8 and many
+       report 4. Presenting it as an exact figure was misleading, so we
+       show it as a lower bound. */
+    var memRaw = (typeof navigator.deviceMemory === 'number')
+                 ? navigator.deviceMemory : null;
+    var mem = (memRaw === null) ? 'unavailable'
+            : (memRaw >= 8 ? '8 GB or more (browser caps this)'
+                           : memRaw + ' GB or more (approx)');
 
     return {
       '@@DATE@@'   : _q(now.toLocaleDateString(undefined,
@@ -19228,13 +19305,14 @@ function suraiyaFinalEffect() {
       '@@TZ@@'     : _q((tz || 'n/a') + ' (UTC' + offStr + ')'),
       '@@BATT@@'   : _q(batt),
       '@@NET@@'    : _q(net),
+      '@@LINK@@'   : _q(link),
       '@@BROWSER@@': _q(br),
       '@@OS@@'     : _q(os),
       '@@SCREEN@@' : _q(window.screen.width + '\u00d7' + window.screen.height +
-                        ' @' + (window.devicePixelRatio || 1) + 'x'),
+                        ' @' + Math.round((window.devicePixelRatio || 1) * 100) / 100 + 'x'),
       '@@VIEW@@'   : _q(window.innerWidth + '\u00d7' + window.innerHeight),
       '@@CORES@@'  : (navigator.hardwareConcurrency || 'null'),
-      '@@MEM@@'    : (mem === null ? 'null' : mem),
+      '@@MEM@@'    : _q(mem),
       '@@TOUCH@@'  : (navigator.maxTouchPoints > 0 ? 'true' : 'false'),
       '@@LANG@@'   : _q(navigator.language || 'n/a'),
       '@@THEME@@'  : _q(theme),
@@ -19273,7 +19351,7 @@ function suraiyaFinalEffect() {
       window._codeTypingTimers.forEach(clearTimeout);
       window._codeTypingTimers = [];
     }
-    try{ if(_aud){ _aud.pause(); _aud.currentTime = 0; } }catch(e){}
+
     tc.innerHTML = '';
     try{ sessionStorage.removeItem('cpTyped:'+name); }catch(e){}
     sched(function(){ runTyping(tc, name); }, 120);
@@ -19345,6 +19423,7 @@ function suraiyaFinalEffect() {
         /* real JS execution */
         var runner = new Function(
           code + '\n;return {' +
+          '  result:   typeof result   !== "undefined" ? result   : undefined,' +
           '  sahnawaz: typeof sahnawaz !== "undefined" ? sahnawaz : undefined,' +
           '  projects: typeof projects !== "undefined" ? projects : undefined,' +
           '  session:  typeof session  !== "undefined" ? session  : undefined' +
@@ -19352,7 +19431,7 @@ function suraiyaFinalEffect() {
         );
         var res = runner() || {};
         var shown = 0;
-        ['sahnawaz','projects','session'].forEach(function(k){
+        ['result','sahnawaz','projects','session'].forEach(function(k){
           if(res[k] === undefined) return;
           shown++;
           out.push({t:'note', v:'> ' + k});
