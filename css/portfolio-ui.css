@@ -744,6 +744,23 @@ header::after {
 }
 .hero-cta-btn:active { transform: translateY(-1px) scale(0.97); }
 
+/* ══ Quick Search pill — mobile trigger for the command palette ══
+   Ctrl/Cmd+K is useless on a phone, and every screen edge is already
+   occupied by a floating button (#codeBtn, #hacker-toggle, #chatPill,
+   .language-switch, #shipToastRoot), so the trigger lives in the hero
+   row with the other CTAs. The ⌘K hint is hidden on touch devices,
+   where it would simply be untrue. */
+.hero-cta-search{ font-family:inherit; cursor:pointer; }
+.hero-kbd{
+  margin-left:8px; padding:2px 6px; border-radius:5px;
+  font-family:ui-monospace,'SF Mono','Fira Code',monospace;
+  font-size:.66em; line-height:1;
+  color:rgba(170,215,240,.8);
+  border:1px solid rgba(120,200,255,.3);
+  background:rgba(120,200,255,.08);
+}
+@media (hover:none),(max-width:768px){ .hero-kbd{ display:none; } }
+
 /* ══ View Telemetry — click signature ══
    The other two pills land on sections that animate on arrival; this one
    didn't have anything. Given it links to live engineering telemetry, the
