@@ -132,6 +132,25 @@
     return n === needle.length ? s : -1;                  // must match all
   }
 
+  /* Extension point: other standalone modules can add their own
+     commands without this file needing to know about them.
+       window.registerPaletteCommands([{ t, s, g, i, k, when, run }])
+     Registering the same title twice replaces the earlier entry, so a
+     module that loads late or re-runs never duplicates itself. */
+  window.registerPaletteCommands = function (list) {
+    if (!list || !list.length) return;
+    list.forEach(function (c) {
+      if (!c || !c.t || typeof c.run !== 'function') return;
+      var at = -1;
+      for (var i = 0; i < COMMANDS.length; i++) {
+        if (COMMANDS[i].t === c.t) { at = i; break; }
+      }
+      if (!c.i) c.i = I.action;
+      if (!c.g) c.g = 'Action';
+      at > -1 ? (COMMANDS[at] = c) : COMMANDS.push(c);
+    });
+  };
+
   function search(q) {
     var live = COMMANDS.filter(function (c) {
       try { return !c.when || c.when(); } catch (e) { return false; }
