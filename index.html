@@ -3950,6 +3950,92 @@ header::after {
   box-shadow: 0 10px 26px rgba(0,0,0,0.35), 0 0 20px rgba(80,210,255,0.22);
 }
 .hero-cta-btn:active { transform: translateY(-1px) scale(0.97); }
+
+/* ══ View Telemetry — click signature ══
+   The other two pills land on sections that animate on arrival; this one
+   didn't have anything. Given it links to live engineering telemetry, the
+   effect is a radar sweep + signal burst rather than a generic ripple.
+   Everything animates transform/opacity only, so it stays on the
+   compositor. */
+/* Keep the base `overflow:hidden`. Overriding it to visible let the
+   rings escape, but it also un-clipped the shared ::before hover
+   shimmer, which then slid out past the pill’s edge. Clipped rings
+   read as a ripple filling the button, which is the better look
+   anyway; the lock-on glow is a box-shadow, so it still extends
+   outside regardless of clipping. */
+.hero-cta-btn[href="#recent-activity"]{ position:relative; }
+
+/* expanding radar rings */
+.tele-ring{
+  position:absolute; left:50%; top:50%;
+  width:14px; height:14px; margin:-7px 0 0 -7px;
+  border:1.5px solid rgba(80,210,255,0.85);
+  border-radius:50%;
+  pointer-events:none;
+  animation:teleRing 900ms cubic-bezier(.22,.7,.3,1) forwards;
+}
+.tele-ring.r2{ animation-delay:140ms; border-color:rgba(80,255,190,0.7); }
+.tele-ring.r3{ animation-delay:280ms; border-color:rgba(140,160,255,0.55); }
+@keyframes teleRing{
+  0%   { transform:scale(0.3); opacity:0.95; }
+  70%  { opacity:0.40; }
+  100% { transform:scale(13); opacity:0; }   /* clipped by the pill */
+}
+
+/* a signal sweep that runs the width of the pill */
+.tele-sweep{
+  position:absolute; inset:0; border-radius:inherit;
+  pointer-events:none; overflow:hidden;
+}
+.tele-sweep::after{
+  content:''; position:absolute; top:0; bottom:0; width:38%;
+  background:linear-gradient(90deg,
+    rgba(80,210,255,0) 0%,
+    rgba(80,210,255,0.55) 45%,
+    rgba(140,255,220,0.75) 55%,
+    rgba(80,210,255,0) 100%);
+  transform:translateX(-140%);
+  animation:teleSweep 620ms ease-out forwards;
+}
+@keyframes teleSweep{ to { transform:translateX(320%); } }
+
+/* the pill briefly "locks on" */
+.hero-cta-btn.tele-firing{
+  border-color:rgba(120,255,220,0.85) !important;
+  box-shadow:0 0 0 1px rgba(120,255,220,0.35),
+             0 0 22px rgba(80,210,255,0.45) !important;
+}
+/* its waveform icon pulses like an incoming reading */
+.hero-cta-btn.tele-firing svg{ animation:teleBeat 620ms ease-out; }
+@keyframes teleBeat{
+  0%,100%{ transform:scaleY(1); }
+  30%    { transform:scaleY(1.65); }
+  60%    { transform:scaleY(0.75); }
+}
+
+/* arrival: a scan line crosses the telemetry section once */
+.ra-section{ position:relative; }
+.ra-section.tele-arrived::before{
+  content:''; position:absolute; left:0; right:0; top:0; height:2px;
+  background:linear-gradient(90deg,
+    rgba(80,210,255,0) 0%, rgba(80,210,255,0.9) 50%, rgba(80,210,255,0) 100%);
+  box-shadow:0 0 16px rgba(80,210,255,0.8);
+  animation:teleScan 1500ms ease-in-out forwards;
+  pointer-events:none; z-index:5;
+}
+@keyframes teleScan{
+  0%   { transform:translateY(0);     opacity:0; }
+  12%  { opacity:1; }
+  88%  { opacity:1; }
+  100% { transform:translateY(var(--tele-h, 420px)); opacity:0; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .tele-ring, .tele-sweep::after,
+  .hero-cta-btn.tele-firing svg,
+  .ra-section.tele-arrived::before { animation:none !important; }
+  .tele-ring, .tele-sweep { display:none !important; }
+}
 @media (max-width: 480px) {
   .hero-cta-btn { font-size: 0.72rem; padding: 0.55rem 0.95rem; }
   .hero-cta-btn svg { width: 13px; height: 13px; }
@@ -17248,6 +17334,40 @@ function suraiyaFinalEffect() {
    directly with a short fixed delay instead — see the call site above. */
 </script>
 </div>
+<script id="shz-shared-audio">
+/* One AudioContext for the whole page.
+   Chrome caps a document at 6 concurrent AudioContexts. Each feature
+   here (terminal keystrokes, popup typing, tab switch, telemetry ping)
+   had been lazily creating its own long-lived context; together with the
+   site's existing one that is 5 permanent contexts, and the terminal's
+   transient success/error tones briefly push it to 6-7. Past the cap the
+   constructor throws, and since every call site is wrapped in try/catch
+   the failure is silent: sound simply stops working. A single shared,
+   reference-counted context removes the ceiling entirely. */
+window.__shzAudio = (function(){
+  var ctx = null, dead = false;
+  return function(){
+    if(dead) return null;
+    if(ctx) {
+      if(ctx.state === 'suspended' && ctx.resume){ try{ ctx.resume(); }catch(e){} }
+      return ctx;
+    }
+    try{
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC){ dead = true; return null; }
+      ctx = new AC();
+      /* iOS/Chrome start suspended until a user gesture */
+      if(ctx.state === 'suspended' && ctx.resume){
+        var wake = function(){ try{ ctx.resume(); }catch(e){} };
+        ['pointerdown','keydown','touchstart'].forEach(function(evt){
+          document.addEventListener(evt, wake, { once:false, passive:true });
+        });
+      }
+      return ctx;
+    }catch(e){ dead = true; return null; }
+  };
+})();
+</script>
 <!-- /Retro Hacker Mode Terminal -->
 <script>
 
@@ -17361,8 +17481,8 @@ function suraiyaFinalEffect() {
   let _tctx=null;
   function playKey(){
     try{
-      if(!_tctx) _tctx=new (window.AudioContext||window.webkitAudioContext)();
-      if(_tctx.state==='suspended'&&_tctx.resume) _tctx.resume();
+      _tctx = window.__shzAudio && window.__shzAudio();
+      if(!_tctx) return;
       const t=_tctx.currentTime;
       const o=_tctx.createOscillator(), g=_tctx.createGain();
       o.type='square';
@@ -17872,7 +17992,7 @@ function suraiyaFinalEffect() {
             'VITE v5.0.0  ready in 312ms','➜  Local: http://localhost:5173/']); break;
         case 'run':
           if(!args[1]){
-            printLine('npm run — usage: npm run <script>');
+            printLine('npm run — usage: npm run <script-name>');
             printLine('  available: dev · build · preview · lint');
             break;
           }
@@ -18752,6 +18872,82 @@ function suraiyaFinalEffect() {
   });
 })();
 </script>
+<script id="telemetry-pill-fx">
+/* ══ View Telemetry pill — click signature ══
+   The pill links to #recent-activity (live engineering telemetry).
+   On click: radar rings + a signal sweep + a short sonar ping, then the
+   destination section gets a single scan-line pass on arrival. */
+(function(){
+  var pill = document.querySelector('.hero-cta-btn[href="#recent-activity"]');
+  if(!pill) return;
+
+  var reduced = false;
+  try{ reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
+
+  var actx = null;
+  function ping(){
+    if(reduced) return;
+    try{
+      actx = window.__shzAudio && window.__shzAudio();
+      if(!actx) return;
+      var t = actx.currentTime;
+      var o = actx.createOscillator(), g = actx.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(1180, t);
+      o.frequency.exponentialRampToValueAtTime(620, t + 0.28);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.10, t + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.34);
+      o.connect(g); g.connect(actx.destination);
+      o.start(t); o.stop(t + 0.36);
+    }catch(e){}
+  }
+
+  function fire(){
+    if(reduced) return;
+    /* never stack effects if tapped repeatedly */
+    var old = pill.querySelectorAll('.tele-ring, .tele-sweep');
+    Array.prototype.forEach.call(old, function(n){ n.remove(); });
+
+    var sweep = document.createElement('span');
+    sweep.className = 'tele-sweep';
+    pill.appendChild(sweep);
+
+    ['', 'r2', 'r3'].forEach(function(cls){
+      var r = document.createElement('span');
+      r.className = 'tele-ring' + (cls ? ' ' + cls : '');
+      pill.appendChild(r);
+    });
+
+    pill.classList.add('tele-firing');
+    ping();
+
+    setTimeout(function(){
+      pill.classList.remove('tele-firing');
+      var nodes = pill.querySelectorAll('.tele-ring, .tele-sweep');
+      Array.prototype.forEach.call(nodes, function(n){ n.remove(); });
+    }, 1250);
+  }
+
+  function arrive(){
+    if(reduced) return;
+    var sec = document.getElementById('recent-activity');
+    if(!sec) return;
+    sec.classList.remove('tele-arrived');
+    /* the scan line travels the section's real height */
+    sec.style.setProperty('--tele-h', Math.min(sec.offsetHeight, 900) + 'px');
+    void sec.offsetWidth;                 /* restart the animation */
+    sec.classList.add('tele-arrived');
+    setTimeout(function(){ sec.classList.remove('tele-arrived'); }, 1700);
+  }
+
+  pill.addEventListener('click', function(){
+    fire();
+    /* let the browser's smooth scroll begin before the scan runs */
+    setTimeout(arrive, 620);
+  });
+})();
+</script>
 </footer>
 
 <script> function filterSelection(category) { const cards = document.querySelectorAll(".project-card"); cards.forEach(card => { if (category === "all" || card.classList.contains(category)) { card.classList.remove("hide"); } else { card.classList.add("hide"); } });} </script><!-- WhatsApp Modal --><script> function redirectToWhatsApp() { window.open("https://wa.me/917339203154", "_blank"); closeModal();} </script><script> /* sendMail handled by ctSendMail → api/contact */ </script>
@@ -18935,8 +19131,7 @@ function suraiyaFinalEffect() {
 
   function _ctx(){
     if(_actx) return _actx;
-    try{ _actx = new (window.AudioContext || window.webkitAudioContext)(); }
-    catch(e){ _actx = null; }
+    _actx = window.__shzAudio ? window.__shzAudio() : null;
     return _actx;
   }
 
@@ -26255,7 +26450,8 @@ body.hacker-mode #hacker-toggle {
     var _cpTabCtx = null;
     function _cpTabSound(){
       try{
-        if(!_cpTabCtx) _cpTabCtx = new (window.AudioContext || window.webkitAudioContext)();
+        _cpTabCtx = window.__shzAudio && window.__shzAudio();
+        if(!_cpTabCtx) return;
         var c = _cpTabCtx, t = c.currentTime;
         var o = c.createOscillator(), g = c.createGain();
         o.type = 'triangle';
