@@ -697,13 +697,25 @@ img {
 }
 
 /* ══ BATCH 5: output panel ══ */
+/* The output panel is a sibling of #codePopup-body, not a child of it.
+   Inside the body it inherited the editor's left padding and sat behind
+   the line-number gutter, so it never lined up with the window. As a
+   sibling it spans the full width and docks to the bottom edge — which
+   is also where a real editor puts its output panel. */
 #codePopup-output{
-  margin-top:12px;
-  border-top:1px solid rgba(100,180,255,0.16);
-  background:rgba(6,11,20,0.72);
-  border-radius:8px;
+  margin:0;
+  width:100%;
+  flex:0 0 auto;
+  border-top:1px solid rgba(100,180,255,0.20);
+  background:rgba(6,11,20,0.92);
+  border-radius:0 0 12px 12px;
   overflow:hidden;
+  box-shadow:0 -6px 18px rgba(0,0,0,0.35);
 }
+/* let the editor area shrink so the panel always fits inside the window */
+#codePopup{ display:flex; flex-direction:column; }
+#codePopup-titlebar, #codePopup-tabbar{ flex:0 0 auto; }
+#codePopup-body{ flex:1 1 auto; min-height:0; }
 #codePopup-output[hidden]{ display:none; }
 #codePopup-output-head{
   display:flex; align-items:center; justify-content:space-between;
@@ -721,11 +733,11 @@ img {
 }
 #codePopup-output-close:hover{ color:#fff; background:rgba(255,255,255,0.1); }
 #codePopup-output-body{
-  margin:0; padding:9px 11px 11px;
+  margin:0; padding:10px 14px 14px;
   font-family:'SF Mono','Fira Code','JetBrains Mono','Courier New',monospace;
   font-size:0.66rem; line-height:1.55;
   white-space:pre-wrap; word-break:break-word;
-  max-height:170px; overflow-y:auto;
+  max-height:34vh; overflow-y:auto; overscroll-behavior:contain;
   color:#cfe3f2;
 }
 .cpo-ok{   color:#43d17a; }
@@ -737,7 +749,7 @@ img {
 #codePopup-run{ color:rgba(120,230,160,0.8) !important; }
 #codePopup-run:hover{ color:#7dffb0 !important; background:rgba(80,220,140,0.15) !important; }
 @media (max-width:560px){
-  #codePopup-output-body{ font-size:0.7rem; max-height:150px; }
+  #codePopup-output-body{ font-size:0.72rem; max-height:38vh; }
 }
 
 /* ══ BATCH 4: titlebar actions ══ */
@@ -795,6 +807,9 @@ img {
   resize: none !important;
   cursor: pointer;
 }
+/* The output panel lives outside #codePopup-body now, so hiding the
+   body no longer hides it — collapse it explicitly. */
+#codePopup.cp-minimised #codePopup-output { display:none !important; }
 #codePopup.cp-minimised #codePopup-titlebar {
   border-bottom: none;
   border-radius: 12px;
@@ -814,8 +829,8 @@ img {
   z-index: 10050 !important;
 }
 #codePopup.cp-maximised #codePopup-body {
-  max-height: calc(76vh - 92px) !important;
-  height: calc(76vh - 92px) !important;
+  max-height: none !important;
+  height: auto !important;   /* flex handles it; panel docks below */
 }
 /* on phones a "maximised" window should just be the whole screen */
 @media (max-width: 560px){
@@ -825,8 +840,8 @@ img {
     bottom: 2vh !important; height: 82vh !important; max-height: 82vh !important;
   }
   #codePopup.cp-maximised #codePopup-body {
-    max-height: calc(82vh - 92px) !important;
-    height: calc(82vh - 92px) !important;
+    max-height: none !important;
+    height: auto !important;
   }
 }
 #codePopup { transition: height .22s ease, width .22s ease; }
@@ -19015,7 +19030,10 @@ function suraiyaFinalEffect() {
     var tc    = document.getElementById('typedContent');
     if (!popup || !tc) return;
 
-    popup.style.display    = 'block';
+    /* must be 'flex', not 'block': an inline display overrides the
+       stylesheet, and the column layout is what docks the output
+       panel to the bottom and lets the editor area shrink. */
+    popup.style.display    = 'flex';
     popup.style.opacity    = '0';
     popup.style.transform  = 'translateY(18px) scale(0.95)';
     popup.style.transition = 'opacity 0.38s cubic-bezier(0.16,1,0.3,1), transform 0.38s cubic-bezier(0.16,1,0.3,1)';
@@ -19374,24 +19392,39 @@ function suraiyaFinalEffect() {
     var out  = [];
     var t0   = (window.performance && performance.now) ? performance.now() : Date.now();
 
+    /* Compact formatter: anything that fits on one line stays on one
+       line. The old version exploded every nested object across five
+       lines, so `shipped` alone took 14 lines and pushed the actual
+       result off-screen on a phone. */
+    var INLINE_MAX = 52;
+
     function fmt(v, depth){
       depth = depth || 0;
       if(v === null) return 'null';
+      if(v === undefined) return 'undefined';
       if(typeof v === 'string')  return '"' + v + '"';
       if(typeof v === 'number' || typeof v === 'boolean') return String(v);
-      var pad = new Array(depth + 2).join('  ');
+      if(typeof v === 'function') return '[function]';
+
+      var pad    = new Array(depth + 2).join('  ');
       var padEnd = new Array(depth + 1).join('  ');
+
       if(Array.isArray(v)){
         if(!v.length) return '[]';
-        var allPrim = v.every(function(x){ return typeof x !== 'object' || x === null; });
-        if(allPrim) return '[ ' + v.map(function(x){ return fmt(x, depth); }).join(', ') + ' ]';
-        return '[\n' + v.map(function(x){ return pad + fmt(x, depth+1); }).join(',\n') + '\n' + padEnd + ']';
+        var items = v.map(function(x){ return fmt(x, depth + 1); });
+        var oneLine = '[ ' + items.join(', ') + ' ]';
+        if(oneLine.length <= INLINE_MAX && oneLine.indexOf('\n') === -1) return oneLine;
+        return '[\n' + items.map(function(s){ return pad + s; }).join(',\n') +
+               '\n' + padEnd + ']';
       }
+
       var ks = Object.keys(v);
       if(!ks.length) return '{}';
-      return '{\n' + ks.map(function(k){
-        return pad + k + ': ' + fmt(v[k], depth+1);
-      }).join(',\n') + '\n' + padEnd + '}';
+      var pairs = ks.map(function(k){ return k + ': ' + fmt(v[k], depth + 1); });
+      var flat = '{ ' + pairs.join(', ') + ' }';
+      if(flat.length <= INLINE_MAX && flat.indexOf('\n') === -1) return flat;
+      return '{\n' + pairs.map(function(s){ return pad + s; }).join(',\n') +
+             '\n' + padEnd + '}';
     }
 
     try{
@@ -19449,14 +19482,18 @@ function suraiyaFinalEffect() {
         );
         var res = runner() || {};
         var shown = 0;
+        /* Definitions are listed once, compactly. Values get the space. */
+        var defs = [];
+        declared.forEach(function(k){
+          if(res[k] !== undefined && typeof res[k] === 'function'){
+            defs.push((/^\s*class/.test(String(res[k])) ? 'class ' : 'function ') + k);
+          }
+        });
+        if(defs.length) out.push({t:'note', v:'defined: ' + defs.join(', ')});
+
         declared.forEach(function(k){
           if(res[k] === undefined) return;
-          if(typeof res[k] === 'function'){
-            shown++;
-            out.push({t:'note', v:'> ' + k});
-            out.push({t:'val',  v:'[' + (/^\s*class/.test(String(res[k])) ? 'class' : 'function') + ' ' + k + ']'});
-            return;
-          }
+          if(typeof res[k] === 'function') return;   /* already listed above */
           shown++;
           out.push({t:'note', v:'> ' + k});
           out.push({t:'val',  v:fmt(res[k])});
@@ -26076,13 +26113,13 @@ body.hacker-mode #hacker-toggle {
           '<div id="codePopup-lines">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16</div>' +
           '<div id="codePopup-inner-content"></div>' +
         '</div>' +
-        '<div id="codePopup-output" hidden>' +
-          '<div id="codePopup-output-head">' +
-            '<span>OUTPUT</span>' +
-            '<button id="codePopup-output-close" type="button" aria-label="Hide output">&#x2715;</button>' +
-          '</div>' +
-          '<pre id="codePopup-output-body"></pre>' +
+      '</div>' +
+      '<div id="codePopup-output" hidden>' +
+        '<div id="codePopup-output-head">' +
+          '<span>OUTPUT</span>' +
+          '<button id="codePopup-output-close" type="button" aria-label="Hide output">&#x2715;</button>' +
         '</div>' +
+        '<pre id="codePopup-output-body"></pre>' +
       '</div>';
 
     /* ── Create the typedContent target ── */
