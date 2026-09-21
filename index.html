@@ -3477,21 +3477,14 @@ window.addEventListener('resize', () => {
   </div>
   <p class="ra-eyebrow-note">Live engineering telemetry, pulled straight from GitHub — built for <b>developers, recruiters and technical reviewers</b> who know what these metrics mean.</p>
 
-  <!-- Live page vitals: populated by js/web-vitals.js from this device -->
+  <!-- Live page vitals: rendered by js/web-vitals.js from this device -->
   <div class="wv-card" id="wvCard">
-    <div class="wv-card-head">
-      <span class="wv-card-title">
-        <span class="wv-card-dot" aria-hidden="true"></span>This Page, Right Now
-      </span>
-      <button type="button" class="wv-card-btn" data-web-vitals>Full report</button>
+    <div class="wvc-head">
+      <span class="wvc-title"><span class="wvc-dot" aria-hidden="true"></span>This Page, Right Now</span>
+      <button type="button" class="wvc-btn" data-web-vitals>Full report</button>
     </div>
-    <p class="wv-card-sub">Core Web Vitals measured on <b>your</b> device during <b>this</b> visit — not a stored score.</p>
-    <div class="wv-card-grid" id="wvCardGrid">
-      <div class="wv-chip wv-na" data-m="LCP"><span class="wv-chip-k">LCP</span><span class="wv-chip-v">—</span></div>
-      <div class="wv-chip wv-na" data-m="CLS"><span class="wv-chip-k">CLS</span><span class="wv-chip-v">—</span></div>
-      <div class="wv-chip wv-na" data-m="INP"><span class="wv-chip-k">INP</span><span class="wv-chip-v">—</span></div>
-      <div class="wv-chip wv-na" data-m="PAGE"><span class="wv-chip-k">Page</span><span class="wv-chip-v">—</span></div>
-    </div>
+    <p class="wvc-sub">Core Web Vitals measured on <b>your</b> device during <b>this</b> visit — not a stored score. Full forms are under each metric.</p>
+    <div id="wvcBody" aria-live="off"><p class="wvc-sub">Measuring…</p></div>
   </div>
 
   <div class="ra-header">
