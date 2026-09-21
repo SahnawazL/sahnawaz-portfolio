@@ -13,7 +13,7 @@
 
   var WIDE = '(min-width: 1280px)';
   var SECTIONS = [
-    ['section.sec-wipe',    'Home'],
+    ['section:has(> #pfpStage)', 'Home'],
     ['section.ts-section',  'Tech Stack'],
     ['#blog',               'Blog'],
     ['#testimonials',       'Testimonials'],
@@ -116,7 +116,7 @@
   /* show labels only when the space beside the content can hold them */
   function fitLabels() {
     if (!rail) return;
-    var ref = document.querySelector('section.sec-wipe') || document.body;
+    var ref = document.querySelector('section:has(> #pfpStage)') || document.body;
     var side = ref.getBoundingClientRect().left;
     var widest = 0;
     items.forEach(function (it) {
