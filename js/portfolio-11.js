@@ -271,6 +271,12 @@
   }
 
   function start(){
+    /* perf-governor.js does this job more completely (it also sees
+       ::before/::after animations and ones switched on later by a
+       class) without a page-wide getComputedStyle sweep. When it is
+       loaded it sets this flag, and this older pauser stands down.
+       If that file is ever missing, this still runs as before. */
+    if (window.__pgOffscreen) return;
     var io = new IntersectionObserver(function(entries){
       entries.forEach(function(entry){
         entry.target.style.animationPlayState = entry.isIntersecting ? 'running' : 'paused';
