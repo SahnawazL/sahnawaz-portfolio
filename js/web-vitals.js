@@ -3,49 +3,105 @@
    This page measures its own performance and reports it honestly.
 
    Standalone. Injects its own CSS. No dependencies, no network calls,
-   nothing sent anywhere — every number is read from the browser's own
-   Performance APIs on this device, this visit.
+   nothing stored or sent — every number is read from the browser's own
+   Performance APIs on this device, during this visit.
 
-   Open:  the "Performance" entry in the command palette
-          any element with  data-web-vitals
-          window.openWebVitals()
+   Surfaces:
+     - the "This Page, Right Now" card  (#wvCard / #wvcBody in the page)
+     - a full report popup  (command palette, [data-web-vitals], or
+       window.openWebVitals())
 
-   Load this EARLY (in <head> or near the top of <body>). LCP and CLS
-   can only be captured if the observers are running before the page
-   finishes painting; attaching them late silently loses data.
+   Load EARLY, in <head>. LCP, CLS and FCP cannot be observed
+   retroactively; an observer attached after first paint loses them.
    ============================================================ */
 (function () {
   'use strict';
-
   if (window.__webVitalsLoaded) return;
   window.__webVitalsLoaded = true;
 
   var SUPPORTED = typeof PerformanceObserver !== 'undefined';
+  var $ = function (id) { return document.getElementById(id); };
 
-  /* ---------- thresholds (Google's own, ms except CLS) ---------- */
+  /* ---------- thresholds: [good, needs-improvement] ------------
+     Web Vitals values are Google's published thresholds. PAGE is our
+     own weight budget, labelled as such in the UI.                  */
   var T = {
-    LCP  : [2500, 4000],
-    INP  : [200, 500],
-    CLS  : [0.1, 0.25],
-    FCP  : [1800, 3000],
-    TTFB : [800, 1800]
+    LCP : [2500, 4000],
+    INP : [200, 500],
+    CLS : [0.1, 0.25],
+    FCP : [1800, 3000],
+    TTFB: [800, 1800],
+    PAGE: [600 * 1024, 1500 * 1024]
+  };
+  /* where each gauge ends: the "poor" zone gets a visible width */
+  var SCALE = { LCP: 6000, INP: 750, CLS: 0.375, FCP: 4500, TTFB: 2700, PAGE: 2250 * 1024 };
+
+  var NAMES = {
+    LCP : 'Largest Contentful Paint',
+    CLS : 'Cumulative Layout Shift',
+    INP : 'Interaction to Next Paint',
+    FCP : 'First Contentful Paint',
+    TTFB: 'Time to First Byte',
+    PAGE: 'Page Weight'
+  };
+  var MEANS = {
+    LCP : 'When the main content finished rendering',
+    CLS : 'How much the layout moved unexpectedly',
+    INP : 'How fast the page answers a tap or click',
+    FCP : 'When the first text or image appeared',
+    TTFB: 'How fast the server started responding',
+    PAGE: 'Total size of everything this page loaded'
   };
 
   var M = {
-    LCP : { v: null, el: '' },
-    INP : { v: null },
-    CLS : { v: 0 },
+    LCP : { v: null, tag: '', snip: '' },
+    INP : { v: null, type: '', target: '', delay: 0, proc: 0, pres: 0, count: 0 },
+    CLS : { v: 0, shifts: 0 },
     FCP : { v: null },
     TTFB: { v: null },
-    bytes: { html: 0, css: 0, js: 0, img: 0, other: 0, total: 0, count: 0 }
+    NAV : { dcl: null, load: null, proto: '' },
+    LT  : { count: 0, block: 0, longest: 0 },
+    bytes: { html: 0, css: 0, js: 0, img: 0, font: 0, other: 0,
+             total: 0, count: 0, cached: 0, top: [] }
   };
 
   function rate(k, v) {
     if (v == null || !T[k]) return 'na';
     return v <= T[k][0] ? 'good' : (v <= T[k][1] ? 'ok' : 'poor');
   }
+  var TAG = { good: 'Good', ok: 'Needs work', poor: 'Poor', na: 'Pending' };
 
-  /* ---------- observers -------------------------------------- */
+  /* ---------- element attribution ------------------------------ */
+  function describeEl(el) {
+    if (!el || !el.tagName) return '';
+    var s = el.tagName.toLowerCase();
+    if (el.id) s += '#' + el.id;
+    else if (el.classList && el.classList.length) s += '.' + el.classList[0];
+    return s;
+  }
+  function snippetOf(el) {
+    if (!el) return '';
+    if (el.tagName === 'IMG') {
+      return ((el.currentSrc || el.src || '').split('/').pop() || '').split('?')[0];
+    }
+    var t = (el.textContent || '').replace(/\s+/g, ' ').trim();
+    return t.length > 46 ? t.slice(0, 44) + '\u2026' : t;
+  }
+
+  /* ---------- render scheduling --------------------------------
+     Observers can fire in bursts; coalesce redraws into one frame. */
+  var queued = false;
+  function schedule() {
+    if (queued) return;
+    queued = true;
+    (window.requestAnimationFrame || function (f) { return setTimeout(f, 16); })(function () {
+      queued = false;
+      renderCard();
+      if (overlay && overlay.classList.contains('is-open')) renderPanel();
+    });
+  }
+
+  /* ---------- observers ---------------------------------------- */
   function observe(type, cb, extra) {
     if (!SUPPORTED) return null;
     try {
@@ -54,207 +110,467 @@
       if (extra) for (var k in extra) opt[k] = extra[k];
       po.observe(opt);
       return po;
-    } catch (e) { return null; }   /* unsupported entry type — skip it */
+    } catch (e) { return null; }
   }
 
-  /* LCP: keep the latest candidate until the user interacts, which is
-     the point the spec says the metric is final. */
-  var lcpPO = observe('largest-contentful-paint', function (e) {
+  function onLCP(e) {
     M.LCP.v = e.renderTime || e.loadTime || e.startTime;
-    M.LCP.el = e.element ? (e.element.tagName || '').toLowerCase() : '';
-    paint();
-  });
+    M.LCP.tag = describeEl(e.element);
+    M.LCP.snip = snippetOf(e.element);
+    schedule();
+  }
+  var lcpPO = observe('largest-contentful-paint', onLCP);
+  /* flush queued entries BEFORE disconnecting: a visitor who taps early
+     would otherwise kill the observer while the entry was still pending */
   function finalizeLCP() {
-    if (lcpPO) { try { lcpPO.disconnect(); } catch (e) {} lcpPO = null; }
+    if (!lcpPO) return;
+    try { (lcpPO.takeRecords ? lcpPO.takeRecords() : []).forEach(onLCP); } catch (e) {}
+    try { lcpPO.disconnect(); } catch (e) {}
+    lcpPO = null;
+    schedule();
   }
   ['keydown', 'pointerdown', 'click'].forEach(function (t) {
     addEventListener(t, finalizeLCP, { once: true, capture: true });
   });
 
-  /* CLS: the real metric is the largest *session window* — shifts
-     grouped with <1s gaps and a 5s cap — not a naive running total,
-     which over-reports on long-lived pages. */
+  /* CLS: largest session window (shifts <1s apart, window capped at 5s) */
   var clsCur = 0, clsFirst = 0, clsLast = 0;
   observe('layout-shift', function (e) {
-    if (e.hadRecentInput) return;                 /* user-caused: excluded */
+    if (e.hadRecentInput) return;
     var t = e.startTime;
     if (clsCur && (t - clsLast > 1000 || t - clsFirst > 5000)) clsCur = 0;
     if (!clsCur) clsFirst = t;
     clsLast = t;
     clsCur += e.value;
-    if (clsCur > M.CLS.v) { M.CLS.v = clsCur; paint(); }
+    M.CLS.shifts++;
+    if (clsCur > M.CLS.v) M.CLS.v = clsCur;
+    schedule();
   });
 
-  /* INP: worst interaction latency seen so far. The official metric is
-     a high percentile over many interactions; on a portfolio visit the
-     sample is tiny, so the slowest one is the honest thing to show. */
+  /* INP: only genuine interactions count. Event Timing also reports
+     things like hover events that are not interactions; those carry
+     interactionId 0 and must be ignored, or INP reads too high. */
+  var seenInteractions = {};
   observe('event', function (e) {
+    if (e.interactionId === 0) return;
+    if (e.interactionId && !seenInteractions[e.interactionId]) {
+      seenInteractions[e.interactionId] = 1;
+      M.INP.count++;
+    }
     var d = e.duration;
     if (d == null) return;
-    if (M.INP.v == null || d > M.INP.v) { M.INP.v = d; paint(); }
+    if (M.INP.v == null || d > M.INP.v) {
+      M.INP.v = d;
+      M.INP.type = e.name || '';
+      M.INP.target = describeEl(e.target);
+      /* the three phases Chrome DevTools uses to explain INP */
+      M.INP.delay = Math.max(0, (e.processingStart || e.startTime) - e.startTime);
+      M.INP.proc  = Math.max(0, (e.processingEnd || e.processingStart || e.startTime) -
+                                (e.processingStart || e.startTime));
+      M.INP.pres  = Math.max(0, e.startTime + d - (e.processingEnd || e.startTime));
+    }
+    schedule();
   }, { durationThreshold: 16 });
 
   observe('paint', function (e) {
-    if (e.name === 'first-contentful-paint') { M.FCP.v = e.startTime; paint(); }
+    if (e.name === 'first-contentful-paint') { M.FCP.v = e.startTime; schedule(); }
   });
 
-  /* ---------- navigation + transfer sizes --------------------- */
+  /* long tasks: main-thread work over 50 ms freezes input handling */
+  observe('longtask', function (e) {
+    M.LT.count++;
+    M.LT.block += Math.max(0, e.duration - 50);
+    if (e.duration > M.LT.longest) M.LT.longest = e.duration;
+    schedule();
+  });
+
+  /* ---------- navigation + weight ------------------------------ */
+  /* transferSize is 0 for cached files; fall back to body size so a
+     repeat visit still shows real weight, and count the cache hits */
+  function sizeOf(entry) {
+    if (entry.transferSize) return { bytes: entry.transferSize, cached: false };
+    var body = entry.encodedBodySize || entry.decodedBodySize || 0;
+    return { bytes: body, cached: body > 0 };
+  }
   function readNav() {
     try {
       var n = performance.getEntriesByType('navigation')[0];
       if (!n) return;
-      M.TTFB.v = n.responseStart;
-      M.bytes.html = n.transferSize || 0;
+      M.TTFB.v = n.responseStart || null;
+      M.NAV.dcl = n.domContentLoadedEventEnd || null;
+      M.NAV.load = n.loadEventEnd || null;
+      M.NAV.proto = n.nextHopProtocol || '';
+      M.bytes.html = sizeOf(n).bytes;
     } catch (e) {}
+  }
+  function kindOf(url) {
+    var u = (url || '').split('?')[0].split('#')[0];
+    if (/\.css$/i.test(u)) return 'css';
+    if (/\.m?js$/i.test(u)) return 'js';
+    if (/\.(png|jpe?g|gif|webp|avif|svg|ico)$/i.test(u)) return 'img';
+    if (/\.(woff2?|ttf|otf)$/i.test(u) || /fonts\.(googleapis|gstatic)/.test(url)) return 'font';
+    return 'other';
   }
   function readResources() {
     try {
-      var b = M.bytes;
-      b.css = b.js = b.img = b.other = 0; b.count = 0;
+      var b = M.bytes, files = [];
+      b.css = b.js = b.img = b.font = b.other = 0;
+      b.count = 0; b.cached = 0;
       performance.getEntriesByType('resource').forEach(function (r) {
-        var size = r.transferSize || 0;
+        var info = sizeOf(r), k = kindOf(r.name);
+        b[k] += info.bytes;
         b.count++;
-        var u = (r.name || '').split('?')[0];
-        if (/\.css$/i.test(u))                       b.css += size;
-        else if (/\.m?js$/i.test(u))                 b.js  += size;
-        else if (/\.(png|jpe?g|gif|webp|avif|svg|ico)$/i.test(u)) b.img += size;
-        else                                         b.other += size;
+        if (info.cached) b.cached++;
+        if (info.bytes) {
+          var nm = (r.name || '').split('?')[0].split('/').pop() || r.name;
+          try { nm = decodeURIComponent(nm); } catch (e) {}
+          files.push({ name: nm, bytes: info.bytes, kind: k });
+        }
       });
-      b.total = b.html + b.css + b.js + b.img + b.other;
+      files.sort(function (a, z) { return z.bytes - a.bytes; });
+      b.top = files.slice(0, 5);
+      b.total = b.html + b.css + b.js + b.img + b.font + b.other;
     } catch (e) {}
   }
   readNav();
-  addEventListener('load', function () { readResources(); paint(); });
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', paintCard);
-  } else {
-    setTimeout(paintCard, 0);
-  }
-  /* metrics keep arriving after load (CLS, INP); refresh the card a few
-     times early on so it is never left showing dashes. */
-  [600, 1500, 3500].forEach(function (d) { setTimeout(paintCard, d); });
+  addEventListener('load', function () { setTimeout(function () { readNav(); readResources(); schedule(); }, 0); });
 
-  /* ---------- formatting -------------------------------------- */
+  /* ---------- device context ----------------------------------- */
+  function context() {
+    var parts = [], ua = navigator.userAgent || '', d = navigator.userAgentData;
+    var os = d && d.platform ? d.platform
+      : /Android/.test(ua) ? 'Android' : /iPhone|iPad|iPod/.test(ua) ? 'iOS'
+      : /Windows/.test(ua) ? 'Windows' : /Mac OS X/.test(ua) ? 'macOS'
+      : /CrOS/.test(ua) ? 'ChromeOS' : /Linux/.test(ua) ? 'Linux' : '';
+    if (os) parts.push(os);
+    var br = '';
+    if (d && d.brands) {
+      d.brands.forEach(function (x) {
+        if (!br && !/Not.?A.?Brand|Chromium/i.test(x.brand)) br = x.brand + ' ' + x.version;
+      });
+    }
+    if (!br) {
+      var m = ua.match(/(Edg|OPR|SamsungBrowser|Firefox|Chrome|Version)\/(\d+)/);
+      if (m) br = ({ Edg: 'Edge', OPR: 'Opera', Version: 'Safari' }[m[1]] || m[1]) + ' ' + m[2];
+    }
+    if (br) parts.push(br);
+    var c = navigator.connection;
+    if (c && c.effectiveType) parts.push(c.effectiveType.toUpperCase() + '-class network');
+    if (navigator.hardwareConcurrency) parts.push(navigator.hardwareConcurrency + ' CPU cores');
+    if (M.NAV.proto) parts.push(M.NAV.proto.toUpperCase().replace('H2', 'HTTP/2').replace('H3', 'HTTP/3'));
+    return parts;
+  }
+
+  /* ---------- formatting --------------------------------------- */
   function ms(v) {
-    if (v == null) return '—';
+    if (v == null) return '\u2014';
     return v < 1000 ? Math.round(v) + ' ms' : (v / 1000).toFixed(2) + ' s';
   }
   function kb(n) {
     if (!n) return '0 KB';
-    return n < 1024 * 1024 ? Math.round(n / 1024) + ' KB'
-                           : (n / 1048576).toFixed(2) + ' MB';
+    return n < 1048576 ? Math.round(n / 1024) + ' KB' : (n / 1048576).toFixed(2) + ' MB';
+  }
+  function parts(k, v) {                       /* value + unit, split for styling */
+    if (v == null) return ['\u2014', ''];
+    if (k === 'CLS') return [v.toFixed(3), ''];
+    if (k === 'PAGE') {
+      return v < 1048576 ? [String(Math.round(v / 1024)), 'KB'] : [(v / 1048576).toFixed(2), 'MB'];
+    }
+    return v < 1000 ? [String(Math.round(v)), 'ms'] : [(v / 1000).toFixed(2), 's'];
+  }
+  function goal(k) {
+    if (k === 'CLS')  return 'good \u2264 0.1';
+    if (k === 'PAGE') return 'budget 600 KB';
+    var g = T[k][0];
+    return 'good \u2264 ' + (g >= 1000 ? (g / 1000) + ' s' : g + ' ms');
   }
   function esc(s) {
-    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
+
+  /* ---------- shared components -------------------------------- */
+  function gauge(k, v) {
+    var max = SCALE[k], g = T[k][0] / max * 100, o = (T[k][1] - T[k][0]) / max * 100;
+    return '<div class="wvg" role="img" aria-label="' + esc(NAMES[k]) + ' position on the scale">' +
+             '<i class="wvg-g" style="width:' + g.toFixed(2) + '%"></i>' +
+             '<i class="wvg-o" style="width:' + o.toFixed(2) + '%"></i>' +
+             '<i class="wvg-p" style="width:' + (100 - g - o).toFixed(2) + '%"></i>' +
+             (v == null ? '' : '<b class="wvg-mk" style="left:' +
+               clamp(v / max * 100, 1.5, 98.5).toFixed(2) + '%"></b>') +
+           '</div>';
   }
 
-  /* ---------- styles ------------------------------------------ */
-  var CSS = [
-'#wv-overlay{position:fixed;inset:0;z-index:100210;display:none;',
-'  background:radial-gradient(120% 90% at 50% 0%,rgba(8,20,34,.80),rgba(2,7,14,.90));',
-'  backdrop-filter:blur(10px) saturate(1.2);-webkit-backdrop-filter:blur(10px) saturate(1.2);',
-'  align-items:flex-start;justify-content:center;padding:9vh 16px 16px;}',
-'#wv-overlay.is-open{display:flex;animation:wvFade .18s ease both;}',
-'@keyframes wvFade{from{opacity:0}to{opacity:1}}',
-'#wv-box{width:100%;max-width:560px;position:relative;',
-'  background:linear-gradient(180deg,rgba(14,23,37,.99),rgba(9,15,26,.99));',
-'  border:1px solid rgba(120,205,255,.20);border-radius:18px;overflow:hidden;',
-'  box-shadow:0 40px 90px rgba(0,0,0,.66),inset 0 1px 0 rgba(255,255,255,.05);',
-'  animation:wvRise .22s cubic-bezier(.2,.85,.3,1) both;',
-'  display:flex;flex-direction:column;max-height:80vh;}',
-'@keyframes wvRise{from{opacity:0;transform:translateY(-14px) scale(.98)}to{opacity:1;transform:none}}',
-'#wv-box::before{content:"";position:absolute;top:0;left:12%;right:12%;height:1px;',
-'  background:linear-gradient(90deg,transparent,rgba(120,220,255,.55),transparent);}',
+  function verdict() {
+    var keys = ['LCP', 'CLS', 'INP'];
+    var missing = keys.filter(function (k) { return M[k].v == null; });
+    var weak = keys.filter(function (k) { return M[k].v != null && rate(k, M[k].v) !== 'good'; });
+    var state, head, body;
+    if (weak.length) {
+      state = 'warn';
+      head = 'Needs work';
+      body = weak.map(function (k) {
+        return k + ' ' + (k === 'CLS' ? M[k].v.toFixed(3) : ms(M[k].v)) + ' is above the ' +
+               (k === 'CLS' ? '0.1' : ms(T[k][0])) + ' target';
+      }).join(' \u00b7 ');
+    } else if (missing.length) {
+      state = 'pending';
+      head = (3 - missing.length) + ' of 3 passing';
+      body = missing.indexOf('INP') > -1 && missing.length === 1
+        ? 'INP needs one tap or click to finish the assessment'
+        : missing.join(' and ') + ' still being measured';
+    } else {
+      state = 'pass';
+      head = 'Passes Core Web Vitals';
+      body = 'LCP, CLS and INP are all in the good range';
+    }
+    var icon = state === 'pass'
+      ? '<path d="M20 6 9 17l-5-5"/>'
+      : state === 'warn' ? '<path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>'
+      : '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>';
+    return '<div class="wvv is-' + state + '">' +
+             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+               'stroke-linecap="round" stroke-linejoin="round">' + icon + '</svg>' +
+             '<span><b>' + esc(head) + '</b><em>' + esc(body) + '</em></span>' +
+           '</div>';
+  }
 
-'#wv-head{display:flex;align-items:center;gap:11px;padding:16px;',
-'  border-bottom:1px solid rgba(120,205,255,.12);flex:0 0 auto;}',
-'#wv-head>svg{width:18px;height:18px;color:rgba(130,205,245,.75);flex:none;}',
-'#wv-title{flex:1;min-width:0;}',
-'#wv-title b{display:block;font-size:.95rem;font-weight:700;color:#eaf6ff;letter-spacing:.2px;}',
-'#wv-title span{display:block;font-size:.72rem;color:rgba(172,208,233,.55);margin-top:2px;}',
-'#wv-close{flex:none;display:flex;align-items:center;justify-content:center;',
-'  width:34px;height:34px;border-radius:9px;cursor:pointer;',
-'  background:rgba(130,200,240,.07);border:1px solid rgba(140,200,235,.22);',
-'  color:rgba(175,215,240,.75);transition:all .16s ease;}',
-'#wv-close:hover{background:rgba(130,200,240,.16);color:#eaf7ff;}',
-'#wv-close:active{transform:scale(.93);}',
-'#wv-close svg{width:15px;height:15px;}',
+  function timeline() {
+    var st = [
+      ['Server response', 'TTFB', M.TTFB.v, 'TTFB'],
+      ['First paint', 'FCP', M.FCP.v, 'FCP'],
+      ['DOM ready', 'DCL', M.NAV.dcl, null],
+      ['Main content', 'LCP', M.LCP.v, 'LCP'],
+      ['Fully loaded', 'Load', M.NAV.load, null]
+    ].filter(function (s) { return s[2] != null && s[2] > 0; })
+     .sort(function (a, z) { return a[2] - z[2]; });
+    if (!st.length) return '';
+    var max = st[st.length - 1][2] * 1.04;
+    return '<div class="wvt">' +
+      st.map(function (s) {
+        var r = s[3] ? rate(s[3], s[2]) : 'n';
+        return '<div class="wvt-row">' +
+                 '<span class="wvt-l">' + esc(s[0]) + '<em>' + esc(s[1]) + '</em></span>' +
+                 '<span class="wvt-track"><i class="is-' + r + '" style="width:' +
+                   clamp(s[2] / max * 100, 2, 100).toFixed(2) + '%"></i></span>' +
+                 '<span class="wvt-v">' + ms(s[2]) + '</span>' +
+               '</div>';
+      }).join('') +
+    '</div>';
+  }
 
-'#wv-body{overflow-y:auto;padding:14px 16px 18px;flex:1 1 auto;overscroll-behavior:contain;}',
-'.wv-sec{font-size:.58rem;letter-spacing:.17em;text-transform:uppercase;font-weight:600;',
-'  color:rgba(150,200,230,.42);margin:16px 0 9px;display:flex;align-items:center;gap:9px;}',
-'.wv-sec:first-child{margin-top:2px;}',
-'.wv-sec::after{content:"";flex:1;height:1px;',
-'  background:linear-gradient(90deg,rgba(120,200,255,.16),transparent);}',
+  /* ---------- the in-page card --------------------------------- */
+  function chip(k, v) {
+    var r = rate(k, v), p = parts(k, v);
+    var shown = (k === 'INP' && v == null) ? ['tap', ''] : p;
+    return '<div class="wvc-chip is-' + r + '">' +
+             '<div class="wvc-top"><span class="wvc-abbr">' + (k === 'PAGE' ? 'SIZE' : k) + '</span>' +
+               '<span class="wvc-tag">' + (k === 'INP' && v == null ? 'Tap to test' : TAG[r]) + '</span></div>' +
+             '<div class="wvc-full">' + esc(NAMES[k]) + '</div>' +
+             '<div class="wvc-val">' + esc(shown[0]) + (shown[1] ? '<small>' + shown[1] + '</small>' : '') + '</div>' +
+             gauge(k, v) +
+             '<div class="wvc-goal">' + goal(k) + '</div>' +
+           '</div>';
+  }
 
-'.wv-row{display:flex;align-items:center;gap:12px;padding:10px 0;',
-'  border-bottom:1px solid rgba(120,200,255,.06);}',
-'.wv-row:last-child{border-bottom:none;}',
-'.wv-k{min-width:0;flex:1;}',
-'.wv-k b{display:block;font-size:.85rem;font-weight:600;color:#dceaf7;}',
-'.wv-k span{display:block;font-size:.7rem;color:rgba(172,208,233,.5);margin-top:2px;line-height:1.35;}',
-'.wv-v{font-family:ui-monospace,"SF Mono","Fira Code",monospace;font-size:.92rem;',
-'  font-weight:600;text-align:right;flex:none;min-width:72px;}',
-'.wv-pill{flex:none;font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;',
-'  font-weight:700;padding:3px 7px;border-radius:5px;min-width:52px;text-align:center;}',
-'.wv-good .wv-v{color:#4fe0a2;} .wv-good .wv-pill{background:rgba(79,224,162,.14);color:#6ff0bb;}',
-'.wv-ok   .wv-v{color:#ffcf6b;} .wv-ok   .wv-pill{background:rgba(255,207,107,.14);color:#ffd884;}',
-'.wv-poor .wv-v{color:#ff7a7a;} .wv-poor .wv-pill{background:rgba(255,122,122,.14);color:#ff9a9a;}',
-'.wv-na   .wv-v{color:rgba(170,205,230,.4);} ',
-'.wv-na   .wv-pill{background:rgba(150,190,220,.09);color:rgba(175,210,235,.55);}',
+  function renderCard() {
+    var host = $('wvcBody');
+    if (!host) return;
+    readNav(); readResources();
+    if (!SUPPORTED) {
+      host.innerHTML = '<div class="wvc-note">This browser does not expose the Performance ' +
+                       'Observer API, so live vitals cannot be measured here.</div>';
+      return;
+    }
+    host.innerHTML =
+      verdict() +
+      '<div class="wvc-grid">' +
+        chip('LCP', M.LCP.v) + chip('CLS', M.CLS.v) +
+        chip('INP', M.INP.v) + chip('PAGE', M.bytes.total || null) +
+      '</div>' +
+      '<div class="wvc-sec">Load timeline</div>' + timeline() +
+      '<div class="wvc-ctx">' + context().map(esc).join('<i></i>') + '</div>';
+  }
 
-'.wv-bar{display:flex;height:9px;border-radius:5px;overflow:hidden;margin:10px 0 8px;',
-'  background:rgba(120,200,255,.07);}',
-'.wv-bar i{display:block;height:100%;}',
-'.wv-legend{display:flex;flex-wrap:wrap;gap:10px 16px;font-size:.68rem;',
-'  color:rgba(172,208,233,.6);}',
-'.wv-legend span{display:flex;align-items:center;gap:6px;}',
-'.wv-legend i{width:9px;height:9px;border-radius:3px;flex:none;}',
-
-'.wv-note{margin-top:16px;padding:11px 13px;border-radius:10px;',
-'  background:rgba(120,200,255,.05);border:1px solid rgba(120,200,255,.12);',
-'  font-size:.72rem;line-height:1.55;color:rgba(178,212,236,.62);}',
-'.wv-note b{color:rgba(215,238,252,.85);font-weight:600;}',
-
-'@media (max-width:640px){',
-'  #wv-overlay{padding:5vh 10px 10px;}',
-'  #wv-box{max-height:86vh;border-radius:16px;}',
-'  .wv-v{font-size:.86rem;min-width:62px;}',
-'  .wv-pill{min-width:46px;}',
-'  .wv-k span{font-size:.68rem;}',
-'}',
-'@media (prefers-reduced-motion:reduce){',
-'  #wv-overlay.is-open,#wv-box{animation:none!important;}',
-'}',
-/* hacker mode forces green + Courier on every element with !important;
-   these ID-scoped rules outrank it so the panel keeps its own palette */
-'#wv-overlay,#wv-overlay *{font-family:inherit!important;}',
-'#wv-overlay #wv-box{background:linear-gradient(180deg,rgba(14,23,37,.99),rgba(9,15,26,.99))!important;',
-'  border-color:rgba(120,205,255,.20)!important;}',
-'#wv-overlay .wv-row,#wv-overlay #wv-head{border-color:rgba(120,205,255,.10)!important;}',
-'#wv-overlay #wv-title b,#wv-overlay .wv-k b{color:#e6f3ff!important;}',
-'#wv-overlay #wv-title span,#wv-overlay .wv-k span,#wv-overlay .wv-legend{color:rgba(172,208,233,.55)!important;}',
-'#wv-overlay .wv-good .wv-v{color:#4fe0a2!important;}',
-'#wv-overlay .wv-ok   .wv-v{color:#ffcf6b!important;}',
-'#wv-overlay .wv-poor .wv-v{color:#ff7a7a!important;}',
-'#wv-overlay .wv-na   .wv-v{color:rgba(170,205,230,.4)!important;}',
-'#wv-overlay .wv-note{background:rgba(120,200,255,.05)!important;',
-'  border-color:rgba(120,200,255,.12)!important;color:rgba(178,212,236,.62)!important;}',
-'#wv-overlay .wv-bar{background:rgba(120,200,255,.07)!important;}',
-'#wv-overlay #wv-close{background:rgba(130,200,240,.07)!important;',
-'  border-color:rgba(140,200,235,.22)!important;color:rgba(175,215,240,.75)!important;}'
+  /* ---------- styles ------------------------------------------- */
+  /* Every rule is scoped under an ID and marked !important, because the
+     site's hacker mode forces colour, background and font on every
+     element with !important. Keyframes cannot take !important, so they
+     live in a separate string that is not transformed.              */
+  var KEYFRAMES = [
+    '@keyframes wvFade{from{opacity:0}to{opacity:1}}',
+    '@keyframes wvRise{from{opacity:0;transform:translateY(-14px) scale(.98)}to{opacity:1;transform:none}}',
+    '@keyframes wvPulse{0%{box-shadow:0 0 0 0 rgba(79,224,162,.55)}70%{box-shadow:0 0 0 9px rgba(79,224,162,0)}100%{box-shadow:0 0 0 0 rgba(79,224,162,0)}}'
   ].join('\n');
 
-  /* ---------- panel ------------------------------------------- */
-  var overlay, bodyEl, built = false;
+  var SHARED = ".wvg{position:relative;display:flex;height:5px;border-radius:4px;overflow:visible;margin-top:9px}.wvg i{display:block;height:100%}.wvg-g{background-color:rgba(79,224,162,.55);border-radius:4px 0 0 4px}.wvg-o{background-color:rgba(255,207,107,.45)}.wvg-p{background-color:rgba(255,122,122,.42);border-radius:0 4px 4px 0}.wvg-mk{position:absolute;top:50%;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;border-radius:50%;  background-color:#eaf6ff;border:2px solid #0b1422;box-shadow:0 0 0 1px rgba(234,246,255,.55),0 0 10px rgba(234,246,255,.45)}.wvv{display:flex;align-items:flex-start;gap:11px;padding:11px 13px;border-radius:12px;border:1px solid transparent;text-align:left}.wvv svg{width:18px;height:18px;flex:none;margin-top:1px}.wvv span{min-width:0}.wvv b{display:block;font-size:.84rem;font-weight:700;letter-spacing:.2px}.wvv em{display:block;font-style:normal;font-size:.72rem;line-height:1.45;margin-top:2px;color:rgba(200,225,242,.66)}.wvv.is-pass{background-color:rgba(79,224,162,.08);border-color:rgba(79,224,162,.28);color:#6ff0bb}.wvv.is-warn{background-color:rgba(255,207,107,.08);border-color:rgba(255,207,107,.28);color:#ffd884}.wvv.is-pending{background-color:rgba(120,200,255,.07);border-color:rgba(120,200,255,.22);color:#8ad8ff}.wvt{display:flex;flex-direction:column;gap:7px}.wvt-row{display:flex;align-items:center;gap:10px}.wvt-l{flex:0 0 40%;min-width:0;font-size:.74rem;color:rgba(205,228,244,.82);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}.wvt-l em{font-style:normal;font-family:' + MONO + ';font-size:.62rem;margin-left:6px;color:rgba(150,200,230,.5)}.wvt-track{flex:1;height:6px;border-radius:4px;background-color:rgba(120,200,255,.08);overflow:hidden}.wvt-track i{display:block;height:100%;border-radius:4px}.wvt-track i.is-good{background-color:#4fe0a2}.wvt-track i.is-ok{background-color:#ffcf6b}.wvt-track i.is-poor{background-color:#ff7a7a}.wvt-track i.is-n,.wvt-track i.is-na{background-color:#5ac8ff}.wvt-v{flex:0 0 58px;text-align:right;font-family:' + MONO + ';font-size:.72rem;font-weight:600;color:rgba(220,238,250,.88)}";
+  /* shared pieces live inside both the card and the popup. They must
+     carry an ID, or the ID-level reset below (which clears background on
+     every descendant for hacker mode) would out-rank them and blank the
+     gauge colours even in normal mode. */
+  function scopeShared(css) {
+    return css.replace(/([^{}]+)\{([^{}]*)\}/g, function (m, sel, decls) {
+      var out = sel.split(',').map(function (x) {
+        x = x.trim();
+        return '#wvCard ' + x + ',#wv-overlay ' + x;
+      }).join(',');
+      return out + '{' + decls + '}';
+    });
+  }
+  var FONT = "Inter,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif";
+  var MONO = "ui-monospace,'SF Mono','JetBrains Mono','Fira Code',Menlo,monospace";
 
-  function build() {
-    if (built) return;
-    built = true;
+  var RULES = [
+/* --- shared primitives (card + panel) --- */
+'#wvCard,#wvCard *,#wv-overlay,#wv-overlay *{font-family:' + FONT + ';background-color:transparent;color:inherit;box-sizing:border-box}',
+scopeShared(SHARED),
+/* --- the card --- */
+'#wvCard{margin:18px 0 26px;padding:17px;border-radius:16px;text-align:left;position:relative;',
+'  background:linear-gradient(180deg,rgba(16,27,44,.82),rgba(9,16,28,.82));',
+'  border:1px solid rgba(120,205,255,.17);box-shadow:0 18px 40px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.04)}',
+'#wvCard::before{content:"";position:absolute;top:0;left:14%;right:14%;height:1px;',
+'  background:linear-gradient(90deg,transparent,rgba(120,220,255,.5),transparent)}',
+'#wvCard .wvc-head{display:flex;align-items:center;gap:12px}',
+'#wvCard .wvc-title{flex:1;min-width:0;display:flex;align-items:center;gap:10px;font-size:1rem;font-weight:700;color:#eaf6ff;letter-spacing:.2px}',
+'#wvCard .wvc-dot{width:8px;height:8px;border-radius:50%;flex:none;background-color:#4fe0a2;animation:wvPulse 2.4s ease-out infinite}',
+'#wvCard .wvc-btn{flex:none;padding:7px 13px;border-radius:9px;cursor:pointer;font-size:.74rem;font-weight:600;',
+'  color:#dff2ff;background-color:rgba(120,200,255,.10);border:1px solid rgba(130,200,240,.3);transition:background-color .17s ease,border-color .17s ease}',
+'#wvCard .wvc-btn:hover{background-color:rgba(120,200,255,.2);border-color:rgba(140,210,245,.5)}',
+'#wvCard .wvc-sub{margin:9px 0 14px;font-size:.78rem;line-height:1.55;color:rgba(172,208,233,.6);text-align:left}',
+'#wvCard .wvc-sub b{color:#dcefff;font-weight:600}',
+'#wvCard .wvc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 4px}',
+'#wvCard .wvc-chip{padding:12px 12px 11px;border-radius:13px;background-color:rgba(120,200,255,.045);border:1px solid rgba(120,200,255,.12);min-width:0}',
+'#wvCard .wvc-chip.is-good{border-color:rgba(79,224,162,.3);background-color:rgba(79,224,162,.06)}',
+'#wvCard .wvc-chip.is-ok{border-color:rgba(255,207,107,.32);background-color:rgba(255,207,107,.06)}',
+'#wvCard .wvc-chip.is-poor{border-color:rgba(255,122,122,.34);background-color:rgba(255,122,122,.07)}',
+'#wvCard .wvc-top{display:flex;align-items:center;justify-content:space-between;gap:6px}',
+'#wvCard .wvc-abbr{font-family:' + MONO + ';font-size:.68rem;font-weight:700;letter-spacing:.12em;color:#9fdcff}',
+'#wvCard .wvc-tag{font-size:.55rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 6px;border-radius:5px;',
+'  color:rgba(180,210,232,.7);background-color:rgba(150,190,220,.1);white-space:nowrap}',
+'#wvCard .is-good .wvc-tag{color:#6ff0bb;background-color:rgba(79,224,162,.14)}',
+'#wvCard .is-ok .wvc-tag{color:#ffd884;background-color:rgba(255,207,107,.14)}',
+'#wvCard .is-poor .wvc-tag{color:#ff9a9a;background-color:rgba(255,122,122,.15)}',
+'#wvCard .wvc-full{margin-top:5px;font-size:.68rem;line-height:1.3;color:rgba(172,208,233,.6);min-height:1.8em}',
+'#wvCard .wvc-val{margin-top:7px;font-family:' + MONO + ';font-size:1.3rem;font-weight:700;letter-spacing:-.3px;color:#e8f5ff;line-height:1}',
+'#wvCard .wvc-val small{font-family:' + MONO + ';font-size:.62em;font-weight:600;margin-left:3px;color:rgba(200,225,242,.6)}',
+'#wvCard .is-good .wvc-val{color:#5fe8ad}',
+'#wvCard .is-ok .wvc-val{color:#ffd884}',
+'#wvCard .is-poor .wvc-val{color:#ff9a9a}',
+'#wvCard .wvc-goal{margin-top:7px;font-family:' + MONO + ';font-size:.6rem;color:rgba(150,195,225,.48)}',
+'#wvCard .wvc-sec{margin:16px 0 9px;display:flex;align-items:center;gap:9px;font-size:.58rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:rgba(150,200,230,.45)}',
+'#wvCard .wvc-sec::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(120,200,255,.18),transparent)}',
+'#wvCard .wvc-ctx{margin-top:14px;padding-top:11px;border-top:1px solid rgba(120,200,255,.1);display:flex;flex-wrap:wrap;align-items:center;gap:6px 0;',
+'  font-family:' + MONO + ';font-size:.62rem;color:rgba(160,200,228,.55)}',
+'#wvCard .wvc-ctx i{display:inline-block;width:3px;height:3px;border-radius:50%;margin:0 9px;background-color:rgba(150,200,230,.35)}',
+'#wvCard .wvc-note{font-size:.76rem;color:rgba(172,208,233,.6)}',
+
+/* --- the popup --- */
+'#wv-overlay{position:fixed;inset:0;z-index:100210;display:none;align-items:flex-start;justify-content:center;padding:8vh 16px 16px;',
+'  background:radial-gradient(120% 90% at 50% 0%,rgba(8,20,34,.82),rgba(2,7,14,.9));',
+'  backdrop-filter:blur(10px) saturate(1.2);-webkit-backdrop-filter:blur(10px) saturate(1.2)}',
+'#wv-overlay.is-open{display:flex;animation:wvFade .18s ease both}',
+'#wv-box{width:100%;max-width:600px;position:relative;display:flex;flex-direction:column;max-height:84vh;overflow:hidden;color:#d2e8f8;',
+'  background:linear-gradient(180deg,rgba(14,23,37,.99),rgba(9,15,26,.99));border:1px solid rgba(120,205,255,.2);border-radius:18px;',
+'  box-shadow:0 40px 90px rgba(0,0,0,.66),inset 0 1px 0 rgba(255,255,255,.05);animation:wvRise .22s cubic-bezier(.2,.85,.3,1) both}',
+'#wv-box::before{content:"";position:absolute;top:0;left:12%;right:12%;height:1px;background:linear-gradient(90deg,transparent,rgba(120,220,255,.55),transparent)}',
+'#wv-head{display:flex;align-items:center;gap:11px;padding:16px;border-bottom:1px solid rgba(120,205,255,.12);flex:0 0 auto}',
+'#wv-head>svg{width:19px;height:19px;flex:none;color:#8ad8ff}',
+'#wv-title{flex:1;min-width:0}',
+'#wv-title b{display:block;font-size:.98rem;font-weight:700;color:#eaf6ff}',
+'#wv-title span{display:block;font-size:.72rem;color:rgba(172,208,233,.55);margin-top:2px}',
+'#wv-close{flex:none;display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:9px;cursor:pointer;',
+'  color:rgba(190,222,242,.8);background-color:rgba(130,200,240,.08);border:1px solid rgba(140,200,235,.24);transition:background-color .16s ease}',
+'#wv-close:hover{background-color:rgba(130,200,240,.18);color:#fff}',
+'#wv-close svg{width:15px;height:15px}',
+'#wv-body{overflow-y:auto;padding:14px 16px 18px;flex:1 1 auto;overscroll-behavior:contain;text-align:left}',
+'#wv-body .wv-sec{margin:20px 0 10px;display:flex;align-items:center;gap:9px;font-size:.58rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:rgba(150,200,230,.45)}',
+'#wv-body .wv-sec::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(120,200,255,.18),transparent)}',
+'#wv-body .wv-row{padding:11px 0 13px;border-bottom:1px solid rgba(120,200,255,.07)}',
+'#wv-body .wv-row:last-child{border-bottom:none}',
+'#wv-body .wv-line{display:flex;align-items:center;gap:12px}',
+'#wv-body .wv-k{flex:1;min-width:0}',
+'#wv-body .wv-k b{display:block;font-size:.86rem;font-weight:600;color:#e2f1fc}',
+'#wv-body .wv-k b code{font-family:' + MONO + ';font-size:.72em;font-weight:700;margin-left:7px;padding:1px 5px;border-radius:4px;color:#9fdcff;background-color:rgba(120,200,255,.1)}',
+'#wv-body .wv-k span{display:block;font-size:.71rem;line-height:1.4;margin-top:2px;color:rgba(172,208,233,.55)}',
+'#wv-body .wv-v{flex:none;font-family:' + MONO + ';font-size:.95rem;font-weight:700;text-align:right;min-width:74px}',
+'#wv-body .wv-pill{flex:none;font-size:.55rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 7px;border-radius:5px;min-width:70px;text-align:center}',
+'#wv-body .is-good .wv-v{color:#4fe0a2}',
+'#wv-body .is-good .wv-pill{color:#6ff0bb;background-color:rgba(79,224,162,.14)}',
+'#wv-body .is-ok .wv-v{color:#ffcf6b}',
+'#wv-body .is-ok .wv-pill{color:#ffd884;background-color:rgba(255,207,107,.14)}',
+'#wv-body .is-poor .wv-v{color:#ff7a7a}',
+'#wv-body .is-poor .wv-pill{color:#ff9a9a;background-color:rgba(255,122,122,.15)}',
+'#wv-body .is-na .wv-v{color:rgba(170,205,230,.42)}',
+'#wv-body .is-na .wv-pill{color:rgba(175,210,235,.6);background-color:rgba(150,190,220,.1)}',
+'#wv-body .wv-attr{margin-top:10px;padding:10px 12px;border-radius:10px;background-color:rgba(120,200,255,.05);border:1px solid rgba(120,200,255,.11)}',
+'#wv-body .wv-attr-h{font-size:.72rem;color:rgba(190,220,240,.72);line-height:1.5}',
+'#wv-body .wv-attr-h code{font-family:' + MONO + ';font-size:.95em;color:#9fdcff;padding:0 4px;border-radius:3px;background-color:rgba(120,200,255,.1)}',
+'#wv-body .wv-phase{display:flex;height:8px;border-radius:5px;overflow:hidden;margin:9px 0 7px;background-color:rgba(120,200,255,.07)}',
+'#wv-body .wv-phase i{display:block;height:100%}',
+'#wv-body .wv-legend{display:flex;flex-wrap:wrap;gap:8px 15px;font-size:.68rem;color:rgba(172,208,233,.64)}',
+'#wv-body .wv-legend span{display:flex;align-items:center;gap:6px}',
+'#wv-body .wv-legend i{width:9px;height:9px;border-radius:3px;flex:none}',
+'#wv-body .wv-legend b{font-family:' + MONO + ';font-weight:600;color:rgba(220,238,250,.86)}',
+'#wv-body .wv-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}',
+'#wv-body .wv-stat{padding:10px;border-radius:11px;background-color:rgba(120,200,255,.05);border:1px solid rgba(120,200,255,.11)}',
+'#wv-body .wv-stat b{display:block;font-family:' + MONO + ';font-size:1rem;font-weight:700;color:#e2f1fc}',
+'#wv-body .wv-stat span{display:block;font-size:.62rem;margin-top:3px;color:rgba(172,208,233,.55);line-height:1.35}',
+'#wv-body .wv-files{margin-top:10px}',
+'#wv-body .wv-file{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:.72rem;border-bottom:1px dashed rgba(120,200,255,.08)}',
+'#wv-body .wv-file:last-child{border-bottom:none}',
+'#wv-body .wv-file i{width:8px;height:8px;border-radius:2px;flex:none}',
+'#wv-body .wv-file span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:' + MONO + ';color:rgba(205,228,244,.8)}',
+'#wv-body .wv-file b{flex:none;font-family:' + MONO + ';font-weight:600;color:rgba(220,238,250,.86)}',
+'#wv-body .wv-bar{display:flex;height:9px;border-radius:5px;overflow:hidden;margin:4px 0 9px;background-color:rgba(120,200,255,.07)}',
+'#wv-body .wv-bar i{display:block;height:100%}',
+'#wv-body .wv-note{margin-top:18px;padding:11px 13px;border-radius:10px;font-size:.72rem;line-height:1.6;',
+'  color:rgba(178,212,236,.66);background-color:rgba(120,200,255,.05);border:1px solid rgba(120,200,255,.12)}',
+'#wv-body .wv-note b{color:#dcefff;font-weight:600}',
+'#wv-body .wv-actions{display:flex;gap:9px;margin-top:14px}',
+'#wv-body .wv-act{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 12px;border-radius:10px;cursor:pointer;',
+'  font-size:.76rem;font-weight:600;color:#dff2ff;background-color:rgba(120,200,255,.1);border:1px solid rgba(130,200,240,.28);transition:background-color .16s ease}',
+'#wv-body .wv-act:hover{background-color:rgba(120,200,255,.2)}',
+'#wv-body .wv-act svg{width:14px;height:14px}',
+'#wv-body .wv-act.is-done{color:#6ff0bb;border-color:rgba(79,224,162,.4);background-color:rgba(79,224,162,.12)}',
+
+/* --- responsive --- */
+'@media (max-width:640px){',
+'  #wvCard{padding:15px}',
+'  #wvCard .wvc-grid{grid-template-columns:repeat(2,1fr);gap:9px}',
+'  #wvCard .wvc-val{font-size:1.2rem}',
+'  #wvCard .wvc-title{font-size:.95rem}',
+'  #wv-overlay{padding:4vh 10px 10px}',
+'  #wv-box{max-height:90vh;border-radius:16px}',
+'  #wv-body .wv-v{font-size:.88rem;min-width:62px}',
+'  #wv-body .wv-pill{min-width:62px}',
+'  #wvCard .wvt-l,#wv-overlay .wvt-l{flex-basis:44%}',
+'}',
+'@media (prefers-reduced-motion:reduce){',
+'  #wvCard .wvc-dot,#wv-overlay.is-open,#wv-box{animation:none}',
+'}'
+  ].join('\n');
+
+  /* add !important to every declaration (keyframes are kept separate) */
+  function important(css) {
+    return css.replace(/([a-z-]+\s*:\s*[^;{}]+?)\s*(;|})/g, function (m, decl, end) {
+      return (/!important$/.test(decl) ? decl : decl + ' !important') + end;
+    });
+  }
+
+  function injectStyles() {
+    if ($('wv-style')) return;
     var st = document.createElement('style');
-    st.id = 'wv-style'; st.textContent = CSS;
-    document.head.appendChild(st);
+    st.id = 'wv-style';
+    st.textContent = KEYFRAMES + '\n' + important(RULES);
+    (document.head || document.documentElement).appendChild(st);
+  }
+  injectStyles();
 
+  /* ---------- popup -------------------------------------------- */
+  var overlay, bodyEl;
+
+  function buildPanel() {
+    if (overlay) return;
     overlay = document.createElement('div');
     overlay.id = 'wv-overlay';
     overlay.setAttribute('role', 'dialog');
@@ -263,133 +579,180 @@
     overlay.innerHTML =
       '<div id="wv-box">' +
         '<div id="wv-head">' +
-          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" ' +
-            'stroke-linecap="round" stroke-linejoin="round">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
             '<path d="M3 3v18h18"/><path d="m7 15 4-5 3 3 5-7"/></svg>' +
-          '<span id="wv-title"><b>Performance</b>' +
-            '<span>Measured on your device, this visit</span></span>' +
+          '<span id="wv-title"><b>Performance Report</b><span>Measured live on your device, this visit</span></span>' +
           '<button id="wv-close" type="button" aria-label="Close">' +
-            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
-              'stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>' +
           '</button>' +
         '</div>' +
         '<div id="wv-body"></div>' +
       '</div>';
     document.body.appendChild(overlay);
-    bodyEl = document.getElementById('wv-body');
-
+    bodyEl = $('wv-body');
     overlay.addEventListener('click', function (e) { if (e.target === overlay) close(); });
-    document.getElementById('wv-close').addEventListener('click', close);
-  }
-
-  function row(k, label, note, value, cls) {
-    var r = cls || rate(k, value);
-    var shown = (k === 'CLS')
-      ? (value == null ? '—' : value.toFixed(3))
-      : ms(value);
-    var tag = r === 'good' ? 'Good' : r === 'ok' ? 'Fair' : r === 'poor' ? 'Poor' : 'Waiting';
-    return '<div class="wv-row wv-' + r + '">' +
-             '<span class="wv-k"><b>' + esc(label) + '</b><span>' + esc(note) + '</span></span>' +
-             '<span class="wv-v">' + shown + '</span>' +
-             '<span class="wv-pill">' + tag + '</span>' +
-           '</div>';
-  }
-
-  /* ---------- inline card in the telemetry section ------------ */
-  function paintCard() {
-    var grid = document.getElementById('wvCardGrid');
-    if (!grid) return;
-    readNav(); readResources();
-    var vals = {
-      LCP : M.LCP.v == null ? null : M.LCP.v,
-      CLS : M.CLS.v,
-      INP : M.INP.v,
-      PAGE: M.bytes.total || null
-    };
-    Array.prototype.forEach.call(grid.querySelectorAll('.wv-chip'), function (chip) {
-      var k = chip.getAttribute('data-m');
-      var v = vals[k];
-      var cls, txt;
-      if (k === 'PAGE') {
-        cls = v == null ? 'na' : (v <= 600000 ? 'good' : v <= 1500000 ? 'ok' : 'poor');
-        txt = v == null ? '\u2014' : kb(v);
-      } else if (k === 'CLS') {
-        cls = rate('CLS', v);
-        txt = v == null ? '\u2014' : v.toFixed(3);
-      } else if (v == null) {
-        cls = 'na';
-        txt = k === 'INP' ? 'tap' : '\u2014';   /* INP needs an interaction */
-      } else {
-        cls = rate(k, v);
-        txt = ms(v);
-      }
-      chip.className = 'wv-chip wv-' + cls;
-      var out = chip.querySelector('.wv-chip-v');
-      if (out) out.textContent = txt;
+    $('wv-close').addEventListener('click', close);
+    bodyEl.addEventListener('click', function (e) {
+      var b = e.target.closest && e.target.closest('[data-wv-copy]');
+      if (b) copyReport(b);
     });
   }
 
-  function paint() {
-    paintCard();
-    if (!built || !overlay || !overlay.classList.contains('is-open')) return;
-    render();
+  function row(k, v, sub) {
+    var r = rate(k, v), shown = k === 'CLS' ? (v == null ? '\u2014' : v.toFixed(3)) : ms(v);
+    var tag = (k === 'INP' && v == null) ? 'Tap to test' : TAG[r];
+    return '<div class="wv-row is-' + r + '">' +
+             '<div class="wv-line">' +
+               '<span class="wv-k"><b>' + esc(NAMES[k]) + '<code>' + k + '</code></b>' +
+                 '<span>' + esc(sub || MEANS[k]) + '</span></span>' +
+               '<span class="wv-v">' + shown + '</span>' +
+               '<span class="wv-pill">' + tag + '</span>' +
+             '</div>' +
+             gauge(k, v) +
+           '</div>';
   }
 
-  function render() {
+  function renderPanel() {
+    if (!bodyEl) return;
+    readNav(); readResources();
     if (!SUPPORTED) {
-      bodyEl.innerHTML = '<div class="wv-note">This browser does not expose the ' +
-        '<b>PerformanceObserver</b> API, so these metrics cannot be measured here. ' +
-        'Chrome, Edge and recent Safari all support it.</div>';
+      bodyEl.innerHTML = '<div class="wv-note">This browser does not expose the <b>PerformanceObserver</b> ' +
+                         'API, so these metrics cannot be measured here. Chrome, Edge and recent Safari support it.</div>';
       return;
     }
-    readNav();
-    readResources();
-    var b = M.bytes;
+    var b = M.bytes, I = M.INP;
 
-    var seg = function (v, c) {
-      if (!b.total || !v) return '';
-      return '<i style="width:' + (v / b.total * 100).toFixed(2) + '%;background:' + c + '"></i>';
+    /* INP attribution: which element, which event, and where the time went */
+    var inpAttr = '';
+    if (I.v != null) {
+      var tot = I.delay + I.proc + I.pres || I.v;
+      var seg = function (x, c) { return '<i style="width:' + (x / tot * 100).toFixed(2) + '%;background-color:' + c + '"></i>'; };
+      inpAttr = '<div class="wv-attr">' +
+        '<div class="wv-attr-h">Slowest of ' + Math.max(1, I.count) + ' interaction' + (I.count === 1 ? '' : 's') +
+          ': <code>' + esc(I.type || 'input') + '</code>' +
+          (I.target ? ' on <code>' + esc(I.target) + '</code>' : '') + '</div>' +
+        '<div class="wv-phase">' + seg(I.delay, '#5ac8ff') + seg(I.proc, '#a78bfa') + seg(I.pres, '#ffcf6b') + '</div>' +
+        '<div class="wv-legend">' +
+          '<span><i style="background-color:#5ac8ff"></i>Input delay <b>' + ms(I.delay) + '</b></span>' +
+          '<span><i style="background-color:#a78bfa"></i>Processing <b>' + ms(I.proc) + '</b></span>' +
+          '<span><i style="background-color:#ffcf6b"></i>Rendering <b>' + ms(I.pres) + '</b></span>' +
+        '</div></div>';
+    }
+
+    var lcpSub = MEANS.LCP + (M.LCP.tag ? ' \u00b7 element ' + M.LCP.tag : '');
+    var lcpAttr = M.LCP.snip
+      ? '<div class="wv-attr"><div class="wv-attr-h">Largest element: <code>' + esc(M.LCP.tag) + '</code> \u201c' +
+        esc(M.LCP.snip) + '\u201d</div></div>'
+      : '';
+
+    var seg2 = function (v, c) {
+      return (!b.total || !v) ? '' : '<i style="width:' + (v / b.total * 100).toFixed(2) + '%;background-color:' + c + '"></i>';
     };
+    var COLORS = { html: '#4fe0a2', css: '#5ac8ff', js: '#a78bfa', img: '#ffcf6b', font: '#f59ec8', other: '#7a8ca3' };
 
     bodyEl.innerHTML =
+      verdict() +
+
       '<div class="wv-sec">Core Web Vitals</div>' +
-      row('LCP', 'Largest Contentful Paint',
-          'When the main content finished rendering' + (M.LCP.el ? ' \u00b7 <' + M.LCP.el + '>' : ''),
-          M.LCP.v) +
-      row('CLS', 'Cumulative Layout Shift',
-          'How much the layout moved unexpectedly',
-          M.CLS.v, M.CLS.v ? rate('CLS', M.CLS.v) : 'good') +
-      row('INP', 'Interaction to Next Paint',
-          M.INP.v == null ? 'Tap or click anything to measure this'
-                          : 'Slowest interaction response so far',
-          M.INP.v) +
+      row('LCP', M.LCP.v, lcpSub) + lcpAttr.replace('<div class="wv-attr">', '<div class="wv-attr" style="margin:-4px 0 6px">') +
+      row('CLS', M.CLS.v, MEANS.CLS + ' \u00b7 ' + M.CLS.shifts + ' shift' + (M.CLS.shifts === 1 ? '' : 's') + ' recorded') +
+      row('INP', I.v, I.v == null ? 'Tap or click anything on the page to measure this' : MEANS.INP) +
+      inpAttr +
 
       '<div class="wv-sec">Loading</div>' +
-      row('TTFB', 'Time to First Byte', 'Server response latency', M.TTFB.v) +
-      row('FCP', 'First Contentful Paint', 'First text or image painted', M.FCP.v) +
+      row('TTFB', M.TTFB.v) + row('FCP', M.FCP.v) +
 
-      '<div class="wv-sec">Transferred \u00b7 ' + kb(b.total) + ' over ' + b.count + ' requests</div>' +
-      '<div class="wv-bar">' +
-        seg(b.html, '#4fe0a2') + seg(b.css, '#5ac8ff') +
-        seg(b.js, '#a78bfa') + seg(b.img, '#ffcf6b') + seg(b.other, '#7a8ca3') +
+      '<div class="wv-sec">Load timeline</div>' + timeline() +
+
+      '<div class="wv-sec">Main thread</div>' +
+      '<div class="wv-stats">' +
+        '<div class="wv-stat"><b>' + M.LT.count + '</b><span>Long tasks over 50 ms</span></div>' +
+        '<div class="wv-stat"><b>' + ms(M.LT.block) + '</b><span>Time input was blocked</span></div>' +
+        '<div class="wv-stat"><b>' + (M.LT.longest ? ms(M.LT.longest) : '\u2014') + '</b><span>Longest single task</span></div>' +
       '</div>' +
+
+      '<div class="wv-sec">' + (b.cached ? 'Page weight' : 'Transferred') + ' \u00b7 ' + kb(b.total) +
+        ' \u00b7 ' + b.count + ' requests' + (b.cached ? ' \u00b7 ' + b.cached + ' cached' : '') + '</div>' +
+      '<div class="wv-bar">' + seg2(b.html, COLORS.html) + seg2(b.css, COLORS.css) + seg2(b.js, COLORS.js) +
+        seg2(b.img, COLORS.img) + seg2(b.font, COLORS.font) + seg2(b.other, COLORS.other) + '</div>' +
       '<div class="wv-legend">' +
-        '<span><i style="background:#4fe0a2"></i>HTML ' + kb(b.html) + '</span>' +
-        '<span><i style="background:#5ac8ff"></i>CSS ' + kb(b.css) + '</span>' +
-        '<span><i style="background:#a78bfa"></i>JS ' + kb(b.js) + '</span>' +
-        '<span><i style="background:#ffcf6b"></i>Images ' + kb(b.img) + '</span>' +
-        '<span><i style="background:#7a8ca3"></i>Other ' + kb(b.other) + '</span>' +
+        ['html', 'css', 'js', 'img', 'font', 'other'].map(function (k) {
+          var label = { html: 'HTML', css: 'CSS', js: 'JS', img: 'Images', font: 'Fonts', other: 'Other' }[k];
+          return '<span><i style="background-color:' + COLORS[k] + '"></i>' + label + ' <b>' + kb(b[k]) + '</b></span>';
+        }).join('') +
       '</div>' +
+      (b.top.length ? '<div class="wv-files">' + b.top.map(function (f) {
+        return '<div class="wv-file"><i style="background-color:' + COLORS[f.kind] + '"></i><span>' + esc(f.name) +
+               '</span><b>' + kb(f.bytes) + '</b></div>';
+      }).join('') + '</div>' : '') +
 
-      '<div class="wv-note">These are live readings from this device on this visit \u2014 ' +
-        'not stored numbers, and nothing is sent anywhere. <b>LCP</b> stops updating at your ' +
-        'first interaction and <b>CLS</b> keeps accumulating while the page is open, so both ' +
-        'are measured exactly the way Chrome measures them.</div>';
+      '<div class="wv-note">Live readings from <b>' + esc(context().slice(0, 2).join(' \u00b7 ') || 'this device') +
+        '</b> on this visit \u2014 nothing is stored or sent anywhere. <b>LCP</b> is final at your first interaction, ' +
+        '<b>CLS</b> uses Chrome\u2019s session-window method, and <b>INP</b> counts genuine interactions only.' +
+        (b.cached ? ' ' + b.cached + ' file(s) came from your browser cache, so their decoded size is shown.' : '') +
+      '</div>' +
+      '<div class="wv-actions">' +
+        '<button type="button" class="wv-act" data-wv-copy>' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+          '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>' +
+          '<span>Copy JSON report</span></button>' +
+      '</div>';
   }
 
+  /* ---------- JSON report -------------------------------------- */
+  function report() {
+    readNav(); readResources();
+    var r = function (k, v) { return { value: v == null ? null : +(+v).toFixed(k === 'CLS' ? 4 : 1), rating: rate(k, v) }; };
+    return {
+      url: location.href,
+      measuredAt: new Date().toISOString(),
+      environment: context(),
+      coreWebVitals: { LCP: r('LCP', M.LCP.v), CLS: r('CLS', M.CLS.v), INP: r('INP', M.INP.v) },
+      loading: { TTFB: r('TTFB', M.TTFB.v), FCP: r('FCP', M.FCP.v),
+                 domContentLoaded: M.NAV.dcl, loadEvent: M.NAV.load },
+      attribution: {
+        lcpElement: M.LCP.tag || null,
+        slowestInteraction: M.INP.v == null ? null : {
+          event: M.INP.type, target: M.INP.target,
+          inputDelay: +M.INP.delay.toFixed(1), processing: +M.INP.proc.toFixed(1),
+          presentation: +M.INP.pres.toFixed(1), interactions: M.INP.count
+        }
+      },
+      mainThread: { longTasks: M.LT.count, blockingTime: +M.LT.block.toFixed(1), longestTask: +M.LT.longest.toFixed(1) },
+      weight: { total: M.bytes.total, html: M.bytes.html, css: M.bytes.css, js: M.bytes.js,
+                images: M.bytes.img, fonts: M.bytes.font, other: M.bytes.other,
+                requests: M.bytes.count, fromCache: M.bytes.cached, heaviest: M.bytes.top }
+    };
+  }
+  function copyText(t) {
+    if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(t);
+    return new Promise(function (ok, no) {
+      try {
+        var ta = document.createElement('textarea');
+        ta.value = t; ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed'; ta.style.top = '-1000px'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, t.length);
+        var done = document.execCommand('copy');
+        document.body.removeChild(ta);
+        done ? ok() : no(new Error('copy failed'));
+      } catch (e) { no(e); }
+    });
+  }
+  function copyReport(btn) {
+    var label = btn.querySelector('span');
+    copyText(JSON.stringify(report(), null, 2)).then(function () {
+      btn.classList.add('is-done'); if (label) label.textContent = 'Copied to clipboard';
+    }).catch(function () {
+      if (label) label.textContent = 'Copy failed';
+    }).then(function () {
+      setTimeout(function () { btn.classList.remove('is-done'); if (label) label.textContent = 'Copy JSON report'; }, 1600);
+    });
+  }
+
+  /* ---------- open / close ------------------------------------- */
   function open() {
-    build();
-    render();
+    buildPanel();
+    renderPanel();
     overlay.classList.add('is-open');
     document.body.style.overflow = 'hidden';
   }
@@ -398,7 +761,6 @@
     overlay.classList.remove('is-open');
     document.body.style.overflow = '';
   }
-
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && overlay && overlay.classList.contains('is-open')) close();
   });
@@ -407,32 +769,29 @@
     if (t) { e.preventDefault(); open(); }
   });
 
+  /* ---------- first paint of the card -------------------------- */
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', renderCard);
+  else setTimeout(renderCard, 0);
+  [600, 1500, 3500].forEach(function (d) { setTimeout(schedule, d); });
+
   window.openWebVitals  = open;
   window.closeWebVitals = close;
-  window.getWebVitals   = function () {
-    readNav(); readResources();
-    return { LCP: M.LCP.v, CLS: M.CLS.v, INP: M.INP.v,
-             FCP: M.FCP.v, TTFB: M.TTFB.v, bytes: M.bytes };
-  };
+  window.getWebVitals   = report;
 
-  /* register with the command palette once it exists */
+  /* ---------- command palette ---------------------------------- */
   function registerCmd() {
     if (typeof window.registerPaletteCommands !== 'function') return false;
     window.registerPaletteCommands([{
-      t: 'Performance',
-      s: 'This page\u2019s own Core Web Vitals, measured live',
+      t: 'Performance Report',
+      s: 'Live Core Web Vitals, timeline and attribution',
       g: 'Action',
-      k: 'performance vitals lcp cls inp speed lighthouse metrics',
+      k: 'performance vitals lcp cls inp speed lighthouse metrics timeline',
       i: '<path d="M3 3v18h18"/><path d="m7 15 4-5 3 3 5-7"/>',
       run: function () { open(); return true; }
     }]);
     return true;
   }
   if (!registerCmd()) {
-    /* palette may load after this file; retry briefly, then give up */
-    var tries = 0;
-    var iv = setInterval(function () {
-      if (registerCmd() || ++tries > 40) clearInterval(iv);
-    }, 150);
+    var tries = 0, iv = setInterval(function () { if (registerCmd() || ++tries > 40) clearInterval(iv); }, 150);
   }
 })();
