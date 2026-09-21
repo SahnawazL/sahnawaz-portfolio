@@ -277,3 +277,97 @@
 @media (min-width: 960px) and (prefers-reduced-motion: reduce) {
   .dsk-link, .dsk-link::after, .dsk-btn, .dsk-f-a, .dsk-f-soc a { transition: none; }
 }
+
+/* ---------- 7. menu drawer in the header (960px+) ------------
+   A three-line button at the far right of the header opens a panel
+   holding the account (sign-in) and the four hero actions, which are
+   hidden from the hero on desktop since the header now offers them. */
+@media (min-width: 960px) {
+  section:has(> #pfpStage) > .btn-group { display: none; }
+
+  #dsk-actions { position: relative; }
+  .dsk-burger {
+    position: relative; width: 38px; height: 34px; border-radius: 10px; cursor: pointer; flex: none;
+    background: rgba(120, 200, 255, .08); border: 1px solid rgba(130, 200, 240, .24);
+    transition: background .18s ease, border-color .18s ease;
+  }
+  .dsk-burger:hover, .dsk-burger[aria-expanded="true"] { background: rgba(120, 200, 255, .16); border-color: rgba(140, 210, 245, .45); }
+  .dsk-burger i {
+    position: absolute; left: 11px; width: 16px; height: 2px; border-radius: 2px; background: #cfeaff;
+    transition: transform .28s cubic-bezier(.2, .8, .2, 1), opacity .2s ease, top .28s cubic-bezier(.2, .8, .2, 1);
+  }
+  .dsk-burger i:nth-child(1) { top: 11px; }
+  .dsk-burger i:nth-child(2) { top: 16px; }
+  .dsk-burger i:nth-child(3) { top: 21px; }
+  /* the three lines fold into a close mark while open */
+  .dsk-burger[aria-expanded="true"] i:nth-child(1) { top: 16px; transform: rotate(45deg); }
+  .dsk-burger[aria-expanded="true"] i:nth-child(2) { opacity: 0; transform: scaleX(.2); }
+  .dsk-burger[aria-expanded="true"] i:nth-child(3) { top: 16px; transform: rotate(-45deg); }
+  .dsk-burger:focus-visible { outline: 2px solid #5ac8ff; outline-offset: 2px; }
+
+  /* lives in <body>, not the header: the header clips its contents, so a
+     menu inside it could never extend below it. Top and right are set by
+     the script to sit under the menu button. */
+  #dsk-drawer {
+    position: fixed; top: 76px; right: 28px; width: 290px; z-index: 1001; box-sizing: border-box;
+    padding: 10px; border-radius: 16px; text-align: left;
+    background: linear-gradient(180deg, rgba(14, 23, 37, .98), rgba(9, 15, 26, .98));
+    border: 1px solid rgba(120, 205, 255, .2);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 255, 255, .05);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    opacity: 0; visibility: hidden; transform: translateY(-8px) scale(.98); transform-origin: top right;
+    transition: opacity .2s ease, transform .24s cubic-bezier(.2, .85, .3, 1), visibility 0s linear .24s;
+  }
+  #dsk-drawer.is-open {
+    opacity: 1; visibility: visible; transform: none;
+    transition: opacity .2s ease, transform .24s cubic-bezier(.2, .85, .3, 1), visibility 0s;
+  }
+  #dsk-drawer::before {
+    content: ""; position: absolute; top: 0; left: 16%; right: 16%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(120, 220, 255, .5), transparent);
+  }
+  .dsk-dr-h {
+    padding: 8px 10px 6px; font: 700 9.5px/1 Inter, system-ui, sans-serif; letter-spacing: .18em;
+    text-transform: uppercase; color: rgba(150, 200, 230, .5);
+  }
+  #dsk-acct { display: flex; justify-content: flex-start; padding: 4px 10px 10px; }
+  .dsk-dr-sep { height: 1px; margin: 4px 8px 6px; background: rgba(120, 200, 255, .1); }
+  .dsk-dr-item {
+    width: 100%; display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 10px;
+    border: none; background: none; cursor: pointer; text-align: left;
+    font: 500 13px/1.2 Inter, system-ui, sans-serif; color: #d6ebfa;
+    opacity: 0; transform: translateY(-4px);
+    transition: background .15s ease, color .15s ease, opacity .2s ease, transform .22s ease;
+  }
+  #dsk-drawer.is-open .dsk-dr-item { opacity: 1; transform: none; transition-delay: calc(var(--d, 0) * 35ms); }
+  .dsk-dr-item:hover, .dsk-dr-item:focus-visible { background: rgba(110, 205, 255, .1); color: #fff; outline: none; }
+  .dsk-dr-ic {
+    flex: none; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 9px;
+    color: #8ad8ff; background: rgba(120, 200, 255, .08); border: 1px solid rgba(120, 200, 255, .15);
+  }
+  .dsk-dr-ic svg { width: 15px; height: 15px; }
+  .dsk-dr-t { flex: 1; min-width: 0; }
+  .dsk-dr-item kbd {
+    font: 600 10px/1 ui-monospace, "SF Mono", monospace; padding: 3px 5px; border-radius: 5px;
+    color: rgba(190, 225, 245, .7); border: 1px solid rgba(120, 200, 255, .2);
+  }
+}
+@media (min-width: 960px) and (prefers-reduced-motion: reduce) {
+  #dsk-drawer, #dsk-drawer.is-open, .dsk-dr-item, .dsk-burger i { transition: none; }
+}
+
+/* ---------- 8. header stays at the top while scrolling (960px+) ---
+   The header is marked sticky, but a page-level overflow rule stops
+   sticky from working, so on desktop it scrolled away with the page and
+   its section highlight was only ever visible at the very top. Fixed
+   positioning plus a spacer of the same height keeps it in view without
+   moving anything on the page. */
+@media (min-width: 960px) {
+  header.dsk-fixed {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    background: rgba(5, 12, 21, .88);
+    backdrop-filter: blur(12px) saturate(1.2); -webkit-backdrop-filter: blur(12px) saturate(1.2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .28);
+  }
+  #dsk-hdr-spacer { display: block; }
+}
