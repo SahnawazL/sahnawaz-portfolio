@@ -1,0 +1,112 @@
+/* ============================================================
+   DESKTOP LAYOUT  —  ByteWithSahnawaz
+   Arrangement only. No section is restyled: this file changes where
+   blocks sit on wide screens, never how they look.
+
+   Every rule below is inside a min-width media query, so phones and
+   tablets never match any of it. The mobile layout is untouched.
+   ============================================================ */
+
+/* ---------- 1. split hero (1200px and wider) -----------------
+   The hero is six stacked blocks. On a desktop that stack is taller
+   than the screen, pushing the About card below the fold. Here the
+   identity blocks form a left column and the About card sits beside
+   them, so the whole introduction fits in one screen. */
+@media (min-width: 1200px) {
+  section.sec-wipe {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 44px;
+    align-items: center;
+  }
+  /* identity blocks: photo, name/role, buttons, stats, socials */
+  section.sec-wipe > #pfpStage,
+  section.sec-wipe > #premium-intro-block,
+  section.sec-wipe > .btn-group,
+  section.sec-wipe > #heroStatsBar,
+  section.sec-wipe > #socRow {
+    grid-column: 1;
+  }
+  /* the About card: right column, vertically centred against the left */
+  section.sec-wipe > div:has(> .premium-bio-card) {
+    grid-column: 2;
+    grid-row: 1 / span 5;
+    align-self: center;
+  }
+  /* inside a half-width column the name and buttons wrap exactly as
+     they already do on a phone, instead of spilling past the column */
+  section.sec-wipe .prem-name { flex-wrap: wrap; justify-content: center; }
+  section.sec-wipe .hero-cta-group { flex-wrap: wrap; justify-content: center; }
+  section.sec-wipe .premium-bio-card { max-width: 100%; }
+}
+
+/* ---------- 2. section rail (1280px and wider) ---------------
+   A slim, sticky list of sections in the empty space beside the
+   content, highlighting the one on screen. Built by
+   js/desktop-layout.js; nothing here matches on smaller screens. */
+@media (min-width: 1280px) {
+  #dsk-rail {
+    position: fixed; left: 14px; top: 50%; z-index: 60;
+    transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 2px;
+    padding: 10px 0 10px 12px;
+    opacity: 0; transition: opacity .35s ease;
+    pointer-events: none;
+  }
+  #dsk-rail.is-ready { opacity: 1; pointer-events: auto; }
+  /* the track and its progress fill */
+  #dsk-rail::before, #dsk-rail > .dsk-fill {
+    content: ""; position: absolute; left: 16px; top: 18px; bottom: 18px;
+    width: 2px; border-radius: 2px; background: rgba(120, 200, 255, .12);
+  }
+  #dsk-rail > .dsk-fill {
+    bottom: auto; height: 0;
+    background: linear-gradient(180deg, #5ac8ff, #4fe0a2);
+    box-shadow: 0 0 8px rgba(90, 200, 255, .45);
+    transition: height .25s ease;
+  }
+  .dsk-item {
+    position: relative; display: flex; align-items: center; gap: 10px;
+    height: 24px; padding: 0 8px 0 0; border: none; background: none;
+    cursor: pointer; font: 500 11px/1 Inter, system-ui, -apple-system, sans-serif;
+    letter-spacing: .02em; color: rgba(170, 208, 233, .5);
+    text-align: left; white-space: nowrap;
+    transition: color .2s ease;
+  }
+  .dsk-dot {
+    flex: none; width: 10px; height: 10px; margin-left: 0; border-radius: 50%;
+    background: #0b1523; border: 2px solid rgba(120, 200, 255, .32);
+    transition: transform .25s ease, border-color .2s ease, background .2s ease, box-shadow .2s ease;
+  }
+  .dsk-label { opacity: 0; transform: translateX(-4px); transition: opacity .2s ease, transform .2s ease; }
+  /* labels show when there is room beside the content (set by the script) */
+  #dsk-rail.has-room .dsk-label { opacity: 1; transform: none; }
+  .dsk-item:hover { color: #dff2ff; }
+  .dsk-item:hover .dsk-label { opacity: 1; transform: none; }
+  .dsk-item:hover .dsk-dot { border-color: #8ad8ff; }
+  .dsk-item.is-active { color: #eaf7ff; font-weight: 600; }
+  .dsk-item.is-active .dsk-dot {
+    background: #5ac8ff; border-color: #5ac8ff; transform: scale(1.25);
+    box-shadow: 0 0 10px rgba(90, 200, 255, .7);
+  }
+  .dsk-item.is-past .dsk-dot { border-color: rgba(90, 200, 255, .6); }
+  /* Without room, labels take no space at all: the rail is only as wide
+     as its dots, so it can never reach into the content or catch clicks
+     meant for it. Hovering a dot floats its label out as a small tag. */
+  #dsk-rail:not(.has-room) .dsk-item { padding-right: 0; }
+  #dsk-rail:not(.has-room) .dsk-label {
+    position: absolute; left: 22px; top: 50%; pointer-events: none;
+    transform: translate(-4px, -50%);
+    padding: 4px 8px; border-radius: 6px; background: rgba(10, 20, 34, .96);
+    border: 1px solid rgba(120, 200, 255, .25); color: #dff2ff;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .4);
+  }
+  #dsk-rail:not(.has-room) .dsk-item:hover .dsk-label,
+  #dsk-rail:not(.has-room) .dsk-item:focus-visible .dsk-label { opacity: 1; transform: translate(0, -50%); }
+  .dsk-item:focus-visible { outline: 2px solid #5ac8ff; outline-offset: 2px; border-radius: 6px; }
+  /* stand aside for hacker mode's full-screen terminal */
+  body.hacker-mode #dsk-rail { display: none; }
+}
+@media (min-width: 1280px) and (prefers-reduced-motion: reduce) {
+  #dsk-rail, #dsk-rail > .dsk-fill, .dsk-item, .dsk-dot, .dsk-label { transition: none; }
+}
