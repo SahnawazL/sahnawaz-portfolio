@@ -48,7 +48,7 @@
     still: mq('(prefers-reduced-motion: reduce)'),
     slow: [],              /* durations of slow interactions (ms)          */
     liveLite: false,       /* live evidence has already decided lite       */
-    tracked: 0, paused: 0
+    tracked: 0, paused: 0, scanned: false
   };
   try {
     var saved = localStorage.getItem(KEY);
@@ -162,9 +162,13 @@
     '#wvCard #pgPanel .pg-dot.is-lite{background-color:#ffcf6b !important;box-shadow:0 0 8px rgba(255,207,107,.7) !important}' +
     '#wvCard #pgPanel .pg-st b{display:block !important;font-size:.84rem !important;font-weight:700 !important;color:#e8f4ff !important}' +
     '#wvCard #pgPanel .pg-st span{display:block !important;font-size:.72rem !important;line-height:1.5 !important;' +
-      'margin-top:2px !important;color:rgba(172,208,233,.62) !important}' +
+      'margin-top:2px !important;color:rgba(172,208,233,.62) !important;' +
+      'display:-webkit-box !important;-webkit-line-clamp:2 !important;-webkit-box-orient:vertical !important;' +
+      'overflow:hidden !important;min-height:3em !important}' +
     '#wvCard #pgPanel .pg-meta{margin-top:9px !important;font-family:ui-monospace,"SF Mono",Menlo,monospace !important;' +
-      'font-size:.62rem !important;color:rgba(160,200,228,.55) !important}' +
+      'font-size:.62rem !important;color:rgba(160,200,228,.55) !important;line-height:1.6 !important;' +
+      'display:-webkit-box !important;-webkit-line-clamp:2 !important;-webkit-box-orient:vertical !important;' +
+      'overflow:hidden !important;min-height:3.2em !important}' +
     '#wvCard #pgPanel.pg-flash{animation:pgFlash 1.2s ease 1}' +
     '@keyframes pgFlash{0%{box-shadow:0 0 0 0 rgba(111,216,255,.0)}30%{box-shadow:0 0 0 6px rgba(111,216,255,.25)}100%{box-shadow:0 0 0 0 rgba(111,216,255,0)}}';
   (function () {
@@ -193,7 +197,7 @@
       t += n;
       if (state.still || !h.visible) p += n;
     });
-    state.tracked = t; state.paused = p;
+    state.tracked = t; state.paused = p; state.scanned = true;
     renderSoon();
   }
 
@@ -286,7 +290,7 @@
   function renderSoon() {
     if (queued) return;
     queued = true;
-    setTimeout(function () { queued = false; render(); }, 250);
+    setTimeout(function () { queued = false; render(); renderPopup(); }, 250);
   }
 
   /* The panel is kept cheap to maintain: nothing is written while it is
@@ -298,6 +302,7 @@
 
   function metaText() {
     if (!CAN) return 'This browser cannot report its animations, so off-screen pausing is unavailable here.';
+    if (!state.scanned) return 'Scanning looping animations\u2026';
     if (state.still) return state.tracked + ' looping animations \u00b7 all paused (your device asks for reduced motion)';
     return state.tracked + ' looping animations \u00b7 ' + state.paused + ' paused off-screen right now';
   }
@@ -353,11 +358,175 @@
     try { localStorage.setItem(KEY, m); } catch (e) {}
     decide();
     render(true);
+    renderPopup();
   }
 
   document.addEventListener('click', function (e) {
-    var b = e.target.closest && e.target.closest('#pgPanel [data-pg-mode]');
+    var b = e.target.closest && e.target.closest('#pgPanel [data-pg-mode], #pg-overlay [data-pg-mode]');
     if (b) { e.preventDefault(); setMode(b.getAttribute('data-pg-mode')); }
+  });
+
+  /* ---------- popup (opened from the command palette) ---------- */
+  var POP_RULES = [
+'#pg-overlay,#pg-overlay *{font-family:Inter,system-ui,-apple-system,sans-serif;background-color:transparent;color:inherit;box-sizing:border-box}',
+'#pg-overlay{position:fixed;inset:0;z-index:100210;display:none;align-items:flex-start;justify-content:center;padding:8vh 16px 16px;',
+'  background:radial-gradient(120% 90% at 50% 0%,rgba(8,20,34,.82),rgba(2,7,14,.9));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}',
+'#pg-overlay.is-open{display:flex}',
+'#pg-box{width:100%;max-width:560px;position:relative;display:flex;flex-direction:column;max-height:84vh;overflow:hidden;color:#d2e8f8;',
+'  background:linear-gradient(180deg,rgba(14,23,37,.99),rgba(9,15,26,.99));border:1px solid rgba(120,205,255,.2);border-radius:18px;',
+'  box-shadow:0 40px 90px rgba(0,0,0,.66),inset 0 1px 0 rgba(255,255,255,.05)}',
+'#pg-head{display:flex;align-items:center;gap:11px;padding:16px;border-bottom:1px solid rgba(120,205,255,.12);flex:0 0 auto}',
+'#pg-head>svg{width:19px;height:19px;flex:none;color:#8ad8ff}',
+'#pg-title{flex:1;min-width:0}',
+'#pg-title b{display:block;font-size:.98rem;font-weight:700;color:#eaf6ff}',
+'#pg-title span{display:block;font-size:.72rem;margin-top:2px;color:rgba(172,208,233,.55)}',
+'#pg-close{flex:none;display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:9px;cursor:pointer;',
+'  color:rgba(190,222,242,.8);background-color:rgba(130,200,240,.08);border:1px solid rgba(140,200,235,.24)}',
+'#pg-close svg{width:15px;height:15px}',
+'#pg-body{overflow-y:auto;padding:14px 16px 18px;flex:1 1 auto;overscroll-behavior:contain;text-align:left}',
+'#pg-body .p-sec{margin:18px 0 10px;display:flex;align-items:center;gap:9px;font-size:.58rem;font-weight:700;letter-spacing:.16em;',
+'  text-transform:uppercase;color:rgba(150,200,230,.45)}',
+'#pg-body .p-sec::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(120,200,255,.18),transparent)}',
+'#pg-body .p-seg{display:flex;padding:3px;border-radius:11px;background-color:rgba(120,200,255,.06);border:1px solid rgba(120,200,255,.14)}',
+'#pg-body .p-seg button{flex:1;cursor:pointer;padding:9px 10px;border-radius:8px;border:none;font-size:.8rem;font-weight:700;',
+'  color:rgba(185,215,238,.72);background-color:transparent}',
+'#pg-body .p-seg button.is-on{color:#04121a;background-color:#6fd8ff}',
+'#pg-body .p-st{display:flex;align-items:flex-start;gap:11px;margin-top:12px;padding:12px 13px;border-radius:12px;',
+'  background-color:rgba(120,200,255,.05);border:1px solid rgba(120,200,255,.12)}',
+'#pg-body .p-dot{width:9px;height:9px;border-radius:50%;flex:none;margin-top:5px}',
+'#pg-body .p-dot.is-full{background-color:#4fe0a2;box-shadow:0 0 9px rgba(79,224,162,.7)}',
+'#pg-body .p-dot.is-lite{background-color:#ffcf6b;box-shadow:0 0 9px rgba(255,207,107,.7)}',
+'#pg-body .p-st b{display:block;font-size:.9rem;font-weight:700;color:#e8f4ff}',
+'#pg-body .p-st span{display:block;font-size:.74rem;line-height:1.5;margin-top:3px;color:rgba(172,208,233,.66)}',
+'#pg-body .p-mode{display:flex;gap:11px;padding:10px 0;border-bottom:1px solid rgba(120,200,255,.07)}',
+'#pg-body .p-mode:last-child{border-bottom:none}',
+'#pg-body .p-mode i{flex:none;width:6px;border-radius:3px;background-color:rgba(120,200,255,.12)}',
+'#pg-body .p-mode.is-on i{background-color:#6fd8ff}',
+'#pg-body .p-mode b{display:block;font-size:.84rem;font-weight:700;color:#e2f1fc}',
+'#pg-body .p-mode span{display:block;font-size:.72rem;line-height:1.5;margin-top:2px;color:rgba(172,208,233,.6)}',
+'#pg-body .p-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}',
+'#pg-body .p-stat{padding:10px;border-radius:11px;background-color:rgba(120,200,255,.05);border:1px solid rgba(120,200,255,.11);min-width:0}',
+'#pg-body .p-stat b{display:block;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:.95rem;font-weight:700;color:#e2f1fc}',
+'#pg-body .p-stat span{display:block;font-size:.62rem;margin-top:3px;line-height:1.35;color:rgba(172,208,233,.55)}',
+'#pg-body .p-act{margin-top:14px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 12px;',
+'  border-radius:11px;cursor:pointer;font-size:.78rem;font-weight:600;color:#dff2ff;background-color:rgba(120,200,255,.1);',
+'  border:1px solid rgba(130,200,240,.28)}',
+'#pg-body .p-act svg{width:14px;height:14px}',
+'#pg-body .p-note{margin-top:14px;padding:10px 12px;border-radius:10px;font-size:.7rem;line-height:1.55;color:rgba(178,212,236,.62);',
+'  background-color:rgba(120,200,255,.05);border:1px solid rgba(120,200,255,.11)}',
+'@media (max-width:640px){#pg-overlay{padding:4vh 10px 10px}#pg-box{max-height:90vh;border-radius:16px}#pg-body .p-grid{grid-template-columns:repeat(2,1fr)}}'
+  ].join('\n');
+  function importantAll(css) {
+    return css.replace(/([a-z-]+\s*:\s*[^;{}]+?)\s*(;|})/g, function (m, d, end) {
+      return (/!important$/.test(d) ? d : d + ' !important') + end;
+    });
+  }
+  var ICON = '<path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="M12 12 8 8"/><circle cx="12" cy="12" r="9"/>';
+  var sv = function (d, w) {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (w || 2) +
+           '" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
+  };
+
+  var pov, pbody;
+  function popupOpen() { return !!(pov && pov.classList.contains('is-open')); }
+
+  function buildPopup() {
+    if (pov) return;
+    var st = document.createElement('style');
+    st.id = 'pg-popup-style';
+    st.textContent = importantAll(POP_RULES);
+    document.head.appendChild(st);
+    pov = document.createElement('div');
+    pov.id = 'pg-overlay';
+    pov.setAttribute('role', 'dialog');
+    pov.setAttribute('aria-modal', 'true');
+    pov.setAttribute('aria-label', 'Performance mode');
+    pov.innerHTML =
+      '<div id="pg-box">' +
+        '<div id="pg-head">' + sv(ICON, 1.8) +
+          '<span id="pg-title"><b>Performance Mode</b><span>How this site adapts to your device</span></span>' +
+          '<button id="pg-close" type="button" aria-label="Close">' + sv('<path d="M18 6 6 18M6 6l12 12"/>') + '</button>' +
+        '</div>' +
+        '<div id="pg-body"></div>' +
+      '</div>';
+    document.body.appendChild(pov);
+    pbody = document.getElementById('pg-body');
+    pov.addEventListener('click', function (e) { if (e.target === pov) closePopup(); });
+    document.getElementById('pg-close').addEventListener('click', function () { closePopup(); });
+    pbody.addEventListener('click', function (e) {
+      if (e.target.closest && e.target.closest('[data-pg-show]')) {
+        closePopup();
+        setTimeout(function () {
+          var p = document.getElementById('pgPanel');
+          if (!p) return;
+          p.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          p.classList.remove('pg-flash'); void p.offsetWidth; p.classList.add('pg-flash');
+        }, 260);
+      }
+    });
+  }
+
+  function renderPopup() {
+    if (!popupOpen()) return;
+    var esc = function (x) { return String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;'); };
+    var n = navigator, c = n.connection || {};
+    var label = state.tier === 'lite' ? 'Lite effects \u2014 frosted-glass blur off' : 'Full effects';
+    var how = state.mode === 'auto' ? 'Decided automatically' : 'Chosen by you';
+    var modes = [
+      ['auto', 'Auto', 'Chooses for you from your device, then watches how the page actually runs. Two genuinely slow taps move a struggling device to Lite.'],
+      ['full', 'Full', 'Every effect, including the frosted-glass blur on panels.'],
+      ['lite', 'Lite', 'Switches off the frosted-glass blur \u2014 the most expensive thing this page paints. Everything else stays.']
+    ];
+    var stat = function (v, k) { return '<div class="p-stat"><b>' + esc(v) + '</b><span>' + esc(k) + '</span></div>'; };
+    pbody.innerHTML =
+      '<div class="p-seg" role="group" aria-label="Performance mode">' +
+        modes.map(function (m) {
+          return '<button type="button" data-pg-mode="' + m[0] + '" aria-pressed="' + (state.mode === m[0]) + '"' +
+                 (state.mode === m[0] ? ' class="is-on"' : '') + '>' + m[1] + '</button>';
+        }).join('') +
+      '</div>' +
+      '<div class="p-st"><i class="p-dot is-' + state.tier + '"></i><div><b>' + label + '</b>' +
+        '<span>' + esc(how) + ' \u00b7 ' + esc(state.reason) + '</span></div></div>' +
+
+      '<div class="p-sec">What each mode does</div>' +
+      modes.map(function (m) {
+        return '<div class="p-mode' + (state.mode === m[0] ? ' is-on' : '') + '"><i></i><div><b>' + m[1] + '</b>' +
+               '<span>' + esc(m[2]) + '</span></div></div>';
+      }).join('') +
+
+      '<div class="p-sec">What it reads from this device</div>' +
+      '<div class="p-grid">' +
+        stat(n.hardwareConcurrency ? n.hardwareConcurrency : '\u2014', 'CPU cores') +
+        stat(typeof n.deviceMemory === 'number' ? n.deviceMemory + (n.deviceMemory >= 8 ? '+ GB' : ' GB') : '\u2014', 'Memory (browser-rounded)') +
+        stat(c.saveData ? 'On' : 'Off', 'Data Saver') +
+        stat(state.still ? 'On' : 'Off', 'Reduced motion') +
+        stat(state.slow.length, 'Slow taps this visit') +
+        stat(state.scanned ? state.paused + ' / ' + state.tracked : '\u2026', 'Loops paused / total') +
+      '</div>' +
+
+      '<button type="button" class="p-act" data-pg-show>' + sv('<path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>') +
+        'Show the panel on the page</button>' +
+      '<div class="p-note">Your choice is remembered on this device. Everything here is read locally \u2014 ' +
+        'nothing is stored online or sent anywhere.</div>';
+  }
+
+  function openPopup() {
+    buildPopup();
+    pov.classList.add('is-open');
+    renderPopup();
+    document.body.style.overflow = 'hidden';
+    if (typeof window.shzPopupOpened === 'function') {
+      window.shzPopupOpened('perf-mode', function () { closePopup(true); });
+    }
+  }
+  function closePopup(fromHistory) {
+    if (!popupOpen()) return;
+    pov.classList.remove('is-open');
+    document.body.style.overflow = '';
+    if (!fromHistory && typeof window.shzPopupClosed === 'function') window.shzPopupClosed('perf-mode');
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && popupOpen()) closePopup();
   });
 
   /* ---------- boot --------------------------------------------- */
@@ -381,6 +550,7 @@
                pausedOffscreen: state.paused, slowInteractions: state.slow.slice() };
     },
     setMode: setMode,
+    openPopup: openPopup,
     rescan: scan
   };
 
@@ -393,13 +563,7 @@
       g: 'Action',
       k: 'performance mode lite full battery slow governor effects blur animations',
       i: '<path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="M12 12 8 8"/><circle cx="12" cy="12" r="9"/>',
-      run: function () {
-        var p = document.getElementById('pgPanel');
-        if (!p) return false;
-        p.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        p.classList.remove('pg-flash'); void p.offsetWidth; p.classList.add('pg-flash');
-        return true;
-      }
+      run: function () { setTimeout(openPopup, 120); return true; }
     }]);
     return true;
   }

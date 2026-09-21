@@ -56,7 +56,7 @@
   var M = {
     LCP : { v: null, tag: '', snip: '' },
     INP : { v: null, type: '', target: '', delay: 0, proc: 0, pres: 0, count: 0 },
-    CLS : { v: 0, shifts: 0 },
+    CLS : { v: 0, shifts: 0, big: 0, src: '', dy: 0, dx: 0 },
     FCP : { v: null },
     TTFB: { v: null },
     NAV : { dcl: null, load: null, proto: '' },
@@ -144,6 +144,25 @@
     clsCur += e.value;
     M.CLS.shifts++;
     if (clsCur > M.CLS.v) M.CLS.v = clsCur;
+    /* remember the single biggest shift and the element that moved most
+       in it — that is the thing to fix */
+    if (e.value > M.CLS.big && e.sources && e.sources.length) {
+      var best = null, far = -1;
+      for (var i = 0; i < e.sources.length; i++) {
+        var so = e.sources[i];
+        if (!so.previousRect || !so.currentRect) continue;
+        var d = Math.abs(so.currentRect.top - so.previousRect.top) +
+                Math.abs(so.currentRect.left - so.previousRect.left);
+        if (d > far) { far = d; best = so; }
+      }
+      if (best) {
+        var node = best.node && best.node.nodeType === 3 ? best.node.parentElement : best.node;
+        M.CLS.big = e.value;
+        M.CLS.src = describeEl(node) || 'an element that has since been removed';
+        M.CLS.dy = Math.round(best.currentRect.top - best.previousRect.top);
+        M.CLS.dx = Math.round(best.currentRect.left - best.previousRect.left);
+      }
+    }
     schedule();
   });
 
@@ -339,25 +358,30 @@
            '</div>';
   }
 
+  /* Always five rows. Stages that haven't happened yet show a dash and an
+     empty bar instead of being left out — otherwise the timeline grows
+     a row at a time as values arrive, pushing everything below it down
+     the screen, which is itself a layout shift. */
   function timeline() {
-    var st = [
+    var all = [
       ['Server response', 'TTFB', M.TTFB.v, 'TTFB'],
       ['First paint', 'FCP', M.FCP.v, 'FCP'],
       ['DOM ready', 'DCL', M.NAV.dcl, null],
       ['Main content', 'LCP', M.LCP.v, 'LCP'],
       ['Fully loaded', 'Load', M.NAV.load, null]
-    ].filter(function (s) { return s[2] != null && s[2] > 0; })
-     .sort(function (a, z) { return a[2] - z[2]; });
-    if (!st.length) return '';
-    var max = st[st.length - 1][2] * 1.04;
+    ];
+    var has = function (x) { return x[2] != null && x[2] > 0; };
+    var known = all.filter(has).sort(function (a, z) { return a[2] - z[2]; });
+    var rows = known.concat(all.filter(function (x) { return !has(x); }));
+    var max = known.length ? known[known.length - 1][2] * 1.04 : 1;
     return '<div class="wvt">' +
-      st.map(function (s) {
-        var r = s[3] ? rate(s[3], s[2]) : 'n';
+      rows.map(function (x) {
+        var k = has(x), r = k ? (x[3] ? rate(x[3], x[2]) : 'n') : 'na';
         return '<div class="wvt-row">' +
-                 '<span class="wvt-l">' + esc(s[0]) + '<em>' + esc(s[1]) + '</em></span>' +
+                 '<span class="wvt-l">' + esc(x[0]) + '<em>' + esc(x[1]) + '</em></span>' +
                  '<span class="wvt-track"><i class="is-' + r + '" style="width:' +
-                   clamp(s[2] / max * 100, 2, 100).toFixed(2) + '%"></i></span>' +
-                 '<span class="wvt-v">' + ms(s[2]) + '</span>' +
+                   (k ? clamp(x[2] / max * 100, 2, 100).toFixed(2) : '0') + '%"></i></span>' +
+                 '<span class="wvt-v">' + (k ? ms(x[2]) : '\u2014') + '</span>' +
                '</div>';
       }).join('') +
     '</div>';
@@ -371,7 +395,9 @@
              '<div class="wvc-top"><span class="wvc-abbr">' + (k === 'PAGE' ? 'SIZE' : k) + '</span>' +
                '<span class="wvc-tag">' + (k === 'INP' && v == null ? 'Tap to test' : TAG[r]) + '</span></div>' +
              '<div class="wvc-full">' + esc(NAMES[k]) + '</div>' +
-             '<div class="wvc-val">' + esc(shown[0]) + (shown[1] ? '<small>' + shown[1] + '</small>' : '') + '</div>' +
+             /* the unit element is always present, empty or not, so the chip's
+                structure never changes as values arrive */
+             '<div class="wvc-val">' + esc(shown[0]) + '<small>' + (shown[1] || '') + '</small></div>' +
              gauge(k, v) +
              '<div class="wvc-goal">' + goal(k) + '</div>' +
            '</div>';
@@ -390,7 +416,11 @@
       verdict() +
       '<div class="wvc-grid">' +
         chip('LCP', M.LCP.v) + chip('CLS', M.CLS.v) +
-        chip('INP', M.INP.v) + chip('PAGE', M.bytes.total || null) +
+        /* Fourth chip is FCP, not page weight. Every chip is graded against
+           Google's published thresholds; weight has no official standard,
+           and its real cost already shows up in FCP and LCP. Weight is
+           still reported, neutrally, in the full report. */
+        chip('INP', M.INP.v) + chip('FCP', M.FCP.v) +
       '</div>' +
       '<div class="wvc-sec">Load timeline</div>' + timeline() +
       '<div class="wvc-ctx">' + context().map(esc).join('<i></i>') + '</div>';
@@ -463,9 +493,15 @@ scopeShared(SHARED),
 '#wvCard .wvc-goal{margin-top:7px;font-family:' + MONO + ';font-size:.6rem;color:rgba(150,195,225,.48)}',
 '#wvCard .wvc-sec{margin:16px 0 9px;display:flex;align-items:center;gap:9px;font-size:.58rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:rgba(150,200,230,.45)}',
 '#wvCard .wvc-sec::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(120,200,255,.18),transparent)}',
-'#wvCard .wvc-ctx{margin-top:14px;padding-top:11px;border-top:1px solid rgba(120,200,255,.1);display:flex;flex-wrap:wrap;align-items:center;gap:6px 0;',
+'#wvCard .wvc-ctx{margin-top:14px;padding-top:11px;border-top:1px solid rgba(120,200,255,.1);display:flex;flex-wrap:nowrap;align-items:center;',
+'  overflow-x:auto;white-space:nowrap;scrollbar-width:none;line-height:1.6;min-height:calc(1.6em + 12px);',
 '  font-family:' + MONO + ';font-size:.62rem;color:rgba(160,200,228,.55)}',
 '#wvCard .wvc-ctx i{display:inline-block;width:3px;height:3px;border-radius:50%;margin:0 9px;background-color:rgba(150,200,230,.35)}',
+/* fixed heights for text that changes: a sentence that wraps to one more
+   line would push everything below it down, which is a layout shift */
+'#wvCard .wvc-ctx::-webkit-scrollbar{display:none}',
+'#wvCard .wvc-ctx i{flex:none}',
+'#wvCard .wvv em{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.9em}',
 '#wvCard .wvc-note{font-size:.76rem;color:rgba(172,208,233,.6)}',
 
 /* --- the popup --- */
@@ -660,6 +696,12 @@ scopeShared(SHARED),
       '<div class="wv-sec">Core Web Vitals</div>' +
       row('LCP', M.LCP.v, lcpSub) + lcpAttr.replace('<div class="wv-attr">', '<div class="wv-attr" style="margin:-4px 0 6px">') +
       row('CLS', M.CLS.v, MEANS.CLS + ' \u00b7 ' + M.CLS.shifts + ' shift' + (M.CLS.shifts === 1 ? '' : 's') + ' recorded') +
+      (M.CLS.src ? '<div class="wv-attr" style="margin:-4px 0 6px"><div class="wv-attr-h">Biggest single shift (' +
+        M.CLS.big.toFixed(3) + '): <code>' + esc(M.CLS.src) + '</code> moved ' +
+        (M.CLS.dy ? Math.abs(M.CLS.dy) + ' px ' + (M.CLS.dy > 0 ? 'down' : 'up') : '') +
+        (M.CLS.dy && M.CLS.dx ? ' and ' : '') +
+        (M.CLS.dx ? Math.abs(M.CLS.dx) + ' px ' + (M.CLS.dx > 0 ? 'right' : 'left') : '') +
+        '</div></div>' : '') +
       row('INP', I.v, I.v == null ? 'Tap or click anything on the page to measure this' : MEANS.INP) +
       inpAttr +
 
@@ -716,6 +758,8 @@ scopeShared(SHARED),
                  domContentLoaded: M.NAV.dcl, loadEvent: M.NAV.load },
       attribution: {
         lcpElement: M.LCP.tag || null,
+        largestShift: M.CLS.src ? { element: M.CLS.src, score: +M.CLS.big.toFixed(4),
+                                    movedY: M.CLS.dy, movedX: M.CLS.dx } : null,
         slowestInteraction: M.INP.v == null ? null : {
           event: M.INP.type, target: M.INP.target,
           inputDelay: +M.INP.delay.toFixed(1), processing: +M.INP.proc.toFixed(1),

@@ -288,7 +288,40 @@
     /* safety: never leave a flag armed if a close/open silently failed */
     setTimeout(function () { openingByHistory = {}; closingByHistory = {}; }, 1500);
   }
-  addEventListener('popstate', function () { if (!restoring) reconcile(); });
+  /* ---------- Back-closable popups --------------------------------
+     For popups that have no link of their own (Performance Mode, Share).
+     Opening one adds a history entry for the same address, so Back and
+     the Android back gesture close it instead of leaving the site.
+       window.shzPopupOpened(name, closeFn)   call when it opens
+       window.shzPopupClosed(name)            call when the visitor closes it
+     closeFn must NOT call shzPopupClosed: it runs because Back already
+     removed the entry. */
+  var popups = {};
+  window.shzPopupOpened = function (name, closeFn) {
+    if (!name || typeof closeFn !== 'function') return;
+    popups[name] = closeFn;
+    try { history.pushState(mergedState({ overlay: 'popup:' + name }), '', urlFrom(params())); } catch (e) {}
+  };
+  window.shzPopupClosed = function (name) {
+    if (!popups[name]) return;
+    delete popups[name];
+    var st = history.state;
+    if (st && st.shz && st.overlay === 'popup:' + name) { try { history.back(); } catch (e) {} }
+  };
+  function closeLeftPopups() {
+    var st = history.state;
+    Object.keys(popups).forEach(function (name) {
+      if (st && st.overlay === 'popup:' + name) return;      /* still on its entry */
+      var fn = popups[name];
+      delete popups[name];
+      try { fn(); } catch (e) {}
+    });
+  }
+
+  addEventListener('popstate', function () {
+    closeLeftPopups();
+    if (!restoring) reconcile();
+  });
 
   /* ---------- initial restore ---------------------------------- */
   function restore() {
@@ -431,6 +464,169 @@
     toastTimer = setTimeout(function () { toastEl.classList.remove('is-on'); }, 2600);
   }
 
+  /* ---------- Share popup -------------------------------------- */
+  var QUICK = [
+    ['?case=yojanasahay',   'YojanaSahay case study',  'Government scheme finder, React PWA'],
+    ['?case=studylens',     'StudyLens AI case study', 'AI homework helper'],
+    ['?projects=ui',        'UI projects',             'Scrolls to My Projects, UI filter on'],
+    ['?projects=fullstack', 'Fullstack projects',      'Scrolls to My Projects, Fullstack filter on'],
+    ['?report=performance', 'Performance report',      'Live Core Web Vitals on their device'],
+    ['?mode=hacker',        'Hacker mode',             'Opens straight into the retro terminal']
+  ];
+  var ICON_LINK = '<path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/>';
+  var ICON_COPY = '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>';
+  var ICON_SHARE = '<path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/>';
+  var svg = function (d, w) {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (w || 2) +
+           '" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
+  };
+
+  /* ID-scoped and !important throughout: hacker mode forces colour,
+     background and font on every element with !important */
+  var SHARE_RULES = [
+'#us-overlay,#us-overlay *{font-family:Inter,system-ui,-apple-system,sans-serif;background-color:transparent;color:inherit;box-sizing:border-box}',
+'#us-overlay{position:fixed;inset:0;z-index:100210;display:none;align-items:flex-start;justify-content:center;padding:8vh 16px 16px;',
+'  background:radial-gradient(120% 90% at 50% 0%,rgba(8,20,34,.82),rgba(2,7,14,.9));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}',
+'#us-overlay.is-open{display:flex}',
+'#us-box{width:100%;max-width:560px;position:relative;display:flex;flex-direction:column;max-height:84vh;overflow:hidden;color:#d2e8f8;',
+'  background:linear-gradient(180deg,rgba(14,23,37,.99),rgba(9,15,26,.99));border:1px solid rgba(120,205,255,.2);border-radius:18px;',
+'  box-shadow:0 40px 90px rgba(0,0,0,.66),inset 0 1px 0 rgba(255,255,255,.05)}',
+'#us-head{display:flex;align-items:center;gap:11px;padding:16px;border-bottom:1px solid rgba(120,205,255,.12);flex:0 0 auto}',
+'#us-head>svg{width:19px;height:19px;flex:none;color:#8ad8ff}',
+'#us-title{flex:1;min-width:0}',
+'#us-title b{display:block;font-size:.98rem;font-weight:700;color:#eaf6ff}',
+'#us-title span{display:block;font-size:.72rem;margin-top:2px;color:rgba(172,208,233,.55)}',
+'#us-close{flex:none;display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:9px;cursor:pointer;',
+'  color:rgba(190,222,242,.8);background-color:rgba(130,200,240,.08);border:1px solid rgba(140,200,235,.24)}',
+'#us-close svg{width:15px;height:15px}',
+'#us-body{overflow-y:auto;padding:14px 16px 18px;flex:1 1 auto;overscroll-behavior:contain;text-align:left}',
+'#us-body .us-sec{margin:18px 0 10px;display:flex;align-items:center;gap:9px;font-size:.58rem;font-weight:700;letter-spacing:.16em;',
+'  text-transform:uppercase;color:rgba(150,200,230,.45)}',
+'#us-body .us-sec:first-child{margin-top:2px}',
+'#us-body .us-sec::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(120,200,255,.18),transparent)}',
+'#us-body .us-url{padding:11px 13px;border-radius:11px;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:.74rem;',
+'  line-height:1.5;word-break:break-all;color:#9fdcff;background-color:rgba(120,200,255,.06);border:1px solid rgba(120,200,255,.16);',
+'  user-select:all;-webkit-user-select:all}',
+'#us-body .us-what{margin-top:9px;font-size:.74rem;line-height:1.5;color:rgba(185,215,238,.7)}',
+'#us-body .us-what b{color:#e2f1fc;font-weight:600}',
+'#us-body .us-acts{display:flex;gap:9px;margin-top:12px}',
+'#us-body .us-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 12px;border-radius:11px;cursor:pointer;',
+'  font-size:.8rem;font-weight:700;color:#04121a;background-color:#6fd8ff;border:1px solid #6fd8ff}',
+'#us-body .us-btn.is-ghost{color:#dff2ff;background-color:rgba(120,200,255,.1);border-color:rgba(130,200,240,.28)}',
+'#us-body .us-btn svg{width:15px;height:15px}',
+'#us-body .us-btn.is-done{color:#04121a;background-color:#5fe8ad;border-color:#5fe8ad}',
+'#us-body .us-row{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid rgba(120,200,255,.07)}',
+'#us-body .us-row:last-child{border-bottom:none}',
+'#us-body .us-row>svg{width:15px;height:15px;flex:none;color:rgba(125,205,245,.6)}',
+'#us-body .us-k{flex:1;min-width:0}',
+'#us-body .us-k b{display:block;font-size:.84rem;font-weight:600;color:#e2f1fc}',
+'#us-body .us-k span{display:block;font-size:.7rem;margin-top:2px;color:rgba(172,208,233,.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+'#us-body .us-mini{flex:none;display:flex;align-items:center;gap:6px;padding:7px 11px;border-radius:9px;cursor:pointer;font-size:.72rem;',
+'  font-weight:600;color:#dff2ff;background-color:rgba(120,200,255,.09);border:1px solid rgba(130,200,240,.24)}',
+'#us-body .us-mini svg{width:13px;height:13px}',
+'#us-body .us-mini.is-done{color:#6ff0bb;border-color:rgba(79,224,162,.45);background-color:rgba(79,224,162,.12)}',
+'#us-body .us-note{margin-top:16px;padding:10px 12px;border-radius:10px;font-size:.7rem;line-height:1.55;color:rgba(178,212,236,.62);',
+'  background-color:rgba(120,200,255,.05);border:1px solid rgba(120,200,255,.11)}',
+'@media (max-width:640px){#us-overlay{padding:4vh 10px 10px}#us-box{max-height:90vh;border-radius:16px}}'
+  ].join('\n');
+  function importantAll(css) {
+    return css.replace(/([a-z-]+\s*:\s*[^;{}]+?)\s*(;|})/g, function (m, d, end) {
+      return (/!important$/.test(d) ? d : d + ' !important') + end;
+    });
+  }
+
+  var sov, sbody;
+  function shareBase() { return location.origin + location.pathname; }
+
+  function buildShare() {
+    if (sov) return;
+    var st = document.createElement('style');
+    st.id = 'us-popup-style';
+    st.textContent = importantAll(SHARE_RULES);
+    document.head.appendChild(st);
+    sov = document.createElement('div');
+    sov.id = 'us-overlay';
+    sov.setAttribute('role', 'dialog');
+    sov.setAttribute('aria-modal', 'true');
+    sov.setAttribute('aria-label', 'Share this view');
+    sov.innerHTML =
+      '<div id="us-box">' +
+        '<div id="us-head">' + svg(ICON_SHARE, 1.8) +
+          '<span id="us-title"><b>Share This View</b><span>A link that reopens exactly this</span></span>' +
+          '<button id="us-close" type="button" aria-label="Close">' + svg('<path d="M18 6 6 18M6 6l12 12"/>') + '</button>' +
+        '</div>' +
+        '<div id="us-body"></div>' +
+      '</div>';
+    document.body.appendChild(sov);
+    sbody = $('us-body');
+    sov.addEventListener('click', function (e) { if (e.target === sov) closeShare(); });
+    $('us-close').addEventListener('click', function () { closeShare(); });
+    sbody.addEventListener('click', function (e) {
+      var c = e.target.closest && e.target.closest('[data-us-copy]');
+      if (c) { copyFrom(c, c.getAttribute('data-us-copy')); return; }
+      var n = e.target.closest && e.target.closest('[data-us-native]');
+      if (n && navigator.share) {
+        navigator.share({ title: document.title, url: location.href }).catch(function () {});
+      }
+    });
+  }
+
+  function copyFrom(btn, url) {
+    var label = btn.querySelector('span');
+    var before = label ? label.textContent : '';
+    copyText(url).then(function () {
+      btn.classList.add('is-done');
+      if (label) label.textContent = 'Copied';
+    }).catch(function () {
+      if (label) label.textContent = 'Failed';
+    }).then(function () {
+      setTimeout(function () { btn.classList.remove('is-done'); if (label) label.textContent = before; }, 1500);
+    });
+  }
+
+  function renderShare() {
+    var bits = describe();
+    var esc = function (t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); };
+    var here = location.href;
+    sbody.innerHTML =
+      '<div class="us-sec">This view</div>' +
+      '<div class="us-url">' + esc(here) + '</div>' +
+      '<div class="us-what">' + (bits.length ? 'Opens <b>' + esc(bits.join(', ')) + '</b>'
+                                              : 'Opens the <b>top of the page</b>') + '</div>' +
+      '<div class="us-acts">' +
+        '<button type="button" class="us-btn" data-us-copy="' + esc(here) + '">' + svg(ICON_COPY) + '<span>Copy link</span></button>' +
+        (navigator.share ? '<button type="button" class="us-btn is-ghost" data-us-native>' + svg(ICON_SHARE) + '<span>Share\u2026</span></button>' : '') +
+      '</div>' +
+      '<div class="us-sec">Quick links</div>' +
+      QUICK.map(function (q) {
+        var url = shareBase() + q[0];
+        return '<div class="us-row">' + svg(ICON_LINK) +
+                 '<span class="us-k"><b>' + esc(q[1]) + '</b><span>' + esc(q[2]) + '</span></span>' +
+                 '<button type="button" class="us-mini" data-us-copy="' + esc(url) + '">' + svg(ICON_COPY) + '<span>Copy</span></button>' +
+               '</div>';
+      }).join('') +
+      '<div class="us-note">Links combine \u2014 <b>?mode=hacker&amp;case=studylens</b> works. ' +
+        'Tracking tags you add, such as <b>?utm_source=linkedin</b>, are kept.</div>';
+  }
+
+  function shareOpen() { return !!(sov && sov.classList.contains('is-open')); }
+  function openShare() {
+    buildShare();
+    renderShare();
+    sov.classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+    window.shzPopupOpened('share', function () { closeShare(true); });
+  }
+  function closeShare(fromHistory) {
+    if (!shareOpen()) return;
+    sov.classList.remove('is-open');
+    document.body.style.overflow = '';
+    if (!fromHistory) window.shzPopupClosed('share');
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && shareOpen()) closeShare();
+  });
+
   /* ---------- boot --------------------------------------------- */
   function boot() {
     var pending = { wrapCase: 1, watchCase: 1, wrapFile: 1, watchCode: 1 };
@@ -456,6 +652,7 @@
   else document.addEventListener('DOMContentLoaded', function () { setTimeout(boot, 60); });
 
   window.shareCurrentView = share;
+  window.openSharePopup = openShare;
 
   /* ---------- command palette ---------------------------------- */
   function registerCmd() {
@@ -466,7 +663,7 @@
       g: 'Action',
       k: 'share link copy url send deep link',
       i: '<path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/>',
-      run: function () { setTimeout(share, 120); return true; }
+      run: function () { setTimeout(openShare, 120); return true; }
     }]);
     return true;
   }
