@@ -832,7 +832,7 @@ scopeShared(SHARED),
     window.registerPaletteCommands([{
       t: 'Performance Report',
       s: 'Live Core Web Vitals, timeline and attribution',
-      g: 'Action',
+      g: 'Performance',
       k: 'performance vitals lcp cls inp speed lighthouse metrics timeline',
       i: '<path d="M3 3v18h18"/><path d="m7 15 4-5 3 3 5-7"/>',
       run: function () { open(); return true; }

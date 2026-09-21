@@ -59,31 +59,31 @@
     { t:'Back to Top',          s:'',                           g:'Go to', i:I.top,     k:'top home hero start', run:function(){ window.scrollTo({top:0,behavior:'smooth'}); return true; } },
 
     /* --- case studies --- */
-    { t:'YojanaSahay',   s:'Case study — govt scheme finder (PWA)', g:'Case study', i:I.project, k:'yojana sahay welfare scheme react pwa india',
+    { t:'YojanaSahay',   s:'Case study — govt scheme finder (PWA)', g:'Case studies', i:I.project, k:'yojana sahay welfare scheme react pwa india',
       when:function(){ return has('openCaseStudy'); }, run:function(){ return call('openCaseStudy','yojanasahay'); } },
-    { t:'StudyLens AI',  s:'Case study — AI homework helper',       g:'Case study', i:I.project, k:'studylens ai student groq gemini education',
+    { t:'StudyLens AI',  s:'Case study — AI homework helper',       g:'Case studies', i:I.project, k:'studylens ai student groq gemini education',
       when:function(){ return has('openCaseStudy'); }, run:function(){ return call('openCaseStudy','studylens'); } },
-    { t:'This Portfolio', s:'Case study — how this site is built',  g:'Case study', i:I.project, k:'portfolio site itself meta build',
+    { t:'This Portfolio', s:'Case study — how this site is built',  g:'Case studies', i:I.project, k:'portfolio site itself meta build',
       when:function(){ return has('openCaseStudy'); }, run:function(){ return call('openCaseStudy','portfolio'); } },
 
     /* --- actions --- */
-    { t:'Toggle Hacker Mode', s:'Retro terminal takeover', g:'Action', i:I.term, k:'hacker terminal retro crt green matrix',
+    { t:'Toggle Hacker Mode', s:'Retro terminal takeover', g:'Interactive', i:I.term, k:'hacker terminal retro crt green matrix',
       run:function(){
         document.body.classList.toggle('hacker-mode');
         if (has('syncHackerToggleIcon')) window.syncHackerToggleIcon();
         return true;
       } },
-    { t:'Open Code Editor', s:'Live editor with runnable files', g:'Action', i:I.code, k:'code editor vscode popup run javascript',
+    { t:'Open Code Editor', s:'Live editor with runnable files', g:'Interactive', i:I.code, k:'code editor vscode popup run javascript',
       when:function(){ return has('_openCodePopup') || $('codeBtn'); },
       run:function(){
         if (call('_openCodePopup')) return true;
         var b = $('codeBtn'); if (b) { b.click(); return true; }
         return false;
       } },
-    { t:'Open session.js', s:'Live telemetry about your device', g:'Action', i:I.code, k:'session live device battery browser telemetry',
+    { t:'Open session.js', s:'Live telemetry about your device', g:'Interactive', i:I.code, k:'session live device battery browser telemetry',
       when:function(){ return has('_openCodePopup') && has('_cpOpenFile'); },
       run:function(){ window._openCodePopup(); setTimeout(function(){ window._cpOpenFile('session.js'); }, 300); return true; } },
-    { t:'Ask the AI Assistant', s:'Chat about my work', g:'Action', i:I.chat, k:'chat ai assistant bot ask question',
+    { t:'Ask the AI Assistant', s:'Chat about my work', g:'Interactive', i:I.chat, k:'chat ai assistant bot ask question',
       when:function(){ return has('openChat') || $('chatToggle'); },
       run:function(){
         if (call('openChat')) return true;
@@ -91,7 +91,7 @@
         if (b) { b.click(); return true; }
         return false;
       } },
-    { t:'Get the Resume', s:'Delivered to your inbox', g:'Action', i:I.doc, k:'resume cv download pdf hire',
+    { t:'Get the Resume', s:'Delivered to your inbox', g:'Share & contact', i:I.doc, k:'resume cv download pdf hire',
       when:function(){ return has('openGateModal') || document.querySelector('[onclick*="openGateModal"]'); },
       run:function(){
         if (call('openGateModal')) return true;
@@ -101,11 +101,11 @@
       } },
 
     /* --- links --- */
-    { t:'GitHub',    s:'github.com/SahnawazL',      g:'Link', i:I.link, k:'github code repo source',
+    { t:'GitHub',    s:'github.com/SahnawazL',      g:'Links', i:I.link, k:'github code repo source',
       run:function(){ openExternal('https://github.com/SahnawazL'); return true; } },
-    { t:'Instagram', s:'@sahnawaz.ui.dev',          g:'Link', i:I.link, k:'instagram social ig',
+    { t:'Instagram', s:'@sahnawaz.ui.dev',          g:'Links', i:I.link, k:'instagram social ig',
       run:function(){ openExternal('https://www.instagram.com/sahnawaz.ui.dev'); return true; } },
-    { t:'YojanaSahay (live)', s:'yojanasahay.vercel.app', g:'Link', i:I.link, k:'yojana live app open',
+    { t:'YojanaSahay (live)', s:'yojanasahay.vercel.app', g:'Links', i:I.link, k:'yojana live app open',
       run:function(){ openExternal('https://yojanasahay.vercel.app'); return true; } }
   ];
 
@@ -151,22 +151,51 @@
     });
   };
 
+  /* Groups always appear once each, in this order when browsing. The
+     palette draws a heading whenever the group changes, so any ordering
+     that splits a group — commands registered later by other modules,
+     or search results sorted purely by score — would repeat headings. */
+  var GROUP_ORDER = ['Go to', 'Case studies', 'Interactive', 'Performance', 'Share & contact', 'Links'];
+  function groupRank(g) {
+    var i = GROUP_ORDER.indexOf(g);
+    /* a group this file doesn't know yet sits just before Links */
+    return i < 0 ? GROUP_ORDER.length - 1.5 : i;
+  }
+
   function search(q) {
     var live = COMMANDS.filter(function (c) {
       try { return !c.when || c.when(); } catch (e) { return false; }
-    });
-    if (!q.trim()) return live;
-    return live.map(function (c) {
-      var best = Math.max(
+    }).map(function (c, i) { return { c: c, i: i }; });
+
+    if (!q.trim()) {
+      /* browsing: groups in fixed order, commands in their listed order */
+      return live.sort(function (a, b) {
+        return (groupRank(a.c.g) - groupRank(b.c.g)) || (a.i - b.i);
+      }).map(function (r) { return r.c; });
+    }
+
+    /* searching: the group holding the best match comes first, and each
+       group stays together, best match first inside it */
+    var scored = live.map(function (r) {
+      var c = r.c;
+      r.v = Math.max(
         score(q, c.t),
         score(q, c.s || '') - 120,
         score(q, c.k || '') - 180,
         score(q, c.g || '') - 200
       );
-      return { c: c, v: best };
-    }).filter(function (r) { return r.v > -1; })
-      .sort(function (a, b) { return b.v - a.v; })
-      .map(function (r) { return r.c; });
+      return r;
+    }).filter(function (r) { return r.v > -1; });
+
+    var best = {};
+    scored.forEach(function (r) {
+      if (!(r.c.g in best) || r.v > best[r.c.g]) best[r.c.g] = r.v;
+    });
+    return scored.sort(function (a, b) {
+      return (best[b.c.g] - best[a.c.g]) ||
+             (groupRank(a.c.g) - groupRank(b.c.g)) ||
+             (b.v - a.v) || (a.i - b.i);
+    }).map(function (r) { return r.c; });
   }
 
   /* ---------- styles -------------------------------------- */

@@ -660,7 +660,7 @@
     window.registerPaletteCommands([{
       t: 'Share This View',
       s: 'A link that reopens exactly what you are looking at',
-      g: 'Action',
+      g: 'Share & contact',
       k: 'share link copy url send deep link',
       i: '<path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/>',
       run: function () { setTimeout(openShare, 120); return true; }

@@ -560,7 +560,7 @@
     window.registerPaletteCommands([{
       t: 'Performance Mode',
       s: 'See how the site adapts to your device, or override it',
-      g: 'Action',
+      g: 'Performance',
       k: 'performance mode lite full battery slow governor effects blur animations',
       i: '<path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="M12 12 8 8"/><circle cx="12" cy="12" r="9"/>',
       run: function () { setTimeout(openPopup, 120); return true; }
