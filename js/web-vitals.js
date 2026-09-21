@@ -224,6 +224,10 @@
         if (info.bytes) {
           var nm = (r.name || '').split('?')[0].split('/').pop() || r.name;
           try { nm = decodeURIComponent(nm); } catch (e) {}
+          /* Google Fonts serves hashed filenames; name the source instead */
+          if (/fonts\.gstatic\.com/.test(r.name)) {
+            nm = 'Google Fonts \u00b7 ' + (nm.split('.').pop() || 'font').toUpperCase();
+          }
           files.push({ name: nm, bytes: info.bytes, kind: k });
         }
       });
@@ -626,16 +630,16 @@ scopeShared(SHARED),
     var inpAttr = '';
     if (I.v != null) {
       var tot = I.delay + I.proc + I.pres || I.v;
-      var seg = function (x, c) { return '<i style="width:' + (x / tot * 100).toFixed(2) + '%;background-color:' + c + '"></i>'; };
+      var seg = function (x, c) { return '<i style="width:' + (x / tot * 100).toFixed(2) + '%;background-color:' + c + ' !important"></i>'; };
       inpAttr = '<div class="wv-attr">' +
         '<div class="wv-attr-h">Slowest of ' + Math.max(1, I.count) + ' interaction' + (I.count === 1 ? '' : 's') +
           ': <code>' + esc(I.type || 'input') + '</code>' +
           (I.target ? ' on <code>' + esc(I.target) + '</code>' : '') + '</div>' +
         '<div class="wv-phase">' + seg(I.delay, '#5ac8ff') + seg(I.proc, '#a78bfa') + seg(I.pres, '#ffcf6b') + '</div>' +
         '<div class="wv-legend">' +
-          '<span><i style="background-color:#5ac8ff"></i>Input delay <b>' + ms(I.delay) + '</b></span>' +
-          '<span><i style="background-color:#a78bfa"></i>Processing <b>' + ms(I.proc) + '</b></span>' +
-          '<span><i style="background-color:#ffcf6b"></i>Rendering <b>' + ms(I.pres) + '</b></span>' +
+          '<span><i style="background-color:#5ac8ff !important"></i>Input delay <b>' + ms(I.delay) + '</b></span>' +
+          '<span><i style="background-color:#a78bfa !important"></i>Processing <b>' + ms(I.proc) + '</b></span>' +
+          '<span><i style="background-color:#ffcf6b !important"></i>Rendering <b>' + ms(I.pres) + '</b></span>' +
         '</div></div>';
     }
 
@@ -646,7 +650,7 @@ scopeShared(SHARED),
       : '';
 
     var seg2 = function (v, c) {
-      return (!b.total || !v) ? '' : '<i style="width:' + (v / b.total * 100).toFixed(2) + '%;background-color:' + c + '"></i>';
+      return (!b.total || !v) ? '' : '<i style="width:' + (v / b.total * 100).toFixed(2) + '%;background-color:' + c + ' !important"></i>';
     };
     var COLORS = { html: '#4fe0a2', css: '#5ac8ff', js: '#a78bfa', img: '#ffcf6b', font: '#f59ec8', other: '#7a8ca3' };
 
@@ -678,11 +682,11 @@ scopeShared(SHARED),
       '<div class="wv-legend">' +
         ['html', 'css', 'js', 'img', 'font', 'other'].map(function (k) {
           var label = { html: 'HTML', css: 'CSS', js: 'JS', img: 'Images', font: 'Fonts', other: 'Other' }[k];
-          return '<span><i style="background-color:' + COLORS[k] + '"></i>' + label + ' <b>' + kb(b[k]) + '</b></span>';
+          return '<span><i style="background-color:' + COLORS[k] + ' !important"></i>' + label + ' <b>' + kb(b[k]) + '</b></span>';
         }).join('') +
       '</div>' +
       (b.top.length ? '<div class="wv-files">' + b.top.map(function (f) {
-        return '<div class="wv-file"><i style="background-color:' + COLORS[f.kind] + '"></i><span>' + esc(f.name) +
+        return '<div class="wv-file"><i style="background-color:' + COLORS[f.kind] + ' !important"></i><span>' + esc(f.name) +
                '</span><b>' + kb(f.bytes) + '</b></div>';
       }).join('') + '</div>' : '') +
 
