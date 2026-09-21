@@ -275,11 +275,38 @@
 '  border:1px solid rgba(140,200,235,.2);border-radius:4px;padding:1px 5px;margin-right:4px;}',
 '#cmdp-count{margin-left:auto;letter-spacing:.06em;}',
 
+/* category-first navigation */
+'#cmdp-crumb{flex:none;display:flex;align-items:center;gap:4px;max-width:46%;padding:5px 10px 5px 6px;border-radius:9px;',
+'  cursor:pointer;font-family:inherit;font-size:.76rem;font-weight:600;color:#c4ebff;',
+'  background:rgba(110,205,255,.13);border:1px solid rgba(120,205,255,.3);transition:background .15s ease}',
+'#cmdp-crumb:hover{background:rgba(110,205,255,.22)}',
+'#cmdp-crumb[hidden]{display:none}',
+'#cmdp-crumb svg{width:14px;height:14px;flex:none}',
+'#cmdp-crumb span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+'.cmdp-hint{padding:8px 11px 2px;font-size:.74rem;line-height:1.45;color:rgba(170,208,233,.52)}',
+'.cmdp-cat{padding:10px 11px}',
+'.cmdp-cat-ic{flex:none;display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;',
+'  background:rgba(120,200,255,.08);border:1px solid rgba(120,200,255,.15);transition:background .15s ease,border-color .15s ease}',
+'.cmdp-cat-ic svg{width:17px;height:17px;color:#8ad8ff}',
+'.cmdp-cat.is-active .cmdp-cat-ic{background:rgba(110,210,255,.18);border-color:rgba(130,215,255,.42)}',
+'.cmdp-badge{flex:none;min-width:24px;text-align:center;padding:2px 8px;border-radius:20px;',
+'  font-family:ui-monospace,"SF Mono",monospace;font-size:.68rem;font-weight:600;',
+'  color:rgba(195,228,246,.82);background:rgba(120,200,255,.1);border:1px solid rgba(120,200,255,.16)}',
+'.cmdp-cat .cmdp-go{opacity:.45}',
+'.cmdp-cat.is-active .cmdp-go{opacity:1}',
+'.cmdp-all .cmdp-t{font-weight:500;color:#bfe6fb}',
+'#cmdp-hints{display:flex;gap:16px;flex-wrap:wrap}',
+'#cmdp-list.cmdp-in-r{animation:cmdpInR .2s cubic-bezier(.2,.8,.3,1) both}',
+'#cmdp-list.cmdp-in-l{animation:cmdpInL .2s cubic-bezier(.2,.8,.3,1) both}',
+'@keyframes cmdpInR{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}',
+'@keyframes cmdpInL{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:none}}',
 '@media (max-width:640px){',
 '  #cmdp-overlay{padding:6vh 10px 10px;}',
 '  #cmdp-box{max-height:84vh;border-radius:16px;}',
 '  #cmdp-input{font-size:16px;}',            /* 16px stops iOS zooming on focus */
 '  .cmdp-item{padding:13px 12px;}',
+'  .cmdp-cat{padding:12px 11px}',
+'  #cmdp-crumb{padding:7px 11px 7px 7px;font-size:.8rem}',
 '  .cmdp-t{font-size:.95rem;}',
 '  .cmdp-s{font-size:.78rem;white-space:normal;}',
 '  #cmdp-close{min-width:38px;height:34px;}',
@@ -288,12 +315,53 @@
 '  #cmdp-foot{display:none;}',
 '}',
 '@media (prefers-reduced-motion:reduce){',
-'  #cmdp-overlay.is-open,#cmdp-box{animation:none!important;}',
+'  #cmdp-overlay.is-open,#cmdp-box,#cmdp-list.cmdp-in-r,#cmdp-list.cmdp-in-l{animation:none!important;}',
 '}'
   ].join('\n');
 
   /* ---------- build ---------------------------------------- */
   var overlay, input, list, results = [], active = 0, lastFocus = null;
+
+  /* ---------- categories ------------------------------------ */
+  var GROUP_META = {
+    'Go to':           { d: 'Jump to any section of the page',          i: I.section },
+    'Case studies':    { d: 'Deep dives into shipped products',          i: I.project },
+    'Interactive':     { d: 'Terminal, live code editor, AI assistant',  i: I.term },
+    'Performance':     { d: 'Live vitals and adaptive effects',          i: '<path d="M3 3v18h18"/><path d="m7 15 4-5 3 3 5-7"/>' },
+    'Share & contact': { d: 'Share a view, get the resume',              i: '<path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/>' },
+    'Links':           { d: 'GitHub, Instagram and live apps',            i: I.link }
+  };
+  var CHEVRON = '<path d="m9 18 6-6-6-6"/>';
+
+  /* ---------- recent commands -------------------------------- */
+  var RKEY = 'cmdp-recent';
+  function getRecent() {
+    try { var a = JSON.parse(localStorage.getItem(RKEY) || '[]'); return Array.isArray(a) ? a : []; }
+    catch (e) { return []; }
+  }
+  function pushRecent(t) {
+    try {
+      var a = getRecent().filter(function (x) { return x !== t; });
+      a.unshift(t);
+      localStorage.setItem(RKEY, JSON.stringify(a.slice(0, 4)));
+    } catch (e) {}
+  }
+
+  function liveCommands() {
+    return COMMANDS.filter(function (c) {
+      try { return !c.when || c.when(); } catch (e) { return false; }
+    });
+  }
+  function rankWithin(cmds, q) {
+    return cmds.map(function (c, i) {
+      return { c: c, i: i, v: Math.max(score(q, c.t), score(q, c.s || '') - 120, score(q, c.k || '') - 180) };
+    }).filter(function (r) { return r.v > -1; })
+      .sort(function (a, b) { return (b.v - a.v) || (a.i - b.i); })
+      .map(function (r) { return r.c; });
+  }
+
+  /* ---------- build ------------------------------------------ */
+  var rows = [], view = 'home', groupName = null, paletteEntry = false;
 
   function build() {
     var st = document.createElement('style');
@@ -305,15 +373,19 @@
     overlay.id = 'cmdp-overlay';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
-    overlay.setAttribute('aria-label', 'Command palette');
+    overlay.setAttribute('aria-label', 'Quick search');
     overlay.innerHTML =
       '<div id="cmdp-box">' +
         '<div id="cmdp-head">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" ' +
             'stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>' +
+          '<button id="cmdp-crumb" type="button" hidden aria-label="Back to all categories">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" ' +
+              'stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>' +
+            '<span id="cmdp-crumb-t"></span>' +
+          '</button>' +
           '<input id="cmdp-input" type="text" autocomplete="off" autocorrect="off" ' +
-            'spellcheck="false" placeholder="Search sections, projects, actions\u2026" ' +
-            'aria-label="Search commands">' +
+            'spellcheck="false" placeholder="Search everything\u2026" aria-label="Search">' +
           '<button id="cmdp-close" type="button" aria-label="Close search">' +
             '<span class="cmdp-esc">ESC</span>' +
             '<svg class="cmdp-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
@@ -321,12 +393,7 @@
           '</button>' +
         '</div>' +
         '<div id="cmdp-list" role="listbox"></div>' +
-        '<div id="cmdp-foot">' +
-          '<span><kbd>\u2191\u2193</kbd>navigate</span>' +
-          '<span><kbd>\u21B5</kbd>select</span>' +
-          '<span><kbd>esc</kbd>close</span>' +
-          '<span id="cmdp-count"></span>' +
-        '</div>' +
+        '<div id="cmdp-foot"><span id="cmdp-hints"></span><span id="cmdp-count"></span></div>' +
       '</div>';
     document.body.appendChild(overlay);
 
@@ -334,58 +401,162 @@
     list  = $('cmdp-list');
 
     overlay.addEventListener('click', function (e) { if (e.target === overlay) close(); });
-    /* tapping the search row focuses the field deliberately */
     var head = $('cmdp-head');
     if (head) head.addEventListener('click', function (e) {
-      if (e.target.closest && e.target.closest('#cmdp-close')) return;
+      if (e.target.closest && e.target.closest('#cmdp-close, #cmdp-crumb')) return;
       try { input.focus(); } catch (err) {}
     });
-    var closeBtn = $('cmdp-close');
-    if (closeBtn) closeBtn.addEventListener('click', function (e) { e.preventDefault(); close(); });
+    $('cmdp-close').addEventListener('click', function (e) { e.preventDefault(); close(); });
+    $('cmdp-crumb').addEventListener('click', function (e) { e.preventDefault(); goHome(); });
     input.addEventListener('input', function () { render(input.value); });
     input.addEventListener('keydown', onKeys);
+    /* one delegated listener for every row, whatever view drew it */
+    list.addEventListener('click', function (e) {
+      var r = e.target.closest && e.target.closest('.cmdp-item');
+      if (r) exec(+r.getAttribute('data-i'));
+    });
+    list.addEventListener('mousemove', function (e) {
+      var r = e.target.closest && e.target.closest('.cmdp-item');
+      if (r) { var i = +r.getAttribute('data-i'); if (i !== active) setActive(i); }
+    });
   }
 
   function esc(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
-
-  function render(q) {
-    results = search(q || '');
-    active = 0;
-    if (!results.length) {
-      list.innerHTML = '<div class="cmdp-empty">Nothing matches <b>' + esc(q) + '</b>' +
-        '<br>Try \u201cprojects\u201d, \u201cresume\u201d or \u201chacker\u201d.</div>';
-      setCount(0);
-      return;
-    }
-    var html = '', group = null;
-    results.forEach(function (c, idx) {
-      if (c.g !== group) { group = c.g; html += '<div class="cmdp-group">' + esc(group) + '</div>'; }
-      html +=
-        '<div class="cmdp-item' + (idx === 0 ? ' is-active' : '') + '" data-i="' + idx + '" role="option">' +
-          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" ' +
-            'stroke-linecap="round" stroke-linejoin="round">' + c.i + '</svg>' +
-          '<span class="cmdp-txt">' +
-            '<span class="cmdp-t">' + esc(c.t) + '</span>' +
-            (c.s ? '<span class="cmdp-s">' + esc(c.s) + '</span>' : '') +
-          '</span>' +
-          '<svg class="cmdp-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
-            'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
-            '<path d="m9 18 6-6-6-6"/></svg>' +
-        '</div>';
-    });
-    list.innerHTML = html;
-    setCount(results.length);
-    Array.prototype.forEach.call(list.querySelectorAll('.cmdp-item'), function (el) {
-      el.addEventListener('click', function () { exec(+el.getAttribute('data-i')); });
-      el.addEventListener('mousemove', function () { setActive(+el.getAttribute('data-i')); });
-    });
+  function svgI(path, w) {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (w || 1.7) +
+           '" stroke-linecap="round" stroke-linejoin="round">' + path + '</svg>';
   }
 
-  function setCount(n) {
-    var el = $('cmdp-count');
-    if (el) el.textContent = n ? n + (n === 1 ? ' result' : ' results') : '';
+  /* ---------- rows -------------------------------------------- */
+  function cmdRow(c) {
+    var n = rows.length;
+    rows.push({ type: 'cmd', c: c });
+    return '<div class="cmdp-item' + (n === 0 ? ' is-active' : '') + '" data-i="' + n + '" role="option">' +
+             svgI(c.i) +
+             '<span class="cmdp-txt"><span class="cmdp-t">' + esc(c.t) + '</span>' +
+               (c.s ? '<span class="cmdp-s">' + esc(c.s) + '</span>' : '') + '</span>' +
+             '<svg class="cmdp-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" ' +
+               'stroke-linecap="round" stroke-linejoin="round">' + CHEVRON + '</svg>' +
+           '</div>';
+  }
+  function groupRow(g, count) {
+    var n = rows.length, m = GROUP_META[g] || { d: count + ' commands', i: I.action };
+    rows.push({ type: 'group', g: g });
+    return '<div class="cmdp-item cmdp-cat' + (n === 0 ? ' is-active' : '') + '" data-i="' + n + '" role="option">' +
+             '<span class="cmdp-cat-ic">' + svgI(m.i) + '</span>' +
+             '<span class="cmdp-txt"><span class="cmdp-t">' + esc(g) + '</span>' +
+               '<span class="cmdp-s">' + esc(m.d) + '</span></span>' +
+             '<span class="cmdp-badge">' + count + '</span>' +
+             '<svg class="cmdp-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" ' +
+               'stroke-linecap="round" stroke-linejoin="round">' + CHEVRON + '</svg>' +
+           '</div>';
+  }
+  function allRow(q) {
+    var n = rows.length;
+    rows.push({ type: 'all', q: q });
+    return '<div class="cmdp-item cmdp-all' + (n === 0 ? ' is-active' : '') + '" data-i="' + n + '" role="option">' +
+             svgI('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>') +
+             '<span class="cmdp-txt"><span class="cmdp-t">Search all categories for \u201c' + esc(q) + '\u201d</span></span>' +
+           '</div>';
+  }
+  function heading(t) { return '<div class="cmdp-group">' + esc(t) + '</div>'; }
+
+  /* ---------- render ------------------------------------------ */
+  function render(q) {
+    q = q || '';
+    rows = []; active = 0;
+    var live = liveCommands(), html = '';
+
+    if (view === 'group') {
+      var inGroup = live.filter(function (c) { return c.g === groupName; });
+      var shown = q.trim() ? rankWithin(inGroup, q) : inGroup;
+      shown.forEach(function (c) { html += cmdRow(c); });
+      if (!shown.length) {
+        html = '<div class="cmdp-empty">Nothing in <b>' + esc(groupName) + '</b> matches <b>' +
+               esc(q) + '</b></div>' + allRow(q);
+      } else if (q.trim()) {
+        html += allRow(q);                     /* always offer the wider search */
+      }
+      setCount(shown.length + (shown.length === 1 ? ' command' : ' commands'));
+
+    } else if (q.trim()) {
+      results = search(q);
+      if (!results.length) {
+        list.innerHTML = '<div class="cmdp-empty">Nothing matches <b>' + esc(q) + '</b>' +
+          '<br>Try \u201cprojects\u201d, \u201cresume\u201d or \u201chacker\u201d.</div>';
+        setCount('');
+        return;
+      }
+      var grp = null;
+      results.forEach(function (c) {
+        if (c.g !== grp) { grp = c.g; html += heading(grp); }
+        html += cmdRow(c);
+      });
+      setCount(results.length + (results.length === 1 ? ' result' : ' results'));
+
+    } else {
+      /* home: recent first, then the categories */
+      html += '<div class="cmdp-hint">Pick a category, or start typing to search everything.</div>';
+      var byTitle = {};
+      live.forEach(function (c) { byTitle[c.t] = c; });
+      var recent = getRecent().map(function (t) { return byTitle[t]; }).filter(Boolean).slice(0, 3);
+      if (recent.length) {
+        html += heading('Recent');
+        recent.forEach(function (c) { html += cmdRow(c); });
+      }
+      var counts = {};
+      live.forEach(function (c) { counts[c.g] = (counts[c.g] || 0) + 1; });
+      var groups = Object.keys(counts).sort(function (a, b) { return groupRank(a) - groupRank(b); });
+      html += heading('Browse');
+      groups.forEach(function (g) { html += groupRow(g, counts[g]); });
+      setCount(groups.length + ' categories');
+    }
+    list.innerHTML = html;
+    list.scrollTop = 0;
+  }
+
+  function setCount(t) { var el = $('cmdp-count'); if (el) el.textContent = t || ''; }
+
+  function setHints() {
+    var el = $('cmdp-hints');
+    if (!el) return;
+    el.innerHTML = view === 'group'
+      ? '<span><kbd>\u2190</kbd>back</span><span><kbd>\u2191\u2193</kbd>navigate</span><span><kbd>\u21B5</kbd>run</span>'
+      : '<span><kbd>\u2191\u2193</kbd>navigate</span><span><kbd>\u21B5</kbd>open</span><span><kbd>esc</kbd>close</span>';
+  }
+
+  function updateHead() {
+    var crumb = $('cmdp-crumb');
+    if (view === 'group') {
+      crumb.hidden = false;
+      $('cmdp-crumb-t').textContent = groupName;
+      input.placeholder = 'Search in ' + groupName + '\u2026';
+    } else {
+      crumb.hidden = true;
+      input.placeholder = 'Search everything\u2026';
+    }
+    setHints();
+  }
+
+  function slide(dir) {
+    list.classList.remove('cmdp-in-r', 'cmdp-in-l');
+    void list.offsetWidth;                     /* restart the animation */
+    list.classList.add(dir === 'right' ? 'cmdp-in-r' : 'cmdp-in-l');
+  }
+
+  function enterGroup(g) {
+    view = 'group'; groupName = g;
+    input.value = '';
+    updateHead(); render(''); slide('right');
+    if (hasKeyboard()) { try { input.focus(); } catch (e) {} }
+  }
+  function goHome(keepQuery) {
+    view = 'home'; groupName = null;
+    input.value = keepQuery || '';
+    updateHead(); render(input.value); slide('left');
+    if (hasKeyboard()) { try { input.focus(); } catch (e) {} }
   }
 
   function setActive(i) {
@@ -404,36 +575,69 @@
   }
 
   function exec(i) {
-    var c = results[i];
-    if (!c) return;
-    close();
-    /* let the overlay finish closing before the action moves the page */
-    setTimeout(function () {
-      try { c.run(); } catch (e) { /* an action failing must not break the palette */ }
-    }, 90);
+    var r = rows[i];
+    if (!r) return;
+    if (r.type === 'group') { enterGroup(r.g); return; }
+    if (r.type === 'all')   { goHome(r.q); return; }
+    pushRecent(r.c.t);
+    var popped = close();
+    var go = function () { setTimeout(function () { try { r.c.run(); } catch (e) {} }, 60); };
+    /* If closing removed the palette's history entry, wait until the
+       browser has actually stepped back before running the command.
+       Otherwise a command that adds its own entry (a case study, the
+       editor) could be pushed onto the palette's entry and then popped
+       straight off again by that pending Back. */
+    if (popped) {
+      var done = false;
+      var fire = function () { if (done) return; done = true; removeEventListener('popstate', fire); go(); };
+      addEventListener('popstate', fire);
+      setTimeout(fire, 450);
+    } else go();
+  }
+
+  function caretAtStart() {
+    try { return input.selectionStart === 0 && input.selectionEnd === 0; } catch (e) { return !input.value; }
   }
 
   function onKeys(e) {
+    var r = rows[active];
     if (e.key === 'ArrowDown')      { e.preventDefault(); setActive(active + 1); }
     else if (e.key === 'ArrowUp')   { e.preventDefault(); setActive(active - 1); }
     else if (e.key === 'Enter')     { e.preventDefault(); exec(active); }
-    else if (e.key === 'Escape')    { e.preventDefault(); close(); }
+    else if (e.key === 'ArrowRight' && r && r.type === 'group' && !input.value) {
+      e.preventDefault(); enterGroup(r.g);
+    }
+    else if ((e.key === 'ArrowLeft' && caretAtStart()) || (e.key === 'Backspace' && !input.value)) {
+      if (view === 'group') { e.preventDefault(); goHome(); }
+    }
+    else if (e.key === 'Escape') {
+      e.preventDefault();
+      /* step back out of a category first; close from the home screen */
+      if (view === 'group') goHome(); else close();
+    }
     else if (e.key === 'Home')      { setActive(0); }
-    else if (e.key === 'End')       { setActive(results.length - 1); }
+    else if (e.key === 'End')       { setActive(rows.length - 1); }
   }
 
   function open() {
     if (!overlay) build();
     if (overlay.classList.contains('is-open')) return;
     lastFocus = document.activeElement;
+    view = 'home'; groupName = null;
     overlay.classList.add('is-open');
     input.value = '';
+    updateHead();
     render('');
+    list.classList.remove('cmdp-in-r', 'cmdp-in-l');
     document.body.style.overflow = 'hidden';
+    /* the back gesture closes the palette, like every other popup here */
+    if (typeof window.shzPopupOpened === 'function') {
+      paletteEntry = true;
+      window.shzPopupOpened('palette', function () { close(true); });
+    }
     /* Only autofocus where there is a real keyboard. On touch devices
        focusing the field summons the on-screen keyboard, which covers
-       most of the screen and hides the very list the visitor came to
-       browse. They can tap the field themselves when they want to type. */
+       most of the screen and hides the list the visitor came to browse. */
     if (hasKeyboard()) {
       setTimeout(function () { try { input.focus(); } catch (e) {} }, 40);
     } else {
@@ -441,11 +645,19 @@
     }
   }
 
-  function close() {
-    if (!overlay) return;
+  /* returns true when closing will step the browser back one entry */
+  function close(fromHistory) {
+    if (!overlay || !overlay.classList.contains('is-open')) return false;
     overlay.classList.remove('is-open');
     document.body.style.overflow = '';
     if (lastFocus && lastFocus.focus) { try { lastFocus.focus(); } catch (e) {} }
+    var had = paletteEntry;
+    paletteEntry = false;
+    if (fromHistory || !had || typeof window.shzPopupClosed !== 'function') return false;
+    var st = history.state;
+    var willPop = !!(st && st.shz && st.overlay === 'popup:palette');
+    window.shzPopupClosed('palette');
+    return willPop;
   }
 
   /* ---------- global shortcuts ----------------------------- */
