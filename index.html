@@ -544,6 +544,7 @@ img {
 
 <!-- ─────────────────────────────────────────────────────────────── --><!-- must load before first paint: LCP/CLS/FCP cannot be observed retroactively -->
 <script src="js/web-vitals.js"></script>
+<script src="js/perf-governor.js"></script>
 <link rel="stylesheet" href="css/portfolio-core.css">
 <!-- Open Graph consolidated in head -->
 
@@ -3485,6 +3486,7 @@ window.addEventListener('resize', () => {
     </div>
     <p class="wvc-sub">Core Web Vitals measured on <b>your</b> device during <b>this</b> visit — not a stored score. Full forms are under each metric.</p>
     <div id="wvcBody" aria-live="off"><p class="wvc-sub">Measuring…</p></div>
+    <div id="pgPanel"></div>
   </div>
 
   <div class="ra-header">
