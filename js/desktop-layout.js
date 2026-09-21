@@ -185,12 +185,15 @@
     var candidates = [].slice.call(inner.children).concat(
       [].slice.call(document.querySelector('header').children).filter(function (c) { return c !== inner; }));
     candidates.forEach(function (el) {
-      if (el === hdrNav || el === hdrActs) return;
+      if (el === hdrNav || el === hdrActs || el.id === 'dsk-drawer') return;
       if (KNOWN.some(function (k) { return el.classList && el.classList.contains(k); })) return;
       if (/^(SCRIPT|STYLE|TEMPLATE)$/.test(el.tagName)) return;
       moved.push({ el: el, parent: el.parentNode, next: el.nextSibling });
-      hdrActs.appendChild(el);
+      (document.getElementById('dsk-acct') || hdrActs).appendChild(el);
     });
+    /* show the Account part of the menu only when there is something in it */
+    var acct = document.getElementById('dsk-acct'), wrap = document.getElementById('dsk-acct-wrap');
+    if (acct && wrap) wrap.style.display = acct.children.length ? '' : 'none';
     fitNav();
   }
 
@@ -221,15 +224,51 @@
             '<span class="dsk-btn-t">Search</span><kbd>\u2318K</kbd></button>' : '') +
       '<button type="button" class="dsk-btn is-cta" data-act="talk">' +
         svg('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>') +
-        '<span class="dsk-btn-t">Let\u2019s talk</span></button>';
-    hdrActs.addEventListener('click', function (e) {
-      var b = e.target.closest && e.target.closest('[data-act]');
-      if (!b) return;
-      if (b.getAttribute('data-act') === 'search' && fn('openCommandPalette')) window.openCommandPalette();
-      if (b.getAttribute('data-act') === 'talk') goTo('#contact');
+        '<span class="dsk-btn-t">Let\u2019s talk</span></button>' +
+      '<button type="button" class="dsk-burger" data-act="menu" aria-label="Menu" aria-haspopup="true" ' +
+        'aria-expanded="false" aria-controls="dsk-drawer"><i></i><i></i><i></i></button>';
+    drawerEl = document.createElement('div');
+    drawerEl.id = 'dsk-drawer';
+    drawerEl.setAttribute('role', 'menu');
+    drawerEl.setAttribute('aria-label', 'Menu');
+    drawerEl.innerHTML =
+      '<div id="dsk-acct-wrap" style="display:none"><div class="dsk-dr-h">Account</div>' +
+        '<div id="dsk-acct"></div><div class="dsk-dr-sep"></div></div>' +
+      '<div class="dsk-dr-h">Quick actions</div>' + drawerItems();
+    document.body.appendChild(drawerEl);
+    drawerEl.addEventListener('click', function (e) {
+      var it = e.target.closest && e.target.closest('[data-dr]');
+      if (it) { setDrawer(false); runDrawer(it.getAttribute('data-dr')); }
     });
+    hdrActs.addEventListener('click', function (e) {
+      var b = e.target.closest && e.target.closest('[data-act], [data-dr]');
+      if (!b) return;
+      var act = b.getAttribute('data-act'), dr = b.getAttribute('data-dr');
+      if (act === 'search' && fn('openCommandPalette')) window.openCommandPalette();
+      if (act === 'talk') goTo('#contact');
+      if (act === 'menu') { setDrawer(!drawerOpen()); return; }
+    });
+    /* close on a click elsewhere or on Escape */
+    docClick = function (e) {
+      if (drawerOpen() && !(e.target.closest && e.target.closest('#dsk-actions, #dsk-drawer'))) setDrawer(false);
+    };
+    docKey = function (e) {
+      if (e.key === 'Escape' && drawerOpen()) { setDrawer(false); var bu = hdrActs.querySelector('.dsk-burger'); if (bu) bu.focus(); }
+    };
+    document.addEventListener('click', docClick, true);
+    document.addEventListener('keydown', docKey);
     inner.appendChild(hdrNav);
     inner.appendChild(hdrActs);
+
+    /* keep the header in view: a spacer takes its place in the page */
+    var head = document.querySelector('header');
+    hdrSpacer = document.createElement('div');
+    hdrSpacer.id = 'dsk-hdr-spacer';
+    head.parentNode.insertBefore(hdrSpacer, head);
+    var fitSpacer = function () { if (hdrSpacer) hdrSpacer.style.height = head.offsetHeight + 'px'; };
+    fitSpacer();
+    head.classList.add('dsk-fixed');
+    if (typeof ResizeObserver !== 'undefined') { hdrRO = new ResizeObserver(fitSpacer); hdrRO.observe(head); }
     adoptExtras();
 
     /* the sign-in pill may arrive after this runs: watch for it */
@@ -288,9 +327,62 @@
     }
   }
 
+  /* ---------- menu drawer ---------- */
+  var docClick = null, docKey = null, drawerEl = null, hdrSpacer = null, hdrRO = null;
+  function drawerItems() {
+    var pills = [].slice.call(document.querySelectorAll('.hero-cta-group .hero-cta-btn'));
+    return pills.map(function (p, i) {
+      var c = p.cloneNode(true);
+      [].slice.call(c.querySelectorAll('kbd, svg')).forEach(function (k) { k.remove(); });
+      var label = c.textContent.replace(/\s+/g, ' ').trim();
+      var icon = p.querySelector('svg');
+      var isSearch = p.classList.contains('hero-cta-search') || p.hasAttribute('data-command-palette');
+      var target = isSearch ? 'search' : (p.getAttribute('href') || '');
+      if (!label || !target) return '';
+      return '<button type="button" class="dsk-dr-item" role="menuitem" style="--d:' + i + '" data-dr="' + target + '">' +
+               '<span class="dsk-dr-ic">' + (icon ? icon.outerHTML : '') + '</span>' +
+               '<span class="dsk-dr-t">' + label.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</span>' +
+               (isSearch ? '<kbd>\u2318K</kbd>' : '') +
+             '</button>';
+    }).join('');
+  }
+  function drawerOpen() { var d = drawerEl; return !!(d && d.classList.contains('is-open')); }
+  function setDrawer(on) {
+    var d = drawerEl, b = hdrActs && hdrActs.querySelector('.dsk-burger');
+    if (!d || !b) return;
+    if (on) {
+      var r = b.getBoundingClientRect();
+      d.style.top = Math.round(r.bottom + 12) + 'px';
+      d.style.right = Math.max(8, Math.round(innerWidth - r.right)) + 'px';
+    }
+    d.classList.toggle('is-open', on);
+    b.setAttribute('aria-expanded', on ? 'true' : 'false');
+    /* preventScroll: focusing inside a clipped container would otherwise
+       scroll that container and push the header's contents out of view */
+    if (on) { var first = d.querySelector('.dsk-dr-item'); if (first && document.activeElement === b) setTimeout(function () { try { first.focus({ preventScroll: true }); } catch (e) {} }, 60); }
+  }
+  function runDrawer(target) {
+    if (target === 'search') { if (fn('openCommandPalette')) window.openCommandPalette(); return; }
+    if (target.charAt(0) !== '#') return;
+    goTo(target);
+    /* arriving at telemetry plays the same scan-line sweep as the hero pill */
+    if (target === '#recent-activity') {
+      setTimeout(function () {
+        var sec = document.querySelector('#recent-activity');
+        if (!sec) return;
+        sec.style.setProperty('--tele-h', Math.min(sec.offsetHeight, 900) + 'px');
+        sec.classList.remove('tele-arrived'); void sec.offsetWidth; sec.classList.add('tele-arrived');
+        setTimeout(function () { sec.classList.remove('tele-arrived'); }, 1700);
+      }, 1500);
+    }
+  }
+
   function destroyHeader() {
     if (!hdrNav) return;
     if (hdrMO) hdrMO.disconnect();
+    if (docClick) document.removeEventListener('click', docClick, true);
+    if (docKey) document.removeEventListener('keydown', docKey);
+    docClick = docKey = null;
     if (navScroll) removeEventListener('scroll', navScroll);
     removeEventListener('resize', fitNav);
     clearInterval(clockT);
@@ -300,6 +392,10 @@
     });
     moved = [];
     hdrNav.remove(); hdrActs.remove();
+    if (drawerEl) { drawerEl.remove(); drawerEl = null; }
+    if (hdrRO) { hdrRO.disconnect(); hdrRO = null; }
+    if (hdrSpacer) { hdrSpacer.remove(); hdrSpacer = null; }
+    var hd = document.querySelector('header'); if (hd) hd.classList.remove('dsk-fixed');
     hdrNav = hdrActs = hdrMO = navScroll = null;
   }
 
