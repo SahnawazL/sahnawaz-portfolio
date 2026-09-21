@@ -7,37 +7,85 @@
    tablets never match any of it. The mobile layout is untouched.
    ============================================================ */
 
-/* ---------- 1. split hero (1200px and wider) -----------------
+/* ---------- 1. split hero (960px and wider) ------------------
    The hero is six stacked blocks. On a desktop that stack is taller
    than the screen, pushing the About card below the fold. Here the
    identity blocks form a left column and the About card sits beside
    them, so the whole introduction fits in one screen. */
-@media (min-width: 1200px) {
-  section.sec-wipe {
+@media (min-width: 960px) {
+  /* The hero is found by what makes it unique: it is the section that
+     directly contains the profile photo. NOT by .sec-wipe — the page's
+     scroll animation adds that class to every section, so a rule on it
+     would turn all of them into two-column grids. */
+  section:has(> #pfpStage) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     column-gap: 44px;
     align-items: center;
   }
   /* identity blocks: photo, name/role, buttons, stats, socials */
-  section.sec-wipe > #pfpStage,
-  section.sec-wipe > #premium-intro-block,
-  section.sec-wipe > .btn-group,
-  section.sec-wipe > #heroStatsBar,
-  section.sec-wipe > #socRow {
+  section:has(> #pfpStage) > #pfpStage,
+  section:has(> #pfpStage) > #premium-intro-block,
+  section:has(> #pfpStage) > .btn-group,
+  section:has(> #pfpStage) > #heroStatsBar,
+  section:has(> #pfpStage) > #socRow {
     grid-column: 1;
   }
   /* the About card: right column, vertically centred against the left */
-  section.sec-wipe > div:has(> .premium-bio-card) {
+  section:has(> #pfpStage) > div:has(> .premium-bio-card) {
     grid-column: 2;
     grid-row: 1 / span 5;
     align-self: center;
   }
   /* inside a half-width column the name and buttons wrap exactly as
      they already do on a phone, instead of spilling past the column */
-  section.sec-wipe .prem-name { flex-wrap: wrap; justify-content: center; }
-  section.sec-wipe .hero-cta-group { flex-wrap: wrap; justify-content: center; }
-  section.sec-wipe .premium-bio-card { max-width: 100%; }
+  section:has(> #pfpStage) .prem-name { flex-wrap: wrap; justify-content: center; }
+  section:has(> #pfpStage) .hero-cta-group { flex-wrap: wrap; justify-content: center; }
+  section:has(> #pfpStage) .premium-bio-card { max-width: 100%; }
+}
+
+/* ---------- 3. tech stack: tools beside their proficiency (960px+) --
+   Heading, connector and filter tabs stay full width on top. Below
+   them the tool pills and the proficiency bars sit side by side
+   instead of one under the other. */
+@media (min-width: 960px) {
+  section.ts-section {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 40px;
+    align-items: center;
+  }
+  section.ts-section > .ts-head,
+  section.ts-section > .ts-connector,
+  section.ts-section > .ts-tabs { grid-column: 1 / -1; }
+  /* widths are stated outright: aligned to one side, a grid item shrinks
+     to its content, and the proficiency bars have no natural width, so
+     they would collapse to nothing. These are their original widths. */
+  section.ts-section > #tsGrid        { grid-column: 1; justify-self: end;   width: 100%; max-width: 500px; }
+  section.ts-section > #tsBarsSection { grid-column: 2; justify-self: start; width: 100%; max-width: 480px; }
+}
+
+/* ---------- 4. contact: assistant beside the channels (960px+) ----
+   The heading spans the top. The live-chat assistant takes the left
+   column; the contact channels and the project form fill the right. */
+@media (min-width: 960px) {
+  #contact {
+    display: grid;
+    grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+    column-gap: 28px;
+    align-items: start;
+  }
+  #contact > .ct-head-wrap  { grid-column: 1 / -1; grid-row: 1; }
+  #contact > #chatLauncher  { grid-column: 1; grid-row: 2 / span 6; align-self: start; margin-top: 8px; }
+  #contact > .ct-cards,
+  #contact > .ct-section-divider,
+  #contact > #ctWizard,
+  #contact > #ctQuoteCard,
+  #contact > .ct-form-wrap  { grid-column: 2; max-width: 100%; }
+  /* in a grid these shrink to their content; give back their original width */
+  #contact > .ct-cards,
+  #contact > .ct-section-divider,
+  #contact > .ct-form-wrap  { width: 100%; max-width: 500px; justify-self: center; }
 }
 
 /* ---------- 2. section rail (1280px and wider) ---------------
