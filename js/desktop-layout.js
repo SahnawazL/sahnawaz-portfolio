@@ -127,11 +127,256 @@
     updateFill();
   }
 
-  function jump(el) {
-    var header = document.querySelector('header');
-    var offset = header && getComputedStyle(header).position === 'fixed' ? header.offsetHeight : 0;
-    var y = el.getBoundingClientRect().top + scrollY - offset - 12;
-    try { scrollTo({ top: Math.max(0, y), behavior: 'smooth' }); } catch (e) { scrollTo(0, y); }
+  /* Smooth-scroll to a section, then correct. Sections above the target
+     can still be rendering and grow during the scroll, which would leave
+     the page short of where it was aiming; re-measure once it settles. */
+  function headerOffset() {
+    var h = document.querySelector('header');
+    if (!h) return 0;
+    var pos = getComputedStyle(h).position;
+    return (pos === 'fixed' || pos === 'sticky') ? h.getBoundingClientRect().height : 0;
+  }
+  function settleTo(el) {
+    if (!el) return;
+    var aim = function () { return el.getBoundingClientRect().top + scrollY - headerOffset() - 8; };
+    try { scrollTo({ top: Math.max(0, aim()), behavior: 'smooth' }); } catch (e) { scrollTo(0, aim()); }
+    [700, 1400].forEach(function (t) {
+      setTimeout(function () {
+        var off = el.getBoundingClientRect().top - headerOffset() - 8;
+        if (Math.abs(off) > 24) { try { scrollTo({ top: Math.max(0, aim()), behavior: 'smooth' }); } catch (e) { scrollTo(0, aim()); } }
+      }, t);
+    });
+  }
+  function jump(el) { settleTo(el); }
+
+  /* ============================================================
+     HEADER BAR + SITE FOOTER (960px and wider)
+     Built only at desktop widths and fully undone below them. Page
+     elements that get moved (the sign-in pill) are put back exactly
+     where they came from.
+     ============================================================ */
+  var CHROME = '(min-width: 960px)';
+  /* in page order, so the highlight moves left to right as you scroll */
+  var NAV = [
+    ['section.ts-section', 'Stack', false],
+    ['#blog', 'Blog', true],
+    ['#what-i-offer', 'Services', false],
+    ['#my-projects', 'Projects', false],
+    ['#recent-activity', 'Telemetry', true],
+    ['#contact', 'Contact', false]
+  ];
+  var KNOWN = ['hdr-logo-row', 'hdr-tagline', 'hdr-badge-row'];
+  var hdrNav = null, hdrActs = null, footEl = null, navScroll = null, clockT = 0, hdrMO = null;
+  var moved = [];                               /* [{el, parent, next}] */
+
+  function svg(d, w) {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (w || 2) +
+           '" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
+  }
+  function goTo(sel) { settleTo(document.querySelector(sel)); }
+  function fn(name) { return typeof window[name] === 'function' ? window[name] : null; }
+
+  /* ---------- header ---------- */
+  function adoptExtras() {
+    var inner = document.querySelector('header .hdr-inner');
+    if (!inner || !hdrActs) return;
+    /* anything another script added to the header (the sign-in pill) joins
+       the actions on the right; remember where it was so it can go back */
+    var candidates = [].slice.call(inner.children).concat(
+      [].slice.call(document.querySelector('header').children).filter(function (c) { return c !== inner; }));
+    candidates.forEach(function (el) {
+      if (el === hdrNav || el === hdrActs) return;
+      if (KNOWN.some(function (k) { return el.classList && el.classList.contains(k); })) return;
+      if (/^(SCRIPT|STYLE|TEMPLATE)$/.test(el.tagName)) return;
+      moved.push({ el: el, parent: el.parentNode, next: el.nextSibling });
+      hdrActs.appendChild(el);
+    });
+    fitNav();
+  }
+
+  function buildHeader() {
+    var inner = document.querySelector('header .hdr-inner');
+    if (!inner || hdrNav) return;
+    hdrNav = document.createElement('nav');
+    hdrNav.id = 'dsk-nav';
+    hdrNav.setAttribute('aria-label', 'Main');
+    NAV.forEach(function (n) {
+      if (!document.querySelector(n[0])) return;
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'dsk-link';
+      b.textContent = n[1];
+      b.setAttribute('data-target', n[0]);
+      b.addEventListener('click', function () { goTo(n[0]); });
+      hdrNav.appendChild(b);
+    });
+
+    hdrActs = document.createElement('div');
+    hdrActs.id = 'dsk-actions';
+    hdrActs.innerHTML =
+      '<span class="dsk-time" title="Local time in Silchar, India"><i aria-hidden="true"></i>Silchar <b></b></span>' +
+      (fn('openCommandPalette')
+        ? '<button type="button" class="dsk-btn" data-act="search" aria-label="Quick search">' +
+            svg('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>') +
+            '<span class="dsk-btn-t">Search</span><kbd>\u2318K</kbd></button>' : '') +
+      '<button type="button" class="dsk-btn is-cta" data-act="talk">' +
+        svg('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>') +
+        '<span class="dsk-btn-t">Let\u2019s talk</span></button>';
+    hdrActs.addEventListener('click', function (e) {
+      var b = e.target.closest && e.target.closest('[data-act]');
+      if (!b) return;
+      if (b.getAttribute('data-act') === 'search' && fn('openCommandPalette')) window.openCommandPalette();
+      if (b.getAttribute('data-act') === 'talk') goTo('#contact');
+    });
+    inner.appendChild(hdrNav);
+    inner.appendChild(hdrActs);
+    adoptExtras();
+
+    /* the sign-in pill may arrive after this runs: watch for it */
+    hdrMO = new MutationObserver(function () { adoptExtras(); });
+    hdrMO.observe(document.querySelector('header'), { childList: true, subtree: false });
+    hdrMO.observe(inner, { childList: true });
+
+    /* local time in Silchar, updated each minute boundary */
+    var tEl = hdrActs.querySelector('.dsk-time b');
+    var tick = function () {
+      try {
+        tEl.textContent = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: false })
+          .format(new Date()) + ' IST';
+      } catch (e) { tEl.parentNode.style.display = 'none'; }
+    };
+    tick();
+    clockT = setInterval(tick, 20000);
+
+    /* highlight the last nav section whose top has passed 40% of the
+       screen: accurate even while reading a section that has no link */
+    var links = [].slice.call(hdrNav.querySelectorAll('.dsk-link'));
+    var navRaf = 0;
+    navScroll = function () {
+      if (navRaf) return;
+      navRaf = requestAnimationFrame(function () {
+        navRaf = 0;
+        /* the passed section nearest the reading line wins, whatever
+           order the links happen to be in */
+        var line = innerHeight * 0.4, current = null, best = -Infinity;
+        links.forEach(function (l) {
+          var t = document.querySelector(l.getAttribute('data-target'));
+          if (!t) return;
+          var top = t.getBoundingClientRect().top;
+          if (top <= line && top > best) { best = top; current = l; }
+        });
+        links.forEach(function (l) { l.classList.toggle('is-active', l === current); });
+      });
+    };
+    addEventListener('scroll', navScroll, { passive: true });
+    navScroll();
+
+    /* show as many links as actually fit, dropping the least important
+       first; measured, because the sign-in pill's width is not known */
+    addEventListener('resize', fitNav, { passive: true });
+    fitNav();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitNav);
+  }
+
+  var DROP_ORDER = ['Blog', 'Telemetry', 'Stack', 'Services'];
+  function fitNav() {
+    if (!hdrNav) return;
+    var links = [].slice.call(hdrNav.querySelectorAll('.dsk-link'));
+    links.forEach(function (l) { l.style.display = ''; });
+    for (var i = 0; i < DROP_ORDER.length && hdrNav.scrollWidth > hdrNav.clientWidth + 1; i++) {
+      links.forEach(function (l) { if (l.textContent === DROP_ORDER[i]) l.style.display = 'none'; });
+    }
+  }
+
+  function destroyHeader() {
+    if (!hdrNav) return;
+    if (hdrMO) hdrMO.disconnect();
+    if (navScroll) removeEventListener('scroll', navScroll);
+    removeEventListener('resize', fitNav);
+    clearInterval(clockT);
+    /* put moved elements back, in reverse order, where they came from */
+    moved.reverse().forEach(function (m) {
+      try { m.parent.insertBefore(m.el, m.next && m.next.parentNode === m.parent ? m.next : null); } catch (e) {}
+    });
+    moved = [];
+    hdrNav.remove(); hdrActs.remove();
+    hdrNav = hdrActs = hdrMO = navScroll = null;
+  }
+
+  /* ---------- footer ---------- */
+  function buildFooter() {
+    var foot = document.querySelector('footer'), body = document.getElementById('shz-footer-inner');
+    if (!foot || footEl) return;
+    var hex = document.querySelector('header .hdr-hex svg');
+    var brand = document.querySelector('header .hdr-brand-text');
+    var tag = document.querySelector('header .hdr-tagline');
+    var soc = [].slice.call(document.querySelectorAll('#socRow a'));
+
+    var item = function (label, act, kbd) {
+      return '<button type="button" class="dsk-f-a" data-f="' + act + '">' + label + (kbd ? '<kbd>' + kbd + '</kbd>' : '') + '</button>';
+    };
+    var col = function (title, items) {
+      items = items.filter(Boolean);
+      return items.length ? '<div><div class="dsk-f-h">' + title + '</div><div class="dsk-f-list">' + items.join('') + '</div></div>' : '';
+    };
+    footEl = document.createElement('div');
+    footEl.id = 'dsk-foot';
+    footEl.innerHTML =
+      '<div>' +
+        '<div class="dsk-f-brand">' + (hex ? hex.outerHTML : '') + '<span>' + (brand ? brand.textContent.trim() : 'ByteWithSahnawaz') + '</span></div>' +
+        '<div class="dsk-f-tag">' + (tag ? tag.textContent.trim() : '') + '</div>' +
+        '<p class="dsk-f-loc">Websites, UI/UX and AI-powered products, built by hand in Silchar, Assam, India.</p>' +
+        '<div class="dsk-f-soc">' + soc.map(function (a) {
+          return '<a href="' + a.getAttribute('href') + '" target="_blank" rel="noopener" aria-label="' +
+                 (a.getAttribute('aria-label') || a.getAttribute('title') || 'Social link') + '">' + a.innerHTML + '</a>';
+        }).join('') + '</div>' +
+      '</div>' +
+      col('Explore', [
+        document.querySelector('#my-projects') && item('Projects', 'go:#my-projects'),
+        document.querySelector('section.ts-section') && item('Tech Stack', 'go:section.ts-section'),
+        document.querySelector('#projects') && item('Experience', 'go:#projects'),
+        document.querySelector('#what-i-offer') && item('Services', 'go:#what-i-offer'),
+        document.querySelector('#blog') && item('Blog', 'go:#blog'),
+        document.querySelector('#testimonials') && item('Testimonials', 'go:#testimonials')
+      ]) +
+      col('Work with me', [
+        fn('openResumeEmailModal') && item('Get the Resume', 'resume'),
+        document.querySelector('#tools-services') && item('Book a Service', 'go:#tools-services'),
+        document.querySelector('#contact') && item('Contact', 'go:#contact'),
+        fn('openSharePopup') && item('Share This View', 'share')
+      ]) +
+      col('Under the hood', [
+        fn('openWebVitals') && item('Performance Report', 'vitals'),
+        window.perfGovernor && item('Performance Mode', 'mode'),
+        fn('openCommandPalette') && item('Quick Search', 'search', '\u2318K'),
+        item('Hacker Mode', 'hacker'),
+        fn('_openCodePopup') && item('Code Editor', 'code')
+      ]);
+    footEl.addEventListener('click', function (e) {
+      var b = e.target.closest && e.target.closest('[data-f]');
+      if (!b) return;
+      var a = b.getAttribute('data-f');
+      if (a.indexOf('go:') === 0) return goTo(a.slice(3));
+      if (a === 'resume') window.openResumeEmailModal();
+      if (a === 'share') window.openSharePopup();
+      if (a === 'vitals') window.openWebVitals();
+      if (a === 'mode') window.perfGovernor.openPopup();
+      if (a === 'search') window.openCommandPalette();
+      if (a === 'code') window._openCodePopup();
+      if (a === 'hacker') {
+        var t = document.getElementById('hacker-toggle');
+        if (t) t.click();
+        else { document.body.classList.toggle('hacker-mode'); if (fn('syncHackerToggleIcon')) window.syncHackerToggleIcon(); }
+      }
+    });
+    foot.insertBefore(footEl, body || null);
+  }
+  function destroyFooter() { if (footEl) { footEl.remove(); footEl = null; } }
+
+  function syncChrome() {
+    var wide = false;
+    try { wide = matchMedia(CHROME).matches; } catch (e) {}
+    if (wide) { buildHeader(); buildFooter(); } else { destroyHeader(); destroyFooter(); }
   }
 
   /* build on wide screens only, and follow the window across the line */
@@ -143,6 +388,12 @@
   function start() {
     sync();
     try { matchMedia(WIDE).addEventListener('change', sync); } catch (e) {}
+    /* after every other script has had a turn, so the functions the
+       footer links to exist */
+    setTimeout(function () {
+      syncChrome();
+      try { matchMedia(CHROME).addEventListener('change', syncChrome); } catch (e) {}
+    }, 0);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
