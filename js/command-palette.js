@@ -200,122 +200,116 @@
 
   /* ---------- styles -------------------------------------- */
   var CSS = [
+/* shell */
 '#cmdp-overlay{position:fixed;inset:0;z-index:100200;display:none;',
-'  background:radial-gradient(120% 90% at 50% 0%,rgba(8,20,34,.80),rgba(2,7,14,.88));',
+'  background:radial-gradient(120% 90% at 50% 0%,rgba(8,20,34,.78),rgba(2,7,14,.88));',
 '  backdrop-filter:blur(10px) saturate(1.2);-webkit-backdrop-filter:blur(10px) saturate(1.2);',
-'  align-items:flex-start;justify-content:center;padding:11vh 16px 16px;}',
+'  align-items:flex-start;justify-content:center;padding:10vh 16px 16px;}',
 '#cmdp-overlay.is-open{display:flex;animation:cmdpFade .18s ease both;}',
 '@keyframes cmdpFade{from{opacity:0}to{opacity:1}}',
-
-'#cmdp-box{width:100%;max-width:580px;position:relative;',
+'#cmdp-box{width:100%;max-width:480px;position:relative;display:flex;flex-direction:column;max-height:72vh;',
 '  background:linear-gradient(180deg,rgba(14,23,37,.99),rgba(9,15,26,.99));',
-'  border:1px solid rgba(120,205,255,.20);border-radius:18px;overflow:hidden;',
-'  box-shadow:0 40px 90px rgba(0,0,0,.66),0 0 0 1px rgba(120,205,255,.05),',
-'             inset 0 1px 0 rgba(255,255,255,.05);',
-'  animation:cmdpRise .22s cubic-bezier(.2,.85,.3,1) both;',
-'  display:flex;flex-direction:column;max-height:76vh;}',
-'@keyframes cmdpRise{from{opacity:0;transform:translateY(-14px) scale(.98)}to{opacity:1;transform:none}}',
-/* hairline of light along the top edge */
-'#cmdp-box::before{content:"";position:absolute;top:0;left:12%;right:12%;height:1px;',
-'  background:linear-gradient(90deg,transparent,rgba(120,220,255,.55),transparent);}',
+'  border:1px solid rgba(120,205,255,.18);border-radius:16px;overflow:hidden;',
+'  box-shadow:0 30px 80px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.05);',
+'  animation:cmdpRise .24s cubic-bezier(.2,.85,.3,1) both;}',
+'@keyframes cmdpRise{from{opacity:0;transform:translateY(-10px) scale(.985)}to{opacity:1;transform:none}}',
+'#cmdp-box::before{content:"";position:absolute;top:0;left:14%;right:14%;height:1px;',
+'  background:linear-gradient(90deg,transparent,rgba(120,220,255,.5),transparent);}',
 
-'#cmdp-head{display:flex;align-items:center;gap:11px;padding:16px 16px 14px;',
-'  border-bottom:1px solid rgba(120,205,255,.12);flex:0 0 auto;}',
-'#cmdp-head>svg{width:18px;height:18px;flex:none;color:rgba(130,205,245,.72);}',
+/* search bar */
+'#cmdp-head{display:flex;align-items:center;gap:10px;padding:10px 11px 10px 14px;',
+'  border-bottom:1px solid rgba(120,205,255,.1);flex:0 0 auto;}',
+'#cmdp-head>svg{width:15px;height:15px;flex:none;color:rgba(130,205,245,.7);}',
 '#cmdp-input{flex:1;background:transparent;border:none;outline:none;color:#eaf6ff;',
-'  font-family:inherit;font-size:1.02rem;letter-spacing:.1px;min-width:0;padding:2px 0;}',
-'#cmdp-input::placeholder{color:rgba(160,200,230,.38);}',
-
-/* real close control — keyboard hint on desktop, tappable X on touch */
-'#cmdp-close{flex:none;display:flex;align-items:center;justify-content:center;gap:0;',
-'  background:rgba(130,200,240,.07);border:1px solid rgba(140,200,235,.22);',
-'  border-radius:8px;cursor:pointer;color:rgba(175,215,240,.72);',
-'  font-family:inherit;font-size:.6rem;letter-spacing:.1em;padding:0;',
-'  height:30px;min-width:46px;transition:all .16s ease;}',
-'#cmdp-close:hover{background:rgba(130,200,240,.16);color:#eaf7ff;border-color:rgba(140,205,240,.42);}',
+'  font-family:inherit;font-size:.88rem;min-width:0;padding:3px 0;}',
+'#cmdp-input::placeholder{color:rgba(160,200,230,.4);}',
+'#cmdp-close{flex:none;display:flex;align-items:center;justify-content:center;padding:0;',
+'  height:26px;min-width:38px;border-radius:7px;cursor:pointer;font-family:inherit;',
+'  font-size:.54rem;letter-spacing:.1em;color:rgba(175,215,240,.7);',
+'  background:rgba(130,200,240,.07);border:1px solid rgba(140,200,235,.2);',
+'  transition:background .16s ease,color .16s ease;}',
+'#cmdp-close:hover{background:rgba(130,200,240,.16);color:#eaf7ff;}',
 '#cmdp-close:active{transform:scale(.94);}',
-'#cmdp-close .cmdp-x{display:none;width:15px;height:15px;}',
+'#cmdp-close .cmdp-x{display:none;width:14px;height:14px;}',
 
-'#cmdp-list{overflow-y:auto;padding:8px 8px 10px;flex:1 1 auto;overscroll-behavior:contain;}',
-'#cmdp-list::-webkit-scrollbar{width:9px}',
-'#cmdp-list::-webkit-scrollbar-thumb{background:rgba(120,200,255,.16);border-radius:8px;',
+/* list */
+'#cmdp-list{overflow-y:auto;padding:5px 6px 8px;flex:1 1 auto;overscroll-behavior:contain;position:relative;}',
+'#cmdp-list::-webkit-scrollbar{width:8px}',
+'#cmdp-list::-webkit-scrollbar-thumb{background:rgba(120,200,255,.15);border-radius:8px;',
 '  border:3px solid transparent;background-clip:content-box;}',
+'.cmdp-hint{padding:6px 9px 2px;font-size:.68rem;line-height:1.4;color:rgba(170,208,233,.48);}',
+'.cmdp-group{padding:10px 9px 4px;font-size:.55rem;font-weight:700;letter-spacing:.16em;',
+'  text-transform:uppercase;color:rgba(150,200,230,.4);}',
 
-'.cmdp-group{display:flex;align-items:center;gap:9px;font-size:.58rem;letter-spacing:.17em;',
-'  text-transform:uppercase;color:rgba(150,200,230,.42);padding:13px 11px 7px;font-weight:600;}',
-'.cmdp-group::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,',
-'  rgba(120,200,255,.16),transparent);}',
+/* category row (the accordion header) */
+'.cmdp-cat{width:100%;display:flex;align-items:center;gap:10px;padding:7px 8px;margin:1px 0;',
+'  border:none;border-radius:10px;background:transparent;cursor:pointer;font-family:inherit;',
+'  text-align:left;color:#d4e9f8;transition:background .18s ease,color .18s ease;}',
+'.cmdp-cat-ic{flex:none;display:flex;align-items:center;justify-content:center;width:28px;height:28px;',
+'  border-radius:8px;background:rgba(120,200,255,.07);border:1px solid rgba(120,200,255,.13);',
+'  transition:background .22s ease,border-color .22s ease;}',
+'.cmdp-cat-ic svg{width:14px;height:14px;color:#8ad8ff;}',
+'.cmdp-cat-t{flex:1;min-width:0;font-size:.8rem;font-weight:600;letter-spacing:.1px;}',
+'.cmdp-badge{flex:none;min-width:20px;text-align:center;padding:1px 7px;border-radius:20px;',
+'  font-family:ui-monospace,"SF Mono",monospace;font-size:.6rem;font-weight:600;',
+'  color:rgba(190,225,245,.66);background:rgba(120,200,255,.08);}',
+'.cmdp-chev{flex:none;width:13px;height:13px;color:rgba(150,205,235,.45);',
+'  transition:transform .3s cubic-bezier(.2,.8,.2,1),color .2s ease;}',
+'.cmdp-sec.is-open .cmdp-cat{color:#fff;}',
+'.cmdp-sec.is-open .cmdp-chev{transform:rotate(90deg);color:#8ad8ff;}',
+'.cmdp-sec.is-open .cmdp-cat-ic{background:rgba(110,210,255,.15);border-color:rgba(130,215,255,.36);}',
 
-'.cmdp-item{display:flex;align-items:center;gap:13px;padding:11px 12px;border-radius:11px;',
-'  cursor:pointer;color:#d2e8f8;position:relative;transition:background .13s ease;}',
-'.cmdp-item>svg{width:17px;height:17px;flex:none;color:rgba(125,205,245,.66);transition:color .13s ease;}',
+/* the smooth reveal: height animates from 0 to its natural size,
+   then each row fades in a beat after the one above it */
+'.cmdp-sec-body{display:grid;grid-template-rows:0fr;',
+'  transition:grid-template-rows .32s cubic-bezier(.2,.8,.2,1);}',
+'.cmdp-sec.is-open .cmdp-sec-body{grid-template-rows:1fr;}',
+'.cmdp-sec-in{overflow:hidden;min-height:0;margin-left:21px;padding-left:9px;',
+'  border-left:1px solid rgba(120,200,255,.14);}',
+'.cmdp-sec .cmdp-item{opacity:0;transform:translateY(-5px);',
+'  transition:opacity .16s ease,transform .2s ease,background .15s ease;}',
+'.cmdp-sec.is-open .cmdp-item{opacity:1;transform:none;transition-delay:calc(var(--d,0) * 30ms);}',
+
+/* command row */
+'.cmdp-item{display:flex;align-items:center;gap:10px;padding:6px 8px;margin:1px 0;border-radius:9px;',
+'  cursor:pointer;color:#cfe6f7;}',
+'.cmdp-item>svg{width:14px;height:14px;flex:none;color:rgba(125,205,245,.6);}',
 '.cmdp-txt{min-width:0;flex:1;}',
-/* these MUST be block: as inline spans the title and subtitle ran together */
-'.cmdp-t{display:block;font-size:.91rem;font-weight:600;line-height:1.3;color:#e6f3ff;',
+'.cmdp-t{display:block;font-size:.78rem;font-weight:600;line-height:1.3;color:#e3f1fc;',
 '  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
-'.cmdp-s{display:block;font-size:.735rem;line-height:1.35;margin-top:2px;',
-'  color:rgba(172,208,233,.56);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
-'.cmdp-go{flex:none;width:15px;height:15px;opacity:0;color:#7fe0ff;transition:opacity .13s ease;}',
+'.cmdp-s{display:block;font-size:.66rem;line-height:1.3;margin-top:1px;color:rgba(170,206,232,.5);',
+'  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
 
-'.cmdp-item.is-active{background:linear-gradient(90deg,rgba(95,205,255,.17),rgba(95,205,255,.03));}',
-'.cmdp-item.is-active::before{content:"";position:absolute;left:0;top:18%;bottom:18%;width:2.5px;',
-'  border-radius:0 3px 3px 0;background:linear-gradient(180deg,#7fe0ff,#4aa8ff);',
-'  box-shadow:0 0 10px rgba(110,215,255,.75);}',
-'.cmdp-item.is-active>svg{color:#8ce6ff;}',
-'.cmdp-item.is-active .cmdp-go{opacity:.85;}',
-
-'.cmdp-empty{padding:34px 16px;text-align:center;color:rgba(170,205,230,.5);font-size:.85rem;line-height:1.6;}',
+/* states: tap feedback everywhere, hover only with a real pointer,
+   and a highlight only once the keyboard is actually used */
+'.cmdp-item:active,.cmdp-cat:active{background:rgba(110,205,255,.12);}',
+'@media (hover:hover){.cmdp-item:hover,.cmdp-cat:hover{background:rgba(110,205,255,.07);}}',
+'.cmdp-item.is-active,.cmdp-cat.is-active{background:rgba(95,205,255,.13);box-shadow:inset 2px 0 0 #5ac8ff;}',
+'.cmdp-empty{padding:22px 14px;text-align:center;color:rgba(170,205,230,.5);font-size:.76rem;line-height:1.6;}',
 '.cmdp-empty b{color:rgba(210,235,250,.8);font-weight:600;}',
 
-'#cmdp-foot{display:flex;align-items:center;gap:16px;padding:10px 15px;',
-'  border-top:1px solid rgba(120,205,255,.11);background:rgba(6,12,21,.5);',
-'  font-size:.645rem;color:rgba(160,200,230,.44);flex:0 0 auto;}',
+/* footer (desktop only) */
+'#cmdp-foot{display:flex;align-items:center;gap:14px;padding:7px 13px;',
+'  border-top:1px solid rgba(120,205,255,.1);background:rgba(6,12,21,.5);',
+'  font-size:.6rem;color:rgba(160,200,230,.42);flex:0 0 auto;}',
+'#cmdp-hints{display:flex;gap:14px;flex-wrap:wrap}',
 '#cmdp-foot kbd{font-family:ui-monospace,"SF Mono",monospace;font-size:.95em;',
-'  color:rgba(200,230,248,.82);background:rgba(130,200,240,.09);',
-'  border:1px solid rgba(140,200,235,.2);border-radius:4px;padding:1px 5px;margin-right:4px;}',
-'#cmdp-count{margin-left:auto;letter-spacing:.06em;}',
+'  color:rgba(200,230,248,.8);background:rgba(130,200,240,.09);',
+'  border:1px solid rgba(140,200,235,.2);border-radius:4px;padding:0 4px;margin-right:4px;}',
+'#cmdp-count{margin-left:auto;letter-spacing:.05em;}',
 
-/* category-first navigation */
-'#cmdp-crumb{flex:none;display:flex;align-items:center;gap:4px;max-width:46%;padding:5px 10px 5px 6px;border-radius:9px;',
-'  cursor:pointer;font-family:inherit;font-size:.76rem;font-weight:600;color:#c4ebff;',
-'  background:rgba(110,205,255,.13);border:1px solid rgba(120,205,255,.3);transition:background .15s ease}',
-'#cmdp-crumb:hover{background:rgba(110,205,255,.22)}',
-'#cmdp-crumb[hidden]{display:none}',
-'#cmdp-crumb svg{width:14px;height:14px;flex:none}',
-'#cmdp-crumb span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
-'.cmdp-hint{padding:8px 11px 2px;font-size:.74rem;line-height:1.45;color:rgba(170,208,233,.52)}',
-'.cmdp-cat{padding:10px 11px}',
-'.cmdp-cat-ic{flex:none;display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;',
-'  background:rgba(120,200,255,.08);border:1px solid rgba(120,200,255,.15);transition:background .15s ease,border-color .15s ease}',
-'.cmdp-cat-ic svg{width:17px;height:17px;color:#8ad8ff}',
-'.cmdp-cat.is-active .cmdp-cat-ic{background:rgba(110,210,255,.18);border-color:rgba(130,215,255,.42)}',
-'.cmdp-badge{flex:none;min-width:24px;text-align:center;padding:2px 8px;border-radius:20px;',
-'  font-family:ui-monospace,"SF Mono",monospace;font-size:.68rem;font-weight:600;',
-'  color:rgba(195,228,246,.82);background:rgba(120,200,255,.1);border:1px solid rgba(120,200,255,.16)}',
-'.cmdp-cat .cmdp-go{opacity:.45}',
-'.cmdp-cat.is-active .cmdp-go{opacity:1}',
-'.cmdp-all .cmdp-t{font-weight:500;color:#bfe6fb}',
-'#cmdp-hints{display:flex;gap:16px;flex-wrap:wrap}',
-'#cmdp-list.cmdp-in-r{animation:cmdpInR .2s cubic-bezier(.2,.8,.3,1) both}',
-'#cmdp-list.cmdp-in-l{animation:cmdpInL .2s cubic-bezier(.2,.8,.3,1) both}',
-'@keyframes cmdpInR{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}',
-'@keyframes cmdpInL{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:none}}',
 '@media (max-width:640px){',
-'  #cmdp-overlay{padding:6vh 10px 10px;}',
-'  #cmdp-box{max-height:84vh;border-radius:16px;}',
-'  #cmdp-input{font-size:16px;}',            /* 16px stops iOS zooming on focus */
-'  .cmdp-item{padding:13px 12px;}',
-'  .cmdp-cat{padding:12px 11px}',
-'  #cmdp-crumb{padding:7px 11px 7px 7px;font-size:.8rem}',
-'  .cmdp-t{font-size:.95rem;}',
-'  .cmdp-s{font-size:.78rem;white-space:normal;}',
-'  #cmdp-close{min-width:38px;height:34px;}',
+'  #cmdp-overlay{padding:7vh 10px 10px;}',
+'  #cmdp-box{max-height:80vh;border-radius:14px;}',
+'  #cmdp-input{font-size:16px;}',            /* below 16px iOS zooms the page on focus */
+'  #cmdp-close{min-width:32px;height:30px;}',
 '  #cmdp-close .cmdp-esc{display:none;}',
 '  #cmdp-close .cmdp-x{display:block;}',
 '  #cmdp-foot{display:none;}',
 '}',
 '@media (prefers-reduced-motion:reduce){',
-'  #cmdp-overlay.is-open,#cmdp-box,#cmdp-list.cmdp-in-r,#cmdp-list.cmdp-in-l{animation:none!important;}',
+'  #cmdp-overlay.is-open,#cmdp-box{animation:none!important;}',
+'  .cmdp-sec-body,.cmdp-sec .cmdp-item,.cmdp-chev{transition:none!important;}',
 '}'
   ].join('\n');
 
@@ -323,15 +317,14 @@
   var overlay, input, list, results = [], active = 0, lastFocus = null;
 
   /* ---------- categories ------------------------------------ */
-  var GROUP_META = {
-    'Go to':           { d: 'Jump to any section of the page',          i: I.section },
-    'Case studies':    { d: 'Deep dives into shipped products',          i: I.project },
-    'Interactive':     { d: 'Terminal, live code editor, AI assistant',  i: I.term },
-    'Performance':     { d: 'Live vitals and adaptive effects',          i: '<path d="M3 3v18h18"/><path d="m7 15 4-5 3 3 5-7"/>' },
-    'Share & contact': { d: 'Share a view, get the resume',              i: '<path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/>' },
-    'Links':           { d: 'GitHub, Instagram and live apps',            i: I.link }
+  var GROUP_ICON = {
+    'Go to':           I.section,
+    'Case studies':    I.project,
+    'Interactive':     I.term,
+    'Performance':     '<path d="M3 3v18h18"/><path d="m7 15 4-5 3 3 5-7"/>',
+    'Share & contact': '<path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/>',
+    'Links':           I.link
   };
-  var CHEVRON = '<path d="m9 18 6-6-6-6"/>';
 
   /* ---------- recent commands -------------------------------- */
   var RKEY = 'cmdp-recent';
@@ -346,22 +339,14 @@
       localStorage.setItem(RKEY, JSON.stringify(a.slice(0, 4)));
     } catch (e) {}
   }
-
   function liveCommands() {
     return COMMANDS.filter(function (c) {
       try { return !c.when || c.when(); } catch (e) { return false; }
     });
   }
-  function rankWithin(cmds, q) {
-    return cmds.map(function (c, i) {
-      return { c: c, i: i, v: Math.max(score(q, c.t), score(q, c.s || '') - 120, score(q, c.k || '') - 180) };
-    }).filter(function (r) { return r.v > -1; })
-      .sort(function (a, b) { return (b.v - a.v) || (a.i - b.i); })
-      .map(function (r) { return r.c; });
-  }
 
   /* ---------- build ------------------------------------------ */
-  var rows = [], view = 'home', groupName = null, paletteEntry = false;
+  var cmds = [], openGroup = null, paletteEntry = false;
 
   function build() {
     var st = document.createElement('style');
@@ -377,23 +362,20 @@
     overlay.innerHTML =
       '<div id="cmdp-box">' +
         '<div id="cmdp-head">' +
-          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" ' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
             'stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>' +
-          '<button id="cmdp-crumb" type="button" hidden aria-label="Back to all categories">' +
-            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" ' +
-              'stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>' +
-            '<span id="cmdp-crumb-t"></span>' +
-          '</button>' +
           '<input id="cmdp-input" type="text" autocomplete="off" autocorrect="off" ' +
-            'spellcheck="false" placeholder="Search everything\u2026" aria-label="Search">' +
-          '<button id="cmdp-close" type="button" aria-label="Close search">' +
+            'spellcheck="false" placeholder="Search\u2026" aria-label="Search">' +
+          '<button id="cmdp-close" type="button" aria-label="Close">' +
             '<span class="cmdp-esc">ESC</span>' +
             '<svg class="cmdp-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
               'stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>' +
           '</button>' +
         '</div>' +
         '<div id="cmdp-list" role="listbox"></div>' +
-        '<div id="cmdp-foot"><span id="cmdp-hints"></span><span id="cmdp-count"></span></div>' +
+        '<div id="cmdp-foot"><span id="cmdp-hints">' +
+          '<span><kbd>\u2191\u2193</kbd>move</span><span><kbd>\u21B5</kbd>open</span><span><kbd>esc</kbd>close</span>' +
+        '</span><span id="cmdp-count"></span></div>' +
       '</div>';
     document.body.appendChild(overlay);
 
@@ -401,104 +383,84 @@
     list  = $('cmdp-list');
 
     overlay.addEventListener('click', function (e) { if (e.target === overlay) close(); });
-    var head = $('cmdp-head');
-    if (head) head.addEventListener('click', function (e) {
-      if (e.target.closest && e.target.closest('#cmdp-close, #cmdp-crumb')) return;
+    $('cmdp-head').addEventListener('click', function (e) {
+      if (e.target.closest && e.target.closest('#cmdp-close')) return;
       try { input.focus(); } catch (err) {}
     });
     $('cmdp-close').addEventListener('click', function (e) { e.preventDefault(); close(); });
-    $('cmdp-crumb').addEventListener('click', function (e) { e.preventDefault(); goHome(); });
     input.addEventListener('input', function () { render(input.value); });
     input.addEventListener('keydown', onKeys);
-    /* one delegated listener for every row, whatever view drew it */
+    /* one listener for every row: a category toggles, a command runs */
     list.addEventListener('click', function (e) {
-      var r = e.target.closest && e.target.closest('.cmdp-item');
-      if (r) exec(+r.getAttribute('data-i'));
-    });
-    list.addEventListener('mousemove', function (e) {
-      var r = e.target.closest && e.target.closest('.cmdp-item');
-      if (r) { var i = +r.getAttribute('data-i'); if (i !== active) setActive(i); }
+      if (!e.target.closest) return;
+      var cat = e.target.closest('.cmdp-cat');
+      if (cat) { toggle(cat.getAttribute('data-g')); return; }
+      var it = e.target.closest('[data-c]');
+      if (it) run(+it.getAttribute('data-c'));
     });
   }
 
   function esc(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
   function svgI(path, w) {
-    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (w || 1.7) +
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (w || 1.8) +
            '" stroke-linecap="round" stroke-linejoin="round">' + path + '</svg>';
   }
 
   /* ---------- rows -------------------------------------------- */
-  function cmdRow(c) {
-    var n = rows.length;
-    rows.push({ type: 'cmd', c: c });
-    return '<div class="cmdp-item' + (n === 0 ? ' is-active' : '') + '" data-i="' + n + '" role="option">' +
+  function cmdRow(c, d) {
+    var n = cmds.length;
+    cmds.push(c);
+    return '<div class="cmdp-item" data-c="' + n + '" role="option"' +
+             (d != null ? ' style="--d:' + d + '"' : '') + '>' +
              svgI(c.i) +
              '<span class="cmdp-txt"><span class="cmdp-t">' + esc(c.t) + '</span>' +
                (c.s ? '<span class="cmdp-s">' + esc(c.s) + '</span>' : '') + '</span>' +
-             '<svg class="cmdp-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" ' +
-               'stroke-linecap="round" stroke-linejoin="round">' + CHEVRON + '</svg>' +
            '</div>';
   }
-  function groupRow(g, count) {
-    var n = rows.length, m = GROUP_META[g] || { d: count + ' commands', i: I.action };
-    rows.push({ type: 'group', g: g });
-    return '<div class="cmdp-item cmdp-cat' + (n === 0 ? ' is-active' : '') + '" data-i="' + n + '" role="option">' +
-             '<span class="cmdp-cat-ic">' + svgI(m.i) + '</span>' +
-             '<span class="cmdp-txt"><span class="cmdp-t">' + esc(g) + '</span>' +
-               '<span class="cmdp-s">' + esc(m.d) + '</span></span>' +
-             '<span class="cmdp-badge">' + count + '</span>' +
-             '<svg class="cmdp-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" ' +
-               'stroke-linecap="round" stroke-linejoin="round">' + CHEVRON + '</svg>' +
-           '</div>';
-  }
-  function allRow(q) {
-    var n = rows.length;
-    rows.push({ type: 'all', q: q });
-    return '<div class="cmdp-item cmdp-all' + (n === 0 ? ' is-active' : '') + '" data-i="' + n + '" role="option">' +
-             svgI('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>') +
-             '<span class="cmdp-txt"><span class="cmdp-t">Search all categories for \u201c' + esc(q) + '\u201d</span></span>' +
+  function section(g, items) {
+    return '<div class="cmdp-sec" data-sec="' + esc(g) + '">' +
+             '<button type="button" class="cmdp-cat" data-g="' + esc(g) + '" aria-expanded="false">' +
+               '<span class="cmdp-cat-ic">' + svgI(GROUP_ICON[g] || I.action) + '</span>' +
+               '<span class="cmdp-cat-t">' + esc(g) + '</span>' +
+               '<span class="cmdp-badge">' + items.length + '</span>' +
+               '<svg class="cmdp-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" ' +
+                 'stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>' +
+             '</button>' +
+             '<div class="cmdp-sec-body"><div class="cmdp-sec-in">' +
+               items.map(function (c, i) { return cmdRow(c, i); }).join('') +
+             '</div></div>' +
            '</div>';
   }
   function heading(t) { return '<div class="cmdp-group">' + esc(t) + '</div>'; }
+  function setCount(t) { var el = $('cmdp-count'); if (el) el.textContent = t || ''; }
 
   /* ---------- render ------------------------------------------ */
   function render(q) {
     q = q || '';
-    rows = []; active = 0;
+    cmds = []; openGroup = null;
     var live = liveCommands(), html = '';
 
-    if (view === 'group') {
-      var inGroup = live.filter(function (c) { return c.g === groupName; });
-      var shown = q.trim() ? rankWithin(inGroup, q) : inGroup;
-      shown.forEach(function (c) { html += cmdRow(c); });
-      if (!shown.length) {
-        html = '<div class="cmdp-empty">Nothing in <b>' + esc(groupName) + '</b> matches <b>' +
-               esc(q) + '</b></div>' + allRow(q);
-      } else if (q.trim()) {
-        html += allRow(q);                     /* always offer the wider search */
-      }
-      setCount(shown.length + (shown.length === 1 ? ' command' : ' commands'));
-
-    } else if (q.trim()) {
+    if (q.trim()) {
+      /* searching: every match, grouped, nothing to expand */
       results = search(q);
       if (!results.length) {
-        list.innerHTML = '<div class="cmdp-empty">Nothing matches <b>' + esc(q) + '</b>' +
-          '<br>Try \u201cprojects\u201d, \u201cresume\u201d or \u201chacker\u201d.</div>';
+        html = '<div class="cmdp-empty">Nothing matches <b>' + esc(q) + '</b><br>' +
+               'Try \u201cprojects\u201d, \u201cresume\u201d or \u201chacker\u201d.</div>';
         setCount('');
-        return;
+      } else {
+        var grp = null;
+        results.forEach(function (c) {
+          if (c.g !== grp) { grp = c.g; html += heading(grp); }
+          html += cmdRow(c);
+        });
+        setCount(results.length + (results.length === 1 ? ' result' : ' results'));
       }
-      var grp = null;
-      results.forEach(function (c) {
-        if (c.g !== grp) { grp = c.g; html += heading(grp); }
-        html += cmdRow(c);
-      });
-      setCount(results.length + (results.length === 1 ? ' result' : ' results'));
-
+      /* with a keyboard, mark the top match: that is what Enter will run */
+      active = results.length && hasKeyboard() ? 0 : -1;
     } else {
-      /* home: recent first, then the categories */
-      html += '<div class="cmdp-hint">Pick a category, or start typing to search everything.</div>';
+      /* browsing: recent commands, then collapsed categories */
       var byTitle = {};
       live.forEach(function (c) { byTitle[c.t] = c; });
       var recent = getRecent().map(function (t) { return byTitle[t]; }).filter(Boolean).slice(0, 3);
@@ -506,87 +468,117 @@
         html += heading('Recent');
         recent.forEach(function (c) { html += cmdRow(c); });
       }
-      var counts = {};
-      live.forEach(function (c) { counts[c.g] = (counts[c.g] || 0) + 1; });
-      var groups = Object.keys(counts).sort(function (a, b) { return groupRank(a) - groupRank(b); });
-      html += heading('Browse');
-      groups.forEach(function (g) { html += groupRow(g, counts[g]); });
+      var byGroup = {};
+      live.forEach(function (c) { (byGroup[c.g] = byGroup[c.g] || []).push(c); });
+      var groups = Object.keys(byGroup).sort(function (a, b) { return groupRank(a) - groupRank(b); });
+      html += heading('Categories');
+      html += '<div class="cmdp-hint">Tap a category to see its options.</div>';
+      groups.forEach(function (g) { html += section(g, byGroup[g]); });
       setCount(groups.length + ' categories');
+      active = -1;                              /* nothing pre-selected */
     }
     list.innerHTML = html;
     list.scrollTop = 0;
+    paint();
   }
 
-  function setCount(t) { var el = $('cmdp-count'); if (el) el.textContent = t || ''; }
+  /* ---------- accordion --------------------------------------- */
+  function sections() { return Array.prototype.slice.call(list.querySelectorAll('.cmdp-sec')); }
 
-  function setHints() {
-    var el = $('cmdp-hints');
-    if (!el) return;
-    el.innerHTML = view === 'group'
-      ? '<span><kbd>\u2190</kbd>back</span><span><kbd>\u2191\u2193</kbd>navigate</span><span><kbd>\u21B5</kbd>run</span>'
-      : '<span><kbd>\u2191\u2193</kbd>navigate</span><span><kbd>\u21B5</kbd>open</span><span><kbd>esc</kbd>close</span>';
-  }
-
-  function updateHead() {
-    var crumb = $('cmdp-crumb');
-    if (view === 'group') {
-      crumb.hidden = false;
-      $('cmdp-crumb-t').textContent = groupName;
-      input.placeholder = 'Search in ' + groupName + '\u2026';
-    } else {
-      crumb.hidden = true;
-      input.placeholder = 'Search everything\u2026';
-    }
-    setHints();
-  }
-
-  function slide(dir) {
-    list.classList.remove('cmdp-in-r', 'cmdp-in-l');
-    void list.offsetWidth;                     /* restart the animation */
-    list.classList.add(dir === 'right' ? 'cmdp-in-r' : 'cmdp-in-l');
-  }
-
-  function enterGroup(g) {
-    view = 'group'; groupName = g;
-    input.value = '';
-    updateHead(); render(''); slide('right');
-    if (hasKeyboard()) { try { input.focus(); } catch (e) {} }
-  }
-  function goHome(keepQuery) {
-    view = 'home'; groupName = null;
-    input.value = keepQuery || '';
-    updateHead(); render(input.value); slide('left');
-    if (hasKeyboard()) { try { input.focus(); } catch (e) {} }
-  }
-
-  function setActive(i) {
-    var items = list.querySelectorAll('.cmdp-item');
-    if (!items.length) return;
-    active = Math.max(0, Math.min(i, items.length - 1));
-    Array.prototype.forEach.call(items, function (el, n) {
-      el.classList.toggle('is-active', n === active);
+  function toggle(g) {
+    var opening = openGroup !== g, target = null;
+    sections().forEach(function (sec) {
+      var mine = sec.getAttribute('data-sec') === g;
+      var on = mine && opening;
+      sec.classList.toggle('is-open', on);
+      var btn = sec.querySelector('.cmdp-cat');
+      if (btn) btn.setAttribute('aria-expanded', on ? 'true' : 'false');
+      if (on) target = sec;
     });
-    var el = items[active];
-    if (el) {
-      var r = el.getBoundingClientRect(), p = list.getBoundingClientRect();
-      if (r.bottom > p.bottom) list.scrollTop += r.bottom - p.bottom + 6;
-      else if (r.top < p.top)  list.scrollTop -= p.top - r.top + 6;
+    openGroup = opening ? g : null;
+    if (target) reveal(target);
+    /* keep the keyboard highlight on the category that was toggled */
+    if (active > -1) {
+      var items = visible();
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].classList.contains('cmdp-cat') && items[i].getAttribute('data-g') === g) { active = i; break; }
+      }
+      paint();
     }
   }
 
-  function exec(i) {
-    var r = rows[i];
-    if (!r) return;
-    if (r.type === 'group') { enterGroup(r.g); return; }
-    if (r.type === 'all')   { goHome(r.q); return; }
-    pushRecent(r.c.t);
+  /* scroll just enough for the opened section to fit, starting while it
+     is still opening, so the options glide into view together */
+  function reveal(sec) {
+    setTimeout(function () {
+      var head = sec.querySelector('.cmdp-cat'), inner = sec.querySelector('.cmdp-sec-in');
+      if (!head || !inner) return;
+      var h = head.getBoundingClientRect(), box = list.getBoundingClientRect();
+      var bottom = h.bottom + inner.scrollHeight;
+      if (bottom <= box.bottom) return;
+      var by = Math.min(bottom - box.bottom + 8, h.top - box.top - 4);
+      if (by <= 0) return;
+      try { list.scrollBy({ top: by, behavior: 'smooth' }); } catch (e) { list.scrollTop += by; }
+    }, 40);
+  }
+
+  /* ---------- keyboard ---------------------------------------- */
+  function visible() {
+    return Array.prototype.slice.call(list.querySelectorAll('.cmdp-cat, .cmdp-item')).filter(function (el) {
+      if (!el.classList.contains('cmdp-item')) return true;
+      var sec = el.closest ? el.closest('.cmdp-sec') : null;
+      return !sec || sec.classList.contains('is-open');
+    });
+  }
+  function paint() {
+    var items = visible();
+    Array.prototype.forEach.call(list.querySelectorAll('.is-active'), function (el) { el.classList.remove('is-active'); });
+    if (active < 0 || !items.length) return;
+    if (active >= items.length) active = items.length - 1;
+    var el = items[active];
+    el.classList.add('is-active');
+    var r = el.getBoundingClientRect(), p = list.getBoundingClientRect();
+    if (r.bottom > p.bottom) list.scrollTop += r.bottom - p.bottom + 6;
+    else if (r.top < p.top)  list.scrollTop -= p.top - r.top + 6;
+  }
+  function activate(el) {
+    if (!el) return;
+    if (el.classList.contains('cmdp-cat')) toggle(el.getAttribute('data-g'));
+    else run(+el.getAttribute('data-c'));
+  }
+
+  function onKeys(e) {
+    var items = visible(), el = items[active];
+    if (e.key === 'ArrowDown') {
+      e.preventDefault(); active = active < 0 ? 0 : Math.min(active + 1, items.length - 1); paint();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault(); active = active <= 0 ? 0 : active - 1; paint();
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      /* phones have no highlight, so Enter from the on-screen keyboard
+         runs the top search result */
+      activate(el || (input.value.trim() ? items[0] : null));
+    } else if (e.key === 'ArrowRight' && !input.value && el && el.classList.contains('cmdp-cat')) {
+      if (openGroup !== el.getAttribute('data-g')) { e.preventDefault(); toggle(el.getAttribute('data-g')); }
+    } else if (e.key === 'ArrowLeft' && !input.value && el) {
+      var sec = el.closest ? el.closest('.cmdp-sec') : null;
+      if (sec && sec.classList.contains('is-open')) { e.preventDefault(); toggle(sec.getAttribute('data-sec')); }
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      if (input.value) { input.value = ''; render(''); } else close();
+    }
+  }
+
+  /* ---------- run a command ----------------------------------- */
+  function run(n) {
+    var c = cmds[n];
+    if (!c) return;
+    pushRecent(c.t);
     var popped = close();
-    var go = function () { setTimeout(function () { try { r.c.run(); } catch (e) {} }, 60); };
-    /* If closing removed the palette's history entry, wait until the
-       browser has actually stepped back before running the command.
-       Otherwise a command that adds its own entry (a case study, the
-       editor) could be pushed onto the palette's entry and then popped
-       straight off again by that pending Back. */
+    var go = function () { setTimeout(function () { try { c.run(); } catch (e) {} }, 60); };
+    /* If closing stepped the browser back, wait for that to finish before
+       running: a command that adds its own history step (a case study,
+       the editor) would otherwise be popped straight off again. */
     if (popped) {
       var done = false;
       var fire = function () { if (done) return; done = true; removeEventListener('popstate', fire); go(); };
@@ -595,54 +587,24 @@
     } else go();
   }
 
-  function caretAtStart() {
-    try { return input.selectionStart === 0 && input.selectionEnd === 0; } catch (e) { return !input.value; }
-  }
-
-  function onKeys(e) {
-    var r = rows[active];
-    if (e.key === 'ArrowDown')      { e.preventDefault(); setActive(active + 1); }
-    else if (e.key === 'ArrowUp')   { e.preventDefault(); setActive(active - 1); }
-    else if (e.key === 'Enter')     { e.preventDefault(); exec(active); }
-    else if (e.key === 'ArrowRight' && r && r.type === 'group' && !input.value) {
-      e.preventDefault(); enterGroup(r.g);
-    }
-    else if ((e.key === 'ArrowLeft' && caretAtStart()) || (e.key === 'Backspace' && !input.value)) {
-      if (view === 'group') { e.preventDefault(); goHome(); }
-    }
-    else if (e.key === 'Escape') {
-      e.preventDefault();
-      /* step back out of a category first; close from the home screen */
-      if (view === 'group') goHome(); else close();
-    }
-    else if (e.key === 'Home')      { setActive(0); }
-    else if (e.key === 'End')       { setActive(rows.length - 1); }
-  }
-
+  /* ---------- open / close ------------------------------------ */
   function open() {
     if (!overlay) build();
     if (overlay.classList.contains('is-open')) return;
     lastFocus = document.activeElement;
-    view = 'home'; groupName = null;
     overlay.classList.add('is-open');
     input.value = '';
-    updateHead();
     render('');
-    list.classList.remove('cmdp-in-r', 'cmdp-in-l');
     document.body.style.overflow = 'hidden';
     /* the back gesture closes the palette, like every other popup here */
     if (typeof window.shzPopupOpened === 'function') {
       paletteEntry = true;
       window.shzPopupOpened('palette', function () { close(true); });
     }
-    /* Only autofocus where there is a real keyboard. On touch devices
-       focusing the field summons the on-screen keyboard, which covers
-       most of the screen and hides the list the visitor came to browse. */
-    if (hasKeyboard()) {
-      setTimeout(function () { try { input.focus(); } catch (e) {} }, 40);
-    } else {
-      try { input.blur(); } catch (e) {}
-    }
+    /* autofocus only with a real keyboard: on a phone it would summon the
+       on-screen keyboard and cover the list */
+    if (hasKeyboard()) setTimeout(function () { try { input.focus(); } catch (e) {} }, 40);
+    else { try { input.blur(); } catch (e) {} }
   }
 
   /* returns true when closing will step the browser back one entry */
