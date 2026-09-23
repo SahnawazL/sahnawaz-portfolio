@@ -29,37 +29,10 @@
       why: 'Other sites cannot embed this page inside their own' }
   ];
 
-  var CSS = [
-'#secCard{margin:18px 0 6px;padding:16px 17px 15px;border-radius:15px;text-align:left;',
-'  background:linear-gradient(180deg,rgba(16,27,44,.72),rgba(10,17,29,.72));',
-'  border:1px solid rgba(120,205,255,.16)}',
-'#secCard .sec-head{display:flex;align-items:center;gap:11px;margin-bottom:4px}',
-'#secCard .sec-title{flex:1;min-width:0;display:flex;align-items:center;gap:9px;',
-'  font-size:.92rem;font-weight:700;color:#e8f4ff;letter-spacing:.2px}',
-'#secCard .sec-dot{width:7px;height:7px;border-radius:50%;flex:none;background-color:#4fe0a2}',
-'#secCard .sec-score{flex:none;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:.68rem;',
-'  font-weight:600;padding:4px 10px;border-radius:20px;color:rgba(190,225,245,.75);',
-'  background-color:rgba(120,200,255,.09);border:1px solid rgba(120,200,255,.18)}',
-'#secCard .sec-sub{margin:0 0 12px;font-size:.76rem;line-height:1.55;color:rgba(172,208,233,.58)}',
-'#secCard .sec-row{display:flex;align-items:flex-start;gap:11px;padding:9px 0;',
-'  border-bottom:1px solid rgba(120,200,255,.07)}',
-'#secCard .sec-row:last-child{border-bottom:none}',
-'#secCard .sec-ic{flex:none;width:18px;height:18px;margin-top:1px;color:rgba(150,200,230,.4)}',
-'#secCard .sec-k{flex:1;min-width:0}',
-'#secCard .sec-k b{display:block;font-size:.84rem;font-weight:600;color:#dceaf7}',
-'#secCard .sec-k span{display:block;font-size:.71rem;line-height:1.45;margin-top:2px;color:rgba(172,208,233,.55)}',
-'#secCard .sec-state{flex:none;min-width:74px;text-align:center;font-size:.55rem;font-weight:700;',
-'  letter-spacing:.08em;text-transform:uppercase;padding:4px 8px;border-radius:5px;',
-'  color:rgba(175,210,235,.6);background-color:rgba(150,190,220,.1)}',
-'#secCard .sec-row.is-on .sec-ic{color:#4fe0a2}',
-'#secCard .sec-row.is-on .sec-state{color:#6ff0bb;background-color:rgba(79,224,162,.14)}',
-'#secCard .sec-row.is-off .sec-ic{color:#ff9a9a}',
-'#secCard .sec-row.is-off .sec-state{color:#ff9a9a;background-color:rgba(255,122,122,.14)}',
-'#secCard .sec-note{margin-top:12px;padding:10px 12px;border-radius:10px;font-size:.71rem;line-height:1.55;',
-'  color:rgba(178,212,236,.62);background-color:rgba(120,200,255,.05);border:1px solid rgba(120,200,255,.12)}',
-'#secCard .sec-note b{color:#dcefff;font-weight:600}',
-'@media (max-width:560px){#secCard{padding:14px}#secCard .sec-state{min-width:64px}}'
-  ].join('\n');
+  /* Styles live in index.html next to the markup, so the panel can never
+     appear unstyled if this file fails to load. Kept here only as a
+     fallback for pages that include the markup without that block. */
+  var CSS = '';
 
   /* ID-scoped and !important so hacker mode cannot flatten the states */
   function important(css) {
@@ -69,7 +42,7 @@
   }
 
   function inject() {
-    if (document.getElementById('sec-style')) return;
+    if (!CSS || document.getElementById('sec-style')) return;
     var st = document.createElement('style');
     st.id = 'sec-style';
     st.textContent = important(CSS);
