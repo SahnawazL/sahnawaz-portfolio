@@ -469,10 +469,85 @@
   }
   function destroyFooter() { if (footEl) { footEl.remove(); footEl = null; } }
 
+  /* ---------- contact: two columns ---------- */
+  var ctWrap = null, ctMoved = [];
+  function buildContact() {
+    var sec = document.getElementById('contact');
+    var head = sec && sec.querySelector(':scope > .ct-head-wrap');
+    if (!sec || !head || ctWrap) return;
+    var kids = [].slice.call(sec.children);
+    var pick = function (test) { return kids.filter(test); };
+    var left = pick(function (el) {
+      return el.classList.contains('ct-cards') || el.classList.contains('ct-section-divider') || el.id === 'chatLauncher';
+    });
+    var right = pick(function (el) {
+      return el.id === 'ctWizard' || el.id === 'ctQuoteCard' || el.classList.contains('ct-form-wrap');
+    });
+    if (!left.length || !right.length) return;
+    /* the chat assistant belongs under the channels, not above them */
+    var chat = left.filter(function (el) { return el.id === 'chatLauncher'; });
+    left = left.filter(function (el) { return el.id !== 'chatLauncher'; }).concat(chat);
+
+    ctWrap = document.createElement('div');
+    ctWrap.id = 'dsk-ct';
+    ctWrap.innerHTML = '<div id="dsk-ct-left"><div class="dsk-ct-label">Reach me directly</div></div>' +
+                       '<div id="dsk-ct-right"><div class="dsk-ct-label">Start a project</div></div>';
+    var L = ctWrap.firstChild, R = ctWrap.lastChild;
+    left.concat(right).forEach(function (el) { ctMoved.push({ el: el, parent: el.parentNode, next: el.nextSibling }); });
+    head.parentNode.insertBefore(ctWrap, head.nextSibling);
+    left.forEach(function (el) { L.appendChild(el); });
+    right.forEach(function (el) { R.appendChild(el); });
+  }
+  function destroyContact() {
+    if (!ctWrap) return;
+    /* put every block back where it was, last-moved first */
+    for (var i = ctMoved.length - 1; i >= 0; i--) {
+      var m = ctMoved[i];
+      try { m.parent.insertBefore(m.el, m.next && m.next.parentNode === m.parent ? m.next : null); } catch (e) {}
+    }
+    ctMoved = [];
+    ctWrap.remove(); ctWrap = null;
+  }
+
+  /* ---------- telemetry: two columns of widgets ---------- */
+  var raWrap = null, raMoved = [];
+  var RA_LEFT  = ['raPulse', 'raHeatmap', 'raPunchcard', 'raLangHours'];
+  var RA_RIGHT = ['raProjectStats', 'raCIHealth', 'raReleaseTimeline', 'raRepoEcosystem', 'raDepFreshness'];
+  function buildRA() {
+    var sec = document.getElementById('recent-activity');
+    if (!sec || raWrap) return;
+    var have = function (ids) { return ids.map(function (i) { return document.getElementById(i); })
+                                          .filter(function (e) { return e && e.parentNode === sec; }); };
+    var L = have(RA_LEFT), R = have(RA_RIGHT);
+    if (L.length + R.length < 4) return;                 /* not the layout we expect: leave it alone */
+    var anchorEl = L[0] || R[0];
+    raWrap = document.createElement('div');
+    raWrap.id = 'dsk-ra';
+    raWrap.innerHTML = '<div id="dsk-ra-left"></div><div id="dsk-ra-right"></div>';
+    sec.insertBefore(raWrap, anchorEl);
+    var lc = raWrap.firstChild, rc = raWrap.lastChild;
+    L.concat(R).forEach(function (el) { raMoved.push({ el: el, parent: el.parentNode, next: el.nextSibling }); });
+    L.forEach(function (el) { lc.appendChild(el); });
+    R.forEach(function (el) { rc.appendChild(el); });
+    /* widgets that sized themselves to the old width redraw on resize */
+    setTimeout(function () { try { dispatchEvent(new Event('resize')); } catch (e) {} }, 60);
+  }
+  function destroyRA() {
+    if (!raWrap) return;
+    for (var i = raMoved.length - 1; i >= 0; i--) {
+      var m = raMoved[i];
+      try { m.parent.insertBefore(m.el, m.next && m.next.parentNode === m.parent ? m.next : null); } catch (e) {}
+    }
+    raMoved = [];
+    raWrap.remove(); raWrap = null;
+    setTimeout(function () { try { dispatchEvent(new Event('resize')); } catch (e) {} }, 60);
+  }
+
   function syncChrome() {
     var wide = false;
     try { wide = matchMedia(CHROME).matches; } catch (e) {}
-    if (wide) { buildHeader(); buildFooter(); } else { destroyHeader(); destroyFooter(); }
+    if (wide) { buildHeader(); buildFooter(); buildContact(); buildRA(); }
+    else { destroyHeader(); destroyFooter(); destroyContact(); destroyRA(); }
   }
 
   /* build on wide screens only, and follow the window across the line */
