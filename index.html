@@ -754,12 +754,13 @@ html {
 <!-- ── Google Login CSS ── -->
 <link rel="stylesheet" href="css/login-modal.css">
 </head><body>
-
+<style id="print-only-style">.print-only{display:none}</style>
 <!-- ═══════════════════════════════════════════
      PREMIUM SCROLL PROGRESS BAR v8
      ═══════════════════════════════════════════ -->
 <link rel="stylesheet" href="css/portfolio-ui.css">
 <link rel="stylesheet" href="css/desktop.css">
+<link rel="stylesheet" href="css/print.css" media="print">
 
 <!-- DOM elements -->
 <div id="scrollProgressTrack" role="progressbar" aria-label="Page scroll progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
@@ -5049,4 +5050,241 @@ document.addEventListener('DOMContentLoaded', function(){
 <script src="js/url-state.js"></script>
 <script src="js/security-audit.js"></script>
 <script src="js/desktop-layout.js"></script>
+<!-- ============================================================
+     PRINTED CV  —  shown only when the page is printed or saved as PDF.
+     On screen this block is hidden; in print, everything else on the page
+     is hidden and only this document is laid out, so the result reads as
+     a real CV rather than a printed web page. Content mirrors the resume
+     sent by "Get the Resume".
+     ============================================================ -->
+<div id="print-cv" class="print-only" aria-hidden="true">
+
+  <header class="cv-top">
+    <img class="cv-photo" src="profile.jpg" alt="Sahnawaz Ahmed Laskar">
+    <div class="cv-id">
+      <h1>Sahnawaz Ahmed Laskar</h1>
+      <p class="cv-role">Full Stack Developer <span>&middot;</span> UI/UX Designer</p>
+    </div>
+    <div class="cv-contact">
+      <span>+91 7339203154</span>
+      <span>shzthedigitalalchemist@gmail.com</span>
+      <span>Bangalore, Karnataka, India</span>
+      <span>sahnawaz-portfolio.vercel.app</span>
+      <span>linkedin.com/in/sahnawaz-ahmed-laskar-021608168</span>
+      <span>github.com/SahnawazL</span>
+    </div>
+  </header>
+
+  <div class="cv-body">
+
+    <!-- ---------- main column ---------- -->
+    <main class="cv-main">
+
+      <section class="cv-sec">
+        <h2>Profile</h2>
+        <p class="cv-summary">
+          Full Stack Developer and UI/UX Designer with hands-on IT-industry experience across Xiaomi,
+          Flipkart and Rapido, and 5+ years as a developer including freelance and personal projects
+          since 2021. Builds high-performance, fully responsive web applications with pixel-perfect UI —
+          from solo React and Firebase products to AI-integrated platforms. Originally from Silchar,
+          Assam; now based in Bangalore while pursuing an MCA.
+        </p>
+      </section>
+
+      <section class="cv-sec">
+        <h2>Experience</h2>
+
+        <article class="cv-job">
+          <div class="cv-job-head">
+            <h3>IT / Developer <span class="cv-at">Rapido (via Ienergizer)</span></h3>
+            <span class="cv-when">2023 &ndash; 2024</span>
+          </div>
+          <p class="cv-where">Bangalore, Karnataka</p>
+          <ul>
+            <li>Moved off customer support onto the IT team, building internal tooling and systems supporting the Rapido process.</li>
+            <li>Led real-time chat support for ride, payment and driver-partner issues across peak-load shifts.</li>
+            <li>Designed and delivered agent training programmes on deep-resolution workflows, adopted floor-wide.</li>
+          </ul>
+        </article>
+
+        <article class="cv-job">
+          <div class="cv-job-head">
+            <h3>L2 Support &mdash; Returns &amp; Refunds <span class="cv-at">Flipkart (via Ienergizer)</span></h3>
+            <span class="cv-when">2023</span>
+          </div>
+          <ul>
+            <li>Handled backend L2 return and refund queries escalated from frontline agents at India&rsquo;s largest e-commerce platform.</li>
+            <li>Focused on accuracy and turnaround on complex, multi-party cases.</li>
+            <li>Recognised by QA and HR for consistent professionalism and precision.</li>
+          </ul>
+        </article>
+
+        <article class="cv-job">
+          <div class="cv-job-head">
+            <h3>L1 Inbound &rarr; MSM Troubleshooting <span class="cv-at">Xiaomi India (via One Point One Solutions)</span></h3>
+            <span class="cv-when">2022 &ndash; 2023</span>
+          </div>
+          <ul>
+            <li>Handled live inbound support calls for Xiaomi devices, diagnosing hardware and software faults across high-volume shifts.</li>
+            <li>Promoted into the Mobile Screen Mirroring (MSM) troubleshooting pilot batch for the new process.</li>
+            <li>Commended by Team Leader and Quality Head for meticulous output.</li>
+          </ul>
+        </article>
+
+        <article class="cv-job">
+          <div class="cv-job-head">
+            <h3>Full Stack Developer &amp; UI/UX Designer <span class="cv-at">Freelance &amp; Personal Projects</span></h3>
+            <span class="cv-when">2021 &ndash; Present</span>
+          </div>
+          <ul>
+            <li>Built and shipped <b>50+ web products</b>, from client sites to analytics dashboards, alongside every professional role.</li>
+            <li>Hand-coded a fully custom animated portfolio &mdash; zero templates, every interaction written from scratch.</li>
+            <li>Managed multiple brand sites concurrently, delivering on time with production-level precision.</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="cv-sec">
+        <h2>Selected Projects</h2>
+
+        <article class="cv-proj">
+          <h3>YojanaSahay <span class="cv-link">yojanasahay.vercel.app</span></h3>
+          <p>A React and Firebase welfare-scheme eligibility and discovery app for Indian citizens, with a
+             Groq-powered assistant that matches people to schemes they qualify for. Bilingual, installable
+             as a PWA, <b>1,900+ commits</b>, designed, built and maintained solo.</p>
+          <p class="cv-stack"><b>Stack</b> React &middot; Vite &middot; Firebase &middot; Groq API &middot; PWA / service worker &middot; Vercel</p>
+        </article>
+
+        <article class="cv-proj">
+          <h3>StudyLens AI <span class="cv-link">studylens-ai-gamma.vercel.app</span></h3>
+          <p>A syllabus-aware homework helper for Class KG&ndash;12 students across SEBA, AHSEC, CBSE and ICSE
+             boards. Students type a question or photograph it; answers are generated through Groq and
+             Gemini against the correct board syllabus.</p>
+          <p class="cv-stack"><b>Stack</b> React &middot; Groq &amp; Gemini APIs &middot; Firebase &middot; image pipeline &middot; Vercel</p>
+        </article>
+
+        <article class="cv-proj">
+          <h3>Personal Portfolio &amp; Engineering Platform <span class="cv-link">sahnawaz-portfolio.vercel.app</span></h3>
+          <p><b>22,000+ lines</b> of hand-written HTML, CSS and JavaScript across <b>950+ commits</b> &mdash; zero frameworks, zero templates, zero UI libraries. Built as a working engineering platform rather
+             than a brochure: it measures itself, adapts to the visitor&rsquo;s device and exposes its own
+             infrastructure in public &mdash; detailed below.</p>
+          <p class="cv-stack"><b>Stack</b> Vanilla JS modules &middot; CSS custom properties &middot; Firebase Auth &amp; Firestore &middot;
+             Vercel serverless functions &middot; Groq API &middot; GitHub REST API &middot; Nodemailer</p>
+        </article>
+      </section>
+
+      <section class="cv-sec cv-tech">
+        <h2>Engineering Detail &mdash; Portfolio Platform</h2>
+
+        <div class="cv-tgroup">
+          <b>Performance engineering</b>
+          <ul>
+            <li>Core Web Vitals measured in-page on the visitor&rsquo;s own device &mdash; LCP, CLS, INP, FCP, TTFB &mdash;
+                with attribution: which element was the largest paint, which element shifted and by how far,
+                and INP split into input delay, processing and rendering time.</li>
+            <li>CLS computed using Chrome&rsquo;s session-window method; INP filtered to genuine interactions only.</li>
+            <li><b>Real-visitor field data:</b> anonymous samples posted to a serverless endpoint and aggregated in
+                Firestore, reporting the <b>75th percentile across 30 days</b> beside the live reading. Do Not Track
+                honoured; no identifiers stored.</li>
+            <li><b>Adaptive performance governor:</b> detects Data Saver, low memory, low core count and slow
+                interactions, then drops to a lite mode &mdash; disabling backdrop-filter and pausing off-screen
+                animations through the Web Animations API.</li>
+            <li>CSS and JavaScript split into 2 and 13 modules, cutting the HTML document by <b>77%</b> and making
+                cache hits granular.</li>
+          </ul>
+        </div>
+
+        <div class="cv-tgroup">
+          <b>Platform &amp; infrastructure</b>
+          <ul>
+            <li>Serverless API on Vercel: AI chat, resume delivery, contact automation, analytics, GitHub
+                activity, webhook status and vitals aggregation.</li>
+            <li><b>Per-link preview cards:</b> a serverless route serves distinct Open Graph metadata and a
+                pre-rendered 1200&times;630 card for every shared link, so each share arrives as a designed card.</li>
+            <li><b>Security headers:</b> HSTS, Content Security Policy (report-only), Permissions-Policy,
+                Cross-Origin-Opener-Policy, X-Frame-Options and MIME-sniffing protection &mdash; with a live panel
+                that reads the site&rsquo;s own response headers and reports which are genuinely active.</li>
+            <li>Firebase Authentication (Google) and Firestore for reviews and engagement; installable PWA
+                backed by a service worker.</li>
+          </ul>
+        </div>
+
+        <div class="cv-tgroup">
+          <b>Interface &amp; interaction</b>
+          <ul>
+            <li>Command palette (&#8984;K) with grouped, searchable commands, recent history and full keyboard control.</li>
+            <li>Deep-linkable application state &mdash; case studies, project filters, reports and themes are all
+                addressable by URL, with correct history entries and Android back-gesture support.</li>
+            <li>Live engineering telemetry: commit pulse, contribution map, commit punchcard, language mix,
+                CI build health, dependency freshness and API status, pulled from the GitHub API.</li>
+            <li>AI assistant over the Groq API, a hidden terminal mode with a simulated filesystem, and this CV,
+                generated from the site itself by a dedicated print stylesheet.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="cv-sec">
+        <h2>Education</h2>
+        <div class="cv-edu"><b>Master of Computer Applications (MCA)</b><span>Yenepoya University, Bangalore</span><i>2025 &ndash; Present</i></div>
+        <div class="cv-edu"><b>Bachelor of Computer Applications (BCA)</b><span>Yenepoya University, Bangalore</span><i>2022 &ndash; 2025</i></div>
+        <div class="cv-edu"><b>Bachelor of Arts (BA)</b><span>G.C. College, Silchar, Assam</span><i>2018 &ndash; 2021</i></div>
+        <div class="cv-edu"><b>Higher Secondary (AHSEC)</b><span>Ahmed Ali Junior College, Assam</span><i>2016 &ndash; 2018</i></div>
+        <div class="cv-edu"><b>High School (HSLC)</b><span>Badripar Public High School, Assam</span><i>2015 &ndash; 2016</i></div>
+      </section>
+
+    </main>
+
+    <!-- ---------- sidebar ---------- -->
+    <aside class="cv-side">
+
+      <section class="cv-sec">
+        <h2>Skills</h2>
+        <div class="cv-skill"><b>Frontend</b><span>HTML5, CSS3, JavaScript, React, Tailwind CSS</span></div>
+        <div class="cv-skill"><b>Backend</b><span>Node.js, Python, PHP, MySQL, Firebase</span></div>
+        <div class="cv-skill"><b>UI / Design</b><span>Figma, Adobe XD, WordPress, Shopify, wireframing, prototyping</span></div>
+        <div class="cv-skill"><b>Tools</b><span>Git &amp; GitHub, VS Code, Vercel, GA4, Notion AI, GitHub Copilot, Excel</span></div>
+      </section>
+
+      <section class="cv-sec">
+        <h2>Certifications</h2>
+        <ul class="cv-list">
+          <li>Diploma in Computer Applications<em>Foundation &middot; CS</em></li>
+          <li>UI/UX Design &amp; React Development<em>Design &middot; Frontend</em></li>
+          <li>Web Development Basics<em>Frontend &middot; Web Stack</em></li>
+          <li>JavaScript Programming<em>Frontend &middot; Logic</em></li>
+          <li>Programming in C++<em>Systems &middot; OOP</em></li>
+          <li>Advanced Excel &amp; Business Reporting<em>Analytics &middot; Data</em></li>
+          <li>Technical &amp; Backend Support<em>L1 / L2 &middot; Ops &middot; IT</em></li>
+          <li>HTML Essentials<em>Markup &middot; Semantics</em></li>
+        </ul>
+      </section>
+
+      <section class="cv-sec">
+        <h2>Languages</h2>
+        <ul class="cv-list cv-lang">
+          <li>English<em>Professional</em></li>
+          <li>Hindi<em>Fluent</em></li>
+          <li>Bengali<em>Native</em></li>
+          <li>Assamese<em>Conversational</em></li>
+        </ul>
+      </section>
+
+      <section class="cv-sec">
+        <h2>Strengths</h2>
+        <ul class="cv-list cv-bul">
+          <li>Ships solo, end to end &mdash; design, build, deploy</li>
+          <li>Support background: reads real user problems quickly</li>
+          <li>Trains and leads teams on new processes</li>
+          <li>Obsessive about performance and accessibility</li>
+        </ul>
+      </section>
+
+    </aside>
+  </div>
+
+  <footer class="cv-foot">
+    Live portfolio, with interactive project demos and engineering telemetry, at sahnawaz-portfolio.vercel.app
+  </footer>
+</div>
+
 </body></html>
