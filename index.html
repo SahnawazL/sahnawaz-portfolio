@@ -3592,6 +3592,50 @@ window.addEventListener('resize', () => {
     <div class="sys-checked" id="sysCheckedAt"></div>
   </div>
 
+  <!-- security self-audit: filled in by js/security-audit.js from this
+       page's own response headers. Rows are written here so the panel
+       has its full size from the first paint. -->
+  <div id="secCard">
+    <div class="sec-head">
+      <span class="sec-title"><span class="sec-dot" aria-hidden="true"></span>Security Headers</span>
+      <span class="sec-score">checking…</span>
+    </div>
+    <p class="sec-sub">Read live from this page’s own response — what the server is actually sending, not a claim.</p>
+    <div class="sec-rows">
+      <div class="sec-row" data-sec="strict-transport-security">
+        <svg class="sec-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>
+        <span class="sec-k"><b>HTTPS enforced</b><span>Every visit is forced onto HTTPS, even if someone types http://</span></span>
+        <span class="sec-state">Checking</span>
+      </div>
+      <div class="sec-row" data-sec="content-security-policy-report-only">
+        <svg class="sec-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>
+        <span class="sec-k"><b>Content Security Policy</b><span>Declares which sources may run code here; currently in report-only mode</span></span>
+        <span class="sec-state">Checking</span>
+      </div>
+      <div class="sec-row" data-sec="x-content-type-options">
+        <svg class="sec-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>
+        <span class="sec-k"><b>No MIME sniffing</b><span>Stops the browser running a file as a type it was not served as</span></span>
+        <span class="sec-state">Checking</span>
+      </div>
+      <div class="sec-row" data-sec="referrer-policy">
+        <svg class="sec-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>
+        <span class="sec-k"><b>Referrer limited</b><span>Other sites see only the domain a visitor came from, never the full link</span></span>
+        <span class="sec-state">Checking</span>
+      </div>
+      <div class="sec-row" data-sec="permissions-policy">
+        <svg class="sec-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>
+        <span class="sec-k"><b>Device permissions</b><span>Camera, location and payment are denied to every script on the page</span></span>
+        <span class="sec-state">Checking</span>
+      </div>
+      <div class="sec-row" data-sec="x-frame-options">
+        <svg class="sec-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>
+        <span class="sec-k"><b>Framing blocked</b><span>Other sites cannot embed this page inside their own</span></span>
+        <span class="sec-state">Checking</span>
+      </div>
+    </div>
+    <div class="sec-note">Checking this page’s response headers…</div>
+  </div>
+
   <div class="ra-footer">
     <a href="https://github.com/SahnawazL" target="_blank" rel="noopener">View full history on GitHub ↗</a>
   </div>
@@ -5001,5 +5045,6 @@ document.addEventListener('DOMContentLoaded', function(){
 <script src="js/portfolio-11.js"></script>
 <script src="js/command-palette.js"></script>
 <script src="js/url-state.js"></script>
+<script src="js/security-audit.js"></script>
 <script src="js/desktop-layout.js"></script>
 </body></html>
