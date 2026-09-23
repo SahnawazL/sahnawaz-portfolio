@@ -65,27 +65,59 @@
   section.ts-section > #tsBarsSection { grid-column: 2; justify-self: start; width: 100%; max-width: 480px; }
 }
 
-/* ---------- 4. contact: assistant beside the channels (960px+) ----
-   The heading spans the top. The live-chat assistant takes the left
-   column; the contact channels and the project form fill the right. */
+/* ---------- 4. contact: two clear columns (960px+) --------------
+   js/desktop-layout.js groups the contact blocks into two columns:
+   left "Reach me directly" (channels, then the chat assistant) and
+   right "Start a project" (the step questions and quote form, in one
+   panel). Everything returns to its original place below 960px. */
 @media (min-width: 960px) {
-  #contact {
-    display: grid;
-    grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
-    column-gap: 28px;
-    align-items: start;
+  #contact { max-width: 1120px; }
+  #dsk-ct {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 28px; align-items: start; margin-top: 10px; text-align: left;
   }
-  #contact > .ct-head-wrap  { grid-column: 1 / -1; grid-row: 1; }
-  #contact > #chatLauncher  { grid-column: 1; grid-row: 2 / span 6; align-self: start; margin-top: 8px; }
-  #contact > .ct-cards,
-  #contact > .ct-section-divider,
-  #contact > #ctWizard,
-  #contact > #ctQuoteCard,
-  #contact > .ct-form-wrap  { grid-column: 2; max-width: 100%; }
-  /* in a grid these shrink to their content; give back their original width */
-  #contact > .ct-cards,
-  #contact > .ct-section-divider,
-  #contact > .ct-form-wrap  { width: 100%; max-width: 500px; justify-self: center; }
+  .dsk-ct-label {
+    display: flex; align-items: center; gap: 10px; margin: 0 0 14px;
+    font: 700 10.5px/1 Inter, system-ui, sans-serif; letter-spacing: .18em; text-transform: uppercase;
+    color: rgba(150, 200, 230, .6);
+  }
+  .dsk-ct-label::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(120, 200, 255, .2), transparent); }
+  #dsk-ct-left .ct-cards {
+    width: 100%; max-width: none; margin: 0; grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  #dsk-ct-left .ct-section-divider { width: 100%; max-width: none; margin: 12px 0; }
+  #dsk-ct-left #chatLauncher { width: 100%; max-width: none; margin: 22px 0 0; }
+  /* top-aligned: sticky is disabled site-wide by the page's overflow
+     rule, the same reason the header needed fixed positioning */
+  #dsk-ct-right {
+    box-sizing: border-box; padding: 22px 22px 24px; border-radius: 18px;
+    background: linear-gradient(180deg, rgba(16, 28, 45, .7), rgba(9, 16, 28, .7));
+    border: 1px solid rgba(120, 205, 255, .16);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, .25), inset 0 1px 0 rgba(255, 255, 255, .04);
+  }
+  #dsk-ct-right > #ctWizard,
+  #dsk-ct-right > #ctQuoteCard,
+  #dsk-ct-right > .ct-form-wrap { width: 100%; max-width: none; margin-left: 0; margin-right: 0; }
+}
+
+/* ---------- 4b. visitor feedback as one aligned band (960px+) -----
+   Title on the left, rating on the right, in a card as wide as the
+   contact columns. Anything else in the section (the Write a Review
+   button, the review list, both added by another script) gets its own
+   full-width row, so nothing can be squeezed out. */
+@media (min-width: 960px) {
+  #reviewSection {
+    box-sizing: border-box; width: 100%; max-width: 1088px; margin: 0 auto;
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 32px; align-items: center;
+    padding: 26px 30px; border-radius: 18px; text-align: left;
+    background: linear-gradient(180deg, rgba(16, 28, 45, .6), rgba(9, 16, 28, .6));
+    border: 1px solid rgba(120, 205, 255, .14);
+  }
+  #reviewSection > * { grid-column: 1 / -1; }
+  #reviewSection > #rv-eyebrow   { grid-column: 1; grid-row: 1; text-align: left; margin: 0; }
+  #reviewSection > #rv-subtitle  { grid-column: 1; grid-row: 2; text-align: left; margin: 6px 0 0; }
+  #reviewSection > #rv-pill-bar  { grid-column: 2; grid-row: 1 / span 2; margin: 0; }
+  #reviewSection > #rv-peek-hint { grid-column: 2; grid-row: 3; text-align: center; margin: 8px 0 0; }
 }
 
 /* ---------- 2. section rail (1280px and wider) ---------------
@@ -370,4 +402,33 @@
     box-shadow: 0 8px 24px rgba(0, 0, 0, .28);
   }
   #dsk-hdr-spacer { display: block; }
+}
+
+/* ---------- 9. engineering telemetry as a dashboard (960px+) -----
+   The section is capped at 720px, so on a desktop it runs as one long
+   narrow strip. Here it widens and the GitHub widgets sit in two
+   columns, grouped by js/desktop-layout.js. The vitals card, the
+   Recently Shipped header, the recap, the activity list and the system
+   status stay full width. */
+@media (min-width: 960px) {
+  #recent-activity { max-width: 1120px; }
+  #dsk-ra {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 22px; align-items: start; margin: 4px 0 6px;
+  }
+  #dsk-ra-left, #dsk-ra-right { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+  /* a chart wider than its column scrolls inside its own box instead of
+     stretching the page */
+  #dsk-ra-left > *, #dsk-ra-right > * { width: 100%; max-width: 100%; min-width: 0; overflow-x: auto; }
+}
+
+/* ---------- 10. no floating corner buttons on desktop (960px+) ---
+   The code editor and hacker mode are reachable from the header menu,
+   Quick Search and the footer's "Under the hood" column, so the two
+   floating buttons are redundant here. They are hidden, not removed:
+   the footer's Hacker Mode link works by clicking the real toggle, and
+   the page's own script sets an inline display on the code button,
+   which is why this needs !important. */
+@media (min-width: 960px) {
+  #codeBtn, #hacker-toggle { display: none !important; }
 }
