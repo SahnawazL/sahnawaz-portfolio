@@ -559,13 +559,17 @@
   function start() {
     sync();
     try { matchMedia(WIDE).addEventListener('change', sync); } catch (e) {}
-    /* after every other script has had a turn, so the functions the
-       footer links to exist */
-    setTimeout(function () {
-      syncChrome();
-      try { matchMedia(CHROME).addEventListener('change', syncChrome); } catch (e) {}
-    }, 0);
+    syncChrome();
+    try { matchMedia(CHROME).addEventListener('change', syncChrome); } catch (e) {}
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+
+  /* This script sits at the end of <body>, so the page is already parsed
+     when it runs: do the rearranging straight away, before the browser
+     paints these sections. Waiting for DOMContentLoaded meant painting
+     the old layout first and then moving it, which registered as a large
+     layout shift for anyone reloading partway down the page. */
+  if (document.getElementById('recent-activity') && document.getElementById('contact')) start();
+  else if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
+
 })();
