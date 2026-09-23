@@ -1,0 +1,330 @@
+/* ============================================================
+   PRINTED CV  —  ByteWithSahnawaz
+   Printing (or Save as PDF) hides the whole site and lays out the
+   #print-cv document instead, so the result reads as a real CV rather
+   than a printed web page.
+
+   Browsers print without background colours unless the reader turns
+   them on, so every bit of structure here comes from type, spacing and
+   rules — nothing depends on a coloured fill.
+
+   Screen rendering is untouched: everything is inside @media print.
+   ============================================================ */
+
+@media print {
+
+  @page { size: A4; margin: 13mm 12mm 11mm; }
+
+  /* only the CV prints */
+  body > *:not(#print-cv) { display: none !important; }
+
+  html, body {
+    background: #fff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* :not(#never) carries an id's weight, so this outranks the site's own
+     !important class rules — without it, gradient-filled text prints blank */
+  #print-cv, #print-cv *:not(#never-used) {
+    background: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    filter: none !important;
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    -webkit-text-fill-color: currentColor !important;
+    background-clip: border-box !important;
+    -webkit-background-clip: border-box !important;
+    float: none !important;
+    position: static !important;
+    color: #1a2330 !important;
+    text-align: left !important;
+    font-family: inherit !important;
+  }
+
+  #print-cv {
+    display: block !important;
+    font-family: "Inter", "Helvetica Neue", Arial, sans-serif !important;
+    font-size: 9.3pt !important;
+    line-height: 1.46 !important;
+    color: #1a2330 !important;
+    letter-spacing: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: left !important;
+  }
+  #print-cv p, #print-cv ul, #print-cv li, #print-cv h1, #print-cv h2, #print-cv h3 {
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: left !important;
+  }
+
+  /* the site's own section decorations leave stray marks in the CV */
+  #print-cv section::before, #print-cv section::after,
+  #print-cv div::before, #print-cv div::after,
+  #print-cv header::before, #print-cv header::after { content: none !important; }
+  #print-cv .cv-at:not(#never-used)::before,
+  #print-cv .cv-link:not(#never-used)::before,
+  #print-cv .cv-job li:not(#never-used)::before,
+  #print-cv .cv-bul li:not(#never-used)::before { content: "" !important; }
+
+  /* ---------- name and contact ---------- */
+  /* One accent, used for the name, section rules and role titles. Text
+     colour prints on any printer; it degrades to grey in black and white,
+     unlike a coloured fill, which would simply disappear. */
+  #print-cv .cv-photo:not(#never-used) {
+    flex: none;
+    width: 25mm !important;
+    height: 25mm !important;
+    object-fit: cover !important;
+    border-radius: 2mm !important;
+    border: .8pt solid #cfd9e3 !important;
+    display: block !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .cv-top {
+    display: flex !important;
+    align-items: center;
+    gap: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2.4pt solid #0d4a5e !important;
+    margin-bottom: 11px;
+  }
+  .cv-id { flex: 1; min-width: 0; }
+  #print-cv .cv-top h1:not(#never-used) {
+    color: #0d4a5e !important;
+    font-size: 19.5pt !important;
+    white-space: nowrap !important;
+    font-weight: 700 !important;
+    line-height: 1.02 !important;
+    letter-spacing: -.45pt !important;
+    text-transform: uppercase;
+  }
+  #print-cv .cv-role:not(#never-used) {
+    color: #2c6f84 !important;
+    margin-top: 3px !important;
+    font-size: 10pt !important;
+    font-weight: 600 !important;
+    letter-spacing: .9pt !important;
+    text-transform: uppercase;
+    color: #3d566f !important;
+  }
+  #print-cv .cv-role span:not(#never-used) { color: #93a5b6 !important; }
+  #print-cv .cv-contact:not(#never-used) {
+    flex: none;
+    width: 54mm;
+    display: flex !important;
+    flex-direction: column;
+    gap: 1.5px;
+    font-size: 8.1pt !important;
+    line-height: 1.4 !important;
+    color: #3d4c5c !important;
+    text-align: right !important;
+    word-break: break-word;
+  }
+
+  /* ---------- two columns ---------- */
+  .cv-body {
+    display: flex !important;
+    align-items: flex-start;
+    gap: 9mm;
+  }
+  .cv-main { flex: 1 1 auto; min-width: 0; }
+  .cv-side {
+    flex: none;
+    width: 52mm;
+    padding-left: 6mm;
+    border-left: .6pt solid #ccd6e0 !important;
+  }
+
+  /* ---------- section headings ---------- */
+  .cv-sec { margin-bottom: 9px; break-inside: auto; }
+  #print-cv .cv-sec h2:not(#never-used) {
+    font-size: 8.4pt !important;
+    font-weight: 700 !important;
+    letter-spacing: 1.5pt !important;
+    text-transform: uppercase;
+    color: #0d4a5e !important;
+    padding-bottom: 2.5px !important;
+    margin-bottom: 6px !important;
+    border-bottom: .8pt solid #0d4a5e !important;
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+  #print-cv .cv-side .cv-sec h2:not(#never-used) { font-size: 8pt !important; letter-spacing: 1.2pt !important; }
+
+  #print-cv .cv-summary b:not(#never-used),
+  #print-cv .cv-proj p b:not(#never-used),
+  #print-cv .cv-job li b:not(#never-used) { color: #0d4a5e !important; font-weight: 600 !important; }
+  #print-cv .cv-summary:not(#never-used) { font-size: 9.2pt !important; line-height: 1.5 !important; text-align: justify !important; }
+
+  /* ---------- roles ---------- */
+  .cv-job, .cv-proj {
+    margin-bottom: 7.5px;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .cv-job-head {
+    display: flex !important;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .cv-job h3, .cv-proj h3 {
+    flex: 1;
+    min-width: 0;
+    font-size: 10pt !important;
+    font-weight: 700 !important;
+    line-height: 1.25 !important;
+  }
+  #print-cv .cv-at:not(#never-used) { font-weight: 500 !important; color: #3d566f !important; }
+  #print-cv .cv-at:not(#never-used)::before { content: "\2014\00a0" !important; color: #93a5b6 !important; }
+  #print-cv .cv-when:not(#never-used) {
+    flex: none;
+    font-size: 8.3pt !important;
+    font-weight: 600 !important;
+    color: #3d4c5c !important;
+    white-space: nowrap;
+  }
+  #print-cv .cv-where:not(#never-used) { font-size: 8.3pt !important; color: #5b6b7c !important; margin-top: 1px !important; }
+
+  #print-cv .cv-job ul { list-style: none !important; margin: 3px 0 0 !important; }
+  #print-cv .cv-job li:not(#never-used) {
+    position: relative !important;
+    padding-left: 9px !important;
+    margin-bottom: 1.5px !important;
+    font-size: 9pt !important;
+    line-height: 1.42 !important;
+  }
+  #print-cv .cv-job li:not(#never-used)::before {
+    content: "\2022" !important;
+    position: absolute !important;
+    left: 0; top: 0;
+    font-size: 8pt !important;
+    line-height: 1.55 !important;
+    color: #5b6b7c !important;
+  }
+
+  /* ---------- projects ---------- */
+  .cv-proj p { font-size: 8.9pt !important; line-height: 1.42 !important; margin-top: 1.5px !important; }
+  #print-cv .cv-link:not(#never-used) {
+    font-size: 8.2pt !important;
+    font-weight: 500 !important;
+    color: #3d566f !important;
+  }
+  #print-cv .cv-link:not(#never-used)::before { content: "\00b7\00a0" !important; color: #93a5b6 !important; }
+
+  /* ---------- technical detail ---------- */
+  #print-cv .cv-stack:not(#never-used) {
+    margin-top: 2px !important;
+    font-size: 8.2pt !important;
+    line-height: 1.38 !important;
+    color: #5b6b7c !important;
+  }
+  #print-cv .cv-stack b:not(#never-used) {
+    color: #0d4a5e !important;
+    font-weight: 700 !important;
+    letter-spacing: .3pt !important;
+    text-transform: uppercase;
+    font-size: 7.6pt !important;
+  }
+  .cv-tgroup { margin-bottom: 6px; break-inside: avoid; page-break-inside: avoid; }
+  #print-cv .cv-tgroup > b:not(#never-used) {
+    display: block !important;
+    font-size: 8.4pt !important;
+    font-weight: 700 !important;
+    letter-spacing: .5pt !important;
+    text-transform: uppercase;
+    color: #2c6f84 !important;
+    margin-bottom: 2px !important;
+  }
+  #print-cv .cv-tgroup ul { list-style: none !important; }
+  #print-cv .cv-tgroup li:not(#never-used) {
+    position: relative !important;
+    padding-left: 9px !important;
+    margin-bottom: 1.5px !important;
+    font-size: 8.8pt !important;
+    line-height: 1.4 !important;
+  }
+  #print-cv .cv-tgroup li:not(#never-used)::before {
+    content: "\2022" !important;
+    position: absolute !important;
+    left: 0; top: 0;
+    font-size: 8pt !important;
+    line-height: 1.55 !important;
+    color: #5b6b7c !important;
+  }
+  #print-cv .cv-tgroup li b:not(#never-used) { color: #0d4a5e !important; font-weight: 600 !important; }
+
+  /* ---------- education ---------- */
+  .cv-edu {
+    display: flex !important;
+    align-items: baseline;
+    gap: 6px;
+    padding: 2px 0 !important;
+    font-size: 9pt !important;
+    border-bottom: .4pt dotted #d3dce4 !important;
+    break-inside: avoid;
+  }
+  .cv-edu:last-child { border-bottom: none !important; }
+  .cv-edu b { font-weight: 600 !important; }
+  #print-cv .cv-edu span:not(#never-used) { flex: 1; font-size: 8.4pt !important; color: #5b6b7c !important; }
+  #print-cv .cv-edu i:not(#never-used) { font-style: normal !important; font-size: 8.3pt !important; color: #3d4c5c !important; white-space: nowrap; }
+
+  /* ---------- sidebar blocks ---------- */
+  .cv-skill { margin-bottom: 5px; break-inside: avoid; }
+  #print-cv .cv-skill b:not(#never-used) {
+    color: #0d4a5e !important;
+    display: block !important;
+    font-size: 8.2pt !important;
+    font-weight: 700 !important;
+    letter-spacing: .4pt !important;
+    text-transform: uppercase;
+    color: #3d566f !important;
+  }
+  .cv-skill span { display: block !important; font-size: 8.7pt !important; line-height: 1.4 !important; }
+
+  #print-cv .cv-list { list-style: none !important; }
+  #print-cv .cv-list li {
+    font-size: 8.7pt !important;
+    line-height: 1.32 !important;
+    padding: 2px 0 !important;
+    border-bottom: .4pt dotted #d3dce4 !important;
+    break-inside: avoid;
+  }
+  #print-cv .cv-list li:last-child { border-bottom: none !important; }
+  #print-cv .cv-list em:not(#never-used) {
+    display: block !important;
+    font-style: normal !important;
+    font-size: 7.7pt !important;
+    color: #6b7b8b !important;
+  }
+  #print-cv .cv-lang li { display: flex !important; justify-content: space-between; gap: 6px; }
+  #print-cv .cv-lang em { display: inline !important; }
+  #print-cv .cv-bul li:not(#never-used) { border-bottom: none !important; padding-left: 13px !important; position: relative !important; }
+  #print-cv .cv-bul li:not(#never-used)::before {
+    content: "\2014" !important;
+    position: absolute !important;
+    left: 0;
+    color: #93a5b6 !important;
+  }
+
+  /* ---------- footer ---------- */
+  #print-cv .cv-foot:not(#never-used) {
+    margin-top: 10px;
+    padding-top: 5px;
+    border-top: .6pt solid #ccd6e0 !important;
+    font-size: 7.8pt !important;
+    color: #6b7b8b !important;
+    text-align: center !important;
+  }
+}
