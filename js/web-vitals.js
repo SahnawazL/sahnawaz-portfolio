@@ -20,6 +20,60 @@
   window.__webVitalsLoaded = true;
 
   var SUPPORTED = typeof PerformanceObserver !== 'undefined';
+
+  /* ---------- field data: what real visitors experience ----------
+     One anonymous sample is sent per visit (no identifiers of any kind),
+     and the 75th percentile across the last 30 days is shown beside the
+     live reading. Honours Do Not Track, and every part is optional: if
+     the endpoint is unavailable, the card simply shows nothing extra. */
+  var FIELD = { p75: null, samples: 0, days: 30, loaded: false, sent: false };
+  var ENDPOINT = '/api/vitals';
+
+  function dnt() {
+    try { return navigator.doNotTrack === '1' || window.doNotTrack === '1' || navigator.globalPrivacyControl === true; }
+    catch (e) { return false; }
+  }
+  function deviceClass() {
+    try {
+      var t = navigator.maxTouchPoints > 0;
+      if (!t) return 'desktop';
+      return Math.min(screen.width, screen.height) >= 600 ? 'tablet' : 'mobile';
+    } catch (e) { return null; }
+  }
+  function sendSample() {
+    if (FIELD.sent || dnt()) return;
+    if (M.LCP.v == null && M.INP.v == null) return;      /* nothing worth sending yet */
+    FIELD.sent = true;
+    var c = navigator.connection || {};
+    var body = JSON.stringify({
+      lcp: M.LCP.v, cls: M.CLS.v, inp: M.INP.v, fcp: M.FCP.v, ttfb: M.TTFB.v,
+      conn: c.effectiveType || null,
+      cores: navigator.hardwareConcurrency || null,
+      device: deviceClass()
+    });
+    try {
+      if (navigator.sendBeacon) navigator.sendBeacon(ENDPOINT, new Blob([body], { type: 'application/json' }));
+      else fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body, keepalive: true });
+    } catch (e) {}
+  }
+  /* send when the visit ends, so the numbers are as complete as possible */
+  /* visibilitychange is dispatched on the document, so listen there */
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') sendSample(); });
+  addEventListener('pagehide', sendSample);
+
+  function loadField() {
+    if (FIELD.loaded) return;
+    FIELD.loaded = true;
+    try {
+      fetch(ENDPOINT, { headers: { 'Accept': 'application/json' } })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (!d || !d.p75 || !d.samples) return;
+          FIELD.p75 = d.p75; FIELD.samples = d.samples; FIELD.days = d.days || 30;
+          schedule();
+        }).catch(function () {});
+    } catch (e) {}
+  }
   var $ = function (id) { return document.getElementById(id); };
 
   /* ---------- thresholds: [good, needs-improvement] ------------
@@ -400,7 +454,15 @@
              '<div class="wvc-val">' + esc(shown[0]) + '<small>' + (shown[1] || '') + '</small></div>' +
              gauge(k, v) +
              '<div class="wvc-goal">' + goal(k) + '</div>' +
+             '<div class="wvc-peers">visitors <b>' + fieldText(k) + '</b></div>' +
            '</div>';
+  }
+
+  /* the same metric as other visitors experience it, at the 75th percentile */
+  function fieldText(k) {
+    var f = FIELD.p75 && FIELD.p75[k.toLowerCase()];
+    if (f == null) return '\u2014';
+    return k === 'CLS' ? f.toFixed(3) : ms(f);
   }
 
   function renderCard() {
@@ -499,6 +561,8 @@ scopeShared(SHARED),
 '#wvCard .is-ok .wvc-val{color:#ffd884}',
 '#wvCard .is-poor .wvc-val{color:#ff9a9a}',
 '#wvCard .wvc-goal{margin-top:7px;font-family:' + MONO + ';font-size:.6rem;color:rgba(150,195,225,.48)}',
+'#wvCard .wvc-peers{margin-top:3px;font-family:' + MONO + ';font-size:.6rem;color:rgba(150,195,225,.38)}',
+'#wvCard .wvc-peers b{font-weight:600;color:rgba(190,222,242,.62)}',
 '#wvCard .wvc-sec{margin:16px 0 9px;display:flex;align-items:center;gap:9px;font-size:.58rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:rgba(150,200,230,.45)}',
 '#wvCard .wvc-sec::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(120,200,255,.18),transparent)}',
 '#wvCard .wvc-why{display:flex;align-items:flex-start;gap:10px;margin-top:14px;padding:10px 12px;',
@@ -723,6 +787,22 @@ scopeShared(SHARED),
 
       '<div class="wv-sec">Load timeline</div>' + timeline() +
 
+      (FIELD.p75 && FIELD.samples ?
+        '<div class="wv-sec">All visitors \u00b7 last ' + FIELD.days + ' days</div>' +
+        '<div class="wv-attr"><div class="wv-attr-h">The 75th percentile across <b>' + FIELD.samples +
+          '</b> real visits \u2014 the measure Google uses to judge a site in the field. ' +
+          'Three quarters of visits were at or below these numbers.</div>' +
+          '<div class="wv-legend" style="margin-top:10px">' +
+            ['LCP', 'CLS', 'INP', 'FCP', 'TTFB'].map(function (k) {
+              var f = FIELD.p75[k.toLowerCase()];
+              if (f == null) return '';
+              var mine = k === 'CLS' ? M.CLS.v : M[k].v;
+              var cmp = mine == null ? '' : (mine <= f ? ' \u00b7 you are faster' : ' \u00b7 you are slower');
+              return '<span><i style="background-color:' + ({ good: '#4fe0a2', ok: '#ffcf6b', poor: '#ff7a7a' }[rate(k, f)] || '#7a8ca3') +
+                     ' !important"></i>' + k + ' <b>' + (k === 'CLS' ? f.toFixed(3) : ms(f)) + '</b>' + cmp + '</span>';
+            }).join('') +
+          '</div></div>' : '') +
+
       '<div class="wv-sec">Main thread</div>' +
       '<div class="wv-stats">' +
         '<div class="wv-stat"><b>' + M.LT.count + '</b><span>Long tasks over 50 ms</span></div>' +
@@ -780,6 +860,7 @@ scopeShared(SHARED),
           presentation: +M.INP.pres.toFixed(1), interactions: M.INP.count
         }
       },
+      allVisitors: FIELD.p75 && FIELD.samples ? { p75: FIELD.p75, samples: FIELD.samples, days: FIELD.days } : null,
       mainThread: { longTasks: M.LT.count, blockingTime: +M.LT.block.toFixed(1), longestTask: +M.LT.longest.toFixed(1) },
       weight: { total: M.bytes.total, html: M.bytes.html, css: M.bytes.css, js: M.bytes.js,
                 images: M.bytes.img, fonts: M.bytes.font, other: M.bytes.other,
@@ -812,7 +893,19 @@ scopeShared(SHARED),
   }
 
   /* ---------- open / close ------------------------------------- */
+  /* fetch the field numbers only when the card is actually seen, so a
+     visitor who never scrolls this far costs nothing */
+  function watchField() {
+    var card = document.getElementById('wvCard');
+    if (!card) return;
+    if (typeof IntersectionObserver === 'undefined') { loadField(); return; }
+    new IntersectionObserver(function (en, obs) {
+      if (en[0].isIntersecting) { obs.disconnect(); loadField(); }
+    }, { rootMargin: '300px 0px' }).observe(card);
+  }
+
   function open() {
+    loadField();
     buildPanel();
     renderPanel();
     overlay.classList.add('is-open');
@@ -832,8 +925,8 @@ scopeShared(SHARED),
   });
 
   /* ---------- first paint of the card -------------------------- */
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', renderCard);
-  else setTimeout(renderCard, 0);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { renderCard(); watchField(); });
+  else setTimeout(function () { renderCard(); watchField(); }, 0);
   [600, 1500, 3500].forEach(function (d) { setTimeout(schedule, d); });
 
   window.openWebVitals  = open;
