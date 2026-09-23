@@ -465,14 +465,30 @@
   }
 
   /* ---------- Share popup -------------------------------------- */
+  /* Quick links point at /share/<key>, which serves its own preview card
+     to WhatsApp, LinkedIn and the rest before forwarding the visitor to
+     the deep link. Plain ?case= links work too, they just all show the
+     same homepage preview. */
   var QUICK = [
-    ['?case=yojanasahay',   'YojanaSahay case study',  'Government scheme finder, React PWA'],
-    ['?case=studylens',     'StudyLens AI case study', 'AI homework helper'],
-    ['?projects=ui',        'UI projects',             'Scrolls to My Projects, UI filter on'],
-    ['?projects=fullstack', 'Fullstack projects',      'Scrolls to My Projects, Fullstack filter on'],
-    ['?report=performance', 'Performance report',      'Live Core Web Vitals on their device'],
-    ['?mode=hacker',        'Hacker mode',             'Opens straight into the retro terminal']
+    ['yojanasahay', 'YojanaSahay case study',  'Government scheme finder, React PWA'],
+    ['studylens',   'StudyLens AI case study', 'AI homework helper'],
+    ['ui',          'UI projects',             'Scrolls to My Projects, UI filter on'],
+    ['fullstack',   'Fullstack projects',      'Scrolls to My Projects, Fullstack filter on'],
+    ['performance', 'Performance report',      'Live Core Web Vitals on their device'],
+    ['hacker',      'Hacker mode',             'Opens straight into the retro terminal']
   ];
+  /* the current view, when it matches a card we have */
+  var SHARE_KEY = [
+    ['case', 'yojanasahay', 'yojanasahay'], ['case', 'studylens', 'studylens'], ['case', 'portfolio', 'portfolio'],
+    ['projects', 'ui', 'ui'], ['projects', 'fullstack', 'fullstack'],
+    ['report', 'performance', 'performance'], ['mode', 'hacker', 'hacker']
+  ];
+  function cardFor(p) {
+    var hit = null;
+    SHARE_KEY.forEach(function (r) { if (p.get(r[0]) === r[1]) hit = r[2]; });
+    return hit;
+  }
+
   var ICON_LINK = '<path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/>';
   var ICON_COPY = '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>';
   var ICON_SHARE = '<path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/>';
@@ -587,7 +603,8 @@
   function renderShare() {
     var bits = describe();
     var esc = function (t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); };
-    var here = location.href;
+    var key = cardFor(params());
+    var here = key ? location.origin + '/share/' + key : location.href;
     sbody.innerHTML =
       '<div class="us-sec">This view</div>' +
       '<div class="us-url">' + esc(here) + '</div>' +
@@ -599,14 +616,16 @@
       '</div>' +
       '<div class="us-sec">Quick links</div>' +
       QUICK.map(function (q) {
-        var url = shareBase() + q[0];
+        var url = location.origin + '/share/' + q[0];
         return '<div class="us-row">' + svg(ICON_LINK) +
                  '<span class="us-k"><b>' + esc(q[1]) + '</b><span>' + esc(q[2]) + '</span></span>' +
                  '<button type="button" class="us-mini" data-us-copy="' + esc(url) + '">' + svg(ICON_COPY) + '<span>Copy</span></button>' +
                '</div>';
       }).join('') +
-      '<div class="us-note">Links combine \u2014 <b>?mode=hacker&amp;case=studylens</b> works. ' +
-        'Tracking tags you add, such as <b>?utm_source=linkedin</b>, are kept.</div>';
+      '<div class="us-note">Links starting <b>/share/</b> show their own preview card on WhatsApp, ' +
+        'LinkedIn and Slack, then open the same view. Plain links combine \u2014 ' +
+        '<b>?mode=hacker&amp;case=studylens</b> works \u2014 and keep tracking tags such as ' +
+        '<b>?utm_source=linkedin</b>.</div>';
   }
 
   function shareOpen() { return !!(sov && sov.classList.contains('is-open')); }
