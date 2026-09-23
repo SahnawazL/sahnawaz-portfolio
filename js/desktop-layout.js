@@ -439,7 +439,8 @@
         fn('openResumeEmailModal') && item('Get the Resume', 'resume'),
         document.querySelector('#tools-services') && item('Book a Service', 'go:#tools-services'),
         document.querySelector('#contact') && item('Contact', 'go:#contact'),
-        fn('openSharePopup') && item('Share This View', 'share')
+        fn('openSharePopup') && item('Share This View', 'share'),
+        item('Print / Save as PDF', 'print')
       ]) +
       col('Under the hood', [
         fn('openWebVitals') && item('Performance Report', 'vitals'),
@@ -455,6 +456,7 @@
       if (a.indexOf('go:') === 0) return goTo(a.slice(3));
       if (a === 'resume') window.openResumeEmailModal();
       if (a === 'share') window.openSharePopup();
+      if (a === 'print') { if (typeof window.printCV === 'function') window.printCV(); else window.print(); }
       if (a === 'vitals') window.openWebVitals();
       if (a === 'mode') window.perfGovernor.openPopup();
       if (a === 'search') window.openCommandPalette();

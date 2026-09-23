@@ -91,11 +91,23 @@
         if (b) { b.click(); return true; }
         return false;
       } },
+    /* The print stylesheet (css/print.css) reformats the whole page into a
+       CV. Everything is already in the page at load, so there is nothing to
+       wait for before opening the print dialogue, where "Save as PDF" is the
+       default destination on every platform. */
+    { t:'Print / Save as PDF', s:'This portfolio as a clean, printable CV', g:'Share & contact',
+      i:'<path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/>',
+      k:'print save pdf cv resume download paper hire recruiter',
+      run:function(){ if (typeof window.printCV === 'function') { window.printCV(); return true; }
+                      try { window.print(); return true; } catch (e) { return false; } } },
     { t:'Get the Resume', s:'Delivered to your inbox', g:'Share & contact', i:I.doc, k:'resume cv download pdf hire',
-      when:function(){ return has('openGateModal') || document.querySelector('[onclick*="openGateModal"]'); },
+      /* openResumeEmailModal is the page's real, global entry point (the
+         hero button calls it). openGateModal exists too, but only inside a
+         closed scope, so it can never be reached from here. */
+      when:function(){ return has('openResumeEmailModal') || document.querySelector('[onclick*="openResumeEmailModal"]'); },
       run:function(){
-        if (call('openGateModal')) return true;
-        var b = document.querySelector('[onclick*="openGateModal"]');
+        if (call('openResumeEmailModal')) return true;
+        var b = document.querySelector('[onclick*="openResumeEmailModal"]');
         if (b) { b.click(); return true; }
         return false;
       } },
@@ -663,4 +675,22 @@
 
   window.openCommandPalette  = open;
   window.closeCommandPalette = close;
+  /* shared by the palette entry and the desktop footer */
+  window.printCV = function () {
+    /* close anything floating first: an open popup would print over the CV */
+    try { if (typeof window.closeCommandPalette === 'function') window.closeCommandPalette(); } catch (e) {}
+    try { if (typeof window.closeWebVitals === 'function') window.closeWebVitals(); } catch (e) {}
+    try { if (typeof window.closeSharePopup === 'function') window.closeSharePopup(); } catch (e) {}
+    /* browsers name the saved PDF after the document title, so borrow a
+       proper filename for the moment the dialogue is open */
+    var title = document.title;
+    document.title = 'Sahnawaz-Ahmed-Laskar-CV';
+    var restore = function () { document.title = title; };
+    setTimeout(function () {
+      try { window.print(); } catch (e) {}
+      setTimeout(restore, 1200);
+    }, 180);
+    addEventListener('afterprint', restore, { once: true });
+  };
+
 })();
