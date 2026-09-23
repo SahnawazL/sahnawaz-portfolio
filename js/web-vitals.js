@@ -423,6 +423,14 @@
         chip('INP', M.INP.v) + chip('FCP', M.FCP.v) +
       '</div>' +
       '<div class="wvc-sec">Load timeline</div>' + timeline() +
+      '<div class="wvc-why">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" ' +
+          'stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/>' +
+          '<path d="M12 16v-4"/><path d="M12 8h.01"/></svg>' +
+        '<span><b>These numbers are about your visit, not a fixed score.</b> ' +
+          'They are measured live on the device and connection below, so a different phone, ' +
+          'browser or network will show different results \u2014 and even reloading this page can change them.</span>' +
+      '</div>' +
       '<div class="wvc-ctx">' + context().map(esc).join('<i></i>') + '</div>';
   }
 
@@ -493,7 +501,12 @@ scopeShared(SHARED),
 '#wvCard .wvc-goal{margin-top:7px;font-family:' + MONO + ';font-size:.6rem;color:rgba(150,195,225,.48)}',
 '#wvCard .wvc-sec{margin:16px 0 9px;display:flex;align-items:center;gap:9px;font-size:.58rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:rgba(150,200,230,.45)}',
 '#wvCard .wvc-sec::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(120,200,255,.18),transparent)}',
-'#wvCard .wvc-ctx{margin-top:14px;padding-top:11px;border-top:1px solid rgba(120,200,255,.1);display:flex;flex-wrap:nowrap;align-items:center;',
+'#wvCard .wvc-why{display:flex;align-items:flex-start;gap:10px;margin-top:14px;padding:10px 12px;',
+'  border-radius:11px;background:rgba(120,200,255,.05);border:1px solid rgba(120,200,255,.12);',
+'  font-size:.72rem;line-height:1.55;color:rgba(178,212,236,.66);text-align:left}',
+'#wvCard .wvc-why svg{width:15px;height:15px;flex:none;margin-top:1px;color:#8ad8ff}',
+'#wvCard .wvc-why b{color:#dcefff;font-weight:600}',
+'#wvCard .wvc-ctx{margin-top:10px;padding-top:11px;border-top:1px solid rgba(120,200,255,.1);display:flex;flex-wrap:nowrap;align-items:center;',
 '  overflow-x:auto;white-space:nowrap;scrollbar-width:none;line-height:1.6;min-height:calc(1.6em + 12px);',
 '  font-family:' + MONO + ';font-size:.62rem;color:rgba(160,200,228,.55)}',
 '#wvCard .wvc-ctx i{display:inline-block;width:3px;height:3px;border-radius:50%;margin:0 9px;background-color:rgba(150,200,230,.35)}',
@@ -734,7 +747,8 @@ scopeShared(SHARED),
 
       '<div class="wv-note">Live readings from <b>' + esc(context().slice(0, 2).join(' \u00b7 ') || 'this device') +
         '</b> on this visit \u2014 nothing is stored or sent anywhere. <b>LCP</b> is final at your first interaction, ' +
-        '<b>CLS</b> uses Chrome\u2019s session-window method, and <b>INP</b> counts genuine interactions only.' +
+        '<b>CLS</b> uses Chrome\u2019s session-window method, and <b>INP</b> counts genuine interactions only. ' +
+        'Reloading the page, or opening it on another device or network, will give different numbers.' +
         (b.cached ? ' ' + b.cached + ' file(s) came from your browser cache, so their decoded size is shown.' : '') +
       '</div>' +
       '<div class="wv-actions">' +
