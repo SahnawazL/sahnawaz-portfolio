@@ -1212,7 +1212,7 @@
   function depState(entry) {
     var gap = entry.worstGap || 0;
     if (!entry.outdated || !entry.outdated.length) return { text: 'All current', cls: 'df-state-ok' };
-    if (gap >= 2) return { text: gap + ' majors behind', cls: 'df-state-old' };
+    if (gap >= 2) return { text: gap + ' majors', cls: 'df-state-old' };
     return { text: 'Minor drift', cls: 'df-state-mid' };
   }
 
