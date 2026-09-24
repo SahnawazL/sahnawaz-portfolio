@@ -1032,13 +1032,80 @@
     return CI_CONCLUSION_LABELS[entry.conclusion] || (entry.conclusion || 'Unknown');
   }
 
-  function ciRateFillClass(rate) {
-    if (rate >= 80) return 'ci-fill-good';
-    if (rate >= 50) return 'ci-fill-warn';
-    return 'ci-fill-bad';
-  }
+  /* Deployment Health
+     ------------------------------------------------------------------
+     This used to show a pass-rate bar, which graded the repo's whole
+     recent history and turned red whenever a run was cancelled — and
+     GitHub cancels a Pages deploy every time a newer push supersedes it.
+     Shipping twice in a minute therefore looked like a broken build.
+
+     What a visitor actually wants to know is: is it working right now,
+     and does this person ship? So the current run is the colour anchor,
+     the history strip shows the shape over time (a failure that was
+     fixed reads as recovery), and the numbers underneath are facts about
+     shipping rather than a grade. */
 
   var CI_VIEW_ARROW = '<svg class="ci-view-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
+
+  var CI_MARK_CLASS = {
+    success: 'ci-mk-ok',
+    failure: 'ci-mk-bad',
+    timed_out: 'ci-mk-bad',
+    startup_failure: 'ci-mk-bad',
+    cancelled: 'ci-mk-skip',
+    skipped: 'ci-mk-skip',
+    in_progress: 'ci-mk-run',
+    queued: 'ci-mk-run'
+  };
+  var CI_MARK_TITLE = {
+    success: 'Passed',
+    failure: 'Failed',
+    timed_out: 'Timed out',
+    startup_failure: 'Failed to start',
+    cancelled: 'Superseded by a newer push',
+    skipped: 'Skipped',
+    in_progress: 'Running now',
+    queued: 'Queued'
+  };
+
+  function ciHeadline(entry) {
+    if (entry.status === 'in_progress') return { text: 'Deploying', cls: 'ci-state-run' };
+    if (entry.status === 'queued')      return { text: 'Queued',    cls: 'ci-state-run' };
+    if (entry.conclusion === 'success') return { text: 'Passing',   cls: 'ci-state-ok' };
+    if (entry.conclusion === 'cancelled' || entry.conclusion === 'skipped')
+      return { text: 'Superseded', cls: 'ci-state-skip' };
+    if (!entry.conclusion) return { text: 'Unknown', cls: 'ci-state-skip' };
+    return { text: 'Failing', cls: 'ci-state-bad' };
+  }
+
+  function ciDuration(sec) {
+    if (!sec && sec !== 0) return '';
+    return sec < 90 ? sec + 's' : Math.round(sec / 60) + 'm';
+  }
+
+  function ciStrip(history) {
+    if (!history || !history.length) return '';
+    /* oldest on the left, so it reads as a timeline */
+    var marks = history.slice().reverse().map(function (h) {
+      var cls = CI_MARK_CLASS[h.c] || 'ci-mk-skip';
+      var title = CI_MARK_TITLE[h.c] || h.c;
+      var when = h.at ? ' \u00b7 ' + timeAgo(h.at) : '';
+      return '<i class="ci-mk ' + cls + '" title="' + escapeHtml(title + when) + '"></i>';
+    }).join('');
+    return '<div class="ci-strip" aria-hidden="true">' + marks + '</div>';
+  }
+
+  function ciFacts(entry) {
+    var bits = [];
+    if (typeof entry.deploys7d === 'number' && entry.deploys7d > 0)
+      bits.push('<b>' + entry.deploys7d + '</b> deploy' + (entry.deploys7d === 1 ? '' : 's') + ' this week');
+    if (entry.avgSeconds) bits.push('~' + ciDuration(entry.avgSeconds) + ' per run');
+    /* mention real failures plainly, but only when there are some */
+    if (typeof entry.passRate === 'number' && entry.passRate < 100 && entry.sampleSize)
+      bits.push(Math.round(entry.passRate * entry.sampleSize / 100) + ' of last ' + entry.sampleSize + ' passed');
+    if (!bits.length) return '';
+    return '<div class="ci-facts">' + bits.join(' <span>\u00b7</span> ') + '</div>';
+  }
 
   function renderCIHealth(ci) {
     var el = document.getElementById('raCIHealth');
@@ -1046,40 +1113,26 @@
     if (!ci || !ci.length) { el.innerHTML = ''; return; }
 
     var cardsHtml = ci.map(function (entry) {
-      var dotClass = ciDotClass(entry);
-      var textClass = ciTextClass(entry);
-      var label = ciStatusLabel(entry);
+      var head = ciHeadline(entry);
       var ago = entry.ranAt ? timeAgo(entry.ranAt) : '';
-      var statusLine = label + (ago ? ' \u00b7 ' + ago : '');
-      var rateHtml = (typeof entry.passRate === 'number')
-        ? '<div class="ci-rate-row">'
-          +   '<span class="ci-rate-track"><span class="ci-rate-fill ' + ciRateFillClass(entry.passRate) + '" data-fill="' + entry.passRate + '"></span></span>'
-          +   '<span class="ci-rate-pct">' + entry.passRate + '%</span>'
-          + '</div>'
-        : '<div class="ci-rate-row"><span class="ci-status-note">// no finished runs yet</span></div>';
+      var line = (entry.conclusion === 'success' ? 'Last deploy' : 'Last run') + (ago ? ' ' + ago : '');
       var href = entry.url || 'https://github.com/SahnawazL';
-
-      // The whole card is the link — a labeled "View full run" row at
-      // the bottom (same dashed-border, arrow-nudges-right language as
-      // the AI Weekly Recap CTA above it) makes it read as clickable at
-      // a glance, not just a static stat card.
-      return '<a class="ci-card" href="' + href + '" target="_blank" rel="noopener" aria-label="Open full GitHub Actions run details for ' + escapeHtml(entry.repo) + '">'
-        + '<div class="ci-top"><span class="ci-dot ' + dotClass + '"></span><span class="ci-name">' + escapeHtml(entry.repo) + '</span></div>'
-        + '<div class="ci-status-line ' + textClass + '">' + escapeHtml(statusLine) + '</div>'
-        + rateHtml
+      return '<a class="ci-card" href="' + href + '" target="_blank" rel="noopener" aria-label="Open the latest GitHub Actions run for ' + escapeHtml(entry.repo) + '">'
+        + '<div class="ci-top">'
+        +   '<span class="ci-dot ' + ciDotClass(entry) + '"></span>'
+        +   '<span class="ci-name">' + escapeHtml(entry.repo) + '</span>'
+        +   '<span class="ci-state ' + head.cls + '">' + head.text + '</span>'
+        + '</div>'
+        + '<div class="ci-status-line">' + escapeHtml(line) + '</div>'
+        + ciStrip(entry.history)
+        + ciFacts(entry)
         + '<div class="ci-view-run"><span>View full run</span>' + CI_VIEW_ARROW + '</div>'
         + '</a>';
     }).join('');
 
     el.innerHTML =
-        '<div class="ra-label-row"><span class="ra-label">Build Health</span><span class="ra-label-sub">// GitHub Actions</span></div>'
+        '<div class="ra-label-row"><span class="ra-label">Deployment Health</span><span class="ra-label-sub">// GitHub Actions</span></div>'
       + '<div class="ci-grid">' + cardsHtml + '</div>';
-
-    requestAnimationFrame(function () {
-      el.querySelectorAll('.ci-rate-fill').forEach(function (fill) {
-        fill.style.width = fill.getAttribute('data-fill') + '%';
-      });
-    });
   }
 
   // ══ Release Timeline ══
