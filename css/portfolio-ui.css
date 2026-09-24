@@ -11152,3 +11152,42 @@ div#popup.popup {
   .rg-dots::after, .rg-seal-ring, .rg-seal-tick, .rg-success{ animation:none !important; }
   .rg-seal-ring, .rg-seal-tick{ stroke-dashoffset:0 !important; }
 }
+
+/* ── Deployment Health: status badge, run-history strip, shipping facts ──
+   Replaces the old pass-rate bar. Colour tracks the current run only, so
+   a failure that was fixed no longer marks the card permanently. */
+.ci-top { gap: 9px; }
+.ci-state {
+  margin-left: auto;
+  flex: none;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: .58rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+.ci-state-ok   { color: #6ff0bb; background: rgba(79, 224, 162, .14); }
+.ci-state-bad  { color: #ff9a9a; background: rgba(255, 122, 122, .14); }
+.ci-state-run  { color: #8ad8ff; background: rgba(90, 200, 255, .14); }
+.ci-state-skip { color: rgba(185, 205, 222, .75); background: rgba(150, 190, 220, .12); }
+
+.ci-strip { display: flex; align-items: flex-end; gap: 3px; margin: 11px 0 9px; height: 16px; }
+.ci-mk { flex: 1; min-width: 3px; max-width: 9px; border-radius: 2px; background: rgba(150, 190, 220, .18); }
+.ci-mk-ok   { height: 16px; background: linear-gradient(180deg, #4fe0a2, #2fae7d); }
+.ci-mk-bad  { height: 16px; background: linear-gradient(180deg, #ff8f8f, #d95b5b); }
+.ci-mk-skip { height: 7px;  background: rgba(150, 190, 220, .26); }
+.ci-mk-run  { height: 16px; background: linear-gradient(180deg, #5ac8ff, #3a9fd6); animation: ciPulse 1.4s ease-in-out infinite; }
+@keyframes ciPulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+
+.ci-facts {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: .6rem;
+  line-height: 1.5;
+  color: rgba(165, 200, 225, .6);
+}
+.ci-facts b { color: #cfeaff; font-weight: 600; }
+.ci-facts span { color: rgba(150, 190, 220, .4); margin: 0 2px; }
+
+@media (prefers-reduced-motion: reduce) { .ci-mk-run { animation: none; } }
