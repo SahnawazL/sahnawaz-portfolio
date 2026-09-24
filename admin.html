@@ -924,6 +924,41 @@
     .nav-item { flex-shrink: 0; width: auto; margin-bottom: 0; white-space: nowrap; }
     .main-area .content { padding: 18px 16px; }
   }
+
+  /* ══════════════════════════════════════════════════════════════════
+     FULL DESKTOP LAYER — makes real use of laptop/monitor width instead
+     of the mobile-first grid stretching or capping too early. Applies
+     from 901px up; the 900px rules above still own phones/tablets.
+     ══════════════════════════════════════════════════════════════════ */
+  @media (min-width: 901px) {
+    .main-area .content { max-width: 1520px !important; padding: 28px 40px 80px !important; }
+
+    /* stop stat cards from stretching edge-to-edge on wide monitors —
+       keep them a sane card width and let the row wrap instead */
+    .stats-row {
+      grid-template-columns: repeat(auto-fill, minmax(170px, 205px)) !important;
+      justify-content: flex-start;
+    }
+
+    /* two charts side by side, but with room to breathe and a taller
+       plot area so they don't look squashed at 1500px+ */
+    .charts-row { grid-template-columns: 1.1fr 0.9fr; }
+    .chart-wrap { height: 220px !important; }
+
+    /* reviews / likes cards: cap growth the same way stat cards are capped */
+    .reviews-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 340px)) !important; }
+    .likes-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 240px)) !important; }
+
+    /* visitor / resume rows: let the name column breathe, keep the
+       right-hand meta from feeling cramped */
+    .visitor-row { grid-template-columns: 48px minmax(220px,1fr) auto auto; padding: 18px 24px; }
+    .chat-visitor-header { grid-template-columns: 48px minmax(220px,1fr) auto auto; }
+  }
+
+  @media (min-width: 1600px) {
+    .main-area .content { max-width: 1680px !important; }
+    .sidebar { width: 252px; }
+  }
 </style>
 </head>
 <body>
