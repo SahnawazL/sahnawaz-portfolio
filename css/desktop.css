@@ -432,3 +432,29 @@
 @media (min-width: 960px) {
   #codeBtn, #hacker-toggle { display: none !important; }
 }
+
+/* ---------- 11. chat assistant sized for a desktop (960px+) -------
+   The chat window is 320px wide with a 256px message area — sensible on a
+   phone, cramped on a 1440x900 screen where it used up about a fifth of
+   the width and showed two messages at a time. Both the normal and the
+   expanded states grow here; the phone layout is untouched. */
+@media (min-width: 960px) {
+  #chatWidget { width: 400px; }
+  #chatWidget #chatMessages {
+    min-height: 220px;
+    max-height: min(430px, calc(100vh - 330px));
+  }
+  #chatWidget.chat-expanded { width: min(560px, 40vw); }
+  #chatWidget.chat-expanded #chatMessages {
+    /* a taller floor too, so the expanded window looks deliberate even
+       with only a couple of messages in it */
+    min-height: min(340px, calc(100vh - 420px));
+    max-height: min(600px, calc(100vh - 250px));
+  }
+  /* a wider window can afford a roomier composer */
+  #chatWidget #chatInput { font-size: .86rem; }
+}
+@media (min-width: 1440px) {
+  #chatWidget { width: 430px; }
+  #chatWidget.chat-expanded { width: 620px; }
+}

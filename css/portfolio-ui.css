@@ -11311,3 +11311,20 @@ div#popup.popup {
 .lang-drift-caption { font-size: .58rem; color: rgba(150, 190, 220, .45); }
 
 @media (prefers-reduced-motion: reduce) { .lang-seg { transition: none; } }
+
+/* ── Chat deep-link chips ──────────────────────────────────────────────
+   The assistant ends a reply with a chip that takes the visitor to the
+   thing it just described, using the page's own functions. */
+.bot-links { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+.bot-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 12px; border-radius: 10px; cursor: pointer;
+  font: 600 .74rem Inter, system-ui, sans-serif;
+  color: #04121a; background: linear-gradient(135deg, #5ae0ff, #4fe0a2);
+  border: none; box-shadow: 0 4px 14px rgba(80, 210, 230, .22);
+  transition: filter .15s ease, transform .12s ease;
+}
+.bot-link:hover { filter: brightness(1.07); }
+.bot-link:active { transform: scale(.97); }
+.bot-link svg { width: 12px; height: 12px; }
+.bot-link:focus-visible { outline: 2px solid #5ac8ff; outline-offset: 2px; }
