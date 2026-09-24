@@ -888,39 +888,104 @@
     var hoursHtml = '';
 
     if (languages && languages.length) {
+      /* The ring: a track behind the segments, rounded caps and a small
+         gap between languages, so it reads as a designed chart rather
+         than three arcs touching. The whole thing is interactive — tap a
+         language and the ring isolates it. */
       var r = 30, c = 2 * Math.PI * r, cumulative = 0;
-      var segs = languages.map(function (l) {
-        var arcLen = c * (l.percent / 100);
-        var seg = '<circle cx="38" cy="38" r="' + r + '" fill="none" stroke="' + langColor(l.name) + '" stroke-width="9" stroke-dasharray="' + arcLen.toFixed(1) + ' ' + (c - arcLen).toFixed(1) + '" stroke-dashoffset="' + (-cumulative).toFixed(1) + '"></circle>';
-        cumulative += arcLen;
+      var GAP = 1.6;                                   // px of arc between segments
+      var segs = languages.map(function (l, i) {
+        var arcLen = Math.max(c * (l.percent / 100) - GAP, 1.2);
+        var seg = '<circle class="lang-seg" data-lang="' + i + '" cx="38" cy="38" r="' + r + '"'
+          + ' fill="none" stroke="' + langColor(l.name) + '" stroke-width="9" stroke-linecap="round"'
+          + ' stroke-dasharray="' + arcLen.toFixed(1) + ' ' + (c - arcLen).toFixed(1) + '"'
+          + ' stroke-dashoffset="' + (-cumulative).toFixed(1) + '"></circle>';
+        cumulative += c * (l.percent / 100);
         return seg;
       }).join('');
+      var track = '<circle cx="38" cy="38" r="' + r + '" fill="none" stroke="rgba(150,190,220,.12)" stroke-width="9"></circle>';
+
       var top = languages[0];
-      var legend = languages.slice(0, 5).map(function (l) {
-        return '<div class="lang-legend-row"><span class="lang-dot" style="background:' + langColor(l.name) + '"></span><span class="lang-legend-name">' + escapeHtml(l.name) + '</span><span class="lang-legend-pct">' + l.percent + '%</span></div>';
+      var legend = languages.slice(0, 5).map(function (l, i) {
+        return '<button type="button" class="lang-legend-row" data-lang="' + i + '"'
+          + ' data-pct="' + l.percent + '" data-name="' + escapeHtml(l.name) + '">'
+          + '<span class="lang-dot" style="background:' + langColor(l.name) + '"></span>'
+          + '<span class="lang-legend-name">' + escapeHtml(l.name) + '</span>'
+          + '<span class="lang-legend-pct">' + l.percent + '%</span></button>';
       }).join('');
 
+      /* A sparkline with no numbers says nothing. This states the change
+         in the leading language over the tracked window. */
       var driftHtml = '';
       var driftSvg = (languageHistory && languageHistory.length >= 2)
         ? buildLanguageDriftSvg(languageHistory, languages)
         : null;
       if (driftSvg) {
         var days = languageHistory.length;
-        driftHtml = '<div class="lang-drift">' + driftSvg
-          + '<div class="lang-drift-caption">// ' + days + (days === 1 ? ' day' : ' days') + ' tracked \u00b7 ' + escapeHtml(top.name) + ' share over time</div></div>';
+        var shareAt = function (entry) {
+          var f = (entry.languages || []).filter(function (l) { return l.name === top.name; })[0];
+          return f ? f.percent : null;
+        };
+        var first = shareAt(languageHistory[0]);
+        var last = shareAt(languageHistory[languageHistory.length - 1]);
+        var deltaHtml = '';
+        if (first !== null && last !== null) {
+          var d = Math.round((last - first) * 10) / 10;
+          var dir = d > 0.05 ? 'up' : (d < -0.05 ? 'down' : 'flat');
+          var arrow = dir === 'up' ? '\u25b2' : (dir === 'down' ? '\u25bc' : '\u2014');
+          var word = dir === 'flat' ? 'steady' : (d > 0 ? '+' + d + ' pts' : d + ' pts');
+          deltaHtml = '<span class="lang-delta lang-delta-' + dir + '">' + arrow + ' ' + word + '</span>';
+        }
+        driftHtml = '<div class="lang-drift">'
+          + '<div class="lang-drift-head"><span>' + escapeHtml(top.name) + ' share</span>' + deltaHtml + '</div>'
+          + driftSvg
+          + '<div class="lang-drift-caption">across ' + days + (days === 1 ? ' day' : ' days') + ' of tracked commits</div>'
+          + '</div>';
       } else {
         driftHtml = '<div class="lang-drift"><div class="lang-drift-empty">Tracking started \u2014 drift trend fills in over the next few weeks.</div></div>';
       }
 
       langHtml =
-          '<div class="ra-label-row"><span class="ra-label">Languages</span></div>'
-        + '<div class="lang-ring-wrap"><svg viewBox="0 0 76 76" width="76" height="76" style="transform:rotate(-90deg)">' + segs + '</svg>'
-        + '<div class="lang-ring-center"><span class="lang-ring-pct">' + top.percent + '%</span><span class="lang-ring-name">' + escapeHtml(top.name) + '</span></div></div>'
+          '<div class="ra-label-row"><span class="ra-label">Languages</span>'
+        +   '<span class="ra-label-sub">// ' + languages.length + ' tracked</span></div>'
+        + '<div class="lang-ring-wrap"><svg viewBox="0 0 76 76" width="76" height="76" style="transform:rotate(-90deg)">'
+        +   track + segs + '</svg>'
+        + '<div class="lang-ring-center"><span class="lang-ring-pct">' + top.percent + '%</span>'
+        +   '<span class="lang-ring-name">' + escapeHtml(top.name) + '</span></div></div>'
         + '<div class="lang-legend">' + legend + '</div>'
         + driftHtml;
-    } else {
+        } else {
       langHtml = '<div class="ra-label-row"><span class="ra-label">Languages</span></div><div class="ra-empty" style="padding:0.4rem 0;">Not enough data yet.</div>';
     }
+
+    /* tap a language to isolate it: the ring dims the rest and the centre
+       switches to that language. Tapping it again returns to the overview. */
+    setTimeout(function () {
+      var wrap = document.getElementById('raLangHours');
+      if (!wrap || wrap.__langWired) return;
+      wrap.__langWired = true;
+      wrap.addEventListener('click', function (e) {
+        var btn = e.target.closest && e.target.closest('.lang-legend-row');
+        if (!btn) return;
+        var idx = btn.getAttribute('data-lang');
+        var active = btn.classList.contains('is-active');
+        [].forEach.call(wrap.querySelectorAll('.lang-legend-row'), function (b) { b.classList.remove('is-active'); });
+        [].forEach.call(wrap.querySelectorAll('.lang-seg'), function (sg) { sg.classList.remove('is-dim', 'is-lit'); });
+        var pctEl = wrap.querySelector('.lang-ring-pct');
+        var nameEl = wrap.querySelector('.lang-ring-name');
+        if (active || !pctEl || !nameEl) {
+          if (pctEl && wrap.__langTop) { pctEl.textContent = wrap.__langTop.pct; nameEl.textContent = wrap.__langTop.name; }
+          return;
+        }
+        if (!wrap.__langTop) wrap.__langTop = { pct: pctEl.textContent, name: nameEl.textContent };
+        btn.classList.add('is-active');
+        [].forEach.call(wrap.querySelectorAll('.lang-seg'), function (sg) {
+          sg.classList.add(sg.getAttribute('data-lang') === idx ? 'is-lit' : 'is-dim');
+        });
+        pctEl.textContent = btn.getAttribute('data-pct') + '%';
+        nameEl.textContent = btn.getAttribute('data-name');
+      });
+    }, 0);
 
     if (codingHours && codingHours.histogram) {
       var hist = codingHours.histogram;
