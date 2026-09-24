@@ -11196,6 +11196,7 @@ div#popup.popup {
 .df-state {
   margin-left: auto;
   flex: none;
+  white-space: nowrap;
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
   font-size: .56rem;
   font-weight: 700;
@@ -11215,15 +11216,53 @@ div#popup.popup {
 }
 .df-pip-ok { background: linear-gradient(90deg, #4fe0a2, #2fae7d); }
 
-.df-list { margin-top: 7px; display: flex; flex-direction: column; gap: 3px; }
+.df-list { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+
+/* Two lines per package: name and how far behind on the first, the
+   version move on the second. On a phone the card is about 230px wide,
+   so "firebase-admin  12.0.0 → 14.5.0  2 majors" cannot fit on one line
+   — it used to wrap mid-row and leave the tag stranded underneath. */
 .df-row {
-  display: flex; align-items: baseline; gap: 7px; flex-wrap: wrap;
-  font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .59rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 8px;
+  align-items: baseline;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: .59rem;
+  line-height: 1.35;
+  text-align: left;
 }
-.df-pkg { color: #cfeaff; font-weight: 600; }
-.df-ver { color: rgba(165, 200, 225, .6); }
+.df-pkg {
+  grid-column: 1; grid-row: 1;
+  color: #cfeaff; font-weight: 600;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 .df-gap {
-  margin-left: auto; color: rgba(255, 207, 107, .85);
-  font-size: .55rem; letter-spacing: .04em;
+  grid-column: 2; grid-row: 1;
+  color: rgba(255, 207, 107, .85);
+  font-size: .55rem; letter-spacing: .04em; white-space: nowrap;
 }
+.df-ver {
+  grid-column: 1 / -1; grid-row: 2;
+  color: rgba(165, 200, 225, .58);
+  font-size: .56rem;
+}
+
 .df-detail b { color: #cfeaff; font-weight: 600; }
+
+/* the card reads as a list, so everything in it aligns left.
+   min-width:0 matters: without it a non-wrapping repo name sets the
+   card's minimum width, the grid column grows to match, and the second
+   card is pushed off the side of a phone screen. */
+.df-card { text-align: left; min-width: 0; }
+.df-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.df-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.df-detail { text-align: left; }
+
+/* Two cards side by side leaves about 150px of usable width on a phone —
+   not enough for a repo name, a status tag and package rows. One card per
+   row below 560px; the two-column grid returns on wider screens. */
+@media (max-width: 560px) {
+  .df-grid { grid-template-columns: 1fr; }
+  .df-pip { max-width: 34px; }
+}
