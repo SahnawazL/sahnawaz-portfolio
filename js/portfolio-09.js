@@ -1686,6 +1686,86 @@
   /* =====================================================
      💎 PREMIUM RICH REPLY FORMATTER
      ===================================================== */
+  /* ── Deep-link chips ──────────────────────────────────────────────────
+     The assistant can end a reply with [[go:studylens|See the case study]].
+     Rendered as a chip that uses the page's own functions where they exist,
+     so the visitor lands on the right thing without a reload; if a function
+     is missing it falls back to the deep link, which url-state.js handles. */
+  var CHAT_LINKS = {
+    yojanasahay: { url: '/?case=yojanasahay', run: function () { return callIf('openCaseStudy', 'yojanasahay'); } },
+    studylens:   { url: '/?case=studylens',   run: function () { return callIf('openCaseStudy', 'studylens'); } },
+    portfolio:   { url: '/?case=portfolio',   run: function () { return callIf('openCaseStudy', 'portfolio'); } },
+    projects:    { url: '/#my-projects',      run: function () { return scrollTo_('#my-projects'); } },
+    experience:  { url: '/#projects',         run: function () { return scrollTo_('#projects'); } },
+    stack:       { url: '/#tech-stack',       run: function () { return scrollTo_('section.ts-section'); } },
+    services:    { url: '/#what-i-offer',     run: function () { return scrollTo_('#what-i-offer'); } },
+    telemetry:   { url: '/#recent-activity',  run: function () { return scrollTo_('#recent-activity'); } },
+    contact:     { url: '/#contact',          run: function () { return scrollTo_('#contact'); } },
+    resume:      { url: '/#contact',          run: function () { return callIf('openResumeEmailModal'); } },
+    performance: { url: '/?report=performance', run: function () { return callIf('openWebVitals'); } }
+  };
+
+  function callIf(name, arg) {
+    if (typeof window[name] !== 'function') return false;
+    try { window[name](arg); return true; } catch (e) { return false; }
+  }
+  /* Sections below the target are still rendering while the page scrolls,
+     which pushes the target down and leaves the jump short. Aim, then
+     correct twice once things settle. */
+  function scrollTo_(sel) {
+    var el = document.querySelector(sel);
+    if (!el) return false;
+    var offset = function () {
+      var h = document.querySelector('header');
+      return h && /fixed|sticky/.test(getComputedStyle(h).position) ? h.getBoundingClientRect().height : 0;
+    };
+    var aim = function () {
+      var top = el.getBoundingClientRect().top + pageYOffset - offset() - 8;
+      try { scrollTo({ top: Math.max(0, top), behavior: 'smooth' }); } catch (e) { scrollTo(0, Math.max(0, top)); }
+    };
+    aim();
+    [700, 1400].forEach(function (t) {
+      setTimeout(function () {
+        if (Math.abs(el.getBoundingClientRect().top - offset() - 8) > 28) aim();
+      }, t);
+    });
+    return true;
+  }
+
+  /* turn the markers into chips; returns { text, chips } */
+  function extractChatLinks(raw) {
+    var chips = [];
+    var text = String(raw).replace(/\[\[go:([a-z-]+)\|([^\]]{1,60})\]\]/gi, function (_, key, label) {
+      var k = String(key).toLowerCase();
+      if (CHAT_LINKS[k] && chips.length < 2) chips.push({ key: k, label: label.trim() });
+      return '';
+    });
+    return { text: text.replace(/\n{3,}/g, '\n\n').trim(), chips: chips };
+  }
+
+  function chipsHtml(chips) {
+    if (!chips.length) return '';
+    return '<div class="bot-links">' + chips.map(function (c) {
+      return '<button type="button" class="bot-link" data-bot-go="' + c.key + '">' +
+        '<span>' + c.label.replace(/</g, '&lt;') + '</span>' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>' +
+        '</button>';
+    }).join('') + '</div>';
+  }
+
+  /* one delegated listener for every chip the chat ever renders */
+  if (!window.__botLinksWired) {
+    window.__botLinksWired = true;
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest && e.target.closest('[data-bot-go]');
+      if (!btn) return;
+      var entry = CHAT_LINKS[btn.getAttribute('data-bot-go')];
+      if (!entry) return;
+      if (typeof window.closeChatWidget === 'function') { try { window.closeChatWidget(); } catch (err) {} }
+      if (!entry.run()) location.href = entry.url;     /* fallback: let the URL do it */
+    });
+  }
+
   function formatBotReply(raw) {
     var catKey = 'general';
     var catLabels = {
@@ -1704,10 +1784,15 @@
     var catSynonyms = {services:'skills',service:'skills',tech:'skills',experience:'about',work:'about',hire:'hiring',recruitment:'hiring',general_info:'general'};
     if (catSynonyms[catKey]) catKey = catSynonyms[catKey];
 
+    /* pull out any deep-link markers before the text is formatted */
+    var linked = extractChatLinks(raw);
+    raw = linked.text;
+    var chips = chipsHtml(linked.chips);
+
     var hasStructure = /#{1,3}|---|!!|>>|^\s*[-•]\s|\*\*/m.test(raw);
     var isShort = raw.trim().length < 160;
     if (!hasStructure && isShort) {
-      return { html: inlineFormat(raw), rich: false, cat: catKey };
+      return { html: inlineFormat(raw) + chips, rich: !!chips, cat: catKey };
     }
 
     var lines = raw.split('\n');
@@ -1779,7 +1864,7 @@
       }
     }
     if (inList) html += '</ul>';
-    return { html: html, rich: true, cat: catKey };
+    return { html: html + chips, rich: true, cat: catKey };
   }
 
   function inlineFormat(text) {
