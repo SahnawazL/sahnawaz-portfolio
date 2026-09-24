@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="adm-ref" content="514e7a840a057831b45708e70b62a2f24fc02c705d10020c7a84da70e4de686f">
 <title>Admin — ByteWithSahnawaz</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -660,9 +659,15 @@
     <span class="lock-icon">🛡️</span>
     <div class="lock-title">Admin Access</div>
     <div class="lock-sub">ByteWithSahnawaz · Restricted</div>
-    <input type="password" class="lock-input" id="pwInput" placeholder="••••••••" autocomplete="off">
-    <button class="lock-btn" onclick="checkPassword()">Enter Dashboard →</button>
-    <div class="lock-error" id="lockError">⚠ Incorrect password. Try again.</div>
+    <button class="lock-btn" id="googleSignInBtn" onclick="adminSignIn()">
+      <svg width="17" height="17" viewBox="0 0 24 24" style="vertical-align:-3px;margin-right:8px">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/>
+      </svg>Sign in with Google</button>
+    <div class="lock-error" id="lockError">⚠ This account isn\u2019t authorised.</div>
+    <div class="lock-sub" id="lockNote" style="margin-top:14px;font-size:.72rem;opacity:.6">Only the site owner\u2019s Google account can enter.</div>
   </div>
 </div>
 
@@ -851,21 +856,12 @@
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <!-- Chart.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 
 <script>
-  // Password hash is stored in <meta name="adm-ref"> — not in JS source.
-  // To change password: generate SHA-256 of your new password and update that meta tag.
-  // Generator: https://emn178.github.io/online-tools/sha256.html
-  function getStoredHash() {
-    var tag = document.querySelector('meta[name="adm-ref"]');
-    return tag ? tag.getAttribute('content') : '';
-  }
-  async function hashPassword(str) {
-    var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-  }
+  // (password hashing removed — access is now Google sign-in, owner only)
 
   // ── Firebase config ────────────────────────────────────────────────────────
   // These credentials are also present in visitor-auth.js (public file), so they
@@ -888,40 +884,75 @@
   var activityChartInstance = null;
   var ratingChartInstance = null;
 
-  /* ── Lock / Unlock ── */
-  document.getElementById('pwInput').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') checkPassword();
-  });
+  /* ── Google sign-in, restricted to the owner ──────────────────────────
+     The old lock hashed a password kept in this public file — anyone who
+     read the file could brute-force it offline. This uses Firebase Google
+     sign-in and only lets ONE account through. The real protection is in
+     Firestore Security Rules (which must also allow only this UID to read
+     the admin collections); this gate is the front door, the rules are the
+     lock. */
+  var ADMIN_EMAIL = 'balveerdj@gmail.com';
+  var authInited = false, rejecting = false;
 
-  async function checkPassword() {
-    var val = document.getElementById('pwInput').value;
+  function ensureFirebase() {
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    if (!db) db = firebase.firestore();
+  }
+
+  function showLock(message) {
+    document.getElementById('lockScreen').style.display = 'flex';
+    document.getElementById('dashboard').style.display = 'none';
     var err = document.getElementById('lockError');
-    var hash = await hashPassword(val);
-    if (hash === getStoredHash()) {
-      document.getElementById('lockScreen').style.display = 'none';
-      document.getElementById('dashboard').style.display = 'block';
-      initFirebase();
-    } else {
-      err.style.display = 'block';
-      err.style.animation = 'none';
-      setTimeout(function() { err.style.animation = 'shake 0.4s ease'; }, 10);
-      document.getElementById('pwInput').value = '';
+    if (message) { err.textContent = message; err.style.display = 'block'; }
+    else err.style.display = 'none';
+  }
+  function showDashboard() {
+    document.getElementById('lockScreen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+  }
+
+  async function adminSignIn() {
+    ensureFirebase();
+    try {
+      var provider = new firebase.auth.GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      await firebase.auth().signInWithPopup(provider);
+      /* onAuthStateChanged below decides whether this account is allowed */
+    } catch (e) {
+      showLock(e && e.code === 'auth/popup-closed-by-user'
+        ? '\u26a0 Sign-in cancelled.' : '\u26a0 Sign-in failed. Try again.');
     }
   }
 
   function logoutAdmin() {
-    document.getElementById('lockScreen').style.display = 'flex';
-    document.getElementById('dashboard').style.display = 'none';
-    document.getElementById('pwInput').value = '';
-    document.getElementById('lockError').style.display = 'none';
+    try { firebase.auth().signOut(); } catch (e) {}
+    showLock();
   }
 
-  /* ── Firebase init ── */
-  function initFirebase() {
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    db = firebase.firestore();
-    loadAll();
+  /* the single source of truth: whenever auth state changes, gate on it */
+  function startAdminAuth() {
+    if (authInited) return;
+    authInited = true;
+    ensureFirebase();
+    firebase.auth().onAuthStateChanged(function (user) {
+      if (user && (user.email || '').toLowerCase() === ADMIN_EMAIL) {
+        showDashboard();
+        loadAll();
+      } else if (user) {
+        /* signed in, but not the owner: reject, keep the reason on screen */
+        rejecting = true;
+        showLock('\u26a0 ' + user.email + ' isn\u2019t authorised. Use the owner account.');
+        firebase.auth().signOut();
+      } else {
+        /* a plain sign-out shows the neutral lock, but a rejection has
+           already put its message up — don't overwrite it */
+        if (rejecting) { rejecting = false; } else { showLock(); }
+      }
+    });
   }
+
+  /* kept so nothing else that calls initFirebase() breaks */
+  function initFirebase() { ensureFirebase(); }
 
   /* ── Refresh ── */
   function doRefresh() {
@@ -1694,6 +1725,10 @@
         thread.innerHTML = '<div class="chat-thread-loading">⚠ Could not load messages.</div>';
       });
   }
+
+  /* boot */
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startAdminAuth);
+  else startAdminAuth();
 </script>
 </body>
 </html>
