@@ -604,12 +604,20 @@ async function fetchRepoDependencyFreshness(repo, headers) {
       if (majorVersion(pinned) === majorVersion(latest)) {
         upToDate += 1;
       } else {
-        outdated.push({ name, pinned, latest });
+        // how far behind matters more than the fact of being behind: one
+        // major is routine and often deliberate, several is real drift
+        const gap = Number(majorVersion(latest)) - Number(majorVersion(pinned));
+        outdated.push({ name, pinned, latest, majorsBehind: Number.isFinite(gap) ? gap : null });
       }
     });
 
     const comparable = upToDate + outdated.length;
     if (!comparable) return null;
+
+    const worstGap = outdated.reduce(
+      (max, d) => (typeof d.majorsBehind === 'number' && d.majorsBehind > max ? d.majorsBehind : max),
+      0
+    );
 
     return {
       repo: repo.name,
@@ -617,6 +625,7 @@ async function fetchRepoDependencyFreshness(repo, headers) {
       freshPercent: Math.round((upToDate / comparable) * 100),
       upToDate,
       total: comparable,
+      worstGap,                       // 0 = everything on the current major
       // A few concrete examples for the card's detail line — not the
       // full outdated list, just enough to substantiate the percentage.
       outdated: outdated.slice(0, 4)
