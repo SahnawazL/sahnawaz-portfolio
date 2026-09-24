@@ -76,17 +76,36 @@
       row.appendChild(val);
     }
     if (on && rawValue) {
-      val.innerHTML = '<code>' + esc(rawValue) + '</code>';
+      /* a labelled button, not a small chevron: a visitor should not have
+         to guess that the row does anything */
+      var k = row.querySelector('.sec-k');
+      var btn = row.querySelector('.sec-reveal');
+      if (k && !btn) {
+        btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'sec-reveal';
+        k.appendChild(btn);
+      }
+      if (btn) {
+        btn.innerHTML = '<span>Show what the server sent</span>' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" ' +
+          'stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+        btn.setAttribute('aria-expanded', 'false');
+      }
+      val.innerHTML =
+        '<div class="sec-val-head"><span class="sec-val-tag">Response header</span>' +
+          '<span class="sec-val-name">' + esc(row.getAttribute('data-sec')) + '</span></div>' +
+        '<code>' + esc(rawValue) + '</code>' +
+        '<div class="sec-val-foot">Exactly what this page received a moment ago \u2014 ' +
+          'the same line your browser\u2019s developer tools show under Network \u203a Headers.</div>';
       row.classList.add('is-open-able');
-      row.setAttribute('tabindex', '0');
-      row.setAttribute('role', 'button');
       row.setAttribute('aria-expanded', 'false');
     } else {
       val.innerHTML = '';
       row.classList.remove('is-open-able', 'is-open');
-      row.removeAttribute('tabindex');
-      row.removeAttribute('role');
       row.removeAttribute('aria-expanded');
+      var gone = row.querySelector('.sec-reveal');
+      if (gone) gone.remove();
     }
   }
 
@@ -160,15 +179,23 @@
 
         var meta = card.querySelector('.sec-meta');
         if (meta) {
-          meta.innerHTML = '<span>checked just now</span><span>' + ms + 'ms</span>' +
-            '<span>' + (location.protocol === 'https:' ? 'over HTTPS' : 'over HTTP \u2014 some headers inactive here') + '</span>';
+          var cell = function (label, value, extra) {
+            return '<div class="sec-cell"><span class="sec-cell-l">' + label + '</span>' +
+                   '<span class="sec-cell-v">' + value + '</span>' +
+                   (extra ? '<span class="sec-cell-x">' + extra + '</span>' : '') + '</div>';
+          };
+          var secure = location.protocol === 'https:';
+          meta.innerHTML =
+            cell('Last checked', '<i class="sec-live"></i>just now', 'live, on this visit') +
+            cell('Server replied in', ms + ' ms', ms < 300 ? 'fast' : 'ok') +
+            cell('Connection', secure ? 'Encrypted' : 'Not encrypted', secure ? 'HTTPS \u00b7 TLS' : 'local test');
         }
 
         var note = card.querySelector('.sec-note');
         if (note) {
-          note.innerHTML = '<b>Checked live, not claimed.</b> Tap any row to see the exact header this page ' +
-            'received \u2014 the same values your browser\u2019s developer tools will show. The Content Security ' +
-            'Policy runs in report-only mode: it reports what it would block without breaking anything yet.';
+          note.innerHTML = '<b>How this works.</b> When you reached this card, the page asked the server for ' +
+            'its own response and read the protections back \u2014 nothing here is written into the site by hand. ' +
+            'Open any row to see the exact line the server sent, or press Recheck to run it again now.';
         }
       })
       .catch(function () {
@@ -179,6 +206,17 @@
           if (st) st.textContent = 'Unknown';
         });
       });
+  }
+
+  function toggleRow(row) {
+    var open = row.classList.toggle('is-open');
+    row.setAttribute('aria-expanded', open ? 'true' : 'false');
+    var btn = row.querySelector('.sec-reveal');
+    if (btn) {
+      var label = btn.querySelector('span');
+      if (label) label.textContent = open ? 'Hide' : 'Show what the server sent';
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
   }
 
   /* one-time interaction wiring: expand a row, recheck, copy */
@@ -220,10 +258,7 @@
         return;
       }
       var row = e.target.closest && e.target.closest('.sec-row.is-open-able');
-      if (row) {
-        var open = row.classList.toggle('is-open');
-        row.setAttribute('aria-expanded', open ? 'true' : 'false');
-      }
+      if (row) toggleRow(row);
     });
 
     card.addEventListener('keydown', function (e) {
@@ -231,8 +266,7 @@
       var row = e.target.closest && e.target.closest('.sec-row.is-open-able');
       if (!row) return;
       e.preventDefault();
-      var open = row.classList.toggle('is-open');
-      row.setAttribute('aria-expanded', open ? 'true' : 'false');
+      toggleRow(row);
     });
   }
 
