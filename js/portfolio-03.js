@@ -1197,33 +1197,63 @@
     return 'df-fill-bad';
   }
 
+  /* Dependencies
+     ------------------------------------------------------------------
+     This was a percentage with a red bar. With three dependencies in a
+     repo, one package a major behind reads as 33% — a number that looks
+     like neglect while describing something routine. Worse, the colour
+     treated "a newer major exists" as a failure, when deferring a major
+     upgrade is usually a decision rather than an oversight.
+
+     So: counts instead of a percentage, and the colour tracks how far
+     behind the worst package is. One major behind is normal and stays
+     neutral; several majors is real drift and is worth flagging. */
+
+  function depState(entry) {
+    var gap = entry.worstGap || 0;
+    if (!entry.outdated || !entry.outdated.length) return { text: 'All current', cls: 'df-state-ok' };
+    if (gap >= 2) return { text: gap + ' majors behind', cls: 'df-state-old' };
+    return { text: 'Minor drift', cls: 'df-state-mid' };
+  }
+
   function renderDepFreshness(list) {
     var el = document.getElementById('raDepFreshness');
     if (!el) return;
     if (!list || !list.length) { el.innerHTML = ''; return; }
 
     var cardsHtml = list.map(function (entry) {
-      var pctClass = dfPctClass(entry.freshPercent);
-      var detail = entry.upToDate + '/' + entry.total + ' deps current';
-      if (entry.outdated && entry.outdated.length) {
-        var ex = entry.outdated[0];
-        detail += ' \u2014 e.g. ' + escapeHtml(ex.name) + ' ' + escapeHtml(ex.pinned) + '\u2192' + escapeHtml(ex.latest);
+      var state = depState(entry);
+      var behind = entry.total - entry.upToDate;
+
+      /* one pip per dependency: solid when on the current major */
+      var pips = '';
+      for (var i = 0; i < entry.total; i++) {
+        pips += '<i class="df-pip' + (i < entry.upToDate ? ' df-pip-ok' : '') + '"></i>';
       }
+
+      var lines = (entry.outdated || []).slice(0, 3).map(function (d) {
+        var gap = (typeof d.majorsBehind === 'number' && d.majorsBehind > 0)
+          ? '<span class="df-gap">' + d.majorsBehind + ' major' + (d.majorsBehind === 1 ? '' : 's') + '</span>' : '';
+        return '<div class="df-row"><span class="df-pkg">' + escapeHtml(d.name) + '</span>'
+             + '<span class="df-ver">' + escapeHtml(d.pinned) + ' \u2192 ' + escapeHtml(d.latest) + '</span>' + gap + '</div>';
+      }).join('');
+
+      var summary = entry.outdated && entry.outdated.length
+        ? '<b>' + entry.upToDate + '</b> of <b>' + entry.total + '</b> on the current major'
+        : '<b>' + entry.total + '</b> dependenc' + (entry.total === 1 ? 'y' : 'ies') + ', all on the current major';
+
       return '<div class="df-card">'
-        + '<div class="df-top"><span class="df-name">' + escapeHtml(entry.repo) + '</span><span class="df-pct ' + pctClass + '">' + entry.freshPercent + '%</span></div>'
-        + '<div class="df-rate-track"><span class="df-rate-fill ' + dfFillClass(entry.freshPercent) + '" data-fill="' + entry.freshPercent + '"></span></div>'
-        + '<div class="df-detail">' + detail + '</div>'
+        + '<div class="df-top"><span class="df-name">' + escapeHtml(entry.repo) + '</span>'
+        +   '<span class="df-state ' + state.cls + '">' + state.text + '</span></div>'
+        + '<div class="df-pips">' + pips + '</div>'
+        + '<div class="df-detail">' + summary + '</div>'
+        + (lines ? '<div class="df-list">' + lines + '</div>' : '')
         + '</div>';
     }).join('');
 
-    el.innerHTML = '<div class="ra-label-row"><span class="ra-label">Dependency Freshness</span><span class="ra-label-sub">// major-version current</span></div>'
+    el.innerHTML = '<div class="ra-label-row"><span class="ra-label">Dependencies</span>'
+      + '<span class="ra-label-sub">// tracked against npm latest</span></div>'
       + '<div class="df-grid">' + cardsHtml + '</div>';
-
-    requestAnimationFrame(function () {
-      el.querySelectorAll('.df-rate-fill').forEach(function (fill) {
-        fill.style.width = fill.getAttribute('data-fill') + '%';
-      });
-    });
   }
 
   // ══ Time-range toggle (7d / 30d / 90d / 1y) ══
