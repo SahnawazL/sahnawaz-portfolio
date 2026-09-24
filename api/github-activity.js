@@ -426,8 +426,9 @@ async function fetchProjectStats(headers, repos) {
 // ── CI / build health ──
 // For each of the same top contributed repos already discovered for
 // Project Stats, checks whether that repo runs GitHub Actions and, if
-// so, reports its most recent run plus a rolling pass rate over the
-// last 15 completed runs. This is a real trust signal for a technical
+// so, reports its most recent run, a short history strip and how often
+// it ships, over the last 15 runs. Cancelled runs (superseded by a newer
+// push) are excluded from the pass rate — they are not failures. This is a real trust signal for a technical
 // reviewer ("tested", not just "committed") but it's genuinely optional:
 // a repo with no workflows, a token without Actions permission, or a
 // private Actions log all just resolve to `null` for that repo and get
@@ -441,7 +442,7 @@ async function fetchProjectStats(headers, repos) {
 async function fetchRepoCIHealth(repo, headers) {
   try {
     const res = await fetch(
-      `https://api.github.com/repos/${repo.nameWithOwner}/actions/runs?per_page=15`,
+      `https://api.github.com/repos/${repo.nameWithOwner}/actions/runs?per_page=20`,
       { headers }
     );
     if (!res.ok) return null; // no workflows, no Actions permission, or Actions disabled
@@ -449,9 +450,43 @@ async function fetchRepoCIHealth(repo, headers) {
     const runs = json.workflow_runs;
     if (!Array.isArray(runs) || !runs.length) return null;
 
-    const finished = runs.filter((r) => r.status === 'completed');
+    // A cancelled run is not a failed run. GitHub cancels an in-flight
+    // Pages deployment as soon as a newer push supersedes it, so pushing
+    // twice in a minute produces one success and one cancellation. Counting
+    // those as failures made frequent deploying look like a broken build:
+    // the rate read 40% while every genuine run was passing.
+    const REAL = ['success', 'failure', 'timed_out', 'startup_failure'];
+    const finished = runs.filter(
+      (r) => r.status === 'completed' && REAL.indexOf(r.conclusion) !== -1
+    );
     const passed = finished.filter((r) => r.conclusion === 'success').length;
     const passRate = finished.length ? Math.round((passed / finished.length) * 100) : null;
+
+    const superseded = runs.filter(
+      (r) => r.status === 'completed' && (r.conclusion === 'cancelled' || r.conclusion === 'skipped')
+    ).length;
+
+    // the most recent runs, newest first, for a history strip: a build that
+    // broke and was fixed should read as recovery, not as a permanent mark
+    const history = runs.slice(0, 12).map((r) => ({
+      c: r.status === 'completed' ? (r.conclusion || 'unknown') : r.status,
+      at: r.created_at,
+      url: r.html_url
+    }));
+
+    // how often this repo actually ships
+    const weekAgo = Date.now() - 7 * 86400000;
+    const deploys7d = runs.filter(
+      (r) => r.conclusion === 'success' && new Date(r.created_at).getTime() >= weekAgo
+    ).length;
+
+    // typical run length, in seconds, over the runs that really finished
+    const durations = finished
+      .map((r) => (new Date(r.updated_at) - new Date(r.created_at)) / 1000)
+      .filter((n) => n > 0 && n < 3600);
+    const avgSeconds = durations.length
+      ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)
+      : null;
 
     const latest = runs[0];
     return {
@@ -460,8 +495,12 @@ async function fetchRepoCIHealth(repo, headers) {
       status: latest.status,          // queued | in_progress | completed
       conclusion: latest.conclusion,  // success | failure | cancelled | null
       ranAt: latest.created_at,
-      passRate,                       // 0-100, or null if no runs have finished yet
-      sampleSize: finished.length
+      passRate,                       // 0-100 over real outcomes only
+      sampleSize: finished.length,
+      superseded,                     // cancelled because a newer push took over
+      history,                        // newest first
+      deploys7d,
+      avgSeconds
     };
   } catch (err) {
     return null;
