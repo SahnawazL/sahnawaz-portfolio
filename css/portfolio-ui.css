@@ -11266,3 +11266,48 @@ div#popup.popup {
   .df-grid { grid-template-columns: 1fr; }
   .df-pip { max-width: 34px; }
 }
+
+/* ── Languages: interactive ring, legend as buttons, trend with meaning ── */
+.lang-seg { transition: opacity .25s ease, stroke-width .25s ease; }
+.lang-seg.is-dim { opacity: .18; }
+.lang-seg.is-lit { stroke-width: 11; filter: drop-shadow(0 0 5px currentColor); }
+
+.lang-ring-pct, .lang-ring-name { transition: opacity .18s ease; }
+
+/* the legend rows are real buttons now, so they need resetting and a
+   visible hover/active state */
+.lang-legend-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 4px 7px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  transition: background .15s ease, border-color .15s ease;
+}
+.lang-legend-row:hover { background: rgba(120, 200, 255, .07); }
+.lang-legend-row.is-active {
+  background: rgba(120, 200, 255, .1);
+  border-color: rgba(120, 200, 255, .26);
+}
+.lang-legend-row:focus-visible { outline: 2px solid #5ac8ff; outline-offset: 2px; }
+.lang-legend-name { flex: 1; min-width: 0; }
+
+.lang-drift-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+  margin-bottom: 5px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: .6rem; color: rgba(165, 200, 225, .6);
+}
+.lang-delta { font-weight: 600; }
+.lang-delta-up { color: #6ff0bb; }
+.lang-delta-down { color: #ff9a9a; }
+.lang-delta-flat { color: rgba(180, 205, 225, .6); }
+.lang-drift-caption { font-size: .58rem; color: rgba(150, 190, 220, .45); }
+
+@media (prefers-reduced-motion: reduce) { .lang-seg { transition: none; } }
