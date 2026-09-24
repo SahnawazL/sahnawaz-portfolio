@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin — ByteWithSahnawaz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -502,6 +503,7 @@
   .fade-in:nth-child(4) { animation-delay: 0.2s; }
   .fade-in:nth-child(5) { animation-delay: 0.25s; }
   .fade-in:nth-child(6) { animation-delay: 0.3s; }
+  .fade-in:nth-child(7) { animation-delay: 0.35s; }
 
   /* ── Last refreshed indicator ── */
   .refresh-time {
@@ -649,6 +651,206 @@
     .chat-bubble { font-size: 0.78rem; }
     .chat-bubble-body { max-width: 85%; }
   }
+
+  /* ══════════════════════════════════════════════════════════════════
+     PROFESSIONAL REFINEMENT LAYER  (appended so the structure above is
+     untouched — this only retunes colour, type and spacing)
+
+     Before: 2rem numbers, 22px padding, 18px radii, 28px gaps, pure
+     #00ffff glow and a monospace body — a hobby look. After: a calmer
+     slate palette, a real type scale, tighter density and hairline
+     borders, closer to Linear / Stripe / Vercel dashboards.
+     ══════════════════════════════════════════════════════════════════ */
+  :root {
+    /* a restrained accent instead of pure cyan, and true neutral greys */
+    --cyan: #38bdf8;
+    --cyan-dim: rgba(56, 189, 248, 0.12);
+    --cyan-border: rgba(56, 189, 248, 0.22);
+    --bg: #0b0f16;
+    --bg2: #0f141d;
+    --bg3: #141b26;
+    --text: #e7edf5;
+    --text-dim: rgba(190, 205, 224, 0.52);
+    --red: #f6607f;
+    --green: #34d399;
+    --yellow: #fbbf24;
+    --purple: #a78bfa;
+    --card-bg: #0f151e;
+    --line: rgba(150, 180, 210, 0.10);
+    --line-soft: rgba(150, 180, 210, 0.06);
+  }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-size: 13.5px;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* the grid overlay was loud; make it barely-there */
+  body::before {
+    background-image:
+      linear-gradient(rgba(120,170,220,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(120,170,220,0.02) 1px, transparent 1px) !important;
+    background-size: 56px 56px !important;
+  }
+
+  /* ---- topbar: slimmer, hairline divider ---- */
+  .topbar { border-bottom: 1px solid var(--line) !important; padding: 12px 22px !important; }
+  .topbar-title { font-family: 'Inter', sans-serif !important; font-size: .98rem !important; font-weight: 700 !important; letter-spacing: -.01em; }
+  .topbar-logo { letter-spacing: .18em !important; opacity: .55 !important; }
+  .topbar-badge, .refresh-btn, .logout-btn { font-family: 'Inter', sans-serif !important; }
+
+  /* ---- content: wider, tighter rhythm ---- */
+  .content { max-width: 1240px !important; padding: 24px 22px 72px !important; }
+
+  /* ---- stat cards: compact, quiet, aligned ---- */
+  .stats-row {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+    gap: 11px !important; margin-bottom: 22px !important;
+  }
+  .stat-card {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--line) !important;
+    border-radius: 12px !important;
+    padding: 15px 16px !important;
+  }
+  .stat-card:hover { border-color: var(--cyan-border) !important; transform: none !important; background: #121927 !important; }
+  .stat-card::before { display: none !important; }         /* drop the glowing top line */
+  .stat-icon { font-size: 1.05rem !important; margin-bottom: 9px !important; opacity: .9; }
+  .stat-num {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 1.55rem !important; font-weight: 700 !important;
+    letter-spacing: -.02em !important; margin-bottom: 3px !important;
+  }
+  .stat-label {
+    font-family: 'Inter', sans-serif !important;
+    font-size: .64rem !important; font-weight: 600 !important;
+    letter-spacing: .09em !important; color: var(--text-dim) !important;
+  }
+
+  /* ---- charts: match the calmer cards ---- */
+  .charts-row { gap: 11px !important; margin-bottom: 22px !important; }
+  .chart-card {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--line) !important;
+    border-radius: 12px !important; padding: 16px 17px !important;
+  }
+  .chart-card::before { display: none !important; }
+  .chart-title {
+    font-family: 'Inter', sans-serif !important;
+    font-size: .66rem !important; font-weight: 700 !important;
+    letter-spacing: .12em !important; margin-bottom: 13px !important;
+  }
+  .chart-wrap { height: 150px !important; }
+
+  /* ---- section heads ---- */
+  .section-head { margin-bottom: 12px !important; margin-top: 4px; }
+  .section-head-title { font-family: 'Inter', sans-serif !important; font-size: .68rem !important; font-weight: 700 !important; letter-spacing: .12em !important; }
+  .section-head-line { background: var(--line) !important; }
+  .section-count { font-family: 'Inter', sans-serif !important; font-size: .64rem !important; font-weight: 600 !important; border-radius: 6px !important; border-color: var(--line) !important; }
+
+  /* ---- filter bar ---- */
+  .filter-bar { gap: 8px !important; margin-bottom: 12px !important; }
+  .search-input {
+    font-family: 'Inter', sans-serif !important; font-size: .8rem !important;
+    padding: 9px 13px !important; border-radius: 9px !important;
+    background: var(--bg2) !important; border: 1px solid var(--line) !important;
+  }
+  .search-input:focus { border-color: var(--cyan-border) !important; box-shadow: 0 0 0 3px var(--cyan-dim) !important; }
+  .filter-btn {
+    font-family: 'Inter', sans-serif !important; font-size: .7rem !important; font-weight: 600 !important;
+    padding: 8px 12px !important; border-radius: 9px !important;
+    background: var(--bg2) !important; border: 1px solid var(--line) !important;
+  }
+  .filter-btn.active { background: var(--cyan-dim) !important; border-color: var(--cyan-border) !important; }
+
+  /* ---- data rows: compact, hairline, no jumpy hover ---- */
+  .visitor-grid { gap: 6px !important; margin-bottom: 22px !important; }
+  .visitor-row {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--line-soft) !important;
+    border-radius: 10px !important; padding: 11px 15px !important;
+    grid-template-columns: 38px 1fr auto auto !important; gap: 13px !important;
+  }
+  .visitor-row:hover { border-color: var(--cyan-border) !important; transform: none !important; background: #121927 !important; }
+  .visitor-avatar, .visitor-avatar-fallback { width: 38px !important; height: 38px !important; border-width: 1px !important; border-color: var(--line) !important; }
+  .visitor-name { font-family: 'Inter', sans-serif !important; font-size: .84rem !important; font-weight: 600 !important; }
+  .visitor-email { font-family: 'Inter', sans-serif !important; font-size: .72rem !important; }
+  .visitor-lastseen, .visitor-lastseen .ls-time { font-family: 'Inter', sans-serif !important; }
+  .visitor-lastseen .ls-time { color: var(--green) !important; }
+  .vtag {
+    font-family: 'Inter', sans-serif !important; font-size: .62rem !important; font-weight: 600 !important;
+    padding: 3px 8px !important; border-radius: 6px !important;
+  }
+
+  /* ---- modal ---- */
+  .modal-box {
+    background: #0f151e !important;
+    border: 1px solid var(--line) !important;
+    border-radius: 16px !important; padding: 26px !important;
+  }
+  .modal-box::before { display: none !important; }
+
+  /* ---- lock screen: on-brand, not neon ---- */
+  #lockScreen .lock-box { border: 1px solid var(--line) !important; border-radius: 16px !important; }
+  .lock-title { font-family: 'Inter', sans-serif !important; letter-spacing: -.01em; }
+  .lock-btn { font-family: 'Inter', sans-serif !important; border-radius: 10px !important; }
+
+  /* ---- tables / lists elsewhere pick up Inter too ---- */
+  .rev-card, .like-card, .dl-card, .conv-card,
+  .data-row, .list-row, td, th, .empty-state, .loading-state { font-family: 'Inter', sans-serif !important; }
+
+  /* ---- reviews: same calmer treatment ---- */
+  .reviews-grid { gap: 10px !important; margin-bottom: 22px !important; }
+  .review-card {
+    background: var(--card-bg) !important; border: 1px solid var(--line-soft) !important;
+    border-radius: 12px !important; padding: 15px 16px !important;
+  }
+  .review-card:hover { border-color: var(--cyan-border) !important; }
+  .review-avatar, .review-avatar-fallback { width: 32px !important; height: 32px !important; border-width: 1px !important; border-color: var(--line) !important; }
+  .review-name { font-family: 'Inter', sans-serif !important; font-size: .8rem !important; font-weight: 600 !important; }
+  .review-date { font-family: 'Inter', sans-serif !important; font-size: .66rem !important; }
+  .review-stars { font-size: .78rem !important; margin-bottom: 6px !important; }
+  .review-text { font-family: 'Inter', sans-serif !important; font-size: .78rem !important; }
+
+  /* ---- project likes ---- */
+  .likes-grid { gap: 10px !important; margin-bottom: 22px !important; }
+  .like-card {
+    background: var(--card-bg) !important; border: 1px solid var(--line-soft) !important;
+    border-radius: 12px !important; padding: 13px 15px !important; gap: 12px !important;
+  }
+  .like-card:hover { border-color: rgba(246,96,127,0.35) !important; }
+  .like-count { font-family: 'Inter', sans-serif !important; font-size: 1.25rem !important; font-weight: 700 !important; }
+  .like-name { font-family: 'Inter', sans-serif !important; font-size: .78rem !important; font-weight: 600 !important; margin-bottom: 5px !important; }
+
+  /* ---- resume downloads ---- */
+  .resume-grid { gap: 6px !important; margin-bottom: 22px !important; }
+  .resume-row {
+    background: var(--card-bg) !important; border: 1px solid var(--line-soft) !important;
+    border-radius: 10px !important; padding: 11px 15px !important;
+  }
+  .resume-row:hover { border-color: rgba(52,211,153,0.3) !important; }
+  .resume-avatar, .resume-avatar-fallback { width: 30px !important; height: 30px !important; }
+  .resume-name { font-family: 'Inter', sans-serif !important; font-size: .8rem !important; font-weight: 600 !important; }
+  .resume-email, .resume-time { font-family: 'Inter', sans-serif !important; font-size: .68rem !important; }
+
+  /* ---- chat viewer ---- */
+  .chat-visitor-list { gap: 6px !important; margin-bottom: 22px !important; }
+  .chat-visitor-row { background: var(--card-bg) !important; border: 1px solid var(--line-soft) !important; border-radius: 12px !important; }
+  .chat-visitor-row.has-open { border-color: var(--cyan-border) !important; }
+  .chat-visitor-header { padding: 12px 15px !important; }
+  .chat-visitor-header:hover { background: rgba(56,189,248,0.04) !important; }
+  .chat-visitor-name { font-family: 'Inter', sans-serif !important; font-size: .82rem !important; font-weight: 600 !important; }
+  .chat-visitor-email { font-family: 'Inter', sans-serif !important; font-size: .7rem !important; }
+  .chat-msg-count { font-family: 'Inter', sans-serif !important; font-size: .65rem !important; font-weight: 600 !important; border-radius: 6px !important; }
+  .chat-bubble, .chat-bubble-time, .chat-day-divider { font-family: 'Inter', sans-serif !important; }
+
+  /* ---- timeline ---- */
+  .tl-label, .tl-time, .tl-loading, .tl-empty { font-family: 'Inter', sans-serif !important; }
+
+  /* ---- sort control (next to filters) ---- */
+  .filter-divider { width: 1px; align-self: stretch; background: var(--line); margin: 0 2px; }
+  .vtag-top { background: rgba(251,191,36,0.12) !important; border: 1px solid rgba(251,191,36,0.35) !important; color: var(--yellow) !important; }
+
 </style>
 </head>
 <body>
@@ -724,6 +926,11 @@
         <div class="stat-num" id="statAvgRating">—</div>
         <div class="stat-label">Avg Rating</div>
       </div>
+      <div class="stat-card stat-accent-green fade-in">
+        <div class="stat-icon">⚡</div>
+        <div class="stat-num" id="statActiveToday">—</div>
+        <div class="stat-label">Active Today</div>
+      </div>
     </div>
 
     <!-- Charts -->
@@ -757,6 +964,9 @@
       <button class="filter-btn" data-filter="review" onclick="setFilter('review')">⭐ Review</button>
       <button class="filter-btn" data-filter="resume" onclick="setFilter('resume')">📄 Resume</button>
       <button class="filter-btn" data-filter="like" onclick="setFilter('like')">❤️ Liked</button>
+      <span class="filter-divider"></span>
+      <button class="filter-btn sort-btn active" data-sort="engagement" onclick="setSort('engagement')">🔥 Most Active</button>
+      <button class="filter-btn sort-btn" data-sort="recent" onclick="setSort('recent')">🕐 Most Recent</button>
     </div>
 
     <div class="visitor-grid" id="visitorGrid">
@@ -881,6 +1091,7 @@
   var db = null;
   var allVisitors = [];
   var activeFilter = 'all';
+  var sortMode = 'engagement'; // 'engagement' (most active first) or 'recent' (most recently seen)
   var activityChartInstance = null;
   var ratingChartInstance = null;
 
@@ -1009,6 +1220,13 @@
     return s;
   }
 
+  /* Weighted engagement score: a review or resume download signals more
+     intent than a single chat message, so they count for more. Used to
+     surface the most valuable visitors first instead of arbitrary order. */
+  function computeScore(v) {
+    return (v.chats || 0) + ((v.liked ? v.liked.length : 0) * 2) + (v.hasResume ? 3 : 0) + (v.hasReview ? 5 : 0);
+  }
+
   function sanitize(str) {
     return String(str || '')
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -1032,6 +1250,14 @@
     filterVisitors();
   }
 
+  function setSort(s) {
+    sortMode = s;
+    document.querySelectorAll('.sort-btn').forEach(function(btn) {
+      btn.classList.toggle('active', btn.dataset.sort === s);
+    });
+    filterVisitors();
+  }
+
   function filterVisitors() {
     var query = document.getElementById('visitorSearch').value.toLowerCase();
     var filtered = allVisitors.filter(function(v) {
@@ -1048,6 +1274,16 @@
 
       return matchSearch && matchFilter;
     });
+
+    filtered.sort(function(a, b) {
+      if (sortMode === 'recent') {
+        var ta = a.lastSeen ? (a.lastSeen.toMillis ? a.lastSeen.toMillis() : new Date(a.lastSeen).getTime()) : 0;
+        var tb = b.lastSeen ? (b.lastSeen.toMillis ? b.lastSeen.toMillis() : new Date(b.lastSeen).getTime()) : 0;
+        return tb - ta;
+      }
+      return computeScore(b) - computeScore(a);
+    });
+
     renderVisitors(filtered);
   }
 
@@ -1135,6 +1371,14 @@
         document.getElementById('statVisitors').textContent = visitors.length;
         document.getElementById('statChats').textContent = totalChats;
 
+        var dayAgo = Date.now() - 24 * 60 * 60 * 1000;
+        var activeToday = visitors.filter(function(v) {
+          if (!v.lastSeen) return false;
+          var ms = v.lastSeen.toMillis ? v.lastSeen.toMillis() : new Date(v.lastSeen).getTime();
+          return ms >= dayAgo;
+        }).length;
+        document.getElementById('statActiveToday').textContent = activeToday;
+
         filterVisitors();
         renderActivityChart(visitors, totalChats);
       });
@@ -1159,6 +1403,7 @@
 
     grid.innerHTML = visitors.map(function(v, i) {
       var tags = '';
+      if (sortMode === 'engagement' && i === 0 && computeScore(v) > 0) tags += '<span class="vtag vtag-top">🔥 Top</span>';
       if (v.chats > 0)    tags += '<span class="vtag vtag-chat">💬 ' + v.chats + '</span>';
       if (v.liked && v.liked.length) tags += '<span class="vtag vtag-like">❤️ ' + v.liked.length + '</span>';
       if (v.hasResume)    tags += '<span class="vtag vtag-resume">📄</span>';
