@@ -851,6 +851,16 @@
   .filter-divider { width: 1px; align-self: stretch; background: var(--line); margin: 0 2px; }
   .vtag-top { background: rgba(251,191,36,0.12) !important; border: 1px solid rgba(251,191,36,0.35) !important; color: var(--yellow) !important; }
 
+  /* ---- load more (pagination) ---- */
+  .load-more-wrap { text-align: center; margin: -12px 0 22px; }
+  .load-more-btn {
+    font-family: 'Inter', sans-serif; font-size: .74rem; font-weight: 600;
+    padding: 9px 20px; border-radius: 9px;
+    background: var(--bg2); border: 1px solid var(--line); color: var(--text-dim);
+    cursor: pointer; transition: all .2s;
+  }
+  .load-more-btn:hover { border-color: var(--cyan-border); color: var(--cyan); background: rgba(56,189,248,0.06); }
+
 </style>
 </head>
 <body>
@@ -964,14 +974,21 @@
       <button class="filter-btn" data-filter="review" onclick="setFilter('review')">⭐ Review</button>
       <button class="filter-btn" data-filter="resume" onclick="setFilter('resume')">📄 Resume</button>
       <button class="filter-btn" data-filter="like" onclick="setFilter('like')">❤️ Liked</button>
-      <span class="filter-divider"></span>
+    </div>
+    <div class="filter-bar">
       <button class="filter-btn sort-btn active" data-sort="engagement" onclick="setSort('engagement')">🔥 Most Active</button>
       <button class="filter-btn sort-btn" data-sort="recent" onclick="setSort('recent')">🕐 Most Recent</button>
+      <span class="filter-divider"></span>
+      <button class="filter-btn active" data-time="all" onclick="setTimeRange('all')">All Time</button>
+      <button class="filter-btn" data-time="today" onclick="setTimeRange('today')">Today</button>
+      <button class="filter-btn" data-time="7d" onclick="setTimeRange('7d')">7 Days</button>
+      <button class="filter-btn" data-time="30d" onclick="setTimeRange('30d')">30 Days</button>
     </div>
 
     <div class="visitor-grid" id="visitorGrid">
       <div class="loading-state"><div class="loading-spinner"></div>Loading visitors…</div>
     </div>
+    <div class="load-more-wrap" id="visitorLoadMore"></div>
 
     <!-- Reviews -->
     <div class="section-head">
@@ -979,9 +996,19 @@
       <div class="section-head-line"></div>
       <span class="section-count" id="reviewCount">loading…</span>
     </div>
+    <div class="filter-bar">
+      <input type="text" class="search-input" id="reviewSearch" placeholder="🔍  Search by name or review text…" oninput="filterReviews()">
+      <button class="filter-btn active" data-rating="all" onclick="setRatingFilter('all')">All</button>
+      <button class="filter-btn" data-rating="5" onclick="setRatingFilter('5')">⭐5</button>
+      <button class="filter-btn" data-rating="4" onclick="setRatingFilter('4')">⭐4</button>
+      <button class="filter-btn" data-rating="3" onclick="setRatingFilter('3')">⭐3</button>
+      <button class="filter-btn" data-rating="2" onclick="setRatingFilter('2')">⭐2</button>
+      <button class="filter-btn" data-rating="1" onclick="setRatingFilter('1')">⭐1</button>
+    </div>
     <div class="reviews-grid" id="reviewsGrid">
       <div class="loading-state"><div class="loading-spinner"></div>Loading reviews…</div>
     </div>
+    <div class="load-more-wrap" id="reviewsLoadMore"></div>
 
     <!-- Project Likes -->
     <div class="section-head">
@@ -992,6 +1019,7 @@
     <div class="likes-grid" id="likesGrid">
       <div class="loading-state"><div class="loading-spinner"></div>Loading likes…</div>
     </div>
+    <div class="load-more-wrap" id="likesLoadMore"></div>
 
     <!-- Resume Downloads -->
     <div class="section-head">
@@ -999,9 +1027,13 @@
       <div class="section-head-line"></div>
       <span class="section-count" id="resumeCount">loading…</span>
     </div>
+    <div class="filter-bar">
+      <input type="text" class="search-input" id="resumeSearch" placeholder="🔍  Search by name or email…" oninput="filterResume()">
+    </div>
     <div class="resume-grid" id="resumeGrid">
       <div class="loading-state"><div class="loading-spinner"></div>Loading downloads…</div>
     </div>
+    <div class="load-more-wrap" id="resumeLoadMore"></div>
 
     <!-- Chat Messages -->
     <div class="section-head" id="chatSection">
@@ -1015,6 +1047,7 @@
     <div class="chat-visitor-list" id="chatVisitorList">
       <div class="loading-state"><div class="loading-spinner"></div>Loading conversations…</div>
     </div>
+    <div class="load-more-wrap" id="chatLoadMore"></div>
 
   </div>
 </div>
@@ -1092,6 +1125,10 @@
   var allVisitors = [];
   var activeFilter = 'all';
   var sortMode = 'engagement'; // 'engagement' (most active first) or 'recent' (most recently seen)
+  var timeRange = 'all'; // 'all' | 'today' | '7d' | '30d', filters visitors by lastSeen
+  var VISITOR_PAGE_SIZE = 8;
+  var visitorVisibleCount = VISITOR_PAGE_SIZE;
+  var currentFilteredVisitors = [];
   var activityChartInstance = null;
   var ratingChartInstance = null;
 
@@ -1244,7 +1281,7 @@
   /* ── Filter & Search ── */
   function setFilter(f) {
     activeFilter = f;
-    document.querySelectorAll('.filter-btn').forEach(function(btn) {
+    document.querySelectorAll('[data-filter]').forEach(function(btn) {
       btn.classList.toggle('active', btn.dataset.filter === f);
     });
     filterVisitors();
@@ -1258,8 +1295,17 @@
     filterVisitors();
   }
 
+  function setTimeRange(t) {
+    timeRange = t;
+    document.querySelectorAll('[data-time]').forEach(function(btn) {
+      btn.classList.toggle('active', btn.dataset.time === t);
+    });
+    filterVisitors();
+  }
+
   function filterVisitors() {
     var query = document.getElementById('visitorSearch').value.toLowerCase();
+    var now = Date.now();
     var filtered = allVisitors.filter(function(v) {
       var matchSearch = !query ||
         (v.name || '').toLowerCase().includes(query) ||
@@ -1272,7 +1318,18 @@
         (activeFilter === 'resume' && v.hasResume) ||
         (activeFilter === 'like' && v.liked && v.liked.length > 0);
 
-      return matchSearch && matchFilter;
+      var matchTime = true;
+      if (timeRange !== 'all') {
+        if (!v.lastSeen) {
+          matchTime = false;
+        } else {
+          var ms = v.lastSeen.toMillis ? v.lastSeen.toMillis() : new Date(v.lastSeen).getTime();
+          var windowMs = timeRange === 'today' ? 86400000 : (timeRange === '7d' ? 7 * 86400000 : 30 * 86400000);
+          matchTime = (now - ms) <= windowMs;
+        }
+      }
+
+      return matchSearch && matchFilter && matchTime;
     });
 
     filtered.sort(function(a, b) {
@@ -1284,6 +1341,7 @@
       return computeScore(b) - computeScore(a);
     });
 
+    visitorVisibleCount = VISITOR_PAGE_SIZE;
     renderVisitors(filtered);
   }
 
@@ -1386,8 +1444,9 @@
   }
 
   function renderVisitors(visitors) {
+    currentFilteredVisitors = visitors;
     var grid = document.getElementById('visitorGrid');
-    var isFiltered = activeFilter !== 'all' || document.getElementById('visitorSearch').value.trim() !== '';
+    var isFiltered = activeFilter !== 'all' || timeRange !== 'all' || document.getElementById('visitorSearch').value.trim() !== '';
     var countText = isFiltered
       ? visitors.length + ' of ' + allVisitors.length + ' visitors'
       : visitors.length + ' visitors';
@@ -1398,10 +1457,13 @@
         ? '0 of ' + allVisitors.length + ' visitors'
         : '0 visitors';
       grid.innerHTML = '<div class="empty-state">No visitors match this filter.</div>';
+      document.getElementById('visitorLoadMore').innerHTML = '';
       return;
     }
 
-    grid.innerHTML = visitors.map(function(v, i) {
+    var toShow = visitors.slice(0, visitorVisibleCount);
+
+    grid.innerHTML = toShow.map(function(v, i) {
       var tags = '';
       if (sortMode === 'engagement' && i === 0 && computeScore(v) > 0) tags += '<span class="vtag vtag-top">🔥 Top</span>';
       if (v.chats > 0)    tags += '<span class="vtag vtag-chat">💬 ' + v.chats + '</span>';
@@ -1423,6 +1485,16 @@
         '<div class="visitor-tags">' + (tags || '<span class="vtag vtag-chat">👁</span>') + '</div>' +
       '</div>';
     }).join('');
+
+    var remaining = visitors.length - toShow.length;
+    document.getElementById('visitorLoadMore').innerHTML = remaining > 0
+      ? '<button class="load-more-btn" onclick="loadMoreVisitors()">Show ' + Math.min(remaining, VISITOR_PAGE_SIZE) + ' more (' + remaining + ' left)</button>'
+      : '';
+  }
+
+  function loadMoreVisitors() {
+    visitorVisibleCount += VISITOR_PAGE_SIZE;
+    renderVisitors(currentFilteredVisitors);
   }
 
   /* ── Modal ── */
@@ -1633,6 +1705,12 @@
   }
 
   /* ── Reviews ── */
+  var allReviews = [];
+  var ratingFilter = 'all';
+  var REVIEWS_PAGE_SIZE = 8;
+  var reviewsVisibleCount = REVIEWS_PAGE_SIZE;
+  var currentFilteredReviews = [];
+
   function loadReviews() {
     return db.collection('reviews').get().then(function(snap) {
       var reviews = [];
@@ -1643,7 +1721,7 @@
         return tb - ta;
       });
 
-      document.getElementById('reviewCount').textContent = reviews.length + ' reviews';
+      allReviews = reviews;
       document.getElementById('statReviews').textContent = reviews.length;
 
       var avg = reviews.length
@@ -1652,29 +1730,79 @@
       document.getElementById('statAvgRating').textContent = avg;
 
       renderRatingChart(reviews);
-
-      var grid = document.getElementById('reviewsGrid');
-      if (!reviews.length) { grid.innerHTML = '<div class="empty-state">No reviews yet.</div>'; return; }
-      grid.innerHTML = reviews.map(function(r) {
-        return '<div class="review-card fade-in">' +
-          '<span class="review-quote">"</span>' +
-          '<div class="review-header">' +
-            avatarImg(r.avatar, r.name || r.firstName, 'review-avatar') +
-            '<div>' +
-              '<div class="review-name">' + sanitize(r.name || r.firstName || 'Visitor') + '</div>' +
-              '<div class="review-date">' + formatDate(r.createdAt) + '</div>' +
-            '</div>' +
-          '</div>' +
-          '<div class="review-stars">' + stars(r.stars || 0) + '</div>' +
-          '<div class="review-text">' + (r.text ? sanitize(r.text) : '<em style="opacity:0.4">No message left</em>') + '</div>' +
-        '</div>';
-      }).join('');
+      filterReviews();
     }).catch(function() {
       document.getElementById('reviewsGrid').innerHTML = '<div class="empty-state">Could not load reviews.</div>';
     });
   }
 
+  function setRatingFilter(r) {
+    ratingFilter = r;
+    document.querySelectorAll('[data-rating]').forEach(function(btn) {
+      btn.classList.toggle('active', btn.dataset.rating === r);
+    });
+    filterReviews();
+  }
+
+  function filterReviews() {
+    var query = document.getElementById('reviewSearch').value.toLowerCase();
+    var filtered = allReviews.filter(function(r) {
+      var matchSearch = !query ||
+        (r.name || r.firstName || '').toLowerCase().includes(query) ||
+        (r.text || '').toLowerCase().includes(query);
+      var matchRating = ratingFilter === 'all' || String(r.stars || '') === ratingFilter;
+      return matchSearch && matchRating;
+    });
+    reviewsVisibleCount = REVIEWS_PAGE_SIZE;
+    renderReviews(filtered);
+  }
+
+  function renderReviews(reviews) {
+    currentFilteredReviews = reviews;
+    var grid = document.getElementById('reviewsGrid');
+    var isFiltered = ratingFilter !== 'all' || document.getElementById('reviewSearch').value.trim() !== '';
+    document.getElementById('reviewCount').textContent = isFiltered
+      ? reviews.length + ' of ' + allReviews.length + ' reviews'
+      : reviews.length + ' reviews';
+
+    if (!reviews.length) {
+      grid.innerHTML = '<div class="empty-state">' + (allReviews.length ? 'No reviews match this filter.' : 'No reviews yet.') + '</div>';
+      document.getElementById('reviewsLoadMore').innerHTML = '';
+      return;
+    }
+
+    var toShow = reviews.slice(0, reviewsVisibleCount);
+    grid.innerHTML = toShow.map(function(r) {
+      return '<div class="review-card fade-in">' +
+        '<span class="review-quote">"</span>' +
+        '<div class="review-header">' +
+          avatarImg(r.avatar, r.name || r.firstName, 'review-avatar') +
+          '<div>' +
+            '<div class="review-name">' + sanitize(r.name || r.firstName || 'Visitor') + '</div>' +
+            '<div class="review-date">' + formatDate(r.createdAt) + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="review-stars">' + stars(r.stars || 0) + '</div>' +
+        '<div class="review-text">' + (r.text ? sanitize(r.text) : '<em style="opacity:0.4">No message left</em>') + '</div>' +
+      '</div>';
+    }).join('');
+
+    var remaining = reviews.length - toShow.length;
+    document.getElementById('reviewsLoadMore').innerHTML = remaining > 0
+      ? '<button class="load-more-btn" onclick="loadMoreReviews()">Show ' + Math.min(remaining, REVIEWS_PAGE_SIZE) + ' more (' + remaining + ' left)</button>'
+      : '';
+  }
+
+  function loadMoreReviews() {
+    reviewsVisibleCount += REVIEWS_PAGE_SIZE;
+    renderReviews(currentFilteredReviews);
+  }
+
   /* ── Project Likes ── */
+  var allLikes = [];
+  var LIKES_PAGE_SIZE = 8;
+  var likesVisibleCount = LIKES_PAGE_SIZE;
+
   function loadLikes() {
     return db.collection('projectLikes').get().then(function(snap) {
       var projects = [];
@@ -1687,29 +1815,54 @@
       });
       projects.sort(function(a, b) { return b.count - a.count; });
 
-      document.getElementById('likesCount').textContent = projects.length + ' projects';
+      allLikes = projects;
       document.getElementById('statLikes').textContent = total;
-
-      var maxCount = projects.length ? projects[0].count : 1;
-
-      var grid = document.getElementById('likesGrid');
-      if (!projects.length) { grid.innerHTML = '<div class="empty-state">No likes yet.</div>'; return; }
-      grid.innerHTML = projects.map(function(p) {
-        var pct = Math.round((p.count / maxCount) * 100);
-        return '<div class="like-card fade-in">' +
-          '<div class="like-count">' + p.count + '</div>' +
-          '<div class="like-bar">' +
-            '<div class="like-name">' + sanitize(p.name) + '</div>' +
-            '<div class="like-progress"><div class="like-progress-fill" style="width:' + pct + '%"></div></div>' +
-          '</div>' +
-        '</div>';
-      }).join('');
+      likesVisibleCount = LIKES_PAGE_SIZE;
+      renderLikes(projects);
     }).catch(function() {
       document.getElementById('likesGrid').innerHTML = '<div class="empty-state">Could not load likes.</div>';
     });
   }
 
+  function renderLikes(projects) {
+    document.getElementById('likesCount').textContent = projects.length + ' projects';
+    var grid = document.getElementById('likesGrid');
+    if (!projects.length) {
+      grid.innerHTML = '<div class="empty-state">No likes yet.</div>';
+      document.getElementById('likesLoadMore').innerHTML = '';
+      return;
+    }
+
+    var maxCount = projects[0].count;
+    var toShow = projects.slice(0, likesVisibleCount);
+    grid.innerHTML = toShow.map(function(p) {
+      var pct = Math.round((p.count / maxCount) * 100);
+      return '<div class="like-card fade-in">' +
+        '<div class="like-count">' + p.count + '</div>' +
+        '<div class="like-bar">' +
+          '<div class="like-name">' + sanitize(p.name) + '</div>' +
+          '<div class="like-progress"><div class="like-progress-fill" style="width:' + pct + '%"></div></div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    var remaining = projects.length - toShow.length;
+    document.getElementById('likesLoadMore').innerHTML = remaining > 0
+      ? '<button class="load-more-btn" onclick="loadMoreLikes()">Show ' + Math.min(remaining, LIKES_PAGE_SIZE) + ' more (' + remaining + ' left)</button>'
+      : '';
+  }
+
+  function loadMoreLikes() {
+    likesVisibleCount += LIKES_PAGE_SIZE;
+    renderLikes(allLikes);
+  }
+
   /* ── Resume Downloads ── */
+  var allResume = [];
+  var RESUME_PAGE_SIZE = 8;
+  var resumeVisibleCount = RESUME_PAGE_SIZE;
+  var currentFilteredResume = [];
+
   function loadResume() {
     return db.collection('resumeDownloads').get().then(function(snap) {
       var downloads = [];
@@ -1720,26 +1873,62 @@
         return tb - ta;
       });
 
-      document.getElementById('resumeCount').textContent = downloads.length + ' downloads';
+      allResume = downloads;
       document.getElementById('statResume').textContent = downloads.length;
-
-      var grid = document.getElementById('resumeGrid');
-      if (!downloads.length) { grid.innerHTML = '<div class="empty-state">No resume downloads yet.</div>'; return; }
-      grid.innerHTML = downloads.map(function(d) {
-        return '<div class="resume-row fade-in">' +
-          '<div class="resume-user">' +
-            avatarImg(d.avatar, d.name || d.firstName, 'resume-avatar') +
-            '<div>' +
-              '<div class="resume-name">' + sanitize(d.name || d.firstName || 'Visitor') + '</div>' +
-              '<div class="resume-email">' + sanitize(d.email || '—') + '</div>' +
-            '</div>' +
-          '</div>' +
-          '<div class="resume-time">' + formatDate(d.downloadedAt) + '</div>' +
-        '</div>';
-      }).join('');
+      filterResume();
     }).catch(function() {
       document.getElementById('resumeGrid').innerHTML = '<div class="empty-state">Could not load resume downloads.</div>';
     });
+  }
+
+  function filterResume() {
+    var query = document.getElementById('resumeSearch').value.toLowerCase();
+    var filtered = allResume.filter(function(d) {
+      return !query ||
+        (d.name || d.firstName || '').toLowerCase().includes(query) ||
+        (d.email || '').toLowerCase().includes(query);
+    });
+    resumeVisibleCount = RESUME_PAGE_SIZE;
+    renderResume(filtered);
+  }
+
+  function renderResume(downloads) {
+    currentFilteredResume = downloads;
+    var grid = document.getElementById('resumeGrid');
+    var isFiltered = document.getElementById('resumeSearch').value.trim() !== '';
+    document.getElementById('resumeCount').textContent = isFiltered
+      ? downloads.length + ' of ' + allResume.length + ' downloads'
+      : downloads.length + ' downloads';
+
+    if (!downloads.length) {
+      grid.innerHTML = '<div class="empty-state">' + (allResume.length ? 'No downloads match this filter.' : 'No resume downloads yet.') + '</div>';
+      document.getElementById('resumeLoadMore').innerHTML = '';
+      return;
+    }
+
+    var toShow = downloads.slice(0, resumeVisibleCount);
+    grid.innerHTML = toShow.map(function(d) {
+      return '<div class="resume-row fade-in">' +
+        '<div class="resume-user">' +
+          avatarImg(d.avatar, d.name || d.firstName, 'resume-avatar') +
+          '<div>' +
+            '<div class="resume-name">' + sanitize(d.name || d.firstName || 'Visitor') + '</div>' +
+            '<div class="resume-email">' + sanitize(d.email || '—') + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="resume-time">' + formatDate(d.downloadedAt) + '</div>' +
+      '</div>';
+    }).join('');
+
+    var remaining = downloads.length - toShow.length;
+    document.getElementById('resumeLoadMore').innerHTML = remaining > 0
+      ? '<button class="load-more-btn" onclick="loadMoreResume()">Show ' + Math.min(remaining, RESUME_PAGE_SIZE) + ' more (' + remaining + ' left)</button>'
+      : '';
+  }
+
+  function loadMoreResume() {
+    resumeVisibleCount += RESUME_PAGE_SIZE;
+    renderResume(currentFilteredResume);
   }
 
   /* ══════════════════════════════════════════════════════
@@ -1747,6 +1936,9 @@
      ══════════════════════════════════════════════════════ */
 
   var allChatVisitors = [];
+  var CHAT_PAGE_SIZE = 8;
+  var chatVisibleCount = CHAT_PAGE_SIZE;
+  var currentFilteredChatVisitors = [];
 
   function loadChats() {
     var list = document.getElementById('chatVisitorList');
@@ -1762,6 +1954,7 @@
       if (snap.empty) {
         document.getElementById('chatConvCount').textContent = '0 conversations';
         list.innerHTML = '<div class="empty-state">No chat conversations yet.</div>';
+        document.getElementById('chatLoadMore').innerHTML = '';
         return;
       }
 
@@ -1804,6 +1997,7 @@
         if (!rows.length) {
           document.getElementById('chatConvCount').textContent = '0 conversations';
           list.innerHTML = '<div class="empty-state">No chat conversations yet.</div>';
+          document.getElementById('chatLoadMore').innerHTML = '';
           return;
         }
 
@@ -1824,6 +2018,7 @@
 
           allChatVisitors = rows;
           document.getElementById('chatConvCount').textContent = rows.length + ' conversation' + (rows.length !== 1 ? 's' : '');
+          chatVisibleCount = CHAT_PAGE_SIZE;
           renderChatVisitors(rows);
         });
       });
@@ -1838,23 +2033,27 @@
 
   function filterChatVisitors() {
     var q = document.getElementById('chatSearch').value.toLowerCase().trim();
-    if (!q) { renderChatVisitors(allChatVisitors); return; }
-    var filtered = allChatVisitors.filter(function(r) {
+    var filtered = !q ? allChatVisitors : allChatVisitors.filter(function(r) {
       return (r.name  || '').toLowerCase().includes(q) ||
              (r.email || '').toLowerCase().includes(q) ||
              (r.uid   || '').toLowerCase().includes(q);
     });
+    chatVisibleCount = CHAT_PAGE_SIZE;
     renderChatVisitors(filtered);
   }
 
   function renderChatVisitors(rows) {
+    currentFilteredChatVisitors = rows;
     var list = document.getElementById('chatVisitorList');
     if (!rows.length) {
       list.innerHTML = '<div class="empty-state">No conversations match your search.</div>';
+      document.getElementById('chatLoadMore').innerHTML = '';
       return;
     }
 
-    list.innerHTML = rows.map(function(row, i) {
+    var toShow = rows.slice(0, chatVisibleCount);
+
+    list.innerHTML = toShow.map(function(row, i) {
       var avatarHtml = row.avatar
         ? '<img class="chat-bubble-avatar" src="' + sanitize(row.avatar) + '" alt="" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">' +
           '<div class="chat-bubble-avatar-fallback" style="display:none">' + sanitize((row.name || '?')[0].toUpperCase()) + '</div>'
@@ -1879,6 +2078,16 @@
         '</div>' +
       '</div>';
     }).join('');
+
+    var remaining = rows.length - toShow.length;
+    document.getElementById('chatLoadMore').innerHTML = remaining > 0
+      ? '<button class="load-more-btn" onclick="loadMoreChats()">Show ' + Math.min(remaining, CHAT_PAGE_SIZE) + ' more (' + remaining + ' left)</button>'
+      : '';
+  }
+
+  function loadMoreChats() {
+    chatVisibleCount += CHAT_PAGE_SIZE;
+    renderChatVisitors(currentFilteredChatVisitors);
   }
 
   function toggleChatThread(uid) {
