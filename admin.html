@@ -861,6 +861,69 @@
   }
   .load-more-btn:hover { border-color: var(--cyan-border); color: var(--cyan); background: rgba(56,189,248,0.06); }
 
+  /* ══════════════════════════════════════════════════════════════════
+     SIDEBAR / TAB LAYOUT LAYER
+     Turns the long stacked page into a fixed-sidebar dashboard: each
+     section becomes a panel shown one at a time, so desktop screens
+     get a real app-shell instead of endless scrolling.
+     ══════════════════════════════════════════════════════════════════ */
+  #dashboard { padding: 0 !important; }
+  .app-shell { display: flex; align-items: stretch; min-height: calc(100vh - 53px); }
+
+  .sidebar {
+    width: 232px; flex-shrink: 0;
+    border-right: 1px solid var(--line);
+    background: var(--bg2);
+    padding: 18px 12px;
+    position: sticky; top: 53px;
+    align-self: flex-start;
+    height: calc(100vh - 53px);
+    overflow-y: auto;
+  }
+  .sidebar-label {
+    font-size: .62rem; font-family: 'Space Mono', monospace; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--text-dim); padding: 6px 10px 10px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; text-align: left; border: none; background: transparent;
+    color: var(--text-dim); font-family: 'Inter', sans-serif; font-size: .84rem; font-weight: 600;
+    padding: 10px 12px; border-radius: 10px; cursor: pointer;
+    transition: background .15s, color .15s;
+    margin-bottom: 2px;
+  }
+  .nav-item .nav-icon { font-size: .95rem; width: 18px; text-align: center; }
+  .nav-item .nav-count {
+    margin-left: auto; font-size: .65rem; font-family: 'Space Mono', monospace;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--line);
+    padding: 1px 7px; border-radius: 20px; color: var(--text-dim);
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+  .nav-item.active { background: var(--cyan-dim); color: var(--cyan); }
+  .nav-item.active .nav-count { border-color: var(--cyan-border); color: var(--cyan); }
+
+  .main-area { flex: 1; min-width: 0; }
+  .main-area .content { max-width: 1400px; padding: 24px 32px; }
+
+  .panel { display: none; }
+  .panel.active { display: block; animation: fadeUp .25s ease both; }
+
+  .panel-head {
+    font-size: 1.05rem; font-weight: 800; color: #fff; margin-bottom: 18px;
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  @media (max-width: 900px) {
+    .app-shell { flex-direction: column; }
+    .sidebar {
+      width: 100%; height: auto; position: sticky; top: 53px;
+      display: flex; overflow-x: auto; overflow-y: hidden; gap: 4px;
+      padding: 10px 12px; border-right: none; border-bottom: 1px solid var(--line);
+    }
+    .sidebar-label { display: none; }
+    .nav-item { flex-shrink: 0; width: auto; margin-bottom: 0; white-space: nowrap; }
+    .main-area .content { padding: 18px 16px; }
+  }
 </style>
 </head>
 <body>
@@ -902,7 +965,21 @@
     </div>
   </div>
 
+  <div class="app-shell">
+  <nav class="sidebar">
+    <div class="sidebar-label">Dashboard</div>
+    <button class="nav-item active" data-panel="overview" onclick="showPanel('overview')"><span class="nav-icon">📊</span>Overview</button>
+    <button class="nav-item" data-panel="visitors" onclick="showPanel('visitors')"><span class="nav-icon">👥</span>Visitors<span class="nav-count" id="navCountVisitors">–</span></button>
+    <button class="nav-item" data-panel="reviews" onclick="showPanel('reviews')"><span class="nav-icon">⭐</span>Reviews<span class="nav-count" id="navCountReviews">–</span></button>
+    <button class="nav-item" data-panel="likes" onclick="showPanel('likes')"><span class="nav-icon">❤️</span>Project Likes<span class="nav-count" id="navCountLikes">–</span></button>
+    <button class="nav-item" data-panel="resume" onclick="showPanel('resume')"><span class="nav-icon">📄</span>Resume Downloads<span class="nav-count" id="navCountResume">–</span></button>
+    <button class="nav-item" data-panel="chats" onclick="showPanel('chats')"><span class="nav-icon">💬</span>Chat Messages<span class="nav-count" id="navCountChats">–</span></button>
+  </nav>
+  <div class="main-area">
   <div class="content">
+
+    <!-- OVERVIEW PANEL -->
+    <div class="panel active" id="panel-overview">
 
     <!-- Stat Cards -->
     <div class="stats-row" id="statsRow">
@@ -926,7 +1003,7 @@
         <div class="stat-num" id="statResume">—</div>
         <div class="stat-label">Resume Downloads</div>
       </div>
-      <div class="stat-card fade-in" onclick="document.getElementById('chatSection').scrollIntoView({behavior:'smooth'})" style="cursor:pointer" title="View chat messages">
+      <div class="stat-card fade-in" onclick="showPanel('chats')" style="cursor:pointer" title="View chat messages">
         <div class="stat-icon">💬</div>
         <div class="stat-num" id="statChats">—</div>
         <div class="stat-label">Chat Messages</div>
@@ -959,7 +1036,11 @@
       </div>
     </div>
 
-    <!-- Visitors -->
+    </div>
+    <!-- /OVERVIEW PANEL -->
+
+    <!-- VISITORS PANEL -->
+    <div class="panel" id="panel-visitors">
     <div class="section-head">
       <span class="section-head-title">Signed-In Visitors</span>
       <div class="section-head-line"></div>
@@ -989,8 +1070,11 @@
       <div class="loading-state"><div class="loading-spinner"></div>Loading visitors…</div>
     </div>
     <div class="load-more-wrap" id="visitorLoadMore"></div>
+    </div>
+    <!-- /VISITORS PANEL -->
 
-    <!-- Reviews -->
+    <!-- REVIEWS PANEL -->
+    <div class="panel" id="panel-reviews">
     <div class="section-head">
       <span class="section-head-title">Reviews</span>
       <div class="section-head-line"></div>
@@ -1009,8 +1093,11 @@
       <div class="loading-state"><div class="loading-spinner"></div>Loading reviews…</div>
     </div>
     <div class="load-more-wrap" id="reviewsLoadMore"></div>
+    </div>
+    <!-- /REVIEWS PANEL -->
 
-    <!-- Project Likes -->
+    <!-- LIKES PANEL -->
+    <div class="panel" id="panel-likes">
     <div class="section-head">
       <span class="section-head-title">Project Likes</span>
       <div class="section-head-line"></div>
@@ -1020,8 +1107,11 @@
       <div class="loading-state"><div class="loading-spinner"></div>Loading likes…</div>
     </div>
     <div class="load-more-wrap" id="likesLoadMore"></div>
+    </div>
+    <!-- /LIKES PANEL -->
 
-    <!-- Resume Downloads -->
+    <!-- RESUME PANEL -->
+    <div class="panel" id="panel-resume">
     <div class="section-head">
       <span class="section-head-title">Resume Downloads</span>
       <div class="section-head-line"></div>
@@ -1034,8 +1124,11 @@
       <div class="loading-state"><div class="loading-spinner"></div>Loading downloads…</div>
     </div>
     <div class="load-more-wrap" id="resumeLoadMore"></div>
+    </div>
+    <!-- /RESUME PANEL -->
 
-    <!-- Chat Messages -->
+    <!-- CHATS PANEL -->
+    <div class="panel" id="panel-chats">
     <div class="section-head" id="chatSection">
       <span class="section-head-title">💬 Chat Messages</span>
       <div class="section-head-line"></div>
@@ -1048,7 +1141,11 @@
       <div class="loading-state"><div class="loading-spinner"></div>Loading conversations…</div>
     </div>
     <div class="load-more-wrap" id="chatLoadMore"></div>
+    </div>
+    <!-- /CHATS PANEL -->
 
+  </div>
+  </div>
   </div>
 </div>
 
@@ -1178,6 +1275,38 @@
   }
 
   /* the single source of truth: whenever auth state changes, gate on it */
+  // ── Sidebar panel switching ─────────────────────────────────────────────
+  function showPanel(name) {
+    document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
+    document.querySelectorAll('.nav-item').forEach(function(b) { b.classList.remove('active'); });
+    var panel = document.getElementById('panel-' + name);
+    var btn = document.querySelector('.nav-item[data-panel="' + name + '"]');
+    if (panel) panel.classList.add('active');
+    if (btn) btn.classList.add('active');
+    document.querySelector('.main-area').scrollTop = 0;
+    window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+  }
+
+  // Mirror the existing section counters onto the sidebar badges, without
+  // touching any of the render functions below.
+  function mirrorNavCounts() {
+    var map = {
+      visitorCount: 'navCountVisitors',
+      reviewCount: 'navCountReviews',
+      likesCount: 'navCountLikes',
+      resumeCount: 'navCountResume',
+      chatConvCount: 'navCountChats'
+    };
+    Object.keys(map).forEach(function(srcId) {
+      var src = document.getElementById(srcId);
+      var dst = document.getElementById(map[srcId]);
+      if (!src || !dst) return;
+      var n = (src.textContent.match(/\d+/) || [''])[0];
+      dst.textContent = n || '–';
+    });
+  }
+  setInterval(mirrorNavCounts, 800);
+
   function startAdminAuth() {
     if (authInited) return;
     authInited = true;
