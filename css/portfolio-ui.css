@@ -11191,3 +11191,39 @@ div#popup.popup {
 .ci-facts span { color: rgba(150, 190, 220, .4); margin: 0 2px; }
 
 @media (prefers-reduced-motion: reduce) { .ci-mk-run { animation: none; } }
+
+/* ── Dependencies: pips and gap detail, replacing the percentage bar ── */
+.df-state {
+  margin-left: auto;
+  flex: none;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: .56rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+.df-state-ok  { color: #6ff0bb; background: rgba(79, 224, 162, .14); }
+.df-state-mid { color: rgba(190, 215, 235, .8); background: rgba(150, 190, 220, .12); }
+.df-state-old { color: #ffcf6b; background: rgba(255, 207, 107, .14); }
+
+.df-pips { display: flex; flex-wrap: wrap; gap: 4px; margin: 10px 0 8px; }
+.df-pip {
+  width: 100%; max-width: 22px; height: 5px; border-radius: 3px; flex: 1 1 14px;
+  background: rgba(150, 190, 220, .22);
+}
+.df-pip-ok { background: linear-gradient(90deg, #4fe0a2, #2fae7d); }
+
+.df-list { margin-top: 7px; display: flex; flex-direction: column; gap: 3px; }
+.df-row {
+  display: flex; align-items: baseline; gap: 7px; flex-wrap: wrap;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .59rem;
+}
+.df-pkg { color: #cfeaff; font-weight: 600; }
+.df-ver { color: rgba(165, 200, 225, .6); }
+.df-gap {
+  margin-left: auto; color: rgba(255, 207, 107, .85);
+  font-size: .55rem; letter-spacing: .04em;
+}
+.df-detail b { color: #cfeaff; font-weight: 600; }
