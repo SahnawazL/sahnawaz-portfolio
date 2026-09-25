@@ -1735,7 +1735,8 @@
     var p2 = db.collection('resumeDownloads').where('uid', '==', uid).get()
       .then(function(snap) {
         snap.forEach(function(doc) {
-          addEvent('resume', '📄 Downloaded resume', doc.data().downloadedAt);
+          var rd = doc.data();
+          addEvent('resume', '📄 Downloaded resume', rd.downloadedAt || rd.timestamp || rd.createdAt || rd.date);
         });
       }).catch(function(){});
 
@@ -2032,8 +2033,10 @@
       var downloads = [];
       snap.forEach(function(doc) { downloads.push(doc.data()); });
       downloads.sort(function(a, b) {
-        var ta = a.downloadedAt ? (a.downloadedAt.toDate ? a.downloadedAt.toDate().getTime() : new Date(a.downloadedAt).getTime()) : 0;
-        var tb = b.downloadedAt ? (b.downloadedAt.toDate ? b.downloadedAt.toDate().getTime() : new Date(b.downloadedAt).getTime()) : 0;
+        var da = a.downloadedAt || a.timestamp || a.createdAt || a.date;
+        var db_ = b.downloadedAt || b.timestamp || b.createdAt || b.date;
+        var ta = da ? (da.toDate ? da.toDate().getTime() : new Date(da).getTime()) : 0;
+        var tb = db_ ? (db_.toDate ? db_.toDate().getTime() : new Date(db_).getTime()) : 0;
         return tb - ta;
       });
 
@@ -2080,7 +2083,7 @@
             '<div class="resume-email">' + sanitize(d.email || '—') + '</div>' +
           '</div>' +
         '</div>' +
-        '<div class="resume-time">' + formatDate(d.downloadedAt) + '</div>' +
+        '<div class="resume-time">🗓️ ' + formatDate(d.downloadedAt || d.timestamp || d.createdAt || d.date) + '</div>' +
       '</div>';
     }).join('');
 
