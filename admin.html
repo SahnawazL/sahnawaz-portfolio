@@ -1560,8 +1560,9 @@
           if (d.email) visitorMap[d.uid].email = d.email;
           if (d.avatar) visitorMap[d.uid].avatar = d.avatar;
           if (d.name || d.firstName) visitorMap[d.uid].name = d.name || d.firstName;
-          if (d.downloadedAt && (!visitorMap[d.uid].lastSeen || millisSafe(d.downloadedAt) > millisSafe(visitorMap[d.uid].lastSeen))) {
-            visitorMap[d.uid].lastSeen = d.downloadedAt;
+          var _dlTs = d.downloadedAt || d.accessedAt || d.time;
+          if (_dlTs && (!visitorMap[d.uid].lastSeen || millisSafe(_dlTs) > millisSafe(visitorMap[d.uid].lastSeen))) {
+            visitorMap[d.uid].lastSeen = _dlTs;
           }
         }
       });
@@ -1757,7 +1758,7 @@
       .then(function(snap) {
         snap.forEach(function(doc) {
           var rd = doc.data();
-          addEvent('resume', '📄 Downloaded resume', rd.downloadedAt || rd.timestamp || rd.createdAt || rd.date);
+          addEvent('resume', '📄 Downloaded resume', rd.downloadedAt || rd.accessedAt || rd.timestamp || rd.createdAt || rd.time || rd.date);
         });
       }).catch(function(){});
 
@@ -2054,8 +2055,8 @@
       var downloads = [];
       snap.forEach(function(doc) { downloads.push(doc.data()); });
       downloads.sort(function(a, b) {
-        var da = a.downloadedAt || a.timestamp || a.createdAt || a.date;
-        var db_ = b.downloadedAt || b.timestamp || b.createdAt || b.date;
+        var da = a.downloadedAt || a.accessedAt || a.timestamp || a.createdAt || a.time || a.date;
+        var db_ = b.downloadedAt || b.accessedAt || b.timestamp || b.createdAt || b.time || b.date;
         var ta = millisSafe(da);
         var tb = millisSafe(db_);
         return tb - ta;
@@ -2104,7 +2105,7 @@
             '<div class="resume-email">' + sanitize(d.email || '—') + '</div>' +
           '</div>' +
         '</div>' +
-        '<div class="resume-time">🗓️ ' + formatDate(d.downloadedAt || d.timestamp || d.createdAt || d.date) + '</div>' +
+        '<div class="resume-time">🗓️ ' + formatDate(d.downloadedAt || d.accessedAt || d.timestamp || d.createdAt || d.time || d.date) + '</div>' +
       '</div>';
     }).join('');
 
