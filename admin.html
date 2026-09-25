@@ -860,6 +860,17 @@
   .cb-muted { color: var(--text-dim); font-size: .68rem; }
   .cb-link { color: #5ac8ff; text-decoration: none; }
   .cb-link:hover { text-decoration: underline; }
+  .section-head { flex-wrap: wrap; gap: 8px; }
+  .stat-trend { font-family: 'Inter', sans-serif; font-size: .62rem; font-weight: 600; margin-top: 3px; letter-spacing: .01em; }
+  .stat-trend.up { color: #4fe0a2; }
+  .stat-trend.flat { color: rgba(150,180,210,0.45); }
+    .export-btn { font-family: 'Inter', sans-serif; font-size: .66rem; font-weight: 600; color: #9fd4f0; background: rgba(56,189,248,0.10); border: 1px solid rgba(56,189,248,0.24); padding: 5px 11px; border-radius: 8px; cursor: pointer; white-space: nowrap; transition: all .15s ease; }
+  .export-btn:hover { background: rgba(56,189,248,0.2); color: #dff2ff; }
+  .export-btn:active { transform: scale(.96); }
+    .msg-lastseen { font-family: 'Inter', sans-serif; font-size: .62rem; color: rgba(150,195,225,0.5); margin-top: 2px; }
+  .msg-subrow { padding: 11px 16px 12px 62px; border-top: 1px solid rgba(150,180,210,0.06); }
+  .msg-text { font-family: 'Inter', sans-serif; font-size: .78rem; line-height: 1.5; color: #dceaf7; white-space: pre-wrap; word-break: break-word; }
+  .msg-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 6px; }
     @media (max-width: 480px) { .resume-subrow { flex-direction: column; align-items: flex-start; gap: 3px; padding-left: 16px; } .resume-subrow .resume-time { text-align: left; } }
 
   /* ---- chat viewer ---- */
@@ -1039,6 +1050,7 @@
     <button class="nav-item" data-panel="resume" onclick="showPanel('resume')"><span class="nav-icon">📄</span>Resume Downloads<span class="nav-count" id="navCountResume">–</span></button>
     <button class="nav-item" data-panel="chats" onclick="showPanel('chats')"><span class="nav-icon">💬</span>Chat Messages<span class="nav-count" id="navCountChats">–</span></button>
     <button class="nav-item" data-panel="callbacks" onclick="showPanel('callbacks')"><span class="nav-icon">📞</span>Callbacks<span class="nav-count" id="navCountCallbacks">–</span></button>
+    <button class="nav-item" data-panel="inbox" onclick="showPanel('inbox')"><span class="nav-icon">📨</span>Messages<span class="nav-count" id="navCountInbox">–</span></button>
   </nav>
   <div class="main-area">
   <div class="content">
@@ -1056,21 +1068,25 @@
       <div class="stat-card stat-accent-yellow fade-in">
         <div class="stat-icon">⭐</div>
         <div class="stat-num" id="statReviews">—</div>
+        <div class="stat-trend" id="statReviewsTrend"></div>
         <div class="stat-label">Reviews</div>
       </div>
       <div class="stat-card stat-accent-red fade-in">
         <div class="stat-icon">❤️</div>
         <div class="stat-num" id="statLikes">—</div>
+        <div class="stat-trend" id="statLikesTrend"></div>
         <div class="stat-label">Total Likes</div>
       </div>
       <div class="stat-card stat-accent-green fade-in">
         <div class="stat-icon">📄</div>
         <div class="stat-num" id="statResume">—</div>
+        <div class="stat-trend" id="statResumeTrend"></div>
         <div class="stat-label">Resume Downloads</div>
       </div>
       <div class="stat-card fade-in" onclick="showPanel('chats')" style="cursor:pointer" title="View chat messages">
         <div class="stat-icon">💬</div>
         <div class="stat-num" id="statChats">—</div>
+        <div class="stat-trend" id="statChatsTrend"></div>
         <div class="stat-label">Chat Messages</div>
       </div>
       <div class="stat-card fade-in">
@@ -1181,6 +1197,7 @@
       <span class="section-head-title">Resume Downloads</span>
       <div class="section-head-line"></div>
       <span class="section-count" id="resumeCount">loading…</span>
+      <button class="export-btn" onclick="exportResume()" title="Download this view as CSV">⬇ Export</button>
     </div>
     <div class="filter-bar">
       <input type="text" class="search-input" id="resumeSearch" placeholder="🔍  Search by name or email…" oninput="filterResume()">
@@ -1222,6 +1239,7 @@
       <span class="section-head-title">📞 Callback Requests</span>
       <div class="section-head-line"></div>
       <span class="section-count" id="callbacksCount">loading…</span>
+      <button class="export-btn" onclick="exportCallbacks()" title="Download this view as CSV">⬇ Export</button>
     </div>
     <div class="filter-bar">
       <input type="text" class="search-input" id="callbacksSearch" placeholder="🔍  Search by name, email or phone…" oninput="filterCallbacks()">
@@ -1239,6 +1257,31 @@
     <div class="load-more-wrap" id="callbacksLoadMore"></div>
     </div>
     <!-- /CALLBACKS PANEL -->
+
+    <!-- INBOX / MESSAGES PANEL -->
+    <div class="panel" id="panel-inbox">
+    <div class="section-head">
+      <span class="section-head-title">📨 Contact Messages</span>
+      <div class="section-head-line"></div>
+      <span class="section-count" id="inboxCount">loading…</span>
+      <button class="export-btn" onclick="exportInbox()" title="Download this view as CSV">⬇ Export</button>
+    </div>
+    <div class="filter-bar">
+      <input type="text" class="search-input" id="inboxSearch" placeholder="🔍  Search by name, email or text…" oninput="filterInbox()">
+      <div class="resume-timefilter" id="inboxTimeFilter">
+        <button type="button" class="rtf-btn active" data-days="0"   onclick="setInboxRange(this)">All time</button>
+        <button type="button" class="rtf-btn"        data-days="7"   onclick="setInboxRange(this)">7 days</button>
+        <button type="button" class="rtf-btn"        data-days="30"  onclick="setInboxRange(this)">30 days</button>
+        <button type="button" class="rtf-btn"        data-days="90"  onclick="setInboxRange(this)">90 days</button>
+        <button type="button" class="rtf-btn"        data-days="365" onclick="setInboxRange(this)">1 year</button>
+      </div>
+    </div>
+    <div class="resume-grid" id="inboxGrid">
+      <div class="loading-state"><div class="loading-spinner"></div>Loading messages…</div>
+    </div>
+    <div class="load-more-wrap" id="inboxLoadMore"></div>
+    </div>
+    <!-- /INBOX PANEL -->
 
   </div>
   </div>
@@ -1392,6 +1435,7 @@
       likesCount: 'navCountLikes',
       resumeCount: 'navCountResume',
       callbacksCount: 'navCountCallbacks',
+      inboxCount: 'navCountInbox',
       chatConvCount: 'navCountChats'
     };
     Object.keys(map).forEach(function(srcId) {
@@ -1445,7 +1489,7 @@
   /* ── Load everything ── */
   function loadAll() {
     return loadVisitors().then(function() {
-      return Promise.all([loadReviews(), loadLikes(), loadResume(), loadChats(), loadCallbacks()]);
+      return Promise.all([loadReviews(), loadLikes(), loadResume(), loadChats(), loadCallbacks(), loadInbox()]);
     }).then(function() { updateRefreshTime(); })
       .catch(function(err) {
         updateRefreshTime();
@@ -1676,6 +1720,7 @@
         var totalChats = visitors.reduce(function(a, v) { return a + (v.chats || 0); }, 0);
         document.getElementById('statVisitors').textContent = visitors.length;
         document.getElementById('statChats').textContent = totalChats;
+        setStatTrend('statChatsTrend', visitors, function(v){ return v.lastSeen; });
 
         var dayAgo = Date.now() - 24 * 60 * 60 * 1000;
         var activeToday = visitors.filter(function(v) {
@@ -1972,6 +2017,7 @@
 
       allReviews = reviews;
       document.getElementById('statReviews').textContent = reviews.length;
+      setStatTrend('statReviewsTrend', reviews, function(r){ return r.createdAt || r.timestamp || r.date; });
 
       var avg = reviews.length
         ? (reviews.reduce(function(a, r) { return a + (r.stars || 0); }, 0) / reviews.length).toFixed(1)
@@ -2066,6 +2112,9 @@
 
       allLikes = projects;
       document.getElementById('statLikes').textContent = total;
+      // likes are per-project aggregates without per-like timestamps; show the
+      // project count context instead of a fake weekly number
+      var lt = document.getElementById('statLikesTrend'); if (lt) { lt.className='stat-trend flat'; lt.textContent = projects.length + (projects.length===1?' project':' projects'); }
       likesVisibleCount = LIKES_PAGE_SIZE;
       renderLikes(projects);
     }).catch(function() {
@@ -2126,6 +2175,7 @@
 
       allResume = downloads;
       document.getElementById('statResume').textContent = downloads.length;
+      setStatTrend('statResumeTrend', allResume, function(r){ return r.downloadedAt || r.accessedAt || r.time || r.createdAt; });
       filterResume();
     }).catch(function() {
       document.getElementById('resumeGrid').innerHTML = '<div class="empty-state">Could not load resume downloads.</div>';
@@ -2183,11 +2233,8 @@
     currentFilteredResume = downloads;
     var grid = document.getElementById('resumeGrid');
     var isFiltered = document.getElementById('resumeSearch').value.trim() !== '';
-    document.getElementById('resumeCount').textContent = isFiltered
-      ? downloads.length + ' of ' + allResume.length + ' downloads'
-      : downloads.length + ' downloads';
-
     if (!downloads.length) {
+      document.getElementById('resumeCount').textContent = isFiltered ? '0 of ' + allResume.length + ' downloads' : '0 downloads';
       grid.innerHTML = '<div class="empty-state">' + (allResume.length ? 'No downloads match this filter.' : 'No resume downloads yet.') + '</div>';
       document.getElementById('resumeLoadMore').innerHTML = '';
       return;
@@ -2209,6 +2256,12 @@
     });
     list.sort(function(x, y) { return y.latest - x.latest; });
 
+    var people = list.length, total = downloads.length;
+    document.getElementById('resumeCount').textContent =
+      people + (people === 1 ? ' person' : ' people') + ' \u00b7 ' +
+      total + (total === 1 ? ' download' : ' downloads') +
+      (isFiltered ? ' (of ' + allResume.length + ')' : '');
+
     var toShow = list.slice(0, resumeVisibleCount);
     grid.innerHTML = toShow.map(function(g) {
       var n = g.items.length;
@@ -2219,10 +2272,11 @@
             '<div>' +
               '<div class="resume-name">' + sanitize(g.name) + '</div>' +
               '<div class="resume-email">' + sanitize(g.email || '\u2014') + '</div>' +
+              '<div class="msg-lastseen">Last: ' + formatDate(resumeDate(g.items[0])) + '</div>' +
             '</div>' +
           '</div>' +
           '<div class="resume-gright">' +
-            '<span class="resume-count-pill">' + n + ' download' + (n === 1 ? '' : 's') + '</span>' +
+            '<span class="resume-count-pill">' + n + (n === 1 ? ' download' : ' downloads') + '</span>' +
             (n > 1 ? '<svg class="resume-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>' : '') +
           '</div>' +
         '</div>';
@@ -2302,11 +2356,8 @@
     currentFilteredCallbacks = rows;
     var grid = document.getElementById('callbacksGrid');
     var isFiltered = (document.getElementById('callbacksSearch').value || '').trim() !== '' || callbacksRangeDays > 0;
-    document.getElementById('callbacksCount').textContent = isFiltered
-      ? rows.length + ' of ' + allCallbacks.length + ' requests'
-      : rows.length + (rows.length === 1 ? ' request' : ' requests');
-
     if (!rows.length) {
+      document.getElementById('callbacksCount').textContent = isFiltered ? '0 of ' + allCallbacks.length + ' requests' : '0 requests';
       grid.innerHTML = '<div class="empty-state">' + (allCallbacks.length ? 'No callbacks match this filter.' : 'No callback requests yet.') + '</div>';
       document.getElementById('callbacksLoadMore').innerHTML = '';
       return;
@@ -2326,6 +2377,12 @@
     });
     list.sort(function(x,y){ return y.latest - x.latest; });
 
+    var people = list.length, total = rows.length;
+    document.getElementById('callbacksCount').textContent =
+      people + (people === 1 ? ' person' : ' people') + ' \u00b7 ' +
+      total + (total === 1 ? ' request' : ' requests') +
+      (isFiltered ? ' (of ' + allCallbacks.length + ')' : '');
+
     var toShow = list.slice(0, callbacksVisibleCount);
     grid.innerHTML = toShow.map(function(g) {
       var n = g.items.length;
@@ -2336,6 +2393,7 @@
             '<div>' +
               '<div class="resume-name">' + sanitize(g.name) + '</div>' +
               '<div class="resume-email">' + sanitize(g.email || g.phone || '\u2014') + '</div>' +
+              '<div class="msg-lastseen">Last: ' + formatDate(callbackDate(g.items[0])) + '</div>' +
             '</div>' +
           '</div>' +
           '<div class="resume-gright">' +
@@ -2367,6 +2425,222 @@
   window.loadMoreCallbacks = function() {
     callbacksVisibleCount += CALLBACKS_PAGE_SIZE;
     renderCallbacks(currentFilteredCallbacks);
+  };
+
+  /* ══════════════════════════════════════════════════════
+     CONTACT MESSAGES  (written by api/contact.js -> messages)
+     Both the Contact form and the chat's "Quick Mail" flow post to
+     /api/contact, which logs here. Grouped by sender, searchable,
+     time-filterable. Full message text shown.
+     ══════════════════════════════════════════════════════ */
+  /* ══════════════════════════════════════════════════════
+     CSV EXPORT — one function for every panel. Exports the CURRENTLY
+     VISIBLE rows (after search + time filter), flattening Firestore
+     timestamps to readable dates. Downloads as a .csv any spreadsheet
+     opens.
+     ══════════════════════════════════════════════════════ */
+  function csvCell(v) {
+    if (v == null) return '';
+    var str = String(v);
+    // a value with a comma, quote or newline must be quoted, inner quotes doubled
+    if (/[",\n\r]/.test(str)) return '"' + str.replace(/"/g, '""') + '"';
+    return str;
+  }
+  function exportCSV(filename, rows, columns) {
+    if (!rows || !rows.length) { alert('Nothing to export in the current view.'); return; }
+    var header = columns.map(function(c){ return csvCell(c.label); }).join(',');
+    var lines = rows.map(function(r){
+      return columns.map(function(c){
+        var val = c.get(r);
+        return csvCell(val);
+      }).join(',');
+    });
+    var csv = '\ufeff' + header + '\r\n' + lines.join('\r\n');   // BOM so Excel reads UTF-8
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    var stamp = new Date().toISOString().slice(0,10);
+    a.href = url; a.download = filename + '-' + stamp + '.csv';
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+  }
+  /* "▲ N this week" under a stat card. rows = the records, getTs = how to
+     read each one's date. Green when there's recent activity, muted when
+     none this week. */
+  function setStatTrend(trendId, rows, getTs) {
+    var el = document.getElementById(trendId);
+    if (!el) return;
+    var weekAgo = Date.now() - 7 * 86400000;
+    var recent = 0;
+    (rows || []).forEach(function(r) {
+      var ms = millisSafe(getTs(r));
+      if (ms && ms >= weekAgo) recent++;
+    });
+    if (recent > 0) {
+      el.className = 'stat-trend up';
+      el.textContent = '\u25B2 ' + recent + ' this week';
+    } else {
+      el.className = 'stat-trend flat';
+      el.textContent = 'none this week';
+    }
+  }
+
+  function fmtCsvDate(ts) { var d = toDateSafe(ts); return d ? d.toISOString() : ''; }
+
+  window.exportResume = function() {
+    exportCSV('resume-downloads', currentFilteredResume, [
+      { label:'Name',   get:function(d){ return d.name || d.firstName || ''; } },
+      { label:'Email',  get:function(d){ return d.email || ''; } },
+      { label:'Source', get:function(d){ var t=resumeSourceTag(d); return t.label; } },
+      { label:'When',   get:function(d){ return fmtCsvDate(resumeDate(d)); } },
+    ]);
+  };
+  window.exportCallbacks = function() {
+    exportCSV('callback-requests', currentFilteredCallbacks, [
+      { label:'Name',      get:function(d){ return d.name || ''; } },
+      { label:'Email',     get:function(d){ return d.email || ''; } },
+      { label:'Phone',     get:function(d){ return d.phone || ''; } },
+      { label:'Purpose',   get:function(d){ return d.purpose || ''; } },
+      { label:'Preferred', get:function(d){ return d.time || ''; } },
+      { label:'Requested', get:function(d){ return fmtCsvDate(callbackDate(d)); } },
+    ]);
+  };
+  window.exportInbox = function() {
+    exportCSV('contact-messages', currentFilteredInbox, [
+      { label:'Name',    get:function(d){ return d.name || ''; } },
+      { label:'Email',   get:function(d){ return d.email || ''; } },
+      { label:'Message', get:function(d){ return d.message || ''; } },
+      { label:'When',    get:function(d){ return fmtCsvDate(inboxDate(d)); } },
+    ]);
+  };
+
+  var allInbox = [];
+  var currentFilteredInbox = [];
+  var INBOX_PAGE_SIZE = 8;
+  var inboxVisibleCount = INBOX_PAGE_SIZE;
+  var inboxRangeDays = 0;
+
+  function inboxDate(d) { return d.createdAt || d.timestamp || d.time || d.date; }
+
+  function loadInbox() {
+    return db.collection('messages').get().then(function(snap) {
+      var rows = [];
+      snap.forEach(function(doc) { rows.push(doc.data()); });
+      allInbox = rows;
+      var el = document.getElementById('inboxCount');
+      if (el) el.textContent = rows.length + (rows.length === 1 ? ' message' : ' messages');
+      filterInbox();
+    }).catch(function(err) {
+      var g = document.getElementById('inboxGrid');
+      if (g) g.innerHTML = '<div class="empty-state">Could not load messages.' +
+        (err && /permission/i.test(err.message || '') ? ' (Check the messages Firestore rule.)' : '') + '</div>';
+    });
+  }
+
+  window.setInboxRange = function(btn) {
+    var row = document.getElementById('inboxTimeFilter');
+    [].forEach.call(row.querySelectorAll('.rtf-btn'), function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    inboxRangeDays = parseInt(btn.getAttribute('data-days'), 10) || 0;
+    filterInbox();
+  };
+
+  function filterInbox() {
+    var query = (document.getElementById('inboxSearch').value || '').toLowerCase();
+    var cutoff = inboxRangeDays > 0 ? Date.now() - inboxRangeDays * 86400000 : 0;
+    var filtered = allInbox.filter(function(d) {
+      if (cutoff) { var ms = millisSafe(inboxDate(d)); if (!ms || ms < cutoff) return false; }
+      return !query ||
+        (d.name    || '').toLowerCase().includes(query) ||
+        (d.email   || '').toLowerCase().includes(query) ||
+        (d.message || '').toLowerCase().includes(query);
+    });
+    inboxVisibleCount = INBOX_PAGE_SIZE;
+    renderInbox(filtered);
+  }
+
+  function renderInbox(rows) {
+    currentFilteredInbox = rows;
+    var grid = document.getElementById('inboxGrid');
+    var isFiltered = (document.getElementById('inboxSearch').value || '').trim() !== '' || inboxRangeDays > 0;
+    if (!rows.length) {
+      document.getElementById('inboxCount').textContent = isFiltered ? '0 of ' + allInbox.length + ' messages' : '0 messages';
+      grid.innerHTML = '<div class="empty-state">' + (allInbox.length ? 'No messages match this filter.' : 'No messages yet.') + '</div>';
+      document.getElementById('inboxLoadMore').innerHTML = '';
+      return;
+    }
+
+    /* group by sender email */
+    var groups = {};
+    rows.forEach(function(d) {
+      var key = (d.email || d.name || 'unknown').toLowerCase();
+      if (!groups[key]) groups[key] = { name: d.name || 'Visitor', email: d.email || '', items: [] };
+      groups[key].items.push(d);
+    });
+
+    /* header: how many people, and how many messages in total */
+    var people = Object.keys(groups).length;
+    var msgTotal = rows.length;
+    document.getElementById('inboxCount').textContent =
+      people + (people === 1 ? ' person' : ' people') + ' \u00b7 ' +
+      msgTotal + (msgTotal === 1 ? ' message' : ' messages') +
+      (isFiltered ? ' (of ' + allInbox.length + ')' : '');
+    var list = Object.keys(groups).map(function(k){ return groups[k]; });
+    list.forEach(function(g){
+      g.items.sort(function(x,y){ return millisSafe(inboxDate(y)) - millisSafe(inboxDate(x)); });
+      g.latest = millisSafe(inboxDate(g.items[0]));
+    });
+    list.sort(function(x,y){ return y.latest - x.latest; });
+
+    var toShow = list.slice(0, inboxVisibleCount);
+    grid.innerHTML = toShow.map(function(g) {
+      var n = g.items.length;
+      var head =
+        '<div class="resume-ghead" onclick="toggleInboxGroup(this)">' +
+          '<div class="resume-user">' +
+            avatarImg('', g.name, 'resume-avatar') +
+            '<div>' +
+              '<div class="resume-name">' + sanitize(g.name) + '</div>' +
+              '<div class="resume-email">' + sanitize(g.email || '\u2014') + '</div>' +
+              '<div class="msg-lastseen">Last: ' + formatDate(inboxDate(g.items[0])) + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="resume-gright">' +
+            '<span class="resume-count-pill">' + n + (n === 1 ? ' msg' : ' msgs') + '</span>' +
+            (n > 1 ? '<svg class="resume-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>' : '') +
+          '</div>' +
+        '</div>';
+
+      var rowsHtml = g.items.map(function(d) {
+        var mailto = 'mailto:' + encodeURIComponent(d.email || '') + '?subject=' + encodeURIComponent('Re: your message') ;
+        return '<div class="msg-subrow">' +
+          '<div class="msg-text">' + sanitize(d.message || '\u2014') + '</div>' +
+          '<div class="msg-meta">' +
+            '<span class="cb-muted">\uD83D\uDCC5 ' + formatDate(inboxDate(d)) + '</span>' +
+            (d.email ? '<a class="cb-link" href="' + mailto + '">Reply \u2197</a>' : '') +
+          '</div>' +
+        '</div>';
+      }).join('');
+
+      return '<div class="resume-group' + (n === 1 ? ' single' : '') + '">' + head +
+        '<div class="resume-sublist">' + rowsHtml + '</div>' +
+      '</div>';
+    }).join('');
+
+    var remaining = list.length - toShow.length;
+    document.getElementById('inboxLoadMore').innerHTML = remaining > 0
+      ? '<button class="load-more-btn" onclick="loadMoreInbox()">Show ' + Math.min(remaining, INBOX_PAGE_SIZE) + ' more (' + remaining + ' left)</button>'
+      : '';
+  }
+
+  window.loadMoreInbox = function() {
+    inboxVisibleCount += INBOX_PAGE_SIZE;
+    renderInbox(currentFilteredInbox);
+  };
+  window.toggleInboxGroup = function(head) {
+    var group = head.parentNode;
+    if (group.classList.contains('single')) return;
+    group.classList.toggle('open');
   };
 
   window.toggleCallbackGroup = function(head) {
