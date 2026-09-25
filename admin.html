@@ -832,6 +832,24 @@
   .resume-avatar, .resume-avatar-fallback { width: 30px !important; height: 30px !important; }
   .resume-name { font-family: 'Inter', sans-serif !important; font-size: .8rem !important; font-weight: 600 !important; }
   .resume-email, .resume-time { font-family: 'Inter', sans-serif !important; font-size: .68rem !important; }
+  .resume-group { background: var(--card-bg); border: 1px solid rgba(150,180,210,0.10); border-radius: 12px; margin-bottom: 8px; overflow: hidden; }
+  .resume-ghead { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; cursor: pointer; }
+  .resume-group.single .resume-ghead { cursor: default; }
+  .resume-ghead:hover { background: rgba(120,200,255,0.03); }
+  .resume-gright { display: flex; align-items: center; gap: 9px; flex: none; }
+  .resume-count-pill { font-family: 'Inter', sans-serif; font-size: .64rem; font-weight: 600; color: #9fd4f0; background: rgba(56,189,248,0.12); border: 1px solid rgba(56,189,248,0.22); padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
+  .resume-chev { width: 15px; height: 15px; color: rgba(150,200,230,0.6); transition: transform .22s ease; }
+  .resume-group.open .resume-chev { transform: rotate(180deg); }
+  .resume-sublist { max-height: 0; overflow: hidden; transition: max-height .28s ease; }
+  .resume-group.open .resume-sublist, .resume-group.single .resume-sublist { max-height: 1200px; }
+  .resume-subrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 16px 9px 62px; border-top: 1px solid rgba(150,180,210,0.06); }
+  .resume-src { display: inline-flex; align-items: center; gap: 5px; font-family: 'Inter', sans-serif; font-size: .64rem; font-weight: 600; padding: 3px 9px; border-radius: 6px; white-space: nowrap; }
+  .rs-chat   { color: #a78bfa; background: rgba(167,139,250,0.13); }
+  .rs-bio    { color: #4fe0a2; background: rgba(79,224,162,0.13); }
+  .rs-direct { color: #38bdf8; background: rgba(56,189,248,0.13); }
+  .rs-unknown{ color: rgba(190,205,224,0.6); background: rgba(150,180,210,0.10); }
+  .resume-subrow .resume-time { font-family: 'Inter', sans-serif; font-size: .66rem; color: var(--text-dim); white-space: nowrap; text-align: right; }
+  @media (max-width: 480px) { .resume-subrow { flex-direction: column; align-items: flex-start; gap: 3px; padding-left: 16px; } .resume-subrow .resume-time { text-align: left; } }
 
   /* ---- chat viewer ---- */
   .chat-visitor-list { gap: 6px !important; margin-bottom: 22px !important; }
@@ -2081,6 +2099,21 @@
     renderResume(filtered);
   }
 
+  function resumeSourceTag(d) {
+    var src = (d.source || '').toLowerCase();
+    if (src === 'chatbot')  return { label: 'Chat Assistant', cls: 'rs-chat',  icon: '\uD83D\uDCAC' };
+    if (src === 'bio-cta')  return { label: 'Get Resume button', cls: 'rs-bio', icon: '\uD83D\uDCC4' };
+    if (src === 'direct') {
+      var m = (d.mode || '').toLowerCase();
+      return { label: m === 'download' ? 'Direct download' : 'Direct view', cls: 'rs-direct', icon: '\uD83D\uDD17' };
+    }
+    if (d.downloadedAt) return { label: 'Get Resume button', cls: 'rs-bio', icon: '\uD83D\uDCC4' };
+    return { label: 'Unknown', cls: 'rs-unknown', icon: '\u2022' };
+  }
+  function resumeDate(d) {
+    return d.downloadedAt || d.accessedAt || d.timestamp || d.createdAt || d.time || d.date;
+  }
+
   function renderResume(downloads) {
     currentFilteredResume = downloads;
     var grid = document.getElementById('resumeGrid');
@@ -2095,25 +2128,64 @@
       return;
     }
 
-    var toShow = downloads.slice(0, resumeVisibleCount);
-    grid.innerHTML = toShow.map(function(d) {
-      return '<div class="resume-row fade-in">' +
-        '<div class="resume-user">' +
-          avatarImg(d.avatar, d.name || d.firstName, 'resume-avatar') +
-          '<div>' +
-            '<div class="resume-name">' + sanitize(d.name || d.firstName || 'Visitor') + '</div>' +
-            '<div class="resume-email">' + sanitize(d.email || '—') + '</div>' +
+    var groups = {};
+    downloads.forEach(function(d) {
+      var key = (d.email || d.uid || d.name || 'unknown').toLowerCase();
+      if (!groups[key]) groups[key] = { name: d.name || d.firstName || 'Visitor', email: d.email || '', avatar: d.avatar || d.picture || '', items: [] };
+      if (groups[key].name === 'Visitor' && (d.name || d.firstName)) groups[key].name = d.name || d.firstName;
+      if (!groups[key].avatar) groups[key].avatar = d.avatar || d.picture || '';
+      groups[key].items.push(d);
+    });
+
+    var list = Object.keys(groups).map(function(k) { return groups[k]; });
+    list.forEach(function(g) {
+      g.items.sort(function(x, y) { return millisSafe(resumeDate(y)) - millisSafe(resumeDate(x)); });
+      g.latest = millisSafe(resumeDate(g.items[0]));
+    });
+    list.sort(function(x, y) { return y.latest - x.latest; });
+
+    var toShow = list.slice(0, resumeVisibleCount);
+    grid.innerHTML = toShow.map(function(g) {
+      var n = g.items.length;
+      var head =
+        '<div class="resume-ghead" onclick="toggleResumeGroup(this)">' +
+          '<div class="resume-user">' +
+            avatarImg(g.avatar, g.name, 'resume-avatar') +
+            '<div>' +
+              '<div class="resume-name">' + sanitize(g.name) + '</div>' +
+              '<div class="resume-email">' + sanitize(g.email || '\u2014') + '</div>' +
+            '</div>' +
           '</div>' +
-        '</div>' +
-        '<div class="resume-time">🗓️ ' + formatDate(d.downloadedAt || d.accessedAt || d.timestamp || d.createdAt || d.time || d.date) + '</div>' +
+          '<div class="resume-gright">' +
+            '<span class="resume-count-pill">' + n + ' download' + (n === 1 ? '' : 's') + '</span>' +
+            (n > 1 ? '<svg class="resume-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>' : '') +
+          '</div>' +
+        '</div>';
+
+      var rows = g.items.map(function(d) {
+        var tag = resumeSourceTag(d);
+        return '<div class="resume-subrow">' +
+          '<span class="resume-src ' + tag.cls + '">' + tag.icon + ' ' + tag.label + '</span>' +
+          '<span class="resume-time">\uD83D\uDCC5 ' + formatDate(resumeDate(d)) + '</span>' +
+        '</div>';
+      }).join('');
+
+      return '<div class="resume-group' + (n === 1 ? ' single' : '') + '">' + head +
+        '<div class="resume-sublist">' + rows + '</div>' +
       '</div>';
     }).join('');
 
-    var remaining = downloads.length - toShow.length;
+    var remaining = list.length - toShow.length;
     document.getElementById('resumeLoadMore').innerHTML = remaining > 0
       ? '<button class="load-more-btn" onclick="loadMoreResume()">Show ' + Math.min(remaining, RESUME_PAGE_SIZE) + ' more (' + remaining + ' left)</button>'
       : '';
   }
+
+  window.toggleResumeGroup = function(head) {
+    var group = head.parentNode;
+    if (group.classList.contains('single')) return;
+    group.classList.toggle('open');
+  };
 
   function loadMoreResume() {
     resumeVisibleCount += RESUME_PAGE_SIZE;
