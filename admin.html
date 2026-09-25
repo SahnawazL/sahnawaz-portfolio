@@ -853,7 +853,14 @@
   .rs-direct { color: #38bdf8; background: rgba(56,189,248,0.13); }
   .rs-unknown{ color: rgba(190,205,224,0.6); background: rgba(150,180,210,0.10); }
   .resume-subrow .resume-time { font-family: 'Inter', sans-serif; font-size: .66rem; color: var(--text-dim); white-space: nowrap; text-align: right; }
-  @media (max-width: 480px) { .resume-subrow { flex-direction: column; align-items: flex-start; gap: 3px; padding-left: 16px; } .resume-subrow .resume-time { text-align: left; } }
+  .cb-subrow { padding: 10px 16px 12px 62px; border-top: 1px solid rgba(150,180,210,0.06); display: flex; flex-direction: column; gap: 5px; }
+  .cb-line { display: flex; gap: 10px; align-items: baseline; font-family: 'Inter', sans-serif; font-size: .72rem; }
+  .cb-key { flex: none; width: 74px; font-size: .6rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: rgba(150,200,230,0.5); }
+  .cb-val { color: #d6ebfa; }
+  .cb-muted { color: var(--text-dim); font-size: .68rem; }
+  .cb-link { color: #5ac8ff; text-decoration: none; }
+  .cb-link:hover { text-decoration: underline; }
+    @media (max-width: 480px) { .resume-subrow { flex-direction: column; align-items: flex-start; gap: 3px; padding-left: 16px; } .resume-subrow .resume-time { text-align: left; } }
 
   /* ---- chat viewer ---- */
   .chat-visitor-list { gap: 6px !important; margin-bottom: 22px !important; }
@@ -1031,6 +1038,7 @@
     <button class="nav-item" data-panel="likes" onclick="showPanel('likes')"><span class="nav-icon">❤️</span>Project Likes<span class="nav-count" id="navCountLikes">–</span></button>
     <button class="nav-item" data-panel="resume" onclick="showPanel('resume')"><span class="nav-icon">📄</span>Resume Downloads<span class="nav-count" id="navCountResume">–</span></button>
     <button class="nav-item" data-panel="chats" onclick="showPanel('chats')"><span class="nav-icon">💬</span>Chat Messages<span class="nav-count" id="navCountChats">–</span></button>
+    <button class="nav-item" data-panel="callbacks" onclick="showPanel('callbacks')"><span class="nav-icon">📞</span>Callbacks<span class="nav-count" id="navCountCallbacks">–</span></button>
   </nav>
   <div class="main-area">
   <div class="content">
@@ -1208,6 +1216,30 @@
     </div>
     <!-- /CHATS PANEL -->
 
+    <!-- CALLBACKS PANEL -->
+    <div class="panel" id="panel-callbacks">
+    <div class="section-head">
+      <span class="section-head-title">📞 Callback Requests</span>
+      <div class="section-head-line"></div>
+      <span class="section-count" id="callbacksCount">loading…</span>
+    </div>
+    <div class="filter-bar">
+      <input type="text" class="search-input" id="callbacksSearch" placeholder="🔍  Search by name, email or phone…" oninput="filterCallbacks()">
+      <div class="resume-timefilter" id="callbacksTimeFilter">
+        <button type="button" class="rtf-btn active" data-days="0"   onclick="setCallbacksRange(this)">All time</button>
+        <button type="button" class="rtf-btn"        data-days="7"   onclick="setCallbacksRange(this)">7 days</button>
+        <button type="button" class="rtf-btn"        data-days="30"  onclick="setCallbacksRange(this)">30 days</button>
+        <button type="button" class="rtf-btn"        data-days="90"  onclick="setCallbacksRange(this)">90 days</button>
+        <button type="button" class="rtf-btn"        data-days="365" onclick="setCallbacksRange(this)">1 year</button>
+      </div>
+    </div>
+    <div class="resume-grid" id="callbacksGrid">
+      <div class="loading-state"><div class="loading-spinner"></div>Loading callbacks…</div>
+    </div>
+    <div class="load-more-wrap" id="callbacksLoadMore"></div>
+    </div>
+    <!-- /CALLBACKS PANEL -->
+
   </div>
   </div>
   </div>
@@ -1359,6 +1391,7 @@
       reviewCount: 'navCountReviews',
       likesCount: 'navCountLikes',
       resumeCount: 'navCountResume',
+      callbacksCount: 'navCountCallbacks',
       chatConvCount: 'navCountChats'
     };
     Object.keys(map).forEach(function(srcId) {
@@ -1412,7 +1445,7 @@
   /* ── Load everything ── */
   function loadAll() {
     return loadVisitors().then(function() {
-      return Promise.all([loadReviews(), loadLikes(), loadResume(), loadChats()]);
+      return Promise.all([loadReviews(), loadLikes(), loadResume(), loadChats(), loadCallbacks()]);
     }).then(function() { updateRefreshTime(); })
       .catch(function(err) {
         updateRefreshTime();
@@ -2212,6 +2245,135 @@
       ? '<button class="load-more-btn" onclick="loadMoreResume()">Show ' + Math.min(remaining, RESUME_PAGE_SIZE) + ' more (' + remaining + ' left)</button>'
       : '';
   }
+
+  /* ══════════════════════════════════════════════════════
+     CALLBACK REQUESTS  (written by api/callback.js)
+     Mirrors the resume panel: grouped by requester, searchable,
+     time-filterable. Each request shows purpose + preferred time.
+     ══════════════════════════════════════════════════════ */
+  var allCallbacks = [];
+  var currentFilteredCallbacks = [];
+  var CALLBACKS_PAGE_SIZE = 8;
+  var callbacksVisibleCount = CALLBACKS_PAGE_SIZE;
+  var callbacksRangeDays = 0;
+
+  function callbackDate(d) {
+    return d.requestedAt || d.createdAt || d.timestamp || d.time || d.date;
+  }
+
+  function loadCallbacks() {
+    return db.collection('callbacks').get().then(function(snap) {
+      var rows = [];
+      snap.forEach(function(doc) { rows.push(doc.data()); });
+      allCallbacks = rows;
+      var el = document.getElementById('callbacksCount');
+      if (el) el.textContent = rows.length + (rows.length === 1 ? ' request' : ' requests');
+      filterCallbacks();
+    }).catch(function(err) {
+      var g = document.getElementById('callbacksGrid');
+      if (g) g.innerHTML = '<div class="empty-state">Could not load callbacks.' +
+        (err && /permission/i.test(err.message || '') ? ' (Check the callbacks Firestore rule.)' : '') + '</div>';
+    });
+  }
+
+  window.setCallbacksRange = function(btn) {
+    var row = document.getElementById('callbacksTimeFilter');
+    [].forEach.call(row.querySelectorAll('.rtf-btn'), function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    callbacksRangeDays = parseInt(btn.getAttribute('data-days'), 10) || 0;
+    filterCallbacks();
+  };
+
+  function filterCallbacks() {
+    var query = (document.getElementById('callbacksSearch').value || '').toLowerCase();
+    var cutoff = callbacksRangeDays > 0 ? Date.now() - callbacksRangeDays * 86400000 : 0;
+    var filtered = allCallbacks.filter(function(d) {
+      if (cutoff) { var ms = millisSafe(callbackDate(d)); if (!ms || ms < cutoff) return false; }
+      return !query ||
+        (d.name  || '').toLowerCase().includes(query) ||
+        (d.email || '').toLowerCase().includes(query) ||
+        (d.phone || '').toLowerCase().includes(query);
+    });
+    callbacksVisibleCount = CALLBACKS_PAGE_SIZE;
+    renderCallbacks(filtered);
+  }
+
+  function renderCallbacks(rows) {
+    currentFilteredCallbacks = rows;
+    var grid = document.getElementById('callbacksGrid');
+    var isFiltered = (document.getElementById('callbacksSearch').value || '').trim() !== '' || callbacksRangeDays > 0;
+    document.getElementById('callbacksCount').textContent = isFiltered
+      ? rows.length + ' of ' + allCallbacks.length + ' requests'
+      : rows.length + (rows.length === 1 ? ' request' : ' requests');
+
+    if (!rows.length) {
+      grid.innerHTML = '<div class="empty-state">' + (allCallbacks.length ? 'No callbacks match this filter.' : 'No callback requests yet.') + '</div>';
+      document.getElementById('callbacksLoadMore').innerHTML = '';
+      return;
+    }
+
+    /* group by email/phone (a repeat requester) */
+    var groups = {};
+    rows.forEach(function(d) {
+      var key = (d.email || d.phone || d.name || 'unknown').toLowerCase();
+      if (!groups[key]) groups[key] = { name: d.name || 'Visitor', email: d.email || '', phone: d.phone || '', items: [] };
+      groups[key].items.push(d);
+    });
+    var list = Object.keys(groups).map(function(k){ return groups[k]; });
+    list.forEach(function(g){
+      g.items.sort(function(x,y){ return millisSafe(callbackDate(y)) - millisSafe(callbackDate(x)); });
+      g.latest = millisSafe(callbackDate(g.items[0]));
+    });
+    list.sort(function(x,y){ return y.latest - x.latest; });
+
+    var toShow = list.slice(0, callbacksVisibleCount);
+    grid.innerHTML = toShow.map(function(g) {
+      var n = g.items.length;
+      var head =
+        '<div class="resume-ghead" onclick="toggleCallbackGroup(this)">' +
+          '<div class="resume-user">' +
+            avatarImg('', g.name, 'resume-avatar') +
+            '<div>' +
+              '<div class="resume-name">' + sanitize(g.name) + '</div>' +
+              '<div class="resume-email">' + sanitize(g.email || g.phone || '\u2014') + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="resume-gright">' +
+            '<span class="resume-count-pill">' + n + (n === 1 ? ' request' : ' requests') + '</span>' +
+            (n > 1 ? '<svg class="resume-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>' : '') +
+          '</div>' +
+        '</div>';
+
+      var rowsHtml = g.items.map(function(d) {
+        return '<div class="cb-subrow">' +
+          '<div class="cb-line"><span class="cb-key">Purpose</span><span class="cb-val">' + sanitize(d.purpose || '\u2014') + '</span></div>' +
+          '<div class="cb-line"><span class="cb-key">Preferred</span><span class="cb-val">' + sanitize(d.time || '\u2014') + '</span></div>' +
+          (d.phone ? '<div class="cb-line"><span class="cb-key">Phone</span><a class="cb-val cb-link" href="tel:' + sanitize(d.phone) + '">' + sanitize(d.phone) + '</a></div>' : '') +
+          '<div class="cb-line"><span class="cb-key">Requested</span><span class="cb-val cb-muted">\uD83D\uDCC5 ' + formatDate(callbackDate(d)) + '</span></div>' +
+        '</div>';
+      }).join('');
+
+      return '<div class="resume-group' + (n === 1 ? ' single' : '') + '">' + head +
+        '<div class="resume-sublist">' + rowsHtml + '</div>' +
+      '</div>';
+    }).join('');
+
+    var remaining = list.length - toShow.length;
+    document.getElementById('callbacksLoadMore').innerHTML = remaining > 0
+      ? '<button class="load-more-btn" onclick="loadMoreCallbacks()">Show ' + Math.min(remaining, CALLBACKS_PAGE_SIZE) + ' more (' + remaining + ' left)</button>'
+      : '';
+  }
+
+  window.loadMoreCallbacks = function() {
+    callbacksVisibleCount += CALLBACKS_PAGE_SIZE;
+    renderCallbacks(currentFilteredCallbacks);
+  };
+
+  window.toggleCallbackGroup = function(head) {
+    var group = head.parentNode;
+    if (group.classList.contains('single')) return;
+    group.classList.toggle('open');
+  };
 
   window.toggleResumeGroup = function(head) {
     var group = head.parentNode;
