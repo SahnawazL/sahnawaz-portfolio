@@ -1,6 +1,23 @@
 // api/contact.js — Gmail SMTP version (no Resend)
 
 const nodemailer = require('nodemailer');
+const { initializeApp, getApps, cert } = require('firebase-admin/app');
+const { getFirestore, FieldValue }      = require('firebase-admin/firestore');
+
+// Same Admin-SDK init as api/analytics.js. Logs each contact message to the
+// `messages` collection so it appears in the admin dashboard.
+function getDB() {
+  if (!getApps().length) {
+    initializeApp({
+      credential: cert({
+        projectId:    process.env.FIREBASE_PROJECT_ID,
+        clientEmail:  process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey:   process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      }),
+    });
+  }
+  return getFirestore();
+}
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -224,6 +241,23 @@ module.exports = async function handler(req, res) {
         html: visitorHtml,
       }),
     ]);
+
+    // Log the message so it shows in the admin dashboard. Non-fatal: the
+    // emails already went out.
+    try {
+      await getDB().collection('messages').add({
+        name:      name,
+        email:     email,
+        message:   message,
+        country:   req.headers['x-vercel-ip-country'] || 'unknown',
+        city:      req.headers['x-vercel-ip-city']    || 'unknown',
+        source:    'contact-form',
+        createdAt: FieldValue.serverTimestamp(),
+        time:      new Date().toISOString(),
+      });
+    } catch (logErr) {
+      console.error('Message log error (non-fatal):', logErr && logErr.message);
+    }
 
     return res.status(200).json({ success: true });
 

@@ -3,6 +3,23 @@
 // Env vars: GMAIL_USER, GMAIL_PASS
 
 const nodemailer = require('nodemailer');
+const { initializeApp, getApps, cert } = require('firebase-admin/app');
+const { getFirestore, FieldValue }      = require('firebase-admin/firestore');
+
+// Same Admin-SDK init as api/analytics.js. Used to log each callback request
+// so it shows up in the admin dashboard, alongside the emails it already sends.
+function getDB() {
+  if (!getApps().length) {
+    initializeApp({
+      credential: cert({
+        projectId:    process.env.FIREBASE_PROJECT_ID,
+        clientEmail:  process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey:   process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      }),
+    });
+  }
+  return getFirestore();
+}
 
 function createTransporter() {
   return nodemailer.createTransport({
@@ -510,6 +527,26 @@ module.exports = async function handler(req, res) {
       transporter.sendMail(mailToVisitor),
       transporter.sendMail(mailToSahnawaz),
     ]);
+
+    // Log the callback request so it appears in the admin dashboard. A
+    // failure here must never block the response — the emails already sent.
+    try {
+      await getDB().collection('callbacks').add({
+        name:        name,
+        phone:       phone,
+        email:       email,
+        purpose:     purpose,
+        time:        time,
+        country:     req.headers['x-vercel-ip-country'] || 'unknown',
+        city:        req.headers['x-vercel-ip-city']    || 'unknown',
+        source:      'chatbot',
+        requestedAt: FieldValue.serverTimestamp(),
+        createdAt:   new Date().toISOString(),
+      });
+    } catch (logErr) {
+      console.error('Callback log error (non-fatal):', logErr && logErr.message);
+    }
+
     return res.status(200).json({
       success: true,
       confirmed: !!r1.messageId,
