@@ -658,6 +658,9 @@
       }, 30000);
     }
   }
+  /* let other modules (e.g. the deep-link chips) close the chat and
+     bring the pill back, exactly as the close button does */
+  window.closeChat = closeChat;
 
   closeBtn && closeBtn.addEventListener('click', closeChat);
 
@@ -1761,8 +1764,12 @@
       if (!btn) return;
       var entry = CHAT_LINKS[btn.getAttribute('data-bot-go')];
       if (!entry) return;
-      if (typeof window.closeChatWidget === 'function') { try { window.closeChatWidget(); } catch (err) {} }
-      if (!entry.run()) location.href = entry.url;     /* fallback: let the URL do it */
+      /* close the chat first so it doesn't cover what we scroll to; the
+         pill stays (closeChat brings it back). A short beat lets the close
+         animation play before the page scrolls, so it feels smooth. */
+      var closer = window.closeChat || window.closeChatWidget;
+      if (typeof closer === 'function') { try { closer(); } catch (err) {} }
+      setTimeout(function () { if (!entry.run()) location.href = entry.url; }, 260);
     });
   }
 
