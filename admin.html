@@ -1271,7 +1271,10 @@
      Firestore Security Rules (which must also allow only this UID to read
      the admin collections); this gate is the front door, the rules are the
      lock. */
-  var ADMIN_EMAIL = 'balveerdj@gmail.com';
+  /* No admin emails live in this file — it is public. The list is held in
+     Firestore Security Rules instead, which are not publicly readable, so
+     the authorised accounts stay private. Access is decided by whether an
+     admin-only read succeeds below, not by an email check here. */
   var authInited = false, rejecting = false;
 
   function ensureFirebase() {
@@ -1347,19 +1350,35 @@
     authInited = true;
     ensureFirebase();
     firebase.auth().onAuthStateChanged(function (user) {
-      if (user && (user.email || '').toLowerCase() === ADMIN_EMAIL) {
-        showDashboard();
-        loadAll();
-      } else if (user) {
-        /* signed in, but not the owner: reject, keep the reason on screen */
-        rejecting = true;
-        showLock('\u26a0 ' + user.email + ' isn\u2019t authorised. Use the owner account.');
-        firebase.auth().signOut();
-      } else {
+      if (!user) {
         /* a plain sign-out shows the neutral lock, but a rejection has
            already put its message up — don't overwrite it */
         if (rejecting) { rejecting = false; } else { showLock(); }
+        return;
       }
+      /* Ask Firestore, not this file, whether the account is an admin: try
+         a read that the rules only allow for admins. If it succeeds, they
+         are authorised; if it is denied, they are not. The list of admin
+         emails lives only in the rules, so it is never exposed here. */
+      showLock('');
+      var probe = document.getElementById('lockError');
+      if (probe) { probe.textContent = 'Checking access\u2026'; probe.style.display = 'block'; }
+      ensureFirebase();
+      db.collection('adminAccess').limit(1).get()
+        .then(function () {
+          if (probe) probe.style.display = 'none';
+          showDashboard();
+          loadAll();
+        })
+        .catch(function (err) {
+          /* permission-denied => not an admin. Any other error => surface it. */
+          var denied = err && (err.code === 'permission-denied' || /permission/i.test(err.message || ''));
+          rejecting = true;
+          showLock(denied
+            ? '\u26a0 ' + (user.email || 'This account') + ' isn\u2019t authorised for the dashboard.'
+            : '\u26a0 Could not verify access. Try again.');
+          firebase.auth().signOut();
+        });
     });
   }
 
