@@ -1110,43 +1110,6 @@
     .aud-badge { margin-bottom: 0; }
     .aud-seen  { margin-top: 0; }
   }
-  /* ══════════════════════════════════════════════════════════════════
-     SMOOTH MOTION LAYER  (premium polish pass — timing/easing + gentle
-     hover states only; no new elements, no layout changes)
-     ══════════════════════════════════════════════════════════════════ */
-  :root { --ease-smooth: cubic-bezier(.16,1,.3,1); }
-
-  .stat-card, .chart-card, .insight-chip, .review-card, .like-card, .resume-row {
-    transition: transform .4s var(--ease-smooth), box-shadow .4s var(--ease-smooth), border-color .3s var(--ease-smooth) !important;
-  }
-  .chart-card:hover {
-    transform: translateY(-3px);
-    border-color: rgba(56,189,248,0.4);
-    box-shadow: 0 14px 32px -16px rgba(0,0,0,0.55);
-  }
-  .stat-card:hover { box-shadow: 0 10px 26px -14px rgba(0,0,0,0.5); }
-  .insight-chip { transition: transform .3s var(--ease-smooth), border-color .3s var(--ease-smooth), background .3s var(--ease-smooth) !important; }
-  .insight-chip:hover { transform: translateY(-2px); border-color: rgba(56,189,248,0.4); }
-
-  .rank-row, .lb-row {
-    border-radius: 10px; padding: 5px 8px; margin: 0 -8px;
-    transition: background .25s var(--ease-smooth), transform .25s var(--ease-smooth) !important;
-  }
-  .rank-row:hover, .lb-row:hover { background: rgba(56,189,248,0.06); transform: translateX(2px); }
-
-  .rank-bar-fill { transition: width .8s var(--ease-smooth) !important; }
-  .funnel-bar-fill { transition: width .8s var(--ease-smooth), background .3s var(--ease-smooth) !important; }
-  .funnel-bar-track, .rank-bar-track { transition: background .3s var(--ease-smooth); }
-
-  .stat-num { transition: color .3s var(--ease-smooth); }
-
-  /* stagger entrance for dynamically-rendered lists (delay set inline per row) */
-  .rank-row.fade-in, .lb-row.fade-in, .insight-chip.fade-in { animation: fadeUp .5s var(--ease-smooth) both; }
-
-  @media (prefers-reduced-motion: reduce) {
-    .stat-card, .chart-card, .insight-chip, .rank-row, .lb-row,
-    .rank-bar-fill, .funnel-bar-fill, .stat-num { transition: none !important; animation: none !important; }
-  }
 </style>
 </head>
 <body>
@@ -1593,12 +1556,6 @@
 <script>
   // (password hashing removed — access is now Google sign-in, owner only)
 
-  // ── Smoother chart animations, applied to every Chart.js instance ──────────
-  if (typeof Chart !== 'undefined') {
-    Chart.defaults.animation = { duration: 650, easing: 'easeOutQuart' };
-    Chart.defaults.transitions.active.animation.duration = 300;
-  }
-
   // ── Firebase config ────────────────────────────────────────────────────────
   // These credentials are also present in visitor-auth.js (public file), so they
   // are not secret. However: ensure your Firestore Security Rules restrict writes
@@ -1788,25 +1745,6 @@
     return isNaN(d.getTime()) ? null : d;
   }
   function millisSafe(ts) { var d = toDateSafe(ts); return d ? d.getTime() : 0; }
-
-  /* ── lightweight count-up for stat numbers (no library, ~400ms) ── */
-  function countUp(el, target) {
-    if (!el) return;
-    target = Number(target) || 0;
-    var start = Number(el.getAttribute('data-val')) || 0;
-    if (start === target) { el.textContent = target; return; }
-    el.setAttribute('data-val', target);
-    var t0 = null, dur = 500;
-    function step(ts) {
-      if (!t0) t0 = ts;
-      var p = Math.min(1, (ts - t0) / dur);
-      var eased = 1 - Math.pow(1 - p, 3); /* ease-out-cubic */
-      el.textContent = Math.round(start + (target - start) * eased);
-      if (p < 1) requestAnimationFrame(step);
-      else el.textContent = target;
-    }
-    requestAnimationFrame(step);
-  }
 
   function formatDate(ts) {
     var d = toDateSafe(ts);
@@ -2001,8 +1939,8 @@
         allVisitors = visitors;
 
         var totalChats = visitors.reduce(function(a, v) { return a + (v.chats || 0); }, 0);
-        countUp(document.getElementById('statVisitors'), visitors.length);
-        countUp(document.getElementById('statChats'), totalChats);
+        document.getElementById('statVisitors').textContent = visitors.length;
+        document.getElementById('statChats').textContent = totalChats;
         setStatTrend('statChatsTrend', visitors, function(v){ return v.lastSeen; });
 
         var dayAgo = Date.now() - 24 * 60 * 60 * 1000;
@@ -2011,7 +1949,7 @@
           var ms = v.lastSeen.toMillis ? v.lastSeen.toMillis() : new Date(v.lastSeen).getTime();
           return ms >= dayAgo;
         }).length;
-        countUp(document.getElementById('statActiveToday'), activeToday);
+        document.getElementById('statActiveToday').textContent = activeToday;
 
         filterVisitors();
         renderActivityChart(visitors, totalChats);
@@ -2428,7 +2366,7 @@
     if (!rows.length) { el.innerHTML = '<div class="empty-state">' + emptyMsg + '</div>'; return; }
     var max = rows[0].count;
     el.innerHTML = rows.map(function(r, i) {
-      return '<div class="rank-row fade-in" style="animation-delay:' + (i * 0.05) + 's"><div class="rank-idx">' + (i + 1) + '</div>' +
+      return '<div class="rank-row"><div class="rank-idx">' + (i + 1) + '</div>' +
         '<div class="rank-name">' + sanitize(r.name) + '</div>' +
         '<div class="rank-bar-track"><div class="rank-bar-fill" style="width:' + Math.round((r.count / max) * 100) + '%"></div></div>' +
         '<div class="rank-count">' + r.count + '</div></div>';
@@ -2463,7 +2401,7 @@
       .slice(0, 5);
     if (!top.length) { el.innerHTML = '<div class="empty-state">No engaged visitors yet.</div>'; return; }
     el.innerHTML = top.map(function(v, i) {
-      return '<div class="lb-row fade-in" style="animation-delay:' + (i * 0.06) + 's">' +
+      return '<div class="lb-row">' +
         '<div class="rank-idx">' + (i + 1) + '</div>' +
         avatarImg(v.avatar, v.name, 'lb-avatar') +
         '<div class="lb-meta"><div class="lb-name">' + sanitize(v.name || 'Unknown') + '</div>' +
@@ -2545,16 +2483,16 @@
       el.innerHTML = '<div class="insight-chip"><span class="ic-emoji">👋</span> Insights will appear once visitor data comes in.</div>';
       return;
     }
-    el.innerHTML = chips.slice(0, 4).map(function(c, i) {
-      return '<div class="insight-chip fade-in" style="animation-delay:' + (i * 0.07) + 's"><span class="ic-emoji">' + c.icon + '</span><span>' + c.html + '</span></div>';
+    el.innerHTML = chips.slice(0, 4).map(function(c) {
+      return '<div class="insight-chip"><span class="ic-emoji">' + c.icon + '</span><span>' + c.html + '</span></div>';
     }).join('');
   }
 
   function renderOverviewAnalytics() {
     var elA = document.getElementById('statAudience');
     var elC = document.getElementById('statCallbacks');
-    if (elA) countUp(elA, (allAudience || []).length);
-    if (elC) countUp(elC, (allCallbacks || []).length);
+    if (elA) elA.textContent = (allAudience || []).length;
+    if (elC) elC.textContent = (allCallbacks || []).length;
     renderSmartInsights();
     renderGrowthTrend();
     renderFunnel();
@@ -2583,7 +2521,7 @@
       });
 
       allReviews = reviews;
-      countUp(document.getElementById('statReviews'), reviews.length);
+      document.getElementById('statReviews').textContent = reviews.length;
       setStatTrend('statReviewsTrend', reviews, function(r){ return r.createdAt || r.timestamp || r.date; });
 
       var avg = reviews.length
@@ -2678,7 +2616,7 @@
       projects.sort(function(a, b) { return b.count - a.count; });
 
       allLikes = projects;
-      countUp(document.getElementById('statLikes'), total);
+      document.getElementById('statLikes').textContent = total;
       // likes are per-project aggregates without per-like timestamps; show the
       // project count context instead of a fake weekly number
       var lt = document.getElementById('statLikesTrend'); if (lt) { lt.className='stat-trend flat'; lt.textContent = projects.length + (projects.length===1?' project':' projects'); }
@@ -2741,7 +2679,7 @@
       });
 
       allResume = downloads;
-      countUp(document.getElementById('statResume'), downloads.length);
+      document.getElementById('statResume').textContent = downloads.length;
       setStatTrend('statResumeTrend', allResume, function(r){ return r.downloadedAt || r.accessedAt || r.time || r.createdAt; });
       filterResume();
     }).catch(function() {
