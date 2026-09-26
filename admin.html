@@ -646,8 +646,10 @@
   }
 
   @media (max-width: 700px) {
-    .chat-visitor-header { grid-template-columns: 40px 1fr auto; }
-    .chat-msg-count { display: none; }
+    /* keep the message-count pill visible on phones — just make the row
+       tighter so avatar · name/email · count · toggle all fit on one line */
+    .chat-visitor-header { grid-template-columns: 38px minmax(0,1fr) auto auto; gap: 8px; padding: 12px 13px; }
+    .chat-msg-count { font-size: 0.58rem !important; padding: 2px 6px !important; }
     .chat-bubble { font-size: 0.78rem; }
     .chat-bubble-body { max-width: 85%; }
   }
