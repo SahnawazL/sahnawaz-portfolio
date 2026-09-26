@@ -1001,6 +1001,59 @@
     .main-area .content { max-width: 1680px !important; }
     .sidebar { width: 252px; }
   }
+
+  /* ── Audience panel (visitors collection) ── */
+  .aud-summary {
+    display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 16px;
+  }
+  .aud-chip {
+    font-size: .72rem; font-family: 'Inter', sans-serif;
+    background: var(--card-bg); border: 1px solid var(--line-soft);
+    color: var(--text-dim); padding: 5px 11px; border-radius: 8px;
+  }
+  .aud-chip b { color: var(--cyan); font-weight: 700; }
+
+  .aud-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 22px; }
+  .aud-row {
+    display: grid;
+    grid-template-columns: 40px minmax(0,1.4fr) minmax(0,1fr) auto;
+    gap: 12px; align-items: center;
+    background: var(--card-bg); border: 1px solid var(--line-soft);
+    border-radius: 12px; padding: 12px 15px;
+  }
+  .aud-av {
+    width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: .95rem; color: #fff;
+    background: linear-gradient(135deg, #38bdf8, #6366f1);
+  }
+  .aud-meta { min-width: 0; }
+  .aud-name { font-size: .84rem; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .aud-sub  { font-size: .7rem; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+  .aud-facts { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .aud-fact { font-size: .7rem; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .aud-fact b { color: var(--text); font-weight: 600; }
+  .aud-right { text-align: right; flex-shrink: 0; }
+  .aud-badge {
+    display: inline-block; font-size: .6rem; font-weight: 700; letter-spacing: .3px;
+    padding: 2px 8px; border-radius: 20px; text-transform: uppercase; margin-bottom: 5px;
+  }
+  .aud-badge.google { background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.3); color: #34d399; }
+  .aud-badge.guest  { background: rgba(148,163,184,0.12); border: 1px solid rgba(148,163,184,0.3); color: #94a3b8; }
+  .aud-visits { font-size: .68rem; color: var(--text-dim); }
+  .aud-visits b { color: var(--cyan); font-weight: 700; }
+  .aud-seen { font-size: .64rem; color: var(--text-dim); margin-top: 2px; }
+
+  @media (max-width: 760px) {
+    /* stack on phones so device/location stay visible (admin is read on mobile) */
+    .aud-row { grid-template-columns: 34px minmax(0,1fr); gap: 4px 10px; align-items: start; }
+    .aud-av { width: 34px; height: 34px; font-size: .8rem; grid-row: 1 / span 3; align-self: start; }
+    .aud-meta  { grid-column: 2; }
+    .aud-facts { grid-column: 2; }
+    .aud-right { grid-column: 2; text-align: left; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 2px; }
+    .aud-badge { margin-bottom: 0; }
+    .aud-seen  { margin-top: 0; }
+  }
 </style>
 </head>
 <body>
@@ -1047,6 +1100,7 @@
     <div class="sidebar-label">Dashboard</div>
     <button class="nav-item active" data-panel="overview" onclick="showPanel('overview')"><span class="nav-icon">📊</span>Overview</button>
     <button class="nav-item" data-panel="visitors" onclick="showPanel('visitors')"><span class="nav-icon">👥</span>Visitors<span class="nav-count" id="navCountVisitors">–</span></button>
+    <button class="nav-item" data-panel="audience" onclick="showPanel('audience')"><span class="nav-icon">🌐</span>Audience<span class="nav-count" id="navCountAudience">–</span></button>
     <button class="nav-item" data-panel="reviews" onclick="showPanel('reviews')"><span class="nav-icon">⭐</span>Reviews<span class="nav-count" id="navCountReviews">–</span></button>
     <button class="nav-item" data-panel="likes" onclick="showPanel('likes')"><span class="nav-icon">❤️</span>Project Likes<span class="nav-count" id="navCountLikes">–</span></button>
     <button class="nav-item" data-panel="resume" onclick="showPanel('resume')"><span class="nav-icon">📄</span>Resume Downloads<span class="nav-count" id="navCountResume">–</span></button>
@@ -1285,6 +1339,36 @@
     </div>
     <!-- /INBOX PANEL -->
 
+    <!-- AUDIENCE PANEL (visitors collection: device / location / referrer) -->
+    <div class="panel" id="panel-audience">
+    <div class="section-head">
+      <span class="section-head-title">🌐 Audience</span>
+      <div class="section-head-line"></div>
+      <span class="section-count" id="audienceCount">loading…</span>
+      <button class="export-btn" onclick="exportAudience()" title="Download this view as CSV">⬇ Export</button>
+    </div>
+    <div class="aud-summary" id="audSummary"></div>
+    <div class="filter-bar">
+      <input type="text" class="search-input" id="audienceSearch" placeholder="🔍  Search name, email, city, country, device…" oninput="filterAudience()">
+      <div class="resume-timefilter" id="audienceTypeFilter">
+        <button type="button" class="rtf-btn active" data-type="all"    onclick="setAudienceType(this)">All</button>
+        <button type="button" class="rtf-btn"        data-type="google" onclick="setAudienceType(this)">Signed-in</button>
+        <button type="button" class="rtf-btn"        data-type="guest"  onclick="setAudienceType(this)">Guests</button>
+      </div>
+      <div class="resume-timefilter" id="audienceTimeFilter">
+        <button type="button" class="rtf-btn active" data-days="0"   onclick="setAudienceRange(this)">All time</button>
+        <button type="button" class="rtf-btn"        data-days="7"   onclick="setAudienceRange(this)">7 days</button>
+        <button type="button" class="rtf-btn"        data-days="30"  onclick="setAudienceRange(this)">30 days</button>
+        <button type="button" class="rtf-btn"        data-days="90"  onclick="setAudienceRange(this)">90 days</button>
+      </div>
+    </div>
+    <div class="aud-list" id="audienceGrid">
+      <div class="loading-state"><div class="loading-spinner"></div>Loading audience…</div>
+    </div>
+    <div class="load-more-wrap" id="audienceLoadMore"></div>
+    </div>
+    <!-- /AUDIENCE PANEL -->
+
   </div>
   </div>
   </div>
@@ -1438,7 +1522,8 @@
       resumeCount: 'navCountResume',
       callbacksCount: 'navCountCallbacks',
       inboxCount: 'navCountInbox',
-      chatConvCount: 'navCountChats'
+      chatConvCount: 'navCountChats',
+      audienceCount: 'navCountAudience'
     };
     Object.keys(map).forEach(function(srcId) {
       var src = document.getElementById(srcId);
@@ -1491,7 +1576,7 @@
   /* ── Load everything ── */
   function loadAll() {
     return loadVisitors().then(function() {
-      return Promise.all([loadReviews(), loadLikes(), loadResume(), loadChats(), loadCallbacks(), loadInbox()]);
+      return Promise.all([loadReviews(), loadLikes(), loadResume(), loadChats(), loadCallbacks(), loadInbox(), loadAudience()]);
     }).then(function() { updateRefreshTime(); })
       .catch(function(err) {
         updateRefreshTime();
@@ -2523,6 +2608,179 @@
   var inboxRangeDays = 0;
 
   function inboxDate(d) { return d.createdAt || d.timestamp || d.time || d.date; }
+
+  /* ══════════════════════════════════════════════════════════════════════
+     AUDIENCE PANEL — reads the visitors/{uid} profile collection written by
+     visitor-auth.js. Shows guests + signed-in people with device / OS /
+     browser / language / approximate location / referrer / visits.
+     ══════════════════════════════════════════════════════════════════════ */
+  var allAudience = [];
+  var currentFilteredAudience = [];
+  var AUDIENCE_PAGE_SIZE = 12;
+  var audienceVisibleCount = AUDIENCE_PAGE_SIZE;
+  var audienceType = 'all';
+  var audienceRangeDays = 0;
+
+  function audDate(d) { return d.lastSeen || d.updatedAt || d.firstSeen; }
+
+  function loadAudience() {
+    return db.collection('visitors').get().then(function(snap) {
+      var rows = [];
+      snap.forEach(function(doc) { var d = doc.data(); d.uid = d.uid || doc.id; rows.push(d); });
+      allAudience = rows;
+      var el = document.getElementById('audienceCount');
+      if (el) el.textContent = rows.length + (rows.length === 1 ? ' visitor' : ' visitors');
+      renderAudSummary();
+      filterAudience();
+    }).catch(function(err) {
+      var g = document.getElementById('audienceGrid');
+      if (g) g.innerHTML = '<div class="empty-state">Could not load audience.' +
+        (err && /permission/i.test(err.message || '') ? '<br><small style="opacity:.6">Add the <code>visitors</code> rule and enable Anonymous auth.</small>' : '') + '</div>';
+      var el = document.getElementById('audienceCount'); if (el) el.textContent = '0 visitors';
+    });
+  }
+
+  function renderAudSummary() {
+    var box = document.getElementById('audSummary');
+    if (!box) return;
+    var total = allAudience.length;
+    if (!total) { box.innerHTML = ''; return; }
+    var guests = 0, google = 0, visits = 0, countries = {}, devices = {};
+    allAudience.forEach(function(d) {
+      if ((d.type || 'guest') === 'google') google++; else guests++;
+      visits += (typeof d.visits === 'number' ? d.visits : 0);
+      if (d.country) countries[d.country] = (countries[d.country] || 0) + 1;
+      if (d.device)  devices[d.device]   = (devices[d.device]  || 0) + 1;
+    });
+    function top(obj) {
+      var best = '', n = 0;
+      Object.keys(obj).forEach(function(k){ if (obj[k] > n) { n = obj[k]; best = k; } });
+      return best ? best + ' (' + n + ')' : '—';
+    }
+    box.innerHTML =
+      '<span class="aud-chip">Total <b>' + total + '</b></span>' +
+      '<span class="aud-chip">Signed-in <b>' + google + '</b></span>' +
+      '<span class="aud-chip">Guests <b>' + guests + '</b></span>' +
+      (visits ? '<span class="aud-chip">Visits <b>' + visits + '</b></span>' : '') +
+      '<span class="aud-chip">Top country <b>' + sanitize(top(countries)) + '</b></span>' +
+      '<span class="aud-chip">Top device <b>' + sanitize(top(devices)) + '</b></span>';
+  }
+
+  window.setAudienceType = function(btn) {
+    var row = document.getElementById('audienceTypeFilter');
+    [].forEach.call(row.querySelectorAll('.rtf-btn'), function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    audienceType = btn.getAttribute('data-type') || 'all';
+    filterAudience();
+  };
+
+  window.setAudienceRange = function(btn) {
+    var row = document.getElementById('audienceTimeFilter');
+    [].forEach.call(row.querySelectorAll('.rtf-btn'), function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    audienceRangeDays = parseInt(btn.getAttribute('data-days'), 10) || 0;
+    filterAudience();
+  };
+
+  function filterAudience() {
+    var query = (document.getElementById('audienceSearch').value || '').toLowerCase();
+    var cutoff = audienceRangeDays > 0 ? Date.now() - audienceRangeDays * 86400000 : 0;
+    var filtered = allAudience.filter(function(d) {
+      if (audienceType !== 'all' && (d.type || 'guest') !== audienceType) return false;
+      if (cutoff) { var ms = millisSafe(audDate(d)); if (!ms || ms < cutoff) return false; }
+      if (!query) return true;
+      return [d.name, d.email, d.city, d.region, d.country, d.device, d.os, d.browser, d.referrer, d.uid]
+        .some(function(v){ return (v || '').toString().toLowerCase().indexOf(query) !== -1; });
+    });
+    filtered.sort(function(a, b){ return millisSafe(audDate(b)) - millisSafe(audDate(a)); });
+    audienceVisibleCount = AUDIENCE_PAGE_SIZE;
+    renderAudience(filtered);
+  }
+
+  function renderAudience(rows) {
+    currentFilteredAudience = rows;
+    var grid = document.getElementById('audienceGrid');
+    var isFiltered = (document.getElementById('audienceSearch').value || '').trim() !== '' ||
+                     audienceRangeDays > 0 || audienceType !== 'all';
+    document.getElementById('audienceCount').textContent = isFiltered
+      ? rows.length + ' of ' + allAudience.length + ' visitors'
+      : allAudience.length + (allAudience.length === 1 ? ' visitor' : ' visitors');
+
+    if (!rows.length) {
+      grid.innerHTML = '<div class="empty-state">' + (allAudience.length ? 'No visitors match this filter.' : 'No visitors recorded yet.') + '</div>';
+      document.getElementById('audienceLoadMore').innerHTML = '';
+      return;
+    }
+
+    var toShow = rows.slice(0, audienceVisibleCount);
+    grid.innerHTML = toShow.map(function(d, i) {
+      var isGoogle = (d.type || 'guest') === 'google';
+      var name = d.name || (isGoogle ? 'Signed-in visitor' : 'Guest');
+      var av = d.avatar
+        ? '<img class="aud-av" src="' + sanitize(d.avatar) + '" alt="" onerror="this.outerHTML=\'<div class=&quot;aud-av&quot;>' + sanitize((name||'?')[0].toUpperCase()) + '</div>\'">'
+        : '<div class="aud-av">' + sanitize((name || '?')[0].toUpperCase()) + '</div>';
+
+      var sub = d.email ? sanitize(d.email) : sanitize((d.uid || '').slice(0, 18) + '…');
+
+      var loc = [d.city, d.region, d.country].filter(Boolean).map(sanitize).join(', ') || 'Unknown location';
+      var devLine = [d.device, d.os, d.browser].filter(Boolean).map(sanitize).join(' · ') || 'Unknown device';
+      var ref = d.referrer && d.referrer !== '(direct)' ? sanitize(d.referrer) : 'Direct';
+
+      var visits = (typeof d.visits === 'number' && d.visits > 0) ? d.visits : 1;
+      var seen = audDate(d) ? timeAgo(audDate(d)) : 'unknown';
+
+      return '<div class="aud-row fade-in" style="animation-delay:' + (i * 0.03) + 's">' +
+        av +
+        '<div class="aud-meta">' +
+          '<div class="aud-name">' + sanitize(name) + '</div>' +
+          '<div class="aud-sub">' + sub + '</div>' +
+        '</div>' +
+        '<div class="aud-facts">' +
+          '<div class="aud-fact">📱 <b>' + devLine + '</b></div>' +
+          '<div class="aud-fact">📍 ' + loc + '</div>' +
+          '<div class="aud-fact">↪ ' + ref + '</div>' +
+        '</div>' +
+        '<div class="aud-right">' +
+          '<span class="aud-badge ' + (isGoogle ? 'google' : 'guest') + '">' + (isGoogle ? 'Google' : 'Guest') + '</span>' +
+          '<span class="aud-visits"><b>' + visits + '</b> visit' + (visits !== 1 ? 's' : '') + '</span>' +
+          '<div class="aud-seen">' + seen + '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    var remaining = rows.length - toShow.length;
+    document.getElementById('audienceLoadMore').innerHTML = remaining > 0
+      ? '<button class="load-more-btn" onclick="loadMoreAudience()">Show ' + Math.min(remaining, AUDIENCE_PAGE_SIZE) + ' more (' + remaining + ' left)</button>'
+      : '';
+  }
+
+  window.loadMoreAudience = function() {
+    audienceVisibleCount += AUDIENCE_PAGE_SIZE;
+    renderAudience(currentFilteredAudience);
+  };
+
+  window.exportAudience = function() {
+    exportCSV('audience', currentFilteredAudience, [
+      { label:'Type',       get:function(d){ return (d.type || 'guest') === 'google' ? 'Signed-in' : 'Guest'; } },
+      { label:'Name',       get:function(d){ return d.name || ''; } },
+      { label:'Email',      get:function(d){ return d.email || ''; } },
+      { label:'Device',     get:function(d){ return d.device || ''; } },
+      { label:'OS',         get:function(d){ return d.os || ''; } },
+      { label:'Browser',    get:function(d){ return d.browser || ''; } },
+      { label:'City',       get:function(d){ return d.city || ''; } },
+      { label:'Region',     get:function(d){ return d.region || ''; } },
+      { label:'Country',    get:function(d){ return d.country || ''; } },
+      { label:'Language',   get:function(d){ return d.language || ''; } },
+      { label:'Timezone',   get:function(d){ return d.timezone || ''; } },
+      { label:'Referrer',   get:function(d){ return d.referrer || ''; } },
+      { label:'Landing',    get:function(d){ return d.landing || ''; } },
+      { label:'Visits',     get:function(d){ return (typeof d.visits === 'number' ? d.visits : ''); } },
+      { label:'First seen', get:function(d){ return fmtCsvDate(d.firstSeen); } },
+      { label:'Last seen',  get:function(d){ return fmtCsvDate(audDate(d)); } },
+      { label:'IP',         get:function(d){ return d.ip || ''; } },
+      { label:'UID',        get:function(d){ return d.uid || ''; } },
+    ]);
+  };
 
   function loadInbox() {
     return db.collection('messages').get().then(function(snap) {
