@@ -2689,7 +2689,7 @@
       if (audienceType !== 'all' && (d.type || 'guest') !== audienceType) return false;
       if (cutoff) { var ms = millisSafe(audDate(d)); if (!ms || ms < cutoff) return false; }
       if (!query) return true;
-      return [d.name, d.email, d.city, d.region, d.country, d.device, d.os, d.browser, d.referrer, d.uid]
+      return [d.name, d.email, d.city, d.region, d.country, d.device, d.model, d.os, d.browser, d.network, d.referrer, d.uid]
         .some(function(v){ return (v || '').toString().toLowerCase().indexOf(query) !== -1; });
     });
     filtered.sort(function(a, b){ return millisSafe(audDate(b)) - millisSafe(audDate(a)); });
@@ -2723,8 +2723,22 @@
       var sub = d.email ? sanitize(d.email) : sanitize((d.uid || '').slice(0, 18) + '…');
 
       var loc = [d.city, d.region, d.country].filter(Boolean).map(sanitize).join(', ') || 'Unknown location';
-      var devLine = [d.device, d.os, d.browser].filter(Boolean).map(sanitize).join(' · ') || 'Unknown device';
+      /* device line: model first when known, then type · os · browser */
+      var devBits = [];
+      if (d.model) devBits.push(d.model);
+      [d.device, d.os, d.browser].forEach(function(x){ if (x) devBits.push(x); });
+      var devLine = devBits.length ? devBits.map(sanitize).join(' · ') : 'Unknown device';
       var ref = d.referrer && d.referrer !== '(direct)' ? sanitize(d.referrer) : 'Direct';
+
+      /* battery + network + specs, only the bits we actually have */
+      var extraBits = [];
+      if (typeof d.batteryLevel === 'number') {
+        var bIcon = d.charging ? '🔌' : (d.batteryLevel <= 20 ? '🪫' : '🔋');
+        extraBits.push(bIcon + ' ' + d.batteryLevel + '%' + (d.charging ? ' charging' : ''));
+      }
+      if (d.network) extraBits.push('📶 ' + sanitize(d.network));
+      if (d.memory)  extraBits.push(sanitize(d.memory) + 'GB');
+      if (d.cores)   extraBits.push(sanitize(d.cores) + ' cores');
 
       var visits = (typeof d.visits === 'number' && d.visits > 0) ? d.visits : 1;
       var seen = audDate(d) ? timeAgo(audDate(d)) : 'unknown';
@@ -2737,6 +2751,7 @@
         '</div>' +
         '<div class="aud-facts">' +
           '<div class="aud-fact">📱 <b>' + devLine + '</b></div>' +
+          (extraBits.length ? '<div class="aud-fact">' + extraBits.join('  ·  ') + '</div>' : '') +
           '<div class="aud-fact">📍 ' + loc + '</div>' +
           '<div class="aud-fact">↪ ' + ref + '</div>' +
         '</div>' +
@@ -2765,8 +2780,14 @@
       { label:'Name',       get:function(d){ return d.name || ''; } },
       { label:'Email',      get:function(d){ return d.email || ''; } },
       { label:'Device',     get:function(d){ return d.device || ''; } },
+      { label:'Model',      get:function(d){ return d.model || ''; } },
       { label:'OS',         get:function(d){ return d.os || ''; } },
       { label:'Browser',    get:function(d){ return d.browser || ''; } },
+      { label:'Battery %',  get:function(d){ return (typeof d.batteryLevel === 'number' ? d.batteryLevel : ''); } },
+      { label:'Charging',   get:function(d){ return (d.charging === true ? 'Yes' : d.charging === false ? 'No' : ''); } },
+      { label:'Network',    get:function(d){ return d.network || ''; } },
+      { label:'RAM (GB)',   get:function(d){ return (d.memory ? d.memory : ''); } },
+      { label:'CPU cores',  get:function(d){ return (d.cores ? d.cores : ''); } },
       { label:'City',       get:function(d){ return d.city || ''; } },
       { label:'Region',     get:function(d){ return d.region || ''; } },
       { label:'Country',    get:function(d){ return d.country || ''; } },
