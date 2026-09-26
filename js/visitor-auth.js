@@ -159,25 +159,86 @@ function parseUA() {
   if (/iPad|Tablet/i.test(ua))                   device = 'tablet';
   else if (/Mobi|Android|iPhone|iPod/i.test(ua)) device = 'mobile';
 
-  return { os: os, browser: browser, device: device, ua: ua.slice(0, 400) };
+  /* Device model — Android UAs carry the model code, e.g.
+     "(Linux; Android 13; SM-G991B Build/...)" -> "SM-G991B".
+     iOS hides the exact model (all report "iPhone"/"iPad"). */
+  var model = '';
+  var am = ua.match(/Android[\s\d.]*;\s*([^;)]+?)(?:\s+Build\/|[;)])/i);
+  if (am && am[1]) {
+    model = am[1].replace(/\s*Build.*$/i, '').trim();
+    if (/^[A-Za-z ]*(Chrome|wv|Version)/i.test(model) || model.length > 60) model = '';
+  } else if (/iPhone/i.test(ua)) { model = 'iPhone'; }
+  else if (/iPad/i.test(ua))     { model = 'iPad'; }
+
+  return { os: os, browser: browser, device: device, model: model, ua: ua.slice(0, 400) };
 }
 
 function collectMeta() {
   var uaInfo = parseUA();
   var tz = '';
   try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
+
+  var network = '';
+  try {
+    var c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    if (c && c.effectiveType) network = c.effectiveType;   /* '4g', '3g', 'slow-2g'… */
+  } catch (e) {}
+
   return {
     device:   uaInfo.device,
     os:       uaInfo.os,
     browser:  uaInfo.browser,
+    model:    uaInfo.model,
     ua:       uaInfo.ua,
     screen:   (screen.width || 0) + 'x' + (screen.height || 0),
     viewport: (window.innerWidth || 0) + 'x' + (window.innerHeight || 0),
+    dpr:      window.devicePixelRatio || 1,
+    cores:    (typeof navigator.hardwareConcurrency === 'number' ? navigator.hardwareConcurrency : 0),
+    memory:   (typeof navigator.deviceMemory === 'number' ? navigator.deviceMemory : 0),  /* GB, coarse */
+    network:  network,
     language: (navigator.language || navigator.userLanguage || '').slice(0, 20),
     timezone: tz.slice(0, 60),
     referrer: (document.referrer || '(direct)').slice(0, 300),
     landing:  (location.pathname + location.search).slice(0, 300)
   };
+}
+
+/* Async signals that need a promise or aren't ready synchronously:
+   battery %, charging state, and the precise model via UA-Client-Hints
+   (Chromium on Android returns the real model here). Best-effort with a
+   short timeout so a slow/absent API never blocks the profile write. */
+function collectAsyncExtras(cb) {
+  var out = {};
+  var pending = 0, finished = false;
+  var timer = setTimeout(function () { if (!finished) { finished = true; cb(out); } }, 2500);
+  function maybeDone() { if (!finished && pending <= 0) { finished = true; clearTimeout(timer); cb(out); } }
+
+  /* Battery */
+  try {
+    if (navigator.getBattery) {
+      pending++;
+      navigator.getBattery().then(function (b) {
+        out.batteryLevel = Math.round((b.level || 0) * 100);
+        out.charging = !!b.charging;
+        pending--; maybeDone();
+      }).catch(function () { pending--; maybeDone(); });
+    }
+  } catch (e) {}
+
+  /* Precise model / platform via high-entropy client hints (Chromium) */
+  try {
+    if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+      pending++;
+      navigator.userAgentData.getHighEntropyValues(['model', 'platform', 'platformVersion'])
+        .then(function (h) {
+          if (h.model) out.model = String(h.model).slice(0, 120);
+          if (h.platform) out.platform = (String(h.platform) + ' ' + (h.platformVersion || '')).trim().slice(0, 80);
+          pending--; maybeDone();
+        }).catch(function () { pending--; maybeDone(); });
+    }
+  } catch (e) {}
+
+  if (pending === 0) { finished = true; clearTimeout(timer); cb(out); }
 }
 
 /* Approximate location from IP — free, no API key, CORS-enabled.
@@ -234,9 +295,14 @@ function recordVisitorProfile(visitor) {
     device:   meta.device,
     os:       meta.os,
     browser:  meta.browser,
+    model:    meta.model,
     ua:       meta.ua,
     screen:   meta.screen,
     viewport: meta.viewport,
+    dpr:      meta.dpr,
+    cores:    meta.cores,
+    memory:   meta.memory,
+    network:  meta.network,
     language: meta.language,
     timezone: meta.timezone,
     referrer: meta.referrer,
@@ -269,6 +335,16 @@ function recordVisitorProfile(visitor) {
       city:    geo.city || '',
       org:     geo.org || ''
     }, { merge: true }).catch(function () {});
+  });
+
+  /* enrich with battery % + precise model (async APIs), merged in after */
+  collectAsyncExtras(function (extra) {
+    if (!extra || (extra.batteryLevel === undefined && !extra.model && !extra.platform)) return;
+    var patch = { uid: uid, updatedAt: FV.serverTimestamp() };
+    if (extra.batteryLevel !== undefined) { patch.batteryLevel = extra.batteryLevel; patch.charging = !!extra.charging; }
+    if (extra.model)    patch.model = extra.model;
+    if (extra.platform) patch.platform = extra.platform;
+    ref.set(patch, { merge: true }).catch(function () {});
   });
 }
 
