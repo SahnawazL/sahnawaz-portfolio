@@ -219,6 +219,53 @@
   .chart-wrap { position: relative; height: 160px; }
   canvas { width: 100% !important; height: 100% !important; }
 
+  /* ── Smart Insights strip ── */
+  .insights-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+  .insight-chip {
+    background: var(--card-bg); border: 1px solid var(--cyan-border);
+    border-radius: 14px; padding: 12px 16px; font-size: .78rem; color: var(--text);
+    display: flex; align-items: center; gap: 9px; flex: 1 1 220px; min-width: 200px;
+    line-height: 1.3;
+  }
+  .insight-chip b { color: var(--cyan); }
+  .insight-chip .ic-emoji { font-size: 1.15rem; flex-shrink: 0; }
+
+  /* ── Full-width analytics block ── */
+  .analytics-block { margin-bottom: 16px; }
+  .analytics-block .chart-wrap { height: 220px; }
+  .chart-subtitle { font-size: .66rem; color: var(--text-dim); margin: -10px 0 14px; font-family: 'Space Mono', monospace; }
+
+  /* ── Conversion funnel ── */
+  .funnel-wrap { display: flex; flex-direction: column; gap: 12px; padding-top: 2px; }
+  .funnel-row { display: flex; align-items: center; gap: 10px; }
+  .funnel-label { width: 96px; flex-shrink: 0; font-size: .68rem; color: var(--text-dim); font-family: 'Space Mono', monospace; }
+  .funnel-bar-track { flex: 1; height: 26px; background: rgba(255,255,255,0.04); border-radius: 8px; overflow: hidden; }
+  .funnel-bar-fill {
+    height: 100%; border-radius: 8px; min-width: 4px;
+    display: flex; align-items: center; justify-content: flex-end; padding-right: 10px;
+    font-size: .72rem; font-weight: 800; color: #00131a; white-space: nowrap;
+    transition: width 0.6s ease;
+  }
+  .funnel-pct { width: 44px; text-align: right; flex-shrink: 0; font-size: .7rem; color: var(--text-dim); font-family: 'Space Mono', monospace; }
+
+  /* ── Ranked lists (locations / referrers) ── */
+  .rank-list { display: flex; flex-direction: column; gap: 11px; }
+  .rank-row { display: flex; align-items: center; gap: 10px; }
+  .rank-idx { width: 18px; flex-shrink: 0; font-size: .68rem; color: var(--text-dim); font-family: 'Space Mono', monospace; }
+  .rank-name { flex: 1; min-width: 0; font-size: .78rem; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rank-bar-track { width: 72px; height: 6px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; flex-shrink: 0; }
+  .rank-bar-fill { height: 100%; background: linear-gradient(90deg, var(--cyan), #0066ff); border-radius: 4px; }
+  .rank-count { width: 24px; text-align: right; flex-shrink: 0; font-size: .72rem; font-family: 'Space Mono', monospace; color: var(--cyan); font-weight: 700; }
+
+  /* ── Top engaged visitors leaderboard ── */
+  .lb-row { display: flex; align-items: center; gap: 10px; padding: 5px 0; }
+  .lb-avatar, .lb-avatar-fallback { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+  .lb-avatar-fallback { display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(0,255,255,0.2), rgba(0,102,255,0.2)); color: var(--cyan); font-weight: 800; font-size: .8rem; }
+  .lb-meta { flex: 1; min-width: 0; }
+  .lb-name { font-size: .78rem; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lb-sub { font-size: .66rem; color: var(--text-dim); margin-top: 1px; }
+  .lb-score { font-size: .88rem; font-weight: 800; color: var(--cyan); font-family: 'Space Mono', monospace; flex-shrink: 0; }
+
   /* ── Search/Filter bar ── */
   .filter-bar {
     display: flex; gap: 10px; margin-bottom: 14px; align-items: center; flex-wrap: wrap;
@@ -744,6 +791,15 @@
   }
   .chart-wrap { height: 150px !important; }
 
+  /* ---- new analytics widgets: match the calmer theme ---- */
+  .insight-chip {
+    background: var(--card-bg) !important; border: 1px solid var(--line) !important;
+    border-radius: 12px !important; font-family: 'Inter', sans-serif !important;
+  }
+  .analytics-block .chart-wrap { height: 200px !important; }
+  .funnel-label, .rank-idx, .rank-count, .lb-score { font-family: 'Inter', sans-serif !important; }
+  .funnel-bar-track, .rank-bar-track { background: rgba(255,255,255,0.03) !important; }
+
   /* ---- section heads ---- */
   .section-head { margin-bottom: 12px !important; margin-top: 4px; }
   .section-head-title { font-family: 'Inter', sans-serif !important; font-size: .68rem !important; font-weight: 700 !important; letter-spacing: .12em !important; }
@@ -1155,6 +1211,62 @@
         <div class="stat-num" id="statActiveToday">—</div>
         <div class="stat-label">Active Today</div>
       </div>
+      <div class="stat-card fade-in" onclick="showPanel('audience')" style="cursor:pointer" title="View audience">
+        <div class="stat-icon">🌐</div>
+        <div class="stat-num" id="statAudience">—</div>
+        <div class="stat-label">Total Audience</div>
+      </div>
+      <div class="stat-card fade-in" onclick="showPanel('callbacks')" style="cursor:pointer" title="View callback requests">
+        <div class="stat-icon">📞</div>
+        <div class="stat-num" id="statCallbacks">—</div>
+        <div class="stat-label">Callback Requests</div>
+      </div>
+    </div>
+
+    <!-- Smart Insights -->
+    <div class="insights-row" id="insightsRow">
+      <div class="insight-chip"><span class="ic-emoji">👋</span> Insights will appear once visitor data comes in.</div>
+    </div>
+
+    <!-- Growth & Engagement Trend -->
+    <div class="chart-card analytics-block">
+      <div class="chart-title">📈 Growth &amp; Engagement Trend — Last 14 Days</div>
+      <div class="chart-subtitle">New visitors vs. returning activity vs. conversions (reviews + downloads + callbacks)</div>
+      <div class="chart-wrap">
+        <canvas id="growthChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Funnel + Peak Hours -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">🎯 Conversion Funnel</div>
+        <div class="funnel-wrap" id="funnelWrap">
+          <div class="empty-state">Loading…</div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">🕐 Peak Activity Hours</div>
+        <div class="chart-wrap">
+          <canvas id="hoursChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Device breakdown + Top Locations -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">📱 Device Breakdown</div>
+        <div class="chart-wrap">
+          <canvas id="deviceChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">🌍 Top Locations</div>
+        <div class="rank-list" id="locationsList">
+          <div class="empty-state">Loading…</div>
+        </div>
+      </div>
     </div>
 
     <!-- Charts -->
@@ -1169,6 +1281,22 @@
         <div class="chart-title">⭐ Rating Distribution</div>
         <div class="chart-wrap">
           <canvas id="ratingChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Engaged Visitors + Top Referrers -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">🔥 Most Engaged Visitors</div>
+        <div class="rank-list" id="leaderboardList">
+          <div class="empty-state">Loading…</div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">↪ Top Referrers</div>
+        <div class="rank-list" id="referrersList">
+          <div class="empty-state">Loading…</div>
         </div>
       </div>
     </div>
@@ -1453,6 +1581,9 @@
   var currentFilteredVisitors = [];
   var activityChartInstance = null;
   var ratingChartInstance = null;
+  var growthChartInstance = null;
+  var hoursChartInstance = null;
+  var deviceChartInstance = null;
 
   /* ── Google sign-in, restricted to the owner ──────────────────────────
      The old lock hashed a password kept in this public file — anyone who
@@ -1577,7 +1708,10 @@
   function loadAll() {
     return loadVisitors().then(function() {
       return Promise.all([loadReviews(), loadLikes(), loadResume(), loadChats(), loadCallbacks(), loadInbox(), loadAudience()]);
-    }).then(function() { updateRefreshTime(); })
+    }).then(function() {
+      renderOverviewAnalytics();
+      updateRefreshTime();
+    })
       .catch(function(err) {
         updateRefreshTime();
         console.error('loadAll error:', err);
@@ -2083,6 +2217,290 @@
         }
       }
     });
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     OVERVIEW ANALYTICS — smart, computed entirely from data already
+     loaded elsewhere (allAudience, allVisitors, allReviews, allResume,
+     allCallbacks, allInbox, allChatVisitors). No extra Firestore reads.
+     Called once from loadAll() after every panel has finished loading.
+     ══════════════════════════════════════════════════════════════════ */
+  function dayKey(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function renderGrowthTrend() {
+    var canvas = document.getElementById('growthChart');
+    if (!canvas) return;
+    var DAYS = 14;
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var buckets = [], keyIndex = {};
+    for (var i = DAYS - 1; i >= 0; i--) {
+      var d = new Date(today.getTime() - i * 86400000);
+      var k = dayKey(d);
+      keyIndex[k] = buckets.length;
+      buckets.push({ label: d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }), newV: 0, active: 0, conversions: 0 });
+    }
+    function bump(ts, field) {
+      var d = toDateSafe(ts); if (!d) return;
+      var idx = keyIndex[dayKey(d)];
+      if (idx !== undefined) buckets[idx][field]++;
+    }
+    (allAudience || []).forEach(function(a) {
+      bump(a.firstSeen, 'newV');
+      bump(a.lastSeen || a.updatedAt, 'active');
+    });
+    (allReviews || []).forEach(function(r) { bump(r.createdAt || r.timestamp || r.date, 'conversions'); });
+    (allResume  || []).forEach(function(r) { bump(resumeDate(r), 'conversions'); });
+    (allCallbacks || []).forEach(function(c) { bump(callbackDate(c), 'conversions'); });
+
+    var ctx = canvas.getContext('2d');
+    if (growthChartInstance) growthChartInstance.destroy();
+    growthChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: buckets.map(function(b) { return b.label; }),
+        datasets: [
+          { label: 'New visitors',        data: buckets.map(function(b){return b.newV;}),        borderColor: '#00ffaa', backgroundColor: 'rgba(0,255,170,0.12)', fill: true, tension: .35, pointRadius: 2 },
+          { label: 'Returning activity',  data: buckets.map(function(b){return b.active;}),       borderColor: '#00ffff', backgroundColor: 'rgba(0,255,255,0.08)', fill: true, tension: .35, pointRadius: 2 },
+          { label: 'Conversions',         data: buckets.map(function(b){return b.conversions;}),  borderColor: '#ffd166', backgroundColor: 'rgba(255,209,102,0.08)', fill: true, tension: .35, pointRadius: 2 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { display: true, position: 'top', labels: { color: 'rgba(224,240,255,0.6)', font: { family: 'Space Mono', size: 9 }, boxWidth: 10, padding: 12 } } },
+        scales: {
+          x: { ticks: { color: 'rgba(224,240,255,0.4)', font: { family: 'Space Mono', size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 7 }, grid: { display: false } },
+          y: { beginAtZero: true, ticks: { color: 'rgba(224,240,255,0.4)', font: { family: 'Space Mono', size: 9 }, precision: 0 }, grid: { color: 'rgba(255,255,255,0.04)' } }
+        }
+      }
+    });
+  }
+
+  function renderFunnel() {
+    var el = document.getElementById('funnelWrap');
+    if (!el) return;
+    var stages = [
+      { label: 'Visitors',     count: (allAudience || []).length,     color: '#00ffff' },
+      { label: 'Chatted',      count: (allChatVisitors || []).length, color: '#34d399' },
+      { label: 'Downloaded',   count: (allResume || []).length,       color: '#ffd166' },
+      { label: 'Reviewed',     count: (allReviews || []).length,      color: '#b388ff' },
+      { label: 'Callback',     count: (allCallbacks || []).length,    color: '#ff4d6d' }
+    ];
+    var base = stages[0].count || 1;
+    if (!stages[0].count) { el.innerHTML = '<div class="empty-state">No visitors recorded yet.</div>'; return; }
+    el.innerHTML = stages.map(function(s) {
+      var pct = Math.min(100, Math.round((s.count / base) * 100));
+      var barPct = s.count > 0 ? Math.max(pct, 6) : 0;
+      return '<div class="funnel-row">' +
+        '<div class="funnel-label">' + s.label + '</div>' +
+        '<div class="funnel-bar-track"><div class="funnel-bar-fill" style="width:' + barPct + '%;background:' + s.color + '">' + (s.count > 0 ? s.count : '') + '</div></div>' +
+        '<div class="funnel-pct">' + pct + '%</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function renderPeakHours() {
+    var canvas = document.getElementById('hoursChart');
+    if (!canvas) return;
+    var hours = new Array(24).fill(0);
+    function bump(ts) { var d = toDateSafe(ts); if (d) hours[d.getHours()]++; }
+    (allAudience    || []).forEach(function(a) { bump(a.lastSeen || a.updatedAt); });
+    (allReviews     || []).forEach(function(r) { bump(r.createdAt || r.timestamp || r.date); });
+    (allResume      || []).forEach(function(r) { bump(resumeDate(r)); });
+    (allCallbacks   || []).forEach(function(c) { bump(callbackDate(c)); });
+    (allInbox       || []).forEach(function(m) { bump(inboxDate(m)); });
+    (allChatVisitors|| []).forEach(function(c) { bump(c.lastTs); });
+
+    var maxV = Math.max.apply(null, hours);
+    var ctx = canvas.getContext('2d');
+    if (hoursChartInstance) hoursChartInstance.destroy();
+    hoursChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: hours.map(function(_, i) { return i; }),
+        datasets: [{
+          data: hours,
+          backgroundColor: hours.map(function(v) { return (v === maxV && maxV > 0) ? '#00ffaa' : 'rgba(0,255,255,0.22)'; }),
+          borderColor: '#00ffff', borderWidth: 1, borderRadius: 3
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: 'rgba(224,240,255,0.4)', font: { family: 'Space Mono', size: 8 }, maxTicksLimit: 12 }, grid: { display: false } },
+          y: { beginAtZero: true, ticks: { color: 'rgba(224,240,255,0.4)', font: { family: 'Space Mono', size: 9 }, precision: 0 }, grid: { color: 'rgba(255,255,255,0.04)' } }
+        }
+      }
+    });
+  }
+
+  function renderDeviceChart() {
+    var canvas = document.getElementById('deviceChart');
+    if (!canvas) return;
+    var counts = {};
+    (allAudience || []).forEach(function(a) { var k = a.device || 'unknown'; counts[k] = (counts[k] || 0) + 1; });
+    var labels = Object.keys(counts);
+    var palette = { mobile: '#00ffff', desktop: '#b388ff', tablet: '#ffd166', unknown: '#94a3b8' };
+    var ctx = canvas.getContext('2d');
+    if (deviceChartInstance) deviceChartInstance.destroy();
+    if (!labels.length) { return; }
+    deviceChartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{ data: labels.map(function(k){return counts[k];}), backgroundColor: labels.map(function(l){return palette[l] || '#00ffaa';}), borderColor: '#0a1624', borderWidth: 2 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '62%',
+        plugins: { legend: { position: 'bottom', labels: { color: 'rgba(224,240,255,0.6)', font: { family: 'Space Mono', size: 10 }, boxWidth: 10, padding: 10 } } }
+      }
+    });
+  }
+
+  function renderRankList(elId, counts, emptyMsg) {
+    var el = document.getElementById(elId);
+    if (!el) return;
+    var rows = Object.keys(counts).map(function(k) { return { name: k, count: counts[k] }; })
+      .sort(function(a, b) { return b.count - a.count; }).slice(0, 6);
+    if (!rows.length) { el.innerHTML = '<div class="empty-state">' + emptyMsg + '</div>'; return; }
+    var max = rows[0].count;
+    el.innerHTML = rows.map(function(r, i) {
+      return '<div class="rank-row"><div class="rank-idx">' + (i + 1) + '</div>' +
+        '<div class="rank-name">' + sanitize(r.name) + '</div>' +
+        '<div class="rank-bar-track"><div class="rank-bar-fill" style="width:' + Math.round((r.count / max) * 100) + '%"></div></div>' +
+        '<div class="rank-count">' + r.count + '</div></div>';
+    }).join('');
+  }
+
+  function renderTopLocations() {
+    var counts = {};
+    (allAudience || []).forEach(function(a) {
+      var loc = [a.city, a.country].filter(Boolean).join(', ') || 'Unknown';
+      counts[loc] = (counts[loc] || 0) + 1;
+    });
+    renderRankList('locationsList', counts, 'No location data yet.');
+  }
+
+  function renderTopReferrers() {
+    var counts = {};
+    (allAudience || []).forEach(function(a) {
+      var ref = (!a.referrer || a.referrer === '(direct)') ? 'Direct' : a.referrer;
+      if (ref !== 'Direct') { try { ref = new URL(ref).hostname.replace(/^www\./, ''); } catch (e) {} }
+      counts[ref] = (counts[ref] || 0) + 1;
+    });
+    renderRankList('referrersList', counts, 'No referrer data yet.');
+  }
+
+  function renderTopEngaged() {
+    var el = document.getElementById('leaderboardList');
+    if (!el) return;
+    var top = (allVisitors || []).slice()
+      .filter(function(v) { return computeScore(v) > 0; })
+      .sort(function(a, b) { return computeScore(b) - computeScore(a); })
+      .slice(0, 5);
+    if (!top.length) { el.innerHTML = '<div class="empty-state">No engaged visitors yet.</div>'; return; }
+    el.innerHTML = top.map(function(v, i) {
+      return '<div class="lb-row">' +
+        '<div class="rank-idx">' + (i + 1) + '</div>' +
+        avatarImg(v.avatar, v.name, 'lb-avatar') +
+        '<div class="lb-meta"><div class="lb-name">' + sanitize(v.name || 'Unknown') + '</div>' +
+        '<div class="lb-sub">' + (v.chats || 0) + ' chats · ' + ((v.liked && v.liked.length) || 0) + ' likes' + (v.hasResume ? ' · CV' : '') + (v.hasReview ? ' · review' : '') + '</div></div>' +
+        '<div class="lb-score">' + computeScore(v) + '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function renderSmartInsights() {
+    var el = document.getElementById('insightsRow');
+    if (!el) return;
+    var audience = allAudience || [];
+    var chips = [];
+    var now = Date.now(), wk = 7 * 86400000;
+
+    /* 1. week-over-week activity trend */
+    var thisWeek = 0, lastWeek = 0;
+    audience.forEach(function(a) {
+      var ms = millisSafe(a.lastSeen || a.updatedAt);
+      if (!ms) return;
+      if (ms >= now - wk) thisWeek++;
+      else if (ms >= now - 2 * wk) lastWeek++;
+    });
+    if (thisWeek || lastWeek) {
+      if (lastWeek === 0 && thisWeek > 0) {
+        chips.push({ icon: '📈', html: '<b>' + thisWeek + '</b> active visitor' + (thisWeek !== 1 ? 's' : '') + ' this week' });
+      } else {
+        var delta = lastWeek ? Math.round(((thisWeek - lastWeek) / lastWeek) * 100) : 0;
+        if (delta > 0) chips.push({ icon: '📈', html: 'Activity <b>up ' + delta + '%</b> vs last week' });
+        else if (delta < 0) chips.push({ icon: '📉', html: 'Activity <b>down ' + Math.abs(delta) + '%</b> vs last week' });
+        else chips.push({ icon: '➖', html: 'Activity <b>steady</b> vs last week' });
+      }
+    }
+
+    /* 2. dominant device */
+    var devCounts = {};
+    audience.forEach(function(a) { if (a.device) devCounts[a.device] = (devCounts[a.device] || 0) + 1; });
+    var devKeys = Object.keys(devCounts);
+    if (devKeys.length) {
+      var topDev = devKeys.sort(function(a, b) { return devCounts[b] - devCounts[a]; })[0];
+      var devPct = Math.round((devCounts[topDev] / audience.length) * 100);
+      chips.push({ icon: topDev === 'mobile' ? '📱' : (topDev === 'tablet' ? '📟' : '💻'), html: '<b>' + devPct + '%</b> browsing on ' + topDev });
+    }
+
+    /* 3. top country */
+    var locCounts = {};
+    audience.forEach(function(a) { if (a.country) locCounts[a.country] = (locCounts[a.country] || 0) + 1; });
+    var locKeys = Object.keys(locCounts);
+    if (locKeys.length) {
+      var topLoc = locKeys.sort(function(a, b) { return locCounts[b] - locCounts[a]; })[0];
+      chips.push({ icon: '🌍', html: 'Most visitors from <b>' + sanitize(topLoc) + '</b>' });
+    }
+
+    /* 4. peak hour */
+    var hours = new Array(24).fill(0);
+    audience.forEach(function(a) { var d = toDateSafe(a.lastSeen || a.updatedAt); if (d) hours[d.getHours()]++; });
+    var maxH = Math.max.apply(null, hours);
+    if (maxH > 0) {
+      var hIdx = hours.indexOf(maxH);
+      var label = hIdx === 0 ? '12 AM' : hIdx < 12 ? hIdx + ' AM' : hIdx === 12 ? '12 PM' : (hIdx - 12) + ' PM';
+      chips.push({ icon: '🕐', html: 'Peak activity around <b>' + label + '</b>' });
+    }
+
+    /* 5. guest vs signed-in mix */
+    if (audience.length) {
+      var google = audience.filter(function(a) { return (a.type || 'guest') === 'google'; }).length;
+      var pctG = Math.round((google / audience.length) * 100);
+      chips.push({ icon: '🔐', html: '<b>' + pctG + '%</b> signed in with Google' });
+    }
+
+    /* 6. chat conversion rate */
+    if (audience.length && (allChatVisitors || []).length) {
+      var convPct = Math.round((allChatVisitors.length / audience.length) * 100);
+      chips.push({ icon: '💬', html: '<b>' + convPct + '%</b> of visitors chatted with the bot' });
+    }
+
+    if (!chips.length) {
+      el.innerHTML = '<div class="insight-chip"><span class="ic-emoji">👋</span> Insights will appear once visitor data comes in.</div>';
+      return;
+    }
+    el.innerHTML = chips.slice(0, 4).map(function(c) {
+      return '<div class="insight-chip"><span class="ic-emoji">' + c.icon + '</span><span>' + c.html + '</span></div>';
+    }).join('');
+  }
+
+  function renderOverviewAnalytics() {
+    var elA = document.getElementById('statAudience');
+    var elC = document.getElementById('statCallbacks');
+    if (elA) elA.textContent = (allAudience || []).length;
+    if (elC) elC.textContent = (allCallbacks || []).length;
+    renderSmartInsights();
+    renderGrowthTrend();
+    renderFunnel();
+    renderPeakHours();
+    renderDeviceChart();
+    renderTopLocations();
+    renderTopReferrers();
+    renderTopEngaged();
   }
 
   /* ── Reviews ── */
