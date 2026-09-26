@@ -124,13 +124,185 @@ function signOut() {
 }
 
 function visitorFromUser(u) {
-  return { firstName: u.displayName ? u.displayName.split(' ')[0] : 'Friend', fullName: u.displayName || '', email: u.email || '', avatar: u.photoURL || '', uid: u.uid, loginAt: Date.now() };
+  return { type: 'google', firstName: u.displayName ? u.displayName.split(' ')[0] : 'Friend', fullName: u.displayName || '', email: u.email || '', avatar: u.photoURL || '', uid: u.uid, loginAt: Date.now() };
+}
+
+/* A "guest" visitor object for anonymous (not-signed-in) people.
+   Same shape engagement.js expects (needs a .uid), but no identity.
+   firstName is left blank so the chatbot doesn't greet a fake name;
+   fullName is 'Guest' so the admin dashboard labels them clearly. */
+function guestVisitor(u) {
+  return { type: 'guest', firstName: '', fullName: 'Guest', email: '', avatar: '', uid: u.uid, loginAt: Date.now() };
+}
+
+/* ══════════════════════════════════════════════════════════
+   VISITOR METADATA — everything readable in the browser
+   without asking the visitor for any permission.
+   ══════════════════════════════════════════════════════════ */
+function parseUA() {
+  var ua = navigator.userAgent || '';
+  var os = 'Unknown', browser = 'Unknown', device = 'desktop';
+
+  if (/Android/i.test(ua))               os = 'Android';
+  else if (/iPhone|iPad|iPod/i.test(ua)) os = 'iOS';
+  else if (/Windows/i.test(ua))          os = 'Windows';
+  else if (/Mac OS X/i.test(ua))         os = 'macOS';
+  else if (/Linux/i.test(ua))            os = 'Linux';
+
+  if (/Edg\//i.test(ua))               browser = 'Edge';
+  else if (/OPR\/|Opera/i.test(ua))    browser = 'Opera';
+  else if (/SamsungBrowser/i.test(ua)) browser = 'Samsung Internet';
+  else if (/Chrome\//i.test(ua))       browser = 'Chrome';
+  else if (/Firefox\//i.test(ua))      browser = 'Firefox';
+  else if (/Safari\//i.test(ua))       browser = 'Safari';
+
+  if (/iPad|Tablet/i.test(ua))                   device = 'tablet';
+  else if (/Mobi|Android|iPhone|iPod/i.test(ua)) device = 'mobile';
+
+  return { os: os, browser: browser, device: device, ua: ua.slice(0, 400) };
+}
+
+function collectMeta() {
+  var uaInfo = parseUA();
+  var tz = '';
+  try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
+  return {
+    device:   uaInfo.device,
+    os:       uaInfo.os,
+    browser:  uaInfo.browser,
+    ua:       uaInfo.ua,
+    screen:   (screen.width || 0) + 'x' + (screen.height || 0),
+    viewport: (window.innerWidth || 0) + 'x' + (window.innerHeight || 0),
+    language: (navigator.language || navigator.userLanguage || '').slice(0, 20),
+    timezone: tz.slice(0, 60),
+    referrer: (document.referrer || '(direct)').slice(0, 300),
+    landing:  (location.pathname + location.search).slice(0, 300)
+  };
+}
+
+/* Approximate location from IP — free, no API key, CORS-enabled.
+   Called at most once per browser (cached), non-blocking, best-effort. */
+var GEO_KEY = 'shnz_geo_v1';
+function fetchGeoOnce(cb) {
+  var cached = null;
+  try { cached = JSON.parse(localStorage.getItem(GEO_KEY) || 'null'); } catch (e) {}
+  if (cached) { cb(cached); return; }
+  var done = false;
+  var timer = setTimeout(function () { if (!done) { done = true; cb(null); } }, 3500);
+  try {
+    fetch('https://ipwho.is/', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (done) return; done = true; clearTimeout(timer);
+        if (!d || d.success === false) { cb(null); return; }
+        var geo = {
+          ip:      d.ip || '',
+          country: d.country || '',
+          region:  d.region || '',
+          city:    d.city || '',
+          org:     (d.connection && d.connection.org) || d.org || ''
+        };
+        try { localStorage.setItem(GEO_KEY, JSON.stringify(geo)); } catch (e) {}
+        cb(geo);
+      })
+      .catch(function () { if (!done) { done = true; clearTimeout(timer); cb(null); } });
+  } catch (e) { if (!done) { done = true; clearTimeout(timer); cb(null); } }
+}
+
+/* Write / update the visitor profile doc: visitors/{uid}.
+   Runs for BOTH guests and signed-in users, keyed by uid.
+   visits counts sessions (not reloads); firstSeen is set once. */
+function recordVisitorProfile(visitor) {
+  var db = window._vaDb;
+  if (!db || !visitor || !visitor.uid) return;
+  var uid = visitor.uid;
+  var ref = db.collection('visitors').doc(uid);
+  var meta = collectMeta();
+  var FV = firebase.firestore.FieldValue;
+
+  /* count one visit per browser session */
+  var newSession = false;
+  try { if (!sessionStorage.getItem('shnz_session')) { sessionStorage.setItem('shnz_session', '1'); newSession = true; } }
+  catch (e) { newSession = true; }
+
+  var payload = {
+    uid:      uid,
+    type:     visitor.type || 'guest',
+    name:     visitor.fullName || visitor.firstName || 'Guest',
+    email:    visitor.email  || '',
+    avatar:   visitor.avatar || '',
+    device:   meta.device,
+    os:       meta.os,
+    browser:  meta.browser,
+    ua:       meta.ua,
+    screen:   meta.screen,
+    viewport: meta.viewport,
+    language: meta.language,
+    timezone: meta.timezone,
+    referrer: meta.referrer,
+    landing:  meta.landing,
+    lastSeen: FV.serverTimestamp(),
+    updatedAt: FV.serverTimestamp()
+  };
+  if (newSession) payload.visits = FV.increment(1);
+
+  /* set firstSeen only once per browser */
+  var firstFlag = false;
+  try { firstFlag = !localStorage.getItem('shnz_first_seen'); } catch (e) {}
+  if (firstFlag) {
+    payload.firstSeen = FV.serverTimestamp();
+    try { localStorage.setItem('shnz_first_seen', '1'); } catch (e) {}
+  }
+
+  ref.set(payload, { merge: true }).catch(function (err) {
+    console.error('visitor profile save error:', err && err.code);
+  });
+
+  /* enrich with approximate location (once per browser), merged in after */
+  fetchGeoOnce(function (geo) {
+    if (!geo) return;
+    ref.set({
+      uid:     uid,   /* keep uid present so the security rule passes on any write order */
+      ip:      geo.ip || '',
+      country: geo.country || '',
+      region:  geo.region || '',
+      city:    geo.city || '',
+      org:     geo.org || ''
+    }, { merge: true }).catch(function () {});
+  });
+}
+
+/* Sign in with Google, upgrading the current anonymous account when possible
+   so the guest's earlier activity keeps the same uid. Falls back to a normal
+   sign-in for returning users whose Google account already exists. */
+function signInOrLink(credential, onDone, onErr) {
+  var auth = window._firebaseAuth;
+  if (!auth) { if (onErr) onErr({ code: 'auth/not-ready' }); return; }
+  var cur = auth.currentUser;
+  if (cur && cur.isAnonymous) {
+    cur.linkWithCredential(credential)
+      .then(function (result) { onDone(result.user); })
+      .catch(function (err) {
+        if (err && (err.code === 'auth/credential-already-in-use' ||
+                    err.code === 'auth/email-already-in-use')) {
+          /* returning visitor — a Google account already exists, just sign in */
+          auth.signInWithCredential(credential)
+            .then(function (r) { onDone(r.user); })
+            .catch(function (e) { if (onErr) onErr(e); });
+        } else if (onErr) { onErr(err); }
+      });
+  } else {
+    auth.signInWithCredential(credential)
+      .then(function (r) { onDone(r.user); })
+      .catch(function (e) { if (onErr) onErr(e); });
+  }
 }
 
 function onSignInSuccess(firebaseUser, showBanner) {
   var visitor = visitorFromUser(firebaseUser);
   saveVisitor(visitor); closeLoginModal();
   applyVisitorSession(visitor, showBanner !== false);
+  recordVisitorProfile(visitor);
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -171,15 +343,15 @@ function triggerGoogleSignIn() {
       var auth = window._firebaseAuth;
       if (!auth) { showLoginError('Auth not ready. Please refresh and try again.'); return; }
       var credential = firebase.auth.GoogleAuthProvider.credential(null, tokenResponse.access_token);
-      auth.signInWithCredential(credential)
-        .then(function(result) {
-          onSignInSuccess(result.user, true);
+      signInOrLink(credential,
+        function(user) {
+          onSignInSuccess(user, true);
           if (btn) { btn.disabled = false; btn.querySelector('span').textContent = 'Continue with Google'; }
-        })
-        .catch(function(err) {
-          console.error('Firebase credential error:', err.code, err.message);
+        },
+        function(err) {
+          console.error('Firebase credential error:', err && err.code, err && err.message);
           if (btn) { btn.disabled = false; btn.querySelector('span').textContent = 'Continue with Google'; }
-          showLoginError('Sign-in failed (' + err.code + '). Please try again.');
+          showLoginError('Sign-in failed (' + (err && err.code) + '). Please try again.');
         });
     }
   });
@@ -193,9 +365,9 @@ function handleOneTapCredential(response) {
   var auth = window._firebaseAuth;
   if (!auth) { window._pendingOneTapCredential = response.credential; return; }
   var cred = firebase.auth.GoogleAuthProvider.credential(response.credential);
-  auth.signInWithCredential(cred)
-    .then(function(r) { onSignInSuccess(r.user, true); })
-    .catch(function(e) { console.error('One Tap error:', e.code); });
+  signInOrLink(cred,
+    function(user) { onSignInSuccess(user, true); },
+    function(e) { console.error('One Tap error:', e && e.code); });
 }
 window._handleOneTapCredential = handleOneTapCredential;
 
@@ -273,27 +445,52 @@ function loadScript(src, cb) {
 
 /* ── Init ───────────────────────────────────────────────── */
 function init() {
-  /* Load Firebase */
+  /* Load Firebase (app → auth → firestore) */
   loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js', function() {
     loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js', function() {
-      firebase.initializeApp(firebaseConfig);
+      loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js', function() {
+      if (!firebase.apps || !firebase.apps.length) firebase.initializeApp(firebaseConfig);
       var auth = firebase.auth();
       window._firebaseAuth = auth;
+      try { window._vaDb = firebase.firestore(); } catch (e) { window._vaDb = null; }
 
       /* Flush any pending One Tap credential */
       if (window._pendingOneTapCredential) {
         var cred = firebase.auth.GoogleAuthProvider.credential(window._pendingOneTapCredential);
-        auth.signInWithCredential(cred).then(function(r) { onSignInSuccess(r.user, true); }).catch(function(){});
+        signInOrLink(cred, function(user) { onSignInSuccess(user, true); }, function(){});
         window._pendingOneTapCredential = null;
       }
 
-      /* Restore session */
+      /* Restore session, OR sign in anonymously so EVERY visitor gets a uid.
+         onAuthStateChanged fires again after the anonymous sign-in resolves. */
       auth.onAuthStateChanged(function(user) {
-        if (user) {
-          var saved = loadVisitor();
-          if (!saved) { var v = visitorFromUser(user); saveVisitor(v); applyVisitorSession(v, false); }
-          else applyVisitorSession(saved, false);
+        if (!user) {
+          auth.signInAnonymously().catch(function(err) {
+            /* If the Anonymous provider isn't enabled in Firebase, this fails
+               — guests simply won't be tracked until it's turned on. */
+            console.error('Anonymous sign-in failed:', err && err.code);
+          });
+          return;
         }
+
+        if (user.isAnonymous) {
+          /* GUEST: save uid so engagement.js records them, but keep the
+             "Sign In" button as-is (don't flip the UI to a logged-in state). */
+          var g = guestVisitor(user);
+          saveVisitor(g);
+          if (window.setVisitorName) window.setVisitorName(null);
+          recordVisitorProfile(g);
+        } else {
+          /* SIGNED-IN GOOGLE USER */
+          var saved = loadVisitor();
+          var v = (saved && saved.type === 'google' && saved.uid === user.uid)
+                    ? saved : visitorFromUser(user);
+          v.type = 'google';
+          saveVisitor(v);
+          applyVisitorSession(v, false);
+          recordVisitorProfile(v);
+        }
+      });
       });
     });
   });
@@ -325,6 +522,8 @@ window.signOut         = signOut;
 document.addEventListener('DOMContentLoaded', function() {
   injectHTML();
   var saved = loadVisitor();
-  if (saved) applyVisitorSession(saved, false);
+  /* only restore the logged-in UI for a real Google session; a saved
+     "guest" keeps the Sign In button visible so they can still sign in */
+  if (saved && saved.type === 'google' && saved.email) applyVisitorSession(saved, false);
   init();
 });
