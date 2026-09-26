@@ -471,6 +471,7 @@
   }
   @media (max-width: 420px) {
     .refresh-time { display: none; }
+    .topbar-meta { display: none; }
   }
 
   /* ── Visitor Journey Timeline ── */
@@ -747,6 +748,62 @@
   .topbar-title { font-family: 'Inter', sans-serif !important; font-size: .98rem !important; font-weight: 700 !important; letter-spacing: -.01em; }
   .topbar-logo { letter-spacing: .18em !important; opacity: .55 !important; }
   .topbar-badge, .refresh-btn, .logout-btn { font-family: 'Inter', sans-serif !important; }
+
+  /* ══════════════════════════════════════════════════════════════════
+     HEADER UPGRADE — brand mark + real SVG iconography (no emoji),
+     a live admin-identity chip, and desktop-grade spacing/elevation.
+     Only new elements/classes are introduced here; every id and class
+     the JS depends on (refreshBtn, .refresh-icon, lastRefreshed,
+     doRefresh(), logoutAdmin()) is left exactly as it was.
+     ══════════════════════════════════════════════════════════════════ */
+  .topbar {
+    gap: 16px !important;
+    box-shadow: 0 1px 0 var(--line), 0 14px 30px -24px rgba(0,0,0,0.6);
+  }
+  .topbar-right { gap: 12px !important; }
+
+  .topbar-brand { display: flex; align-items: center; flex-shrink: 0; }
+  .brand-mark { display: block; filter: drop-shadow(0 2px 10px rgba(56,189,248,0.28)); }
+
+  .topbar-divider { width: 1px; height: 18px; background: var(--line); flex-shrink: 0; }
+
+  .topbar-meta { display: flex; align-items: center; gap: 6px; }
+  .meta-icon { flex-shrink: 0; color: var(--text-dim); opacity: .9; }
+
+  .refresh-icon, .btn-icon { display: inline-flex; }
+  .refresh-icon svg, .btn-icon svg { display: block; }
+  .logout-btn { display: inline-flex; align-items: center; gap: 6px; }
+  .refresh-btn, .logout-btn { letter-spacing: .02em; }
+
+  .admin-chip {
+    display: flex; align-items: center; gap: 8px;
+    padding: 3px 12px 3px 3px; border-radius: 20px;
+    background: rgba(255,255,255,0.03); border: 1px solid var(--line);
+    max-width: 170px;
+  }
+  .admin-avatar-wrap { display: flex; flex-shrink: 0; }
+  .admin-avatar, .admin-avatar-fallback {
+    width: 24px; height: 24px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+  }
+  .admin-avatar-fallback {
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #5ae0ff, #4fe0a2);
+    color: #04121a; font-weight: 800; font-size: .68rem; font-family: 'Inter', sans-serif;
+  }
+  .admin-chip-name {
+    font-family: 'Inter', sans-serif; font-size: .76rem; font-weight: 600;
+    color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  @media (min-width: 901px) {
+    .topbar { padding: 14px 32px !important; }
+  }
+  @media (max-width: 700px) {
+    .topbar-divider { display: none; }
+  }
+  @media (max-width: 560px) {
+    .admin-chip { display: none; }
+  }
 
   /* ---- content: wider, tighter rhythm ---- */
   .content { max-width: 1240px !important; padding: 24px 22px 72px !important; }
@@ -1138,16 +1195,52 @@
   <!-- Top bar -->
   <div class="topbar">
     <div class="topbar-left">
+      <div class="topbar-brand" aria-hidden="true">
+        <svg class="brand-mark" width="28" height="28" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0.75" y="0.75" width="30.5" height="30.5" rx="9" fill="url(#brandGrad)" stroke="rgba(255,255,255,0.14)"/>
+          <path d="M12.5 11L8.5 16L12.5 21" stroke="#04121a" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <path d="M19.5 11L23.5 16L19.5 21" stroke="#04121a" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <path d="M17.6 9.5L14.4 22.5" stroke="#04121a" stroke-width="2.1" stroke-linecap="round" fill="none"/>
+          <defs>
+            <linearGradient id="brandGrad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#5ae0ff"/>
+              <stop offset="1" stop-color="#4fe0a2"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
       <span class="topbar-logo">SHZ · ADMIN</span>
+      <span class="topbar-divider"></span>
       <span class="topbar-title">Visitor Analytics</span>
       <span class="topbar-badge"><span class="live-dot"></span>LIVE</span>
     </div>
     <div class="topbar-right">
-      <span class="refresh-time" id="lastRefreshed">—</span>
+      <div class="topbar-meta">
+        <svg class="meta-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+          <path d="M12 7.5V12L15.2 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="refresh-time" id="lastRefreshed">—</span>
+      </div>
+      <span class="topbar-divider"></span>
+      <div class="admin-chip" id="adminChip">
+        <span class="admin-avatar-wrap" id="adminAvatarWrap"><span class="admin-avatar-fallback">A</span></span>
+        <span class="admin-chip-name" id="adminChipName">Admin</span>
+      </div>
       <button class="refresh-btn" onclick="doRefresh()" id="refreshBtn">
-        <span class="refresh-icon">↻</span> Refresh
+        <span class="refresh-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M21 3v5h-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M3 21v-5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg></span> Refresh
       </button>
-      <button class="logout-btn" onclick="logoutAdmin()">✕ Lock</button>
+      <button class="logout-btn" onclick="logoutAdmin()">
+        <span class="btn-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="2"/>
+          <path d="M8 11V7a4 4 0 1 1 8 0v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg></span> Lock
+      </button>
     </div>
   </div>
 
@@ -1612,6 +1705,19 @@
     document.getElementById('dashboard').style.display = 'block';
   }
 
+  /* Populates the header identity chip from the signed-in Google account.
+     Purely cosmetic — never touches the auth/gating logic above it. */
+  function renderAdminChip(user) {
+    var wrap = document.getElementById('adminAvatarWrap');
+    var nameEl = document.getElementById('adminChipName');
+    var chip = document.getElementById('adminChip');
+    if (!wrap || !nameEl || !chip || !user) return;
+    var name = user.displayName || (user.email ? user.email.split('@')[0] : 'Admin');
+    nameEl.textContent = name;
+    chip.title = user.email || '';
+    wrap.innerHTML = avatarImg(user.photoURL, name, 'admin-avatar');
+  }
+
   async function adminSignIn() {
     ensureFirebase();
     try {
@@ -1673,6 +1779,7 @@
     firebase.auth().onAuthStateChanged(function (user) {
       if (user && (user.email || '').toLowerCase() === ADMIN_EMAIL) {
         showDashboard();
+        renderAdminChip(user);
         loadAll();
       } else if (user) {
         /* signed in, but not the owner: reject, keep the reason on screen */
