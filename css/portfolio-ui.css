@@ -5267,29 +5267,60 @@ header::after {
     .ci-skel { height: 3.6rem; border-radius: 15px; }
     .ci-empty { grid-column: 1 / -1; font-size: 0.62rem; color: rgba(200,220,215,0.4); font-style: italic; text-align: center; padding: 0.5rem 0; }
 
-    /* ══ Release Timeline — horizontal strip of version-tag chips built
-       from `activity` entries GitHub already gives us (ReleaseEvent),
-       zero extra API calls. Deliberately a scroll-strip, not a grid —
-       release cadence reads better as a left-to-right timeline. ══ */
+    /* ══ Release Timeline — a real timeline rail, not a card grid. Each
+       release is a pulsing node on a connecting line with a compact
+       chip underneath; the chip carries its own "view notes" affordance
+       so it doesn't read as a static label. Built entirely from
+       `activity` entries GitHub already gives us (ReleaseEvent), zero
+       extra API calls. ══ */
     .rt-strip {
-      display: flex; gap: 0.5rem; overflow-x: auto; padding: 0.1rem 0.1rem 0.5rem;
+      position: relative;
+      display: flex; align-items: flex-start; gap: 1.35rem;
+      overflow-x: auto; overflow-y: hidden;
+      padding: 1.55rem 0.15rem 0.6rem;
       margin-bottom: 1.1rem; scrollbar-width: thin;
     }
     .rt-strip::-webkit-scrollbar { height: 4px; }
     .rt-strip::-webkit-scrollbar-thumb { background: rgba(0,255,180,0.25); border-radius: 3px; }
-    .rt-chip {
-      flex-shrink: 0; display: flex; flex-direction: column; gap: 0.15rem;
-      min-width: 108px; border: 1px solid rgba(0,255,180,0.16); border-radius: 9px;
-      padding: 0.42rem 0.6rem; text-decoration: none; color: inherit;
-      background: linear-gradient(160deg, rgba(255,255,255,0.03), rgba(0,255,180,0.02));
-      transition: border-color 0.2s ease, transform 0.2s ease;
+    .rt-strip::before {
+      content: ''; position: absolute; left: 0.15rem; right: 0.15rem; top: 0.85rem; height: 1px;
+      background: linear-gradient(90deg, rgba(0,255,180,0.4), rgba(0,255,180,0.05) 85%);
     }
-    .rt-chip:hover { border-color: rgba(0,255,180,0.4); transform: translateY(-2px); }
+    .rt-item { position: relative; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-start; }
+    .rt-node {
+      position: relative; z-index: 1; width: 7px; height: 7px; border-radius: 50%;
+      margin: 0 0 0.55rem 0.5rem; background: #00ffb4;
+      box-shadow: 0 0 0 3px rgba(0,255,180,0.14), 0 0 8px rgba(0,255,180,0.55);
+      animation: rtPulse 2.6s ease-in-out infinite;
+    }
+    @keyframes rtPulse {
+      0%, 100% { box-shadow: 0 0 0 3px rgba(0,255,180,0.14), 0 0 8px rgba(0,255,180,0.55); }
+      50% { box-shadow: 0 0 0 5px rgba(0,255,180,0.08), 0 0 12px rgba(0,255,180,0.78); }
+    }
+    .rt-chip {
+      flex-shrink: 0; display: flex; flex-direction: column; gap: 0.18rem;
+      min-width: 128px; border: 1px solid rgba(0,255,180,0.16); border-radius: 10px;
+      padding: 0.5rem 0.65rem 0.5rem; text-decoration: none; color: inherit;
+      background: linear-gradient(160deg, rgba(255,255,255,0.035), rgba(0,255,180,0.025));
+      transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+    }
+    .rt-chip:hover { border-color: rgba(0,255,180,0.45); transform: translateY(-2px); background: linear-gradient(160deg, rgba(255,255,255,0.05), rgba(0,255,180,0.05)); }
+    .rt-chip:hover .rt-chip-cta { color: #00ffb4; }
+    .rt-chip:hover .rt-chip-cta svg { transform: translate(1px,-1px); }
+    .rt-chip-top { display: flex; align-items: center; gap: 0.3rem; }
+    .rt-chip-tag-icon { flex-shrink: 0; opacity: 0.8; color: #00ffb4; }
     .rt-chip-tag { font-family: 'Courier New', monospace; font-size: 0.68rem; font-weight: 800; color: #00ffb4; text-shadow: 0 0 6px rgba(0,255,180,0.28); }
     .rt-chip-repo { font-size: 0.58rem; color: rgba(230,245,240,0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .rt-chip-time { font-size: 0.54rem; font-family: 'Courier New', monospace; color: rgba(200,220,215,0.4); }
-    .rt-skel { height: 3.3rem; width: 108px; border-radius: 9px; flex-shrink: 0; }
-    .rt-empty { font-size: 0.62rem; color: rgba(200,220,215,0.4); font-style: italic; padding: 0.3rem 0 0.9rem; }
+    .rt-chip-cta {
+      display: flex; align-items: center; gap: 0.22rem; margin-top: 0.3rem; padding-top: 0.3rem;
+      border-top: 1px dashed rgba(0,255,180,0.14);
+      font-size: 0.52rem; letter-spacing: 0.02em; color: rgba(0,255,180,0.55);
+      transition: color 0.2s ease;
+    }
+    .rt-chip-cta svg { transition: transform 0.2s ease; }
+    .rt-skel { height: 4.6rem; width: 128px; border-radius: 10px; flex-shrink: 0; margin-top: 0.95rem; }
+    .rt-empty { font-size: 0.62rem; color: rgba(200,220,215,0.4); font-style: italic; padding: 1.55rem 0 0.9rem; }
 
     /* ══ Repo Ecosystem — which repos are own product vs client work vs
        OSS contribution. The role tag isn't derivable from the GitHub
@@ -5546,6 +5577,7 @@ header::after {
       .ci-card::before { display: none !important; }
       .df-rate-fill { animation: none !important; transition: none !important; }
       .rt-chip, .re-chip { transition: none !important; }
+      .rt-node { animation: none !important; }
       .hm-day-pop { transition: none !important; transform: none !important; }
       .ship-toast { transition: none !important; transform: none !important; }
     }
