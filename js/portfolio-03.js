@@ -1217,7 +1217,8 @@
     var chips = releases.map(function (r) {
       var href = r.url || 'https://github.com/SahnawazL';
       var tag = r.tag || 'release';
-      return '<a class="rt-chip" href="' + href + '" target="_blank" rel="noopener" aria-label="' + escapeHtml(tag) + ' of ' + escapeHtml(r.repo) + '">'
+      var title = r.title || tag;
+      return '<a class="rt-chip" href="' + href + '" target="_blank" rel="noopener" title="' + escapeHtml(title) + '" aria-label="' + escapeHtml(title) + ' \u2014 ' + escapeHtml(r.repo) + '">'
         + '<span class="rt-chip-tag">' + escapeHtml(tag) + '</span>'
         + '<span class="rt-chip-repo">' + escapeHtml(r.repo) + '</span>'
         + '<span class="rt-chip-time">' + timeAgo(r.time) + '</span>'
