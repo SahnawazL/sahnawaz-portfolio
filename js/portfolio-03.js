@@ -1218,11 +1218,18 @@
       var href = r.url || 'https://github.com/SahnawazL';
       var tag = r.tag || 'release';
       var title = r.title || tag;
-      return '<a class="rt-chip" href="' + href + '" target="_blank" rel="noopener" title="' + escapeHtml(title) + '" aria-label="' + escapeHtml(title) + ' \u2014 ' + escapeHtml(r.repo) + '">'
-        + '<span class="rt-chip-tag">' + escapeHtml(tag) + '</span>'
-        + '<span class="rt-chip-repo">' + escapeHtml(r.repo) + '</span>'
-        + '<span class="rt-chip-time">' + timeAgo(r.time) + '</span>'
-        + '</a>';
+      return '<div class="rt-item">'
+        + '<span class="rt-node" aria-hidden="true"></span>'
+        + '<a class="rt-chip" href="' + href + '" target="_blank" rel="noopener" title="' + escapeHtml(title) + '" aria-label="' + escapeHtml(title) + ' \u2014 ' + escapeHtml(r.repo) + '">'
+          + '<span class="rt-chip-top">'
+            + '<svg class="rt-chip-tag-icon" width="9" height="9" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20.5 12.5L12.5 20.5C12.1 20.9 11.5 20.9 11.1 20.5L3.5 12.9C3.2 12.6 3 12.1 3 11.7V5C3 3.9 3.9 3 5 3H11.7C12.1 3 12.6 3.2 12.9 3.5L20.5 11.1C20.9 11.5 20.9 12.1 20.5 12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7.5" cy="7.5" r="1.2" fill="currentColor"/></svg>'
+            + '<span class="rt-chip-tag">' + escapeHtml(tag) + '</span>'
+          + '</span>'
+          + '<span class="rt-chip-repo">' + escapeHtml(r.repo) + '</span>'
+          + '<span class="rt-chip-time">' + timeAgo(r.time) + '</span>'
+          + '<span class="rt-chip-cta">View notes <svg width="8" height="8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 17L17 7M17 7H9M17 7V15" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'
+        + '</a>'
+      + '</div>';
     }).join('');
     el.innerHTML = '<div class="ra-label-row"><span class="ra-label">Release Timeline</span><span class="ra-label-sub">// tagged versions, most recent first</span></div>'
       + '<div class="rt-strip">' + chips + '</div>';
