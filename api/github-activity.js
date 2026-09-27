@@ -194,7 +194,16 @@ function describeEvent(event) {
       };
     }
     case 'ReleaseEvent': {
-      const tag = event.payload && event.payload.release && event.payload.release.tag_name;
+      const release = event.payload && event.payload.release;
+      const tag = release && release.tag_name;
+      // The release's own title (e.g. "v3.0.0 — Engineering Telemetry &
+      // Smart Desktop..."), when one was set — falls back to the tag so
+      // the timeline always has something to show and to link to.
+      const title = (release && release.name) || tag || null;
+      // Deep-link straight to the release page itself (title, notes,
+      // assets, verified-commit badge) instead of just the repo's
+      // front page — that's the whole "release detail" the chip promises.
+      const releaseUrl = (release && release.html_url) || repoUrl;
       return {
         type: 'release',
         repo,
@@ -202,8 +211,9 @@ function describeEvent(event) {
         // the Release Timeline strip can render it as a standalone chip
         // without having to regex it back out of the sentence.
         tag: tag || null,
+        title,
         message: `Released ${tag || 'a new version'} of ${repo}`,
-        url: repoUrl,
+        url: releaseUrl,
         time: event.created_at
       };
     }
