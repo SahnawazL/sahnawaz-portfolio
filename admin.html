@@ -1156,6 +1156,7 @@
   .aud-visits { font-size: .68rem; color: var(--text-dim); }
   .aud-visits b { color: var(--cyan); font-weight: 700; }
   .aud-seen { font-size: .64rem; color: var(--text-dim); margin-top: 2px; }
+  .aud-exact { opacity: .85; white-space: nowrap; }
 
   @media (max-width: 760px) {
     /* stack on phones so device/location stay visible (admin is read on mobile) */
@@ -1166,6 +1167,8 @@
     .aud-right { grid-column: 2; text-align: left; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 2px; }
     .aud-badge { margin-bottom: 0; }
     .aud-seen  { margin-top: 0; }
+    /* let long device names wrap instead of being cut off with an ellipsis */
+    .aud-fact { white-space: normal; overflow-wrap: anywhere; }
   }
 </style>
 </head>
@@ -1869,6 +1872,157 @@
     if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
     return Math.floor(diff / 86400) + 'd ago';
   }
+
+  /* exact date + time, e.g. "29 Sep, 01:15 am" (adds year if not current year) */
+  function formatExact(ts) {
+    var d = toDateSafe(ts);
+    if (!d) return '';
+    var opts = { day: 'numeric', month: 'short' };
+    if (d.getFullYear() !== new Date().getFullYear()) opts.year = 'numeric';
+    return d.toLocaleDateString('en-IN', opts) + ', ' +
+           d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  /* ── smart device identification ───────────────────────────────────
+     Chrome only exposes a raw model code (RMX3782, SM-S918B, 2201116SG…).
+     We turn that into "Brand + model" by, in order:
+       1. stripping junk / a leading maker name ("samsung SM-…", "OPPO CPH…")
+       2. matching product names (Redmi, POCO, Galaxy, Pixel, iPhone, moto…)
+       3. matching each maker's model-code pattern (RMX, CPH, SM-, V2xxx…)
+       4. adding a friendly name for well-known Samsung codes
+       5. falling back to OS / browser hints (iOS → iPhone, Samsung Internet…)
+     Anything unrecognised is shown unchanged, never hidden. */
+
+  var MAKER_PREFIX = /^(samsung|oppo|vivo|xiaomi|realme|huawei|honor|oneplus|motorola|lenovo|asus|tecno|infinix|itel|nokia|sony|google|nothing|lava|zte|nubia|meizu|micromax)[\s_\-]+/i;
+  var MAKER_NAME = { samsung:'Samsung', oppo:'OPPO', vivo:'vivo', xiaomi:'Xiaomi', realme:'Realme', huawei:'Huawei',
+    honor:'Honor', oneplus:'OnePlus', motorola:'Motorola', lenovo:'Lenovo', asus:'ASUS', tecno:'Tecno',
+    infinix:'Infinix', itel:'itel', nokia:'Nokia', sony:'Sony', google:'Google', nothing:'Nothing',
+    lava:'Lava', zte:'ZTE', nubia:'Nubia', meizu:'Meizu', micromax:'Micromax' };
+
+  /* product-name based: [regex, brand, prefix to add (or '' to keep text as-is)] */
+  var NAME_RULES = [
+    [/^(iPhone|iPad|iPod)/i,        'Apple',   ''],
+    [/^(Redmi|POCO|Little)/i,       'Xiaomi',  ''],
+    [/^(Mi|MI|MIX|Xiaomi)\b/,       'Xiaomi',  ''],
+    [/^Galaxy/i,                    'Samsung', 'Samsung '],
+    [/^Pixel/i,                     'Google',  'Google '],
+    [/^(moto|motorola|edge\s)/i,    'Motorola',''],
+    [/^Xperia/i,                    'Sony',    'Sony '],
+    [/^(ROG|Zenfone)/i,             'ASUS',    'ASUS '],
+    [/^(Nothing|CMF)/i,             'Nothing', ''],
+    [/^(realme|OPPO|vivo|iQOO|OnePlus|HUAWEI|HONOR|Nokia|Lenovo|ASUS|Infinix|TECNO|itel|LAVA|ZTE)/i, null, '']
+  ];
+  var NAME_BRAND = { realme:'Realme', oppo:'OPPO', vivo:'vivo', iqoo:'iQOO', oneplus:'OnePlus', huawei:'Huawei',
+    honor:'Honor', nokia:'Nokia', lenovo:'Lenovo', asus:'ASUS', infinix:'Infinix', tecno:'Tecno', itel:'itel',
+    lava:'Lava', zte:'ZTE' };
+
+  /* model-code based: [regex, brand] — order matters */
+  var CODE_RULES = [
+    [/^(SM|GT|SC|SGH|SHV|SCV|SCG)[-_]?[A-Z0-9]/i,            'Samsung'],
+    [/^RM[XP]\d{3,4}/i,                                       'Realme'],
+    [/^(CPH|P[A-H][A-Z](?=[A-Z0-9]*\d))\w*\d/, 'OPPO'],
+    [/^(IN|LE|KB|HD|GM|NE|BE|EB|DN)\d{4}$/i,                 'OnePlus'],
+    [/^I2\d{3}$/i,                                            'iQOO'],
+    [/^(V\d{4}[A-Z]{0,3}|PD\d{4}[A-Z]?)$/i,                   'vivo'],
+    [/^(1[6-9]\d{2}|20\d{2})$/,                               'vivo'],
+    [/^(M\d{4}[A-Z]\d+[A-Z]*|\d{5,8}[A-Z]{1,3}[A-Z0-9]?)$/,  'Xiaomi'],
+    [/^X\d{3,4}[A-Za-z]?$/,                                   'Infinix'],
+    [/^(XT\d{4}|moto)/i,                                      'Motorola'],
+    [/^(TA-\d{4})/i,                                          'Nokia'],
+    [/^[A-Z]{3}-[A-Z]{1,2}\d{1,2}[A-Z]?$/,                   'Huawei'],
+    [/^(ZS\d{3}|AI2\d{3}|I00\d[A-Z]{1,2})/i,                  'ASUS'],
+    [/^(XQ-|SO-|SOG|SOV)/i,                                   'Sony'],
+    [/^A(06\d|14\d)$/,                                        'Nothing'],
+    [/^(TB[-\s]?[A-Z]?\d|L\d{5}$)/i,                          'Lenovo'],
+    [/^(LM-|LG-|LGM-|LGE)/i,                                  'LG'],
+    [/^(NX\d{3}|NX\d)/i,                                      'Nubia'],
+    [/^[A-Z]{2}\d[a-z]{0,2}$/,                                'Tecno']   /* KG5k, CK7n, LG7n… */
+  ];
+
+  /* friendly names for common Samsung codes (SM-XXXX, region suffix ignored) */
+  var SAMSUNG_NAMES = {
+    S938:'Galaxy S25 Ultra', S936:'Galaxy S25+', S931:'Galaxy S25',
+    S928:'Galaxy S24 Ultra', S926:'Galaxy S24+', S921:'Galaxy S24',
+    S918:'Galaxy S23 Ultra', S916:'Galaxy S23+', S911:'Galaxy S23',
+    S908:'Galaxy S22 Ultra', S906:'Galaxy S22+', S901:'Galaxy S22',
+    S998:'Galaxy S21 Ultra', S996:'Galaxy S21+', S991:'Galaxy S21',
+    F956:'Galaxy Z Fold6', F741:'Galaxy Z Flip6', F946:'Galaxy Z Fold5', F731:'Galaxy Z Flip5',
+    F936:'Galaxy Z Fold4', F721:'Galaxy Z Flip4',
+    A556:'Galaxy A55 5G', A356:'Galaxy A35 5G', A256:'Galaxy A25 5G', A156:'Galaxy A15 5G', A155:'Galaxy A15',
+    A546:'Galaxy A54 5G', A536:'Galaxy A53 5G', A346:'Galaxy A34 5G', A736:'Galaxy A73 5G',
+    A526:'Galaxy A52 5G', A525:'Galaxy A52', A245:'Galaxy A24', A146:'Galaxy A14 5G', A145:'Galaxy A14',
+    A057:'Galaxy A05s', A055:'Galaxy A05', M346:'Galaxy M34 5G', M146:'Galaxy M14 5G'
+  };
+
+  /* browsers that only ship on one maker's phones */
+  var BROWSER_BRAND = [
+    [/samsung/i, 'Samsung'], [/(miui|mi browser|xiaomi)/i, 'Xiaomi'], [/huawei/i, 'Huawei'],
+    [/(vivo)/i, 'vivo'], [/(heytap|oppo)/i, 'OPPO'], [/realme/i, 'Realme']
+  ];
+
+  function cleanModel(raw) {
+    var m = String(raw == null ? '' : raw).trim();
+    m = m.replace(/\s*Build\/.*$/i, '').replace(/\s+/g, ' ').trim();
+    /* Chrome's reduced UA reports a bare "K" / "Android" instead of a model */
+    if (m.length < 2 || /^(k|android|mobile|generic|unknown|null|undefined|localhost)$/i.test(m)) return '';
+    return m;
+  }
+
+  var _devCache = {};
+  function identifyDevice(d) {
+    var key = [d.model, d.os, d.device, d.browser].join('|');
+    if (_devCache[key]) return _devCache[key];
+
+    var raw = cleanModel(d.model), brand = '', label = '', hint = '';
+    var os = String(d.os || '').toLowerCase();
+    var isTablet = String(d.device || '').toLowerCase() === 'tablet';
+
+    if (raw) {
+      /* 1. leading maker name, e.g. "samsung SM-S918B" */
+      var rest = raw, mp = rest.match(MAKER_PREFIX);
+      if (mp) { hint = MAKER_NAME[mp[1].toLowerCase()]; rest = rest.slice(mp[0].length); }
+
+      /* 2. product-name match */
+      for (var i = 0; i < NAME_RULES.length && !brand; i++) {
+        var nr = NAME_RULES[i];
+        if (nr[0].test(rest)) {
+          brand = nr[1] || NAME_BRAND[(rest.match(/^[A-Za-z]+/) || [''])[0].toLowerCase()] || hint;
+          label = nr[2] + rest;
+          if (brand === 'Apple' && /^iPhone\d+,\d+$/i.test(rest)) label = 'iPhone';
+        }
+      }
+
+      /* 3. code pattern match */
+      if (!brand) {
+        for (var j = 0; j < CODE_RULES.length; j++) {
+          if (CODE_RULES[j][0].test(rest)) { brand = CODE_RULES[j][1]; break; }
+        }
+        /* explicit maker name beats a weak pattern guess */
+        if (hint && (!brand || brand === 'Tecno' || brand === 'Infinix')) brand = hint;
+        if (!brand && hint) brand = hint;
+        label = brand ? brand + ' ' + rest : rest;
+
+        /* 4. friendly Samsung name */
+        if (brand === 'Samsung') {
+          var sm = rest.toUpperCase().match(/^SM[-_]?([A-Z]\d{3})/);
+          if (sm && SAMSUNG_NAMES[sm[1]]) label = 'Samsung ' + SAMSUNG_NAMES[sm[1]] + ' (' + rest + ')';
+        }
+      }
+    } else {
+      /* 5. no usable model → OS / browser hints */
+      if (os === 'ios' || os === 'ipados') { brand = 'Apple'; label = isTablet || os === 'ipados' ? 'iPad' : 'iPhone'; }
+      else {
+        var b = String(d.browser || '');
+        for (var k = 0; k < BROWSER_BRAND.length; k++) {
+          if (BROWSER_BRAND[k][0].test(b)) { brand = BROWSER_BRAND[k][1]; label = brand + ' device'; break; }
+        }
+      }
+    }
+    return (_devCache[key] = { brand: brand, label: label });
+  }
+
+  function deviceBrand(d) { return identifyDevice(d).brand; }
+  function deviceLabel(d) { return identifyDevice(d).label; }
 
   function stars(n) {
     var s = '';
@@ -3214,7 +3368,7 @@
       if (audienceType !== 'all' && (d.type || 'guest') !== audienceType) return false;
       if (cutoff) { var ms = millisSafe(audDate(d)); if (!ms || ms < cutoff) return false; }
       if (!query) return true;
-      return [d.name, d.email, d.city, d.region, d.country, d.device, d.model, d.os, d.browser, d.network, d.referrer, d.uid]
+      return [d.name, d.email, d.city, d.region, d.country, d.device, d.model, deviceBrand(d), d.os, d.browser, d.network, d.referrer, d.uid]
         .some(function(v){ return (v || '').toString().toLowerCase().indexOf(query) !== -1; });
     });
     filtered.sort(function(a, b){ return millisSafe(audDate(b)) - millisSafe(audDate(a)); });
@@ -3250,7 +3404,8 @@
       var loc = [d.city, d.region, d.country].filter(Boolean).map(sanitize).join(', ') || 'Unknown location';
       /* device line: model first when known, then type · os · browser */
       var devBits = [];
-      if (d.model) devBits.push(d.model);
+      var devName = deviceLabel(d);
+      if (devName) devBits.push(devName);
       [d.device, d.os, d.browser].forEach(function(x){ if (x) devBits.push(x); });
       var devLine = devBits.length ? devBits.map(sanitize).join(' · ') : 'Unknown device';
       var ref = d.referrer && d.referrer !== '(direct)' ? sanitize(d.referrer) : 'Direct';
@@ -3267,6 +3422,7 @@
 
       var visits = (typeof d.visits === 'number' && d.visits > 0) ? d.visits : 1;
       var seen = audDate(d) ? timeAgo(audDate(d)) : 'unknown';
+      var seenExact = audDate(d) ? formatExact(audDate(d)) : '';
 
       return '<div class="aud-row fade-in" style="animation-delay:' + (i * 0.03) + 's">' +
         av +
@@ -3283,7 +3439,8 @@
         '<div class="aud-right">' +
           '<span class="aud-badge ' + (isGoogle ? 'google' : 'guest') + '">' + (isGoogle ? 'Google' : 'Guest') + '</span>' +
           '<span class="aud-visits"><b>' + visits + '</b> visit' + (visits !== 1 ? 's' : '') + '</span>' +
-          '<div class="aud-seen">' + seen + '</div>' +
+          '<div class="aud-seen" title="' + sanitize(seenExact) + '">' + seen +
+            (seenExact ? ' <span class="aud-exact">· ' + sanitize(seenExact) + '</span>' : '') + '</div>' +
         '</div>' +
       '</div>';
     }).join('');
@@ -3305,6 +3462,7 @@
       { label:'Name',       get:function(d){ return d.name || ''; } },
       { label:'Email',      get:function(d){ return d.email || ''; } },
       { label:'Device',     get:function(d){ return d.device || ''; } },
+      { label:'Brand',      get:function(d){ return deviceBrand(d); } },
       { label:'Model',      get:function(d){ return d.model || ''; } },
       { label:'OS',         get:function(d){ return d.os || ''; } },
       { label:'Browser',    get:function(d){ return d.browser || ''; } },
