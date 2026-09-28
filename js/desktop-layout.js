@@ -363,6 +363,7 @@
   }
   function runDrawer(target) {
     if (target === 'search') { if (fn('openCommandPalette')) window.openCommandPalette(); return; }
+    if (target === '#ask-ai') { if (window.openChat) window.openChat(); return; }
     if (target.charAt(0) !== '#') return;
     goTo(target);
     /* arriving at telemetry plays the same scan-line sweep as the hero pill */
