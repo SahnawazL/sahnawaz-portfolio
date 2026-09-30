@@ -181,7 +181,8 @@
       if (busy) {
         input.placeholder = 'Sahnawaz is thinking…';
       } else if (!window._helpFlowActive || !window._helpFlowActive()) {
-        input.placeholder = (briefApi && briefApi.isActive()) ? briefApi.placeholder() : 'Ask anything about Sahnawaz…';
+        input.placeholder = (checkChat && checkChat.isActive()) ? checkChat.placeholder()
+          : (briefApi && briefApi.isActive()) ? briefApi.placeholder() : 'Ask anything about Sahnawaz…';
       }
     }
     if (sendBtn){
@@ -254,8 +255,33 @@
     if (_vvFrame) return;
     _vvFrame = requestAnimationFrame(applyViewport);
   }
+  /* In-app browsers of social apps (Instagram, Facebook, TikTok…) often
+     neither resize the page nor report the keyboard: it is simply drawn
+     over the page, so nothing tells the chat where it is. There, if a
+     moment after the input is focused no resize has happened at all, the
+     chat moves to the top of the screen, sized to sit above a phone
+     keyboard. A real resize, if one comes, takes over; leaving the input
+     puts everything back. Normal browsers never use this. */
+  var IN_APP = /FBAN|FBAV|FB_IAB|FBIOS|Instagram|musical_ly|Bytedance|TikTok|Snapchat|LinkedInApp|Line\/|Pinterest/i.test(navigator.userAgent || '');
+  var _kbGuess = false, _kbBaseH = 0, _kbGuessT = 0;
+  function guessAllowed(){
+    var coarse = false;
+    try { coarse = window.matchMedia('(pointer: coarse)').matches; } catch (e) {}
+    return IN_APP && coarse && window.innerWidth <= 900;
+  }
+  function applyGuess(){
+    var h = window.innerHeight, landscape = window.innerWidth > h;
+    var kbH = Math.round(h * (landscape ? 0.6 : 0.45));   /* a phone keyboard with its suggestion row */
+    var gap = widget.classList.contains('chat-expanded') ? 0 : 6;
+    widget.classList.add('kb-open', 'kb-guess');
+    widget.style.bottom = 'auto';
+    widget.style.top = gap + 'px';
+    widget.style.height = Math.max(180, h - kbH - gap * 2) + 'px';
+    widget.style.maxHeight = 'none';
+    scrollMsgs(true);
+  }
   function clearViewportPin(){
-    widget.classList.remove('kb-open');
+    widget.classList.remove('kb-open', 'kb-guess');
     widget.style.top = '';
     widget.style.height = '';
     widget.style.bottom = '';
@@ -270,6 +296,10 @@
     /* keyboard = input focused and a big slice of the window hidden;
        pinch-zoom (scale > 1) is not a keyboard */
     var kb = !!vv && typing && (window.innerHeight - vv.height) > 120 && vv.scale < 1.05;
+    /* real information always wins over the guess: the visual viewport
+       shrank (kb), or the whole page was resized for the keyboard */
+    if (kb || (_kbBaseH && window.innerHeight < _kbBaseH - 120)) _kbGuess = false;
+    if (!kb && typing && _kbGuess) { applyGuess(); return; }
     if (!kb) {
       var was = widget.classList.contains('kb-open');
       clearViewportPin();
@@ -277,6 +307,7 @@
       return;
     }
     var gap = widget.classList.contains('chat-expanded') ? 0 : 6;
+    widget.classList.remove('kb-guess');
     widget.classList.add('kb-open');
     widget.style.bottom = 'auto';
     widget.style.top = Math.round(vv.offsetTop + gap) + 'px';
@@ -293,7 +324,20 @@
 
   /* The keyboard slides in/out over ~300ms and some browsers only report
      the final size late, so check again a few times after focus changes. */
-  function followKeyboard(){
+  function followKeyboard(e){
+    if (e && e.type === 'focus') {
+      _kbBaseH = window.innerHeight;
+      clearTimeout(_kbGuessT);
+      if (guessAllowed()) _kbGuessT = setTimeout(function(){
+        if (!isOpen || document.activeElement !== input) return;
+        var vv = window.visualViewport;
+        var told = (vv && (window.innerHeight - vv.height) > 120) || window.innerHeight < _kbBaseH - 120;
+        if (!told) { _kbGuess = true; handleViewport(); }
+      }, 450);
+    } else if (e && e.type === 'blur') {
+      clearTimeout(_kbGuessT);
+      _kbGuess = false;
+    }
     handleViewport();
     [120, 300, 600].forEach(function(t){ setTimeout(handleViewport, t); });
   }
@@ -395,6 +439,7 @@
     msgs.innerHTML = '';
     conversationHistory = [];
     if (briefApi) briefApi.onClear(); /* brief paused, its draft is kept */
+    if (checkChat) checkChat.reset();
     followUpWrap && (followUpWrap.style.display = 'none');
     renderQuickReplies();
     var _sv = null; try { _sv = JSON.parse(localStorage.getItem('shnz_visitor_v1')||'null'); } catch(e){}
@@ -960,6 +1005,7 @@
     /* Start a flow */
     function startFlow(type) {
       if (window._briefPause) window._briefPause(); /* one flow at a time; the brief draft is kept */
+      if (window._checkChatReset) window._checkChatReset();
       resetFlow();
       _flow = type;
       _step = 1;
@@ -1295,11 +1341,12 @@
       var btn = e.target.closest('.help-btn');
       if (!btn) return;
       var type = btn.getAttribute('data-help');
-      if (type === 'brief') {
+      if (type === 'brief' || type === 'check') {
         helpOpen = false;
         helpPanelEl.classList.remove('help-open');
         helpToggleEl.classList.remove('help-open');
-        if (window._startBrief) window._startBrief();
+        if (type === 'brief' && window._startBrief) window._startBrief();
+        if (type === 'check' && window._startWebsiteCheck) window._startWebsiteCheck();
         return;
       }
       if (type) startFlow(type);
@@ -1645,6 +1692,14 @@
       if (window._cancelHelpFlow) window._cancelHelpFlow();
       if (!getVisitorType()) setVisitorType('client');
       if (!st.from) st.from = opts.from || 'chat';   /* the first button counts */
+      /* details another feature already knows (the website check hands
+         over the site and what to fix); never overwrites the visitor's own */
+      if (opts.prefill && typeof opts.prefill === 'object') {
+        ['website', 'notes', 'business'].forEach(function(k){
+          var v = opts.prefill[k];
+          if (v && !st.brief[k]) st.brief[k] = String(v).slice(0, k === 'notes' ? 380 : 180);
+        });
+      }
 
       var type = TYPES[opts.type] ? opts.type : '';
       var prevType = st.brief.projectType || '';
@@ -1857,7 +1912,7 @@
      the Why-website pop-up and the ?plan link. On the very first open the
      planner replaces the greeting and the "What brings you here?"
      question (initChat → startPendingBrief), so nothing stacks up. */
-  var pendingBrief = null;
+  var pendingBrief = null, pendingReport = null;
   window.openBrief = function(opts){
     opts = opts || {};
     if (!inited) { pendingBrief = opts; window.openChat(); return true; }
@@ -1866,15 +1921,176 @@
     return true;
   };
   function startPendingBrief(){
-    if (!pendingBrief) return false;
-    var o = pendingBrief;
-    pendingBrief = null;
+    if (!pendingBrief && !pendingReport) return false;
+    var o = pendingBrief, rep = pendingReport;
+    pendingBrief = null; pendingReport = null;
     if (!hasVisitedBefore) { try { localStorage.setItem('chatVisited', '1'); } catch (e) {} }
     buildChips();
     setChipsOpen(false);
-    briefApi.start(o);
+    if (rep) checkChat.present(rep, true);
+    else briefApi.start(o);
     return true;
   }
+
+  /* ========== Free website check, inside the chat ==========
+     Help → "🩺 Free website check", the chip [[go:website-check|…]], or a
+     message like "check my website abc.in". Asks for the address and the
+     kind of business, runs the check (js/website-check.js → api/vitals.js)
+     while the visitor can keep chatting, then shows a compact report card.
+     A summary goes into the chat's memory, so "why is it slow?" is answered
+     with the report in mind. */
+  var checkChat = (function(){
+    var step = null, url = '', reports = {};
+    var TYPE_BTNS = [['clinic', '🏥 Clinic'], ['restaurant', '🍽️ Restaurant'], ['shop', '🛍️ Shop'], ['school', '🏫 School'], ['other', '💼 Other']];
+    function api(){ return window.shzCheck; }
+    function isActive(){ return step !== null; }
+    function placeholder(){ return step === 'url' ? 'yourbusiness.com' : 'Clinic, restaurant, shop, school…'; }
+    function restInput(){ if (!botBusy) setBotBusy(false); }
+    function reset(){ if (step === null) return; step = null; url = ''; if (quickReply) quickReply.style.display = 'none'; restInput(); }
+    function whenIdle(fn){ var n = 0; (function w(){ if (botBusy && n++ < 40) { setTimeout(w, 120); return; } fn(); })(); }
+    function typeFromText(t){
+      t = String(t || '').toLowerCase();
+      if (/clinic|doctor|hospital|dental|dentist|health|medical|pharma|diagnostic|physio|nursing/.test(t)) return 'clinic';
+      if (/restaurant|cafe|café|food|dhaba|bakery|sweet|kitchen|catering|biryani|pizza|eatery/.test(t)) return 'restaurant';
+      if (/shop|store|boutique|retail|e-?commerce|mart|showroom|sell|saree|jewell?ery|fashion|electronics/.test(t)) return 'shop';
+      if (/school|college|coaching|institute|academy|tuition|education|classes|university/.test(t)) return 'school';
+      if (/other|business|agency|company|office|service|skip|none|not sure/.test(t)) return 'other';
+      return null;
+    }
+    function langOf(){
+      var txt = conversationHistory.slice(-6).filter(function(m){ return m.role === 'user'; }).map(function(m){ return m.text; }).join(' ');
+      if (/[\u0900-\u097F]/.test(txt)) return 'hi';
+      if (/[\u0980-\u09FF]/.test(txt)) return 'bn';
+      return 'en';
+    }
+    function start(opts){
+      opts = opts || {};
+      if (botBusy) { whenIdle(function(){ start(opts); }); return true; }
+      if (window._cancelHelpFlow) window._cancelHelpFlow();
+      if (window._briefPause) window._briefPause();
+      closeAllPanels();
+      if (quickReply) quickReply.style.display = 'none';
+      followUpWrap && (followUpWrap.style.display = 'none');
+      if (!getVisitorType()) setVisitorType('client');
+      if (!api()) { addBotTyping("The website check is still loading — give it a second and try again. 🙂"); return true; }
+      if (opts.url && api().looksLikeSite(opts.url)) {
+        url = opts.url;
+        if (opts.type) { step = null; run(url, opts.type); return true; }
+        askType();
+        return true;
+      }
+      step = 'url';
+      restInput();
+      addBotTyping("Let's check your website 🩺 What's the address? (like yourbusiness.com)\n\nI'll test it on a phone and check what customers see — it takes about 30 seconds.", null);
+      return true;
+    }
+    function askType(){
+      step = 'type';
+      restInput();
+      addBotTyping("Got it — " + api().cleanHost(url) + ". What kind of business is it? I'll check the things that matter for it.", null);
+      whenIdle(function(){
+        if (step !== 'type' || !quickReply) return;
+        quickReply.innerHTML = '';
+        var cap = document.createElement('div');
+        cap.className = 'chat-qr-caption';
+        cap.textContent = 'Type of business';
+        quickReply.appendChild(cap);
+        TYPE_BTNS.forEach(function(b){ quickReply.appendChild(qrButton(b[1], function(){ pick(b[0], b[1]); })); });
+        quickReply.style.display = 'flex';
+        scrollMsgs();
+      });
+    }
+    function pick(type, label){
+      if (step !== 'type') return;
+      if (label) { playSend && playSend(); addMsg('user', label); if (window._saveChatMessage) window._saveChatMessage('user', label); }
+      if (quickReply) quickReply.style.display = 'none';
+      step = null;
+      run(url, type);
+    }
+    function stepInput(val){
+      addMsg('user', val);
+      if (window._saveChatMessage) window._saveChatMessage('user', val);
+      if (/^(cancel|stop|no|nevermind|never mind|exit|quit)\b/i.test(val.trim())) {
+        reset();
+        addBotTyping("No problem — ask me anything 😊", val);
+        return;
+      }
+      if (step === 'url') {
+        if (!api().looksLikeSite(val)) { addBotTyping("Hmm, that doesn't look like a website address 🤔 Try something like yourbusiness.com — or type cancel to stop.", val); return; }
+        url = val.trim();
+        var t = typeFromText(val);
+        if (t && t !== 'other') { step = null; run(url, t); } else askType();
+        return;
+      }
+      if (step === 'type') pick(typeFromText(val) || 'other');
+    }
+    function run(u, type){
+      restInput();
+      var host = api().cleanHost(u), t0 = Date.now();
+      var wrap = document.createElement('div');
+      wrap.className = 'chat-msg-wrap bot';
+      var b = document.createElement('div');
+      b.className = 'chat-msg bot wc-chat-prog';
+      b.innerHTML = '<span class="wc-spin" aria-hidden="true"></span> Checking <b>' + escHtml(host) + '</b> <span class="wc-elapsed">0 s</span>' +
+        '<ol class="wc-steps"><li class="is-active">Opening your website</li><li>Reading what customers see</li><li>Testing it on a phone <em>(15–40 s — keep chatting if you like)</em></li></ol>';
+      wrap.appendChild(b);
+      msgs.appendChild(wrap);
+      scrollMsgs();
+      var timer = setInterval(function(){ var e = b.querySelector('.wc-elapsed'); if (e) e.textContent = Math.round((Date.now() - t0) / 1000) + ' s'; }, 1000);
+      var stepsTo = function(n){ Array.prototype.forEach.call(b.querySelectorAll('.wc-steps li'), function(li, i){ li.classList.toggle('is-done', i < n); li.classList.toggle('is-active', i === n); }); };
+      api().run(u, type, langOf(), {
+        onBasics: function(){ stepsTo(2); },
+        onFull: function(r){ clearInterval(timer); if (wrap.parentNode) wrap.parentNode.removeChild(wrap); present(r, false); },
+        onError: function(m){ clearInterval(timer); if (wrap.parentNode) wrap.parentNode.removeChild(wrap); addBotTyping('⚠️ ' + m, null); }
+      });
+    }
+    /* the compact card + a summary in the chat's memory */
+    function present(r, intro){
+      reports[r.id] = r;
+      if (intro) addBotTyping("Here's the website check for " + r.host + " 🩺 Ask me anything about it — like “why is it slow?” — or tap 📝 to plan the fix with Sahnawaz.", null);
+      var show = function(){
+        var wrap = document.createElement('div');
+        wrap.className = 'chat-msg-wrap bot wc-mini-wrap';
+        wrap.innerHTML = api().miniHtml(r);
+        msgs.appendChild(wrap);
+        playReceive();
+        addToHistory('bot', api().summaryText(r));
+        if (window._saveChatMessage) window._saveChatMessage('bot', '🩺 Website check for ' + r.host + ': ' + (r.scores.overall == null ? '?' : r.scores.overall) + '/100 (' + (r.verdict && r.verdict.label) + '). ' + ((r.text && r.text.headline) || ''));
+        scrollMsgs();
+        if (!intro) addBotTyping("Ask me anything about this report — like “why is it slow?” or “what should I fix first?” 🙂", null);
+      };
+      if (intro) whenIdle(show); else show();
+    }
+    msgs.addEventListener('click', function(e){
+      var btn = e.target.closest && e.target.closest('[data-wc-mini]');
+      if (!btn) return;
+      var card = btn.closest('.wc-mini');
+      var r = card && reports[card.getAttribute('data-id')];
+      if (!r) return;
+      if (btn.getAttribute('data-wc-mini') === 'fix') { api().fix(r); return; }
+      closeChat();
+      setTimeout(function(){ api().showReport(r, true); }, 260);
+    });
+    /* "check my website abc.in", "audit abc.com", "is my site fast? abc.in" */
+    function detect(val){
+      var t = String(val || '');
+      if (!/\b(check|audit|test|scan|analy[sz]e|review|rate|score|inspect|evaluate)\b|how (good|fast) is|is my (web)?site/i.test(t)) return null;
+      if (!/\b(site|website|web ?page|page|seo|speed)\b/i.test(t) && !/is my (web)?site/i.test(t)) return null;
+      var m = t.replace(/\S+@\S+/g, ' ').match(/((?:https?:\/\/)?(?:[a-z0-9-]+\.)+[a-z]{2,24}(?:\/[^\s,;!?]*)?)/i);
+      return m ? { url: m[1], type: typeFromText(t.replace(m[1], ' ')) } : null;
+    }
+    window._startWebsiteCheck = function(){ return start(); };
+    window._checkChatReset = reset;
+    /* from the section's "Ask the AI about this report" */
+    window._chatAboutReport = function(r){
+      if (!r) return;
+      if (!inited) { pendingReport = r; window.openChat(); return; }
+      if (!isOpen) window.openChat();
+      present(r, true);
+    };
+    return { start: start, isActive: isActive, placeholder: placeholder, reset: reset, stepInput: stepInput, detect: detect, present: present,
+             runTyped: function(d){ if (d.type && d.type !== 'other') { url = d.url; step = null; run(d.url, d.type); } else start({ url: d.url }); } };
+  })();
 
   /* Buttons around the page that start the planner:
        data-brief="<project type, or empty>"
@@ -2113,7 +2329,8 @@
     'send-message': { url: '/#contact', inChat: true, run: function () { return callIf('_startHelpFlow', 'quickmail'); } },
     'send-resume':  { url: '/#contact', inChat: true, run: function () { return callIf('_startHelpFlow', 'resume'); } },
     'callback':     { url: '/#contact', inChat: true, run: function () { return callIf('_startHelpFlow', 'callback'); } },
-    'brief':        { url: '/#contact', inChat: true, run: function () { return callIf('_startBrief'); } }
+    'brief':        { url: '/#contact', inChat: true, run: function () { return callIf('_startBrief'); } },
+    'website-check': { url: '/#website-check', inChat: true, run: function () { return callIf('_startWebsiteCheck'); } }
   };
 
   function callIf(name, arg) {
@@ -2126,6 +2343,14 @@
   function scrollTo_(sel) {
     var el = document.querySelector(sel);
     if (!el) return false;
+    /* the same precise landing and arrival scan as the hero pills
+       (portfolio-06.js); the old aim below left chips ~110px short on
+       phones, where the header scrolls away */
+    if (typeof window.shzLandOn === 'function') {
+      window.shzLandOn(el);
+      if (typeof window.shzPillArrive === 'function') window.shzPillArrive(sel);
+      return true;
+    }
     var offset = function () {
       var h = document.querySelector('header');
       return h && /fixed|sticky/.test(getComputedStyle(h).position) ? h.getBoundingClientRect().height : 0;
@@ -2964,6 +3189,22 @@
       return;
     }
     /* ── End help flow intercept ── */
+    /* ── Website check: address / business type answers ── */
+    if (bypassBrief) checkChat.reset();
+    else if (checkChat.isActive()) {
+      playSend && playSend();
+      checkChat.stepInput(val);
+      return;
+    }
+    /* "check my website abc.in" runs the check right here */
+    var checkReq = (!bypassBrief && !(briefApi && briefApi.isActive())) ? checkChat.detect(val) : null;
+    if (checkReq) {
+      playSend && playSend();
+      addMsg('user', val);
+      if (window._saveChatMessage) window._saveChatMessage('user', val);
+      checkChat.runTyped(checkReq);
+      return;
+    }
     /* ── Project brief: typed messages go to the brief agent ── */
     if (!bypassBrief && briefApi && briefApi.isActive()) {
       playSend && playSend();
