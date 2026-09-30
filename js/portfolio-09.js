@@ -70,7 +70,9 @@
     idleTimer = setTimeout(function(){
       if (!botBusy && isOpen && idleCount === 0){
         idleCount = 1;
-        addBotTyping(IDLE_MSG, null, true); /* isNudge=true — won't restart timer */
+        addBotTyping((briefApi && briefApi.isActive())
+          ? "Still there? No rush — your project brief is saved on this device, so you can pick it up anytime. 🙂"
+          : IDLE_MSG, null, true); /* isNudge=true — won't restart timer */
 
         /* Second nudge — 40 s after the first (total 160s) */
         idleTimer2 = setTimeout(function(){
@@ -179,7 +181,7 @@
       if (busy) {
         input.placeholder = 'Sahnawaz is thinking…';
       } else if (!window._helpFlowActive || !window._helpFlowActive()) {
-        input.placeholder = 'Ask anything about Sahnawaz…';
+        input.placeholder = (briefApi && briefApi.isActive()) ? briefApi.placeholder() : 'Ask anything about Sahnawaz…';
       }
     }
     if (sendBtn){
@@ -392,6 +394,7 @@
   clearBtn && clearBtn.addEventListener('click', function(){
     msgs.innerHTML = '';
     conversationHistory = [];
+    if (briefApi) briefApi.onClear(); /* brief paused, its draft is kept */
     followUpWrap && (followUpWrap.style.display = 'none');
     renderQuickReplies();
     var _sv = null; try { _sv = JSON.parse(localStorage.getItem('shnz_visitor_v1')||'null'); } catch(e){}
@@ -484,8 +487,9 @@
     recruiter: "Thanks! 👔 Sahnawaz is open to full-time roles as well as freelance work.\n\n" +
                "I can email you his resume right now, or answer anything about his experience and skills.\n" +
                "[[go:send-resume|📄 Email me his resume]]\n[[go:experience|See his experience]]",
-    client:    "Great, let's get your project moving! 🚀 Tell me what you're building and I'll share pricing and timelines, " +
-               "or message Sahnawaz directly.\n[[go:send-message|📧 Message Sahnawaz]]\n[[go:services|See services & pricing]]",
+    client:    "Great, let's get your project moving! 🚀 I can plan it with you right here — describe it in your own words and " +
+               "I'll prepare a brief for Sahnawaz with a typical price range. Or ask me anything first.\n" +
+               "[[go:brief|📝 Plan my project with AI]]\n[[go:send-message|📧 Message Sahnawaz]]",
     browsing:  "Welcome! 😊 Have a look around. Ask me anything, or try one of these below."
   };
   var STARTERS = {
@@ -493,8 +497,8 @@
                 ['🤝 Hire Sahnawaz', 'How can I hire Sahnawaz?'], ['✅ Is he available?', 'Is he available for work right now?']],
     recruiter: [['🧑‍💼 His experience', 'Has he worked with big brands?'], ['🛠️ Tech stack', "What's his tech stack?"],
                 ['🚀 What he built', 'What apps has Sahnawaz built? 🚀']],
-    client:    [['💰 Pricing', "What's his pricing?"], ['⏱️ Timelines', 'How long does a project take?'],
-                ['✨ A site like this', 'Can Sahnawaz build me a website like this?']],
+    client:    [['📝 Plan my project', '__brief__'], ['💰 Pricing', "What's his pricing?"],
+                ['⏱️ Timelines', 'How long does a project take?'], ['✨ A site like this', 'Can Sahnawaz build me a website like this?']],
     browsing:  [['🚀 His apps', 'What apps has Sahnawaz built? 🚀'], ['🖥️ Hacker Mode', 'What is the Hacker Mode? 🖥️'],
                 ['✨ This portfolio', "What's special about this portfolio?"]]
   };
@@ -534,10 +538,18 @@
         quickReply.appendChild(qrButton(v.label, function () { chooseVisitorType(v.type, v.label); }));
       });
     } else {
-      (STARTERS[vt] || STARTERS.none).forEach(function (st) {
+      var starters = (STARTERS[vt] || STARTERS.none).slice();
+      /* a saved project brief → offer to pick it up where they left off */
+      if (briefApi && briefApi.hasDraft()) {
+        var cont = ['📝 Continue my brief', '__brief__'], at = -1;
+        starters.forEach(function (s, i) { if (s[1] === '__brief__') at = i; });
+        if (at > -1) starters[at] = cont; else starters.unshift(cont);
+      }
+      starters.forEach(function (st) {
         quickReply.appendChild(qrButton(st[0], function () {
           quickReply.style.display = 'none';
-          handleQ(st[1]);
+          if (st[1] === '__brief__') { if (briefApi) briefApi.start(); }
+          else handleQ(st[1]);
           resetIdleTimer();
         }));
       });
@@ -797,6 +809,7 @@
           cmdOpen = false;
           cmdPanelEl.classList.remove('cmd-open');
           cmdToggleEl.classList.remove('cmd-open');
+          _briefBypassOnce = true;
           sendMessage();
         }
         return;
@@ -939,6 +952,7 @@
 
     /* Start a flow */
     function startFlow(type) {
+      if (window._briefPause) window._briefPause(); /* one flow at a time; the brief draft is kept */
       resetFlow();
       _flow = type;
       _step = 1;
@@ -1062,6 +1076,13 @@
 
     /* Handle each step of the flow — called from sendMessage intercept */
     window._helpFlowActive = function() { return _flow !== null; };
+    /* Lets the project brief take over from an unfinished Help flow */
+    window._cancelHelpFlow = function() {
+      if (_flow === null) return false;
+      _flow = null; _step = 0; _data = {}; _errCount = {};
+      removeCancelBtn();
+      return true;
+    };
     /* Lets chat replies start a flow in place (chips like [[go:send-resume|…]]) */
     window._startHelpFlow = function(type) {
       if (type !== 'quickmail' && type !== 'resume' && type !== 'callback') return false;
@@ -1267,11 +1288,511 @@
       var btn = e.target.closest('.help-btn');
       if (!btn) return;
       var type = btn.getAttribute('data-help');
+      if (type === 'brief') {
+        helpOpen = false;
+        helpPanelEl.classList.remove('help-open');
+        helpToggleEl.classList.remove('help-open');
+        if (window._startBrief) window._startBrief();
+        return;
+      }
       if (type) startFlow(type);
     });
 
   })();
   /* ========== End Help Panel ========== */
+
+  /* ========== AI Project Brief agent ==========
+     The visitor describes their project in their own words. Each message goes
+     to api/chat.js (source:'brief' → lib/project-brief.js): the AI picks out
+     every detail it contains and asks only for what is still missing, while
+     the server decides what counts as complete. The finished brief is shown
+     as a card to review, then sent with api/contact.js (mode:'brief') —
+     Sahnawaz gets it with a private AI analysis, the visitor gets a copy.
+
+     The draft is kept on this device, so closing the chat, clearing it or
+     reloading the page never loses it. While the brief is active, typed
+     messages go to the brief; suggestion chips and commands still go to the
+     normal assistant (_briefBypassOnce). */
+  var _briefBypassOnce = false;
+  var briefApi = (function(){
+    var API      = 'https://sahnawaz-portfolio.vercel.app/api/';
+    var STORE    = 'shz_brief_v1';
+    var REQUIRED = ['name', 'email', 'projectType', 'goal', 'budget', 'timeline'];
+    var ORDER    = ['name', 'email', 'phone', 'business', 'projectType', 'goal', 'features', 'budget', 'timeline', 'website', 'notes'];
+    var LABELS   = { name:'Name', email:'Email', phone:'Phone', business:'Business', projectType:'Project', goal:'Goal',
+                     features:'Features', budget:'Budget', timeline:'Timeline', website:'Website', notes:'Notes' };
+    var ASK = {
+      name:        "What's your name?",
+      email:       "What's the best email for Sahnawaz to reply to?",
+      projectType: "What would you like built — a business website, an online store, a portfolio, an app, or something else?",
+      goal:        "What should it do for you? A line about the main goal is enough.",
+      budget:      "Do you have a budget range in mind? It's completely fine to say not sure.",
+      timeline:    "When would you like it ready?"
+    };
+    var HINT = {
+      name:        'Your name…',
+      email:       'Your email…',
+      projectType: 'Describe your project…',
+      goal:        'What should it do for you?…',
+      budget:      'Budget — e.g. ₹15k, or not sure…',
+      timeline:    'When do you need it?…'
+    };
+    var REDUCED = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+    var st = load() || fresh();
+    var active = false;     /* typed messages go to the brief */
+    var turnBusy = false;   /* a brief message is being answered */
+    var sending = false;    /* the finished brief is being sent */
+    var liveCard = null;    /* the review card that can still be sent */
+    var barEl = null;
+
+    /* ── state ── */
+    function fresh(){
+      return { brief:{}, history:[], ready:false, estimate:null, missing:REQUIRED.slice(), turns:0, nudged:false, t:0 };
+    }
+    function missingOf(b){ return REQUIRED.filter(function(k){ return !b || !b[k]; }); }
+    function load(){
+      try {
+        var s = JSON.parse(localStorage.getItem(STORE) || 'null');
+        /* drafts older than 30 days are dropped */
+        if (s && s.brief && typeof s.brief === 'object' && Date.now() - (s.t || 0) < 30 * 864e5) {
+          s.history = Array.isArray(s.history) ? s.history.slice(-8) : [];
+          s.missing = Array.isArray(s.missing) ? s.missing : missingOf(s.brief);
+          s.turns = s.turns || 0;
+          return s;
+        }
+      } catch (e) {}
+      return null;
+    }
+    function save(){ st.t = Date.now(); try { localStorage.setItem(STORE, JSON.stringify(st)); } catch (e) {} }
+    function drop(){ try { localStorage.removeItem(STORE); } catch (e) {} }
+    function known(){
+      var v = null;
+      try { v = JSON.parse(localStorage.getItem('shnz_visitor_v1') || 'null'); } catch (e) {}
+      if (!v) return {};
+      return { name: v.fullName || v.firstName || '', email: v.email || '' };
+    }
+    function valueOf(b, k){ return k === 'features' ? (b.features || []).join(', ') : (b[k] || ''); }
+    function clipText(s, n){ s = String(s); return s.length > n ? s.slice(0, n - 1) + '…' : s; }
+
+    /* ── progress bar above the input ── */
+    function ensureBar(){
+      if (barEl) return barEl;
+      var footer = document.getElementById('chatFooter');
+      if (!footer || !footer.parentNode) return null;
+      barEl = document.createElement('div');
+      barEl.id = 'briefBar';
+      barEl.setAttribute('role', 'status');
+      barEl.innerHTML =
+        '<span class="bb-label">📝 Project brief</span>' +
+        '<span class="bb-track" aria-hidden="true"><span class="bb-fill"></span></span>' +
+        '<span class="bb-count"></span>' +
+        '<button type="button" class="bb-close" aria-label="Pause the project brief" title="Pause — your brief stays saved">✕</button>';
+      var typing = document.getElementById('chatUserTyping');
+      footer.parentNode.insertBefore(barEl, (typing && typing.parentNode === footer.parentNode) ? typing : footer);
+      barEl.querySelector('.bb-close').addEventListener('click', function(){ pause(false); });
+      return barEl;
+    }
+    function updateBar(){
+      if (!barEl) return;
+      var done = REQUIRED.length - st.missing.length;
+      barEl.querySelector('.bb-fill').style.transform = 'scaleX(' + (done / REQUIRED.length).toFixed(3) + ')';
+      barEl.querySelector('.bb-count').textContent = st.ready ? 'Ready ✓' : done + '/' + REQUIRED.length;
+      barEl.classList.toggle('bb-ready', !!st.ready);
+    }
+    function showBar(on){
+      var b = ensureBar();
+      if (!b) return;
+      if (on) updateBar();
+      b.classList.toggle('bb-on', !!on);
+    }
+
+    function placeholder(){
+      if (st.ready) return 'Anything to change? Or tap Send ↑';
+      if (!st.turns) return 'Describe your project…';
+      if (st.missing[0] === 'name' && st.missing[1] === 'email') return 'Your name and email…';
+      return HINT[st.missing[0]] || 'Describe your project…';
+    }
+    function applyInput(){
+      if (!input) return;
+      input.maxLength = active ? 600 : 300;
+      if (botBusy) return; /* setBotBusy puts the right text back when it unlocks */
+      if (window._helpFlowActive && window._helpFlowActive()) return;
+      input.placeholder = active ? placeholder() : 'Ask anything about Sahnawaz…';
+    }
+
+    /* ── messages ── */
+    function lock(on){ setBotBusy(on); setTypingStatus(on); }
+
+    /* Reveal a plain-text reply a few words per frame (live-typing feel,
+       ~0.6s whatever the length), then swap in the final HTML. */
+    function reveal(div, plain, finalHtml, done){
+      var parts = plain.split(/(\s+)/);
+      if (REDUCED || parts.length < 12) { div.innerHTML = finalHtml; done(); return; }
+      var span = document.createElement('span');
+      span.className = 'brief-live';
+      div.appendChild(span);
+      var n = 0, per = Math.max(2, Math.ceil(parts.length / 36));
+      (function tick(){
+        n = Math.min(parts.length, n + per);
+        span.textContent = parts.slice(0, n).join('');
+        if (n < parts.length) { requestAnimationFrame(tick); if (n % (per * 6) < per) scrollMsgs(); }
+        else { div.innerHTML = finalHtml; done(); }
+      })();
+    }
+
+    /* A bot message in the brief's voice: no category badge, plain text,
+       optional "Noted" tags and action chips. Locks input until shown. */
+    function say(text, extraHtml, done, withDots){
+      lock(true);
+      var wrap = document.createElement('div');
+      wrap.className = 'chat-msg-wrap bot';
+      var div = document.createElement('div');
+      div.className = 'chat-msg bot brief-reply';
+      wrap.appendChild(div);
+      var tsRow = document.createElement('div');
+      tsRow.className = 'chat-ts-row';
+      var ts = document.createElement('div');
+      ts.className = 'chat-ts';
+      var iso = new Date().toISOString();
+      ts.textContent = formatTimestamp(iso);
+      ts.dataset.iso = iso;
+      tsRow.appendChild(ts);
+      addSpeakBtn(tsRow, text, div);
+      wrap.appendChild(tsRow);
+
+      var linked = extractChatLinks(text);
+      var finalHtml = inlineFormat(linked.text).replace(/\n/g, '<br>') + (extraHtml || '') + chipsHtml(linked.chips);
+
+      function show(){
+        div.innerHTML = '';
+        playReceive();
+        addToHistory('bot', text);
+        if (window._saveChatMessage) window._saveChatMessage('bot', text);
+        reveal(div, linked.text, finalHtml, function(){
+          scrollMsgs();
+          lock(false);
+          setTimeout(function(){ addReactions(wrap); }, 300);
+          resetIdleTimer();
+          if (done) done();
+        });
+      }
+      msgs.appendChild(wrap);
+      if (withDots) {
+        div.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+        scrollMsgs();
+        setTimeout(show, 450);
+      } else {
+        show();
+        scrollMsgs();
+      }
+      return wrap;
+    }
+
+    function thinking(){
+      var w = document.createElement('div');
+      w.className = 'chat-msg-wrap bot';
+      var b = document.createElement('div');
+      b.className = 'chat-msg bot brief-think';
+      b.innerHTML = '<span class="bt-label">Reading your message</span>' +
+        '<div class="typing-dots" style="display:inline-flex;"><span></span><span></span><span></span></div>';
+      w.appendChild(b);
+      msgs.appendChild(w);
+      scrollMsgs();
+      var labels = ['Picking out the details', 'Updating your brief'], i = 0;
+      var label = b.querySelector('.bt-label');
+      w._timer = setInterval(function(){ if (i < labels.length) label.textContent = labels[i++]; }, 1300);
+      return w;
+    }
+    function unthink(w){
+      if (!w) return;
+      clearInterval(w._timer);
+      if (w.parentNode) w.parentNode.removeChild(w);
+    }
+
+    /* "✓ Noted" tags for what this message added or changed */
+    function notedHtml(prev, next){
+      var tags = [];
+      ORDER.forEach(function(k){
+        var b = valueOf(next, k);
+        if (b && b !== valueOf(prev, k)) tags.push(LABELS[k] + ' · ' + clipText(b, 30));
+      });
+      if (!tags.length) return '';
+      return '<div class="brief-got"><span class="bg-k">✓ Noted</span>' +
+        tags.slice(0, 5).map(function(t){ return '<span class="bg-t">' + escHtml(t) + '</span>'; }).join('') + '</div>';
+    }
+
+    /* ── review card ── */
+    function cardHtml(){
+      var b = st.brief;
+      var est = st.estimate || { range: 'Custom quote', time: 'Depends on scope' };
+      var rows = ORDER.map(function(k){
+        var v = valueOf(b, k);
+        return v ? '<div class="bc-row"><span class="bc-k">' + LABELS[k] + '</span><span class="bc-v">' + escHtml(v) + '</span></div>' : '';
+      }).join('');
+      var title = (b.projectType || 'Your project') + (b.business ? ' — ' + b.business : '');
+      return '<div class="bc-head"><span class="bc-kicker">Project brief · ready to send</span>' +
+          '<span class="bc-title">' + escHtml(title) + '</span></div>' +
+        '<div class="bc-rows">' + rows + '</div>' +
+        '<div class="bc-est"><div><span class="bc-est-k">Typical range</span><b>' + escHtml(est.range) + '</b>' +
+          '<span class="bc-est-t"> · ' + escHtml(est.time) + '</span></div>' +
+          '<small>Final quote from Sahnawaz after a short chat.</small></div>' +
+        '<div class="bc-actions">' +
+          '<button type="button" class="bc-send">✅ Send to Sahnawaz</button>' +
+          '<button type="button" class="bc-edit">✏️ Change something</button>' +
+        '</div>' +
+        '<div class="bc-status" aria-live="polite"></div>' +
+        '<div class="bc-note">🔒 Only Sahnawaz sees this · you get a copy by email</div>';
+    }
+    function renderCard(){
+      staleCard();
+      var wrap = document.createElement('div');
+      wrap.className = 'chat-msg-wrap bot brief-card-wrap';
+      var card = document.createElement('div');
+      card.className = 'brief-card';
+      card.innerHTML = cardHtml();
+      wrap.appendChild(card);
+      msgs.appendChild(wrap);
+      card.querySelector('.bc-send').addEventListener('click', function(){ send(card); });
+      card.querySelector('.bc-edit').addEventListener('click', function(){ edit(); });
+      liveCard = card;
+      scrollMsgs();
+    }
+    /* an older card can no longer be sent: its buttons go, a note says why */
+    function staleCard(note){
+      if (!liveCard) return;
+      var a = liveCard.querySelector('.bc-actions');
+      if (a && a.parentNode) a.parentNode.removeChild(a);
+      liveCard.classList.add('bc-stale');
+      var s = liveCard.querySelector('.bc-status');
+      if (s) s.textContent = note || 'Updated — the latest version is below ↓';
+      liveCard = null;
+    }
+
+    function langOf(){
+      var txt = st.history.filter(function(h){ return h.role === 'user'; }).map(function(h){ return h.content; }).join(' ');
+      if (/[ऀ-ॿ]/.test(txt)) return 'Hindi';
+      if (/[ঀ-৿]/.test(txt)) return 'Bengali / Assamese';
+      return navigator.language || 'en';
+    }
+
+    function post(path, body, ms){
+      var ctl = window.AbortController ? new AbortController() : null;
+      var timer = ctl ? setTimeout(function(){ ctl.abort(); }, ms) : 0;
+      return fetch(API + path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: ctl ? ctl.signal : undefined
+      }).then(function(res){
+        clearTimeout(timer);
+        return res.json().catch(function(){ return null; }).then(function(j){ return { ok: res.ok, status: res.status, body: j }; });
+      }, function(err){ clearTimeout(timer); throw err; });
+    }
+
+    /* ── actions ── */
+    function activate(){
+      active = true;
+      closeAllPanels();
+      if (quickReply) quickReply.style.display = 'none';
+      followUpWrap && (followUpWrap.style.display = 'none');
+      showBar(true);
+      applyInput();
+    }
+
+    function start(){
+      if (sending) return true;
+      /* wait for a reply that is still arriving, then start */
+      if (botBusy || turnBusy) {
+        var tries = 0;
+        (function later(){
+          if ((botBusy || turnBusy) && tries++ < 40) { setTimeout(later, 150); return; }
+          start();
+        })();
+        return true;
+      }
+      if (window._cancelHelpFlow) window._cancelHelpFlow();
+      if (!getVisitorType()) setVisitorType('client');
+
+      if (active) {
+        if (st.ready && !liveCard) say("Your brief is ready — have a look and send it when you're happy.", '', renderCard, true);
+        else say(st.ready ? "Your brief is ready just above ↑ — send it, or tell me what to change." : "We're on it 🙂 " + ASK[st.missing[0]], '', null, true);
+        return true;
+      }
+
+      activate();
+      var k = known();
+      if (k.name && !st.brief.name) st.brief.name = k.name;
+      if (k.email && !st.brief.email) st.brief.email = k.email;
+      st.missing = missingOf(st.brief);
+      st.ready = st.ready && !st.missing.length;
+      updateBar();
+      applyInput();
+
+      if (st.turns > 0) {
+        var done = REQUIRED.length - st.missing.length;
+        if (st.ready) say("Welcome back 👋 Your project brief is ready — have a look and send it when you're happy.", '', renderCard, true);
+        else say("Welcome back to your project brief 👋 " + done + " of " + REQUIRED.length + " details so far. " + ASK[st.missing[0]], '', null, true);
+      } else {
+        var first = k.name ? String(k.name).split(' ')[0] : '';
+        say("Let's plan your project" + (first ? ", " + first : "") + " 📝\n\n" +
+          "Tell me about it in your own words — what you'd like built, who it's for, your budget and when you need it. " +
+          "I'll pick out the details, ask only for what's missing, and prepare a brief for Sahnawaz with a typical price range." +
+          (k.name && k.email ? "\n\nI already have your name and email from your Google sign-in ✓" : ""), '', null, true);
+      }
+      return true;
+    }
+
+    function step(val){
+      if (turnBusy || sending) return;
+      turnBusy = true;
+      addMsg('user', val);
+      if (window._saveChatMessage) window._saveChatMessage('user', val);
+      setChipsOpen(false);
+      lock(true);
+      var think = thinking();
+      var prev = JSON.parse(JSON.stringify(st.brief));
+      var body = { source: 'brief', message: val, brief: st.brief, known: known(), briefHistory: st.history.slice(-6) };
+
+      var attempt = function(retries){
+        return post('chat', body, 25000).then(function(r){
+          if (r.status === 429 && retries > 0) {
+            return new Promise(function(res){ setTimeout(res, 2500); }).then(function(){ return attempt(retries - 1); });
+          }
+          return r;
+        });
+      };
+
+      attempt(1).then(function(r){
+        var d = r.body;
+        if (!r.ok || !d || d.error || !d.brief || !d.reply) { fail(think, d && d.reply); return; }
+        st.brief = d.brief;
+        st.missing = Array.isArray(d.missing) ? d.missing : missingOf(d.brief);
+        st.ready = !!d.ready && !st.missing.length;
+        st.estimate = d.estimate || null;
+        st.turns++;
+        st.history.push({ role: 'user', content: val }, { role: 'assistant', content: d.reply });
+        st.history = st.history.slice(-8);
+        save();
+        unthink(think);
+        updateBar();
+        var changed = JSON.stringify(prev) !== JSON.stringify(st.brief);
+        if (liveCard && changed) staleCard(st.ready ? null : 'Being updated…');
+        say(d.reply, notedHtml(prev, st.brief), function(){
+          turnBusy = false;
+          if (st.ready && !liveCard) { renderCard(); return; }
+          if (!st.ready && st.turns >= 12 && !st.nudged) {
+            st.nudged = true; save();
+            say("Taking a while? You can also just message Sahnawaz directly — whatever's easier 🙂\n[[go:send-message|📧 Message Sahnawaz]]");
+          }
+        });
+      }).catch(function(){ fail(think); });
+    }
+
+    function fail(think, msg){
+      unthink(think);
+      say(msg || (navigator.onLine === false
+        ? "You seem to be offline — your brief is saved. Send that again when you're back online."
+        : "I couldn't reach the assistant just now — your brief is saved. Could you send that again?"),
+        '', function(){ turnBusy = false; });
+    }
+
+    function edit(){
+      if (sending || turnBusy) return;
+      if (!active) activate();
+      say("Sure — what would you like to change? Just tell me, e.g. “make the budget ₹20,000” or “add online booking”.", '', function(){
+        try { input.focus({ preventScroll: true }); } catch (e) { input.focus(); }
+      }, true);
+    }
+
+    function send(card){
+      if (sending || turnBusy || card !== liveCard) return;
+      sending = true;
+      var btn = card.querySelector('.bc-send'), ed = card.querySelector('.bc-edit'), status = card.querySelector('.bc-status');
+      var label = btn.innerHTML;
+      btn.disabled = true; ed.disabled = true;
+      btn.innerHTML = '<span class="bc-spin" aria-hidden="true"></span>Sending…';
+      status.textContent = 'Delivering your brief to Sahnawaz…';
+      var brief = st.brief;
+
+      function retryable(msg){
+        sending = false;
+        btn.disabled = false; ed.disabled = false;
+        btn.innerHTML = label;
+        status.textContent = msg;
+      }
+      post('contact', { mode: 'brief', brief: brief, lang: langOf() }, 30000).then(function(r){
+        var d = r.body || {};
+        if (r.ok && d.success) { sent(card, d.duplicate ? null : d.refId, !!d.duplicate); return; }
+        if (r.status === 400 && Array.isArray(d.missing) && d.missing.length) {
+          sending = false;
+          st.missing = d.missing; st.ready = false; save();
+          staleCard('One detail is missing');
+          if (!active) activate();
+          updateBar(); applyInput();
+          say("Almost — one more thing first. " + (ASK[d.missing[0]] || ''));
+          return;
+        }
+        retryable(r.status === 429
+          ? "You've sent a few briefs in the last hour — please try again a little later."
+          : "That didn't go through — please tap Send again in a moment.");
+      }).catch(function(){
+        retryable(navigator.onLine === false
+          ? "You're offline — tap Send again when you're back online."
+          : "Couldn't reach the server — please tap Send again.");
+      });
+    }
+
+    function sent(card, ref, dup){
+      sending = false;
+      var a = card.querySelector('.bc-actions');
+      if (a && a.parentNode) a.parentNode.removeChild(a);
+      card.classList.add('bc-sent');
+      var status = card.querySelector('.bc-status');
+      status.innerHTML = '✓ Sent to Sahnawaz' + (ref ? ' · Ref <b>' + escHtml(ref) + '</b>' : '');
+      var kicker = card.querySelector('.bc-kicker');
+      if (kicker) kicker.textContent = 'Project brief · sent';
+      liveCard = null;
+
+      var email = st.brief.email || 'your inbox';
+      var first = String(st.brief.name || '').split(' ')[0];
+      st = fresh();
+      drop();
+      active = false;
+      showBar(false);
+      applyInput();
+      say(dup
+        ? "This brief already reached Sahnawaz earlier, so there's no need to send it again 😊 He'll reply to " + email + "."
+        : "Done" + (first ? ", " + first : "") + "! ✅ Your brief is with Sahnawaz" + (ref ? " (ref " + ref + ")" : "") +
+          ". A copy is on its way to " + email + " — he usually replies within 24 hours.\n[[go:callback|📅 Also book a call]]");
+    }
+
+    /* silent: no message (used when a Help flow starts or the chat is cleared) */
+    function pause(silent){
+      if (!active) return;
+      active = false;
+      showBar(false);
+      applyInput();
+      if (silent || turnBusy || sending || botBusy) return;
+      say("Paused ⏸ Your brief is saved on this device — ask me anything, and tap “📝 Continue my brief” whenever you're ready.", '', function(){
+        renderQuickReplies();
+        scrollMsgs();
+      });
+    }
+
+    window._startBrief = start;
+    window._briefPause = function(){ pause(true); };
+
+    return {
+      start: start,
+      step: step,
+      isActive: function(){ return active; },
+      hasDraft: function(){ return !active && st.turns > 0; },
+      placeholder: placeholder,
+      onClear: function(){ liveCard = null; pause(true); }
+    };
+  })();
+  /* ========== End AI Project Brief ========== */
 
   /* Suggestions — all phrased to the assistant, ABOUT Sahnawaz, so the
      voice matches the header ("Sahnawaz's Assistant"). The AI answers them. */
@@ -1345,6 +1866,7 @@
     followUpWrap && (followUpWrap.style.display = 'none');
     if (quickReply) quickReply.style.display = 'none';
     input.value = question;
+    _briefBypassOnce = true; /* a tapped question is for the assistant, not the brief */
     sendMessage();
   }
 
@@ -1459,7 +1981,8 @@
     /* In-chat actions: start the Help menu flows right here, chat stays open */
     'send-message': { url: '/#contact', inChat: true, run: function () { return callIf('_startHelpFlow', 'quickmail'); } },
     'send-resume':  { url: '/#contact', inChat: true, run: function () { return callIf('_startHelpFlow', 'resume'); } },
-    'callback':     { url: '/#contact', inChat: true, run: function () { return callIf('_startHelpFlow', 'callback'); } }
+    'callback':     { url: '/#contact', inChat: true, run: function () { return callIf('_startHelpFlow', 'callback'); } },
+    'brief':        { url: '/#contact', inChat: true, run: function () { return callIf('_startBrief'); } }
   };
 
   function callIf(name, arg) {
@@ -1869,7 +2392,7 @@
         'network'     : 'Network error. Check connection.',
       };
       input.placeholder = msgs_map[e.error] || 'Voice error — try typing instead.';
-      setTimeout(function(){ input.placeholder = 'Tap here to type…'; }, 3000);
+      setTimeout(function(){ input.placeholder = (briefApi && briefApi.isActive()) ? briefApi.placeholder() : 'Tap here to type…'; }, 3000);
     };
 
     recog.onend = function(){
@@ -1877,7 +2400,7 @@
       micBtn.classList.remove('mic-listening');
       micBtn.title = 'Voice input';
       micBtn.textContent = '🎙️';
-      if (!input.value.trim()) input.placeholder = 'Tap here to type…';
+      if (!input.value.trim()) input.placeholder = (briefApi && briefApi.isActive()) ? briefApi.placeholder() : 'Tap here to type…';
     };
   })();
 
@@ -2290,6 +2813,8 @@
 
   /* ========== Send ========== */
   function sendMessage(){
+    var bypassBrief = _briefBypassOnce;
+    _briefBypassOnce = false;
     if (botBusy) return;
     var val = input.value.trim();
     if (!val) return;
@@ -2308,6 +2833,12 @@
       return;
     }
     /* ── End help flow intercept ── */
+    /* ── Project brief: typed messages go to the brief agent ── */
+    if (!bypassBrief && briefApi && briefApi.isActive()) {
+      playSend && playSend();
+      briefApi.step(val);
+      return;
+    }
     playSend();
     addMsg('user', val);
     /* Save user message to Firestore — must be here while val is still intact.
