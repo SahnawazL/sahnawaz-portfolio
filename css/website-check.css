@@ -142,6 +142,17 @@
 .wc-tile.wc-mid .wc-tile-top b { color: #ffc53d; }
 .wc-tile.wc-bad .wc-tile-top b { color: #ff7a6b; }
 .wc-tile small { display: block; margin-top: 4px; font-size: .62rem; color: rgba(160,205,225,.6); }
+.wc-speed-extra { margin-top: 2px; }
+.wc-retry {
+  margin-top: 7px; padding: 6px 10px; min-height: 32px; border-radius: 9px; cursor: pointer;
+  font: 700 .7rem 'DM Sans', sans-serif; color: #04210f; background: #4fe0a2; border: none;
+  box-shadow: 0 4px 14px rgba(79,224,162,.25); -webkit-tap-highlight-color: transparent;
+}
+.wc-retry:hover { filter: brightness(1.08); }
+.wc-retry:focus-visible { outline: 2px solid #bff7e0; outline-offset: 2px; }
+.wc-retrying { display: flex !important; align-items: flex-start; gap: 6px; line-height: 1.4; color: #cdeee0 !important; }
+.wc-retrying .wc-spin { width: 11px; height: 11px; margin-top: 1px; }
+.wc-retrying em { font-style: normal; color: rgba(160,205,225,.6); }
 .wc-bar { margin-top: 7px; height: 4px; border-radius: 99px; background: rgba(255,255,255,.07); overflow: hidden; }
 .wc-bar i { display: block; height: 100%; width: 100%; transform-origin: left; background: #8fb3c7; }
 .wc-good .wc-bar i { background: #4fe0a2; }
