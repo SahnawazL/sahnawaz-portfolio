@@ -805,3 +805,132 @@
   .brief-card { animation: none; }
   #briefBar .bb-fill { transition: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   AI BOX IN THE HERO — "Talk to My AI Assistant" + "Plan Your Project
+   with AI" side by side (stacked on phones) in one soft box.
+   Pill effects: portfolio-06.js (theme "plan"). Planner: portfolio-09.js.
+   ═══════════════════════════════════════════════════════════════════ */
+.hero-ai-duo {
+  position: relative;
+  flex: 1 1 100%;                 /* its own row in the wrapping pill group */
+  max-width: 560px;
+  margin: .55rem auto 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .55rem;
+  padding: 1.05rem .7rem .7rem;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(135deg, rgba(12,26,44,.62), rgba(16,20,46,.62)) padding-box,
+    linear-gradient(120deg, rgba(80,210,255,.38), rgba(150,120,255,.38), rgba(79,224,162,.38)) border-box;
+  box-shadow: 0 10px 30px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.04);
+}
+.hero-ai-duo-tag {
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 2px 11px;
+  border-radius: 99px;
+  white-space: nowrap;
+  font: 700 .56rem/1.6 'DM Sans', sans-serif;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #c6ecff;
+  background: #0c1a2d;
+  border: 1px solid rgba(120,190,255,.32);
+  pointer-events: none;
+}
+/* the two pills share the row evenly; they stack when the row is too narrow */
+.hero-ai-duo .hero-cta-btn { flex: 1 1 210px; justify-content: center; margin: 0; }
+
+.hero-cta-plan {
+  font-family: 'DM Sans', sans-serif; line-height: 1.6; cursor: pointer;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(135deg, rgba(8,34,40,.92), rgba(10,28,44,.92)) padding-box,
+    linear-gradient(120deg, rgba(79,224,162,.8), rgba(80,210,255,.75), rgba(79,224,162,.8)) border-box;
+  color: #eafff6;
+  touch-action: manipulation;
+  -webkit-user-select: none; user-select: none;
+}
+.hero-cta-plan:hover {
+  border-color: transparent;
+  background:
+    linear-gradient(135deg, rgba(10,44,50,.95), rgba(14,36,56,.95)) padding-box,
+    linear-gradient(120deg, #4fe0a2, #50d2ff, #4fe0a2) border-box;
+  box-shadow: 0 10px 26px rgba(0,0,0,.35), 0 0 22px rgba(79,224,162,.26);
+}
+@media (hover: none) {
+  .hero-cta-plan:hover {
+    border-color: transparent;
+    background:
+      linear-gradient(135deg, rgba(8,34,40,.92), rgba(10,28,44,.92)) padding-box,
+      linear-gradient(120deg, rgba(79,224,162,.8), rgba(80,210,255,.75), rgba(79,224,162,.8)) border-box;
+    box-shadow: 0 4px 16px rgba(0,0,0,.25);
+  }
+}
+/* click signature + arrival, same mechanics as the other pills */
+.hero-cta-btn[data-pfx="plan"] {
+  --fx1: rgba(79,224,162,.9); --fx2: rgba(80,210,255,.75); --fx3: rgba(160,255,215,.5);
+  --fxs: rgba(170,255,220,.8); --fxl: rgba(100,240,180,.9); --fxg: rgba(60,220,160,.45);
+}
+.hero-cta-btn.pfx-firing[data-pfx="plan"] svg { animation: pfxJot 700ms ease-out; }
+@keyframes pfxJot {
+  0%   { transform: none; }
+  30%  { transform: rotate(-12deg) scale(1.2); }
+  60%  { transform: rotate(7deg) scale(1.05); }
+  100% { transform: none; }
+}
+.pfx-scan[data-pfx="plan"] { --c: rgba(110,245,190,.95); --g: rgba(60,220,160,.8); animation-duration: 1100ms; }
+@media (prefers-reduced-motion: reduce) {
+  .hero-cta-btn.pfx-firing[data-pfx="plan"] svg { animation: none; }
+}
+
+/* ── "Plan with AI" on the back (price side) of each pricing card ── */
+.wio-plan {
+  position: relative;
+  z-index: 2;
+  margin-top: .7rem;
+  padding: .42rem .9rem;
+  border-radius: 99px;
+  border: 1px solid var(--wc, #34d399);
+  background: rgba(255,255,255,.06);
+  background: color-mix(in srgb, var(--wc, #34d399) 18%, transparent);
+  color: #fff;
+  font: 700 .66rem/1.2 'DM Sans', sans-serif;
+  letter-spacing: .2px;
+  white-space: nowrap;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .15s ease, filter .15s ease;
+}
+.wio-plan:hover { filter: brightness(1.18); transform: translateY(-1px); }
+.wio-plan:active { transform: scale(.96); }
+
+/* ── desktop menu: the two AI actions in the same kind of box ── */
+@media (min-width: 960px) {
+  .dsk-dr-ai {
+    margin: 8px 2px 2px;
+    padding: 4px 4px 6px;
+    border-radius: 13px;
+    border: 1px solid transparent;
+    background:
+      linear-gradient(135deg, rgba(14,28,46,.9), rgba(18,22,48,.9)) padding-box,
+      linear-gradient(120deg, rgba(80,210,255,.35), rgba(150,120,255,.35), rgba(79,224,162,.35)) border-box;
+  }
+  .dsk-dr-ai-h {
+    padding: 7px 8px 5px;
+    font: 700 9.5px/1 Inter, system-ui, sans-serif;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: rgba(190,225,255,.62);
+  }
+  .dsk-dr-item.is-ai .dsk-dr-ic { color: #c3b4ff; background: rgba(150,120,255,.12); border-color: rgba(150,120,255,.28); }
+  .dsk-dr-item.is-plan .dsk-dr-ic { color: #7ff2c4; background: rgba(79,224,162,.12); border-color: rgba(79,224,162,.3); }
+  .dsk-dr-item.is-plan .dsk-dr-t { color: #dfffee; font-weight: 600; }
+}
