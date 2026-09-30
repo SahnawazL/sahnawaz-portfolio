@@ -2021,34 +2021,11 @@ transition: all 0.3s ease; }
 
 /* ---- from index.html line 2584 ---- */
 
-/* Aura */
-body.suraiya-aura::before{
-  content:"";position:fixed;inset:0;pointer-events:none;z-index:1;
-  background:radial-gradient(circle at 50% 60%, rgba(255,0,102,.18), transparent 70%);
-  animation:auraPulse 5s infinite ease-in-out;
-}
-@keyframes auraPulse{from{transform:scale(1);opacity:.6}to{transform:scale(1.2);opacity:.3}}
-
-/* Glow targets */
-.suraiya-intro,.suraiya-awe,.suraiya-signature{animation:suraiyaGlow 2.5s infinite alternate}
-@keyframes suraiyaGlow{from{text-shadow:0 0 6px #ff6699,0 0 12px #ff3366}to{text-shadow:0 0 14px #ff99cc,0 0 28px #ff3399}}
-
-/* Awe line */
-.suraiya-awe{color:cyan;font-weight:bold;text-align:center;margin-top:10px}
-
-/* Signature */
-.suraiya-signature{font-family:'Brush Script MT',cursive;font-size:1.6rem;color:gold;text-align:right;margin-top:12px;animation:signatureFade 2s ease-in-out}
-@keyframes signatureFade{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
-
 /* Scroll fix */
 #out{max-height:70vh;overflow-y:auto;padding-right:8px;scrollbar-width:thin;scrollbar-color:#ff99cc #1a1a1a}
 #out::-webkit-scrollbar{width:8px}
 #out::-webkit-scrollbar-thumb{background:#ff99cc;border-radius:4px}
 #out::-webkit-scrollbar-track{background:#1a1a1a}
-
-/* Floating emojis */
-.suraiya-emoji{position:fixed;bottom:0;font-size:1.5rem;opacity:.9;animation:floatUp 6s linear forwards;z-index:0}
-@keyframes floatUp{from{transform:translateY(0);opacity:1}to{transform:translateY(-100vh);opacity:0}}
 
 /* Love intro (fancy paragraph headers kept as requested) */
 .love-intro{
@@ -2071,7 +2048,7 @@ body.suraiya-aura::before{
   opacity:.85;
 }
 
-/* Slightly larger line-height for readability in suraiya output */
+/* Slightly larger line-height for readability in terminal output */
 #out > div{ line-height: 1.4; }
 
 
