@@ -4904,6 +4904,10 @@ document.addEventListener('DOMContentLoaded', function(){
     target.style.cssText += ';opacity:1!important;transform:none!important;transition:none!important;content-visibility:visible!important;';
     target.classList.add('aos-animate');
 
+    /* precise landing (portfolio-06.js) when available: plain scrollTo
+       aimed before lazy sections finished growing and landed short */
+    if (typeof window.shzLandOn === 'function') { window.shzLandOn(target); return; }
+
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
         var headerEl = document.querySelector('header');
