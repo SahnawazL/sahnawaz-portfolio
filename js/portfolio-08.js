@@ -25,8 +25,11 @@ function spawnButterflies(event) {
   }
 }
 document.addEventListener('DOMContentLoaded', () => {
+  /* not on the hero shortcut pills (Contact Me) or their desktop-menu
+     copies — those share one click signature (portfolio-06.js) */
   const buttons = Array.from(document.querySelectorAll('a, button'))
-    .filter(el => /projects/i.test(el.textContent) || /contact/i.test(el.textContent));
+    .filter(el => /projects/i.test(el.textContent) || /contact/i.test(el.textContent))
+    .filter(el => !el.closest('.hero-cta-group, #dsk-drawer'));
   let _butterflyThrottle = 0;
   buttons.forEach(btn => {
     btn.addEventListener('click', e => {
@@ -395,45 +398,8 @@ document.addEventListener('DOMContentLoaded', function(){
 
 /* ==== index.html line 9841 ==== */
 
-document.addEventListener('DOMContentLoaded', function(){
-  const viewExpBtn = document.querySelector('a[href="#projects"]');
-  if(!viewExpBtn) return;
-
-  function spawnSparkles(originX, originY){
-    const count = 14;
-    for(let i=0;i<count;i++){
-      const span = document.createElement('span');
-      span.className = 'sparkle-star';
-      // Use a star glyph for crisp neon look
-      span.textContent = '✦';
-      // Randomize spread and size
-      const dx = (Math.random()*260 - 130);          // -130..130
-      const dy = (-80 - Math.random()*120);          // -80..-200
-      const size = 12 + Math.random()*8;             // 12..20px
-      const dur = 900 + Math.random()*600;           // 0.9..1.5s
-      span.style.setProperty('--x', originX + 'px');
-      span.style.setProperty('--y', originY + 'px');
-      span.style.setProperty('--dx', dx + 'px');
-      span.style.setProperty('--dy', dy + 'px');
-      span.style.setProperty('--s', size + 'px');
-      span.style.setProperty('--dur', dur + 'ms');
-      document.body.appendChild(span);
-      // Cleanup after animation
-      setTimeout(()=> span.remove(), dur + 50);
-    }
-  }
-
-  let _sparkleThrottle = 0;
-  viewExpBtn.addEventListener('click', function(e){
-    const now = Date.now();
-    if (now - _sparkleThrottle < 1200) return; // prevent spam
-    _sparkleThrottle = now;
-    const rect = viewExpBtn.getBoundingClientRect();
-    const x = rect.left + rect.width/2;
-    const y = rect.top + rect.height/2;
-    spawnSparkles(x, y);
-  });
-});
+/* View Experience star burst removed — the hero pills now share one
+   click signature (portfolio-06.js, "Hero shortcut pills"). */
 
 
 /* ==== index.html line 9882 ==== */

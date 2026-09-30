@@ -363,20 +363,13 @@
     if (on) { var first = d.querySelector('.dsk-dr-item'); if (first && document.activeElement === b) setTimeout(function () { try { first.focus({ preventScroll: true }); } catch (e) {} }, 60); }
   }
   function runDrawer(target) {
-    if (target === 'search') { if (fn('openCommandPalette')) window.openCommandPalette(); return; }
-    if (target === 'chat') { if (fn('openChat')) window.openChat(); return; }
+    var arrive = function (t) { if (fn('shzPillArrive')) window.shzPillArrive(t); };
+    if (target === 'search') { if (fn('openCommandPalette')) window.openCommandPalette(); arrive('search'); return; }
+    if (target === 'chat') { if (fn('openChat')) window.openChat(); arrive('chat'); return; }
     if (target.charAt(0) !== '#') return;
     goTo(target);
-    /* arriving at telemetry plays the same scan-line sweep as the hero pill */
-    if (target === '#recent-activity') {
-      setTimeout(function () {
-        var sec = document.querySelector('#recent-activity');
-        if (!sec) return;
-        sec.style.setProperty('--tele-h', Math.min(sec.offsetHeight, 900) + 'px');
-        sec.classList.remove('tele-arrived'); void sec.offsetWidth; sec.classList.add('tele-arrived');
-        setTimeout(function () { sec.classList.remove('tele-arrived'); }, 1700);
-      }, 1500);
-    }
+    /* the same arrival scan line as the hero pills (portfolio-06.js) */
+    arrive(target);
   }
 
   function destroyHeader() {

@@ -1557,77 +1557,216 @@ window.__shzAudio = (function(){
 
 /* ==== index.html line 8561 ==== */
 
-/* ══ View Telemetry pill — click signature ══
-   The pill links to #recent-activity (live engineering telemetry).
-   On click: radar rings + a signal sweep + a short sonar ping, then the
-   destination section gets a single scan-line pass on arrival. */
+/* ══ Hero shortcut pills — click signature + arrival scan ══
+   One engine for all five pills. Each has the same two-part signature the
+   View Telemetry pill introduced, themed to where it goes:
+     click   → rings + a light sweep across the pill, its icon reacts, a
+               short synthesized sound
+     arrival → one scan line passes down the destination, started when the
+               scroll has actually landed (not after a fixed guess)
+   Only transform/opacity animate and every node is removed afterwards,
+   so nothing lingers or slows scrolling. window.shzPillArrive(key) lets
+   the desktop header menu play the same arrival.                      */
 (function(){
-  var pill = document.querySelector('.hero-cta-btn[href="#recent-activity"]');
-  if(!pill) return;
-
   var reduced = false;
   try{ reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
 
-  var actx = null;
-  function ping(){
-    if(reduced) return;
+  /* ---- tiny synth (shared AudioContext) ---- */
+  function tone(f0, f1, dur, vol, delay, type){
     try{
-      actx = window.__shzAudio && window.__shzAudio();
+      var actx = window.__shzAudio && window.__shzAudio();
       if(!actx) return;
-      var t = actx.currentTime;
+      var t = actx.currentTime + (delay || 0);
       var o = actx.createOscillator(), g = actx.createGain();
-      o.type = 'sine';
-      o.frequency.setValueAtTime(1180, t);
-      o.frequency.exponentialRampToValueAtTime(620, t + 0.28);
+      o.type = type || 'sine';
+      o.frequency.setValueAtTime(f0, t);
+      if(f1 && f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + dur * 0.8);
       g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.10, t + 0.012);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.34);
+      g.gain.exponentialRampToValueAtTime(vol, t + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
       o.connect(g); g.connect(actx.destination);
-      o.start(t); o.stop(t + 0.36);
+      o.start(t); o.stop(t + dur + 0.02);
     }catch(e){}
   }
 
-  function fire(){
+  var THEMES = {
+    experience: { pill:'.hero-cta-btn[href="#projects"]',        target:'#projects',        scroll:true,
+                  sound:function(){ tone(520, 1180, 0.30, 0.08); } },                       /* launch */
+    telemetry:  { pill:'.hero-cta-btn[href="#recent-activity"]', target:'#recent-activity', scroll:true,
+                  sound:function(){ tone(1180, 620, 0.34, 0.10); } },                       /* sonar ping */
+    search:     { pill:'.hero-cta-search',                       target:'#cmdp-box',        scroll:false, wait:260,
+                  sound:function(){ tone(1400, 1400, 0.05, 0.06, 0, 'triangle'); tone(1900, 1900, 0.05, 0.05, 0.07, 'triangle'); } }, /* shutter tick */
+    contact:    { pill:'.hero-cta-btn[href="#contact"]',         target:'#contact',         scroll:true,
+                  sound:function(){ tone(880, 880, 0.12, 0.07); tone(1320, 1320, 0.16, 0.07, 0.11); } }, /* message sent */
+    ai:         { pill:'.hero-cta-ai',                           target:'#chatWidget',      scroll:false, wait:300,
+                  sound:null }   /* the chat plays its own chime when it opens */
+  };
+
+  /* ---- click signature on the pill ---- */
+  function fire(pill, key){
     if(reduced) return;
-    /* never stack effects if tapped repeatedly */
-    var old = pill.querySelectorAll('.tele-ring, .tele-sweep');
-    Array.prototype.forEach.call(old, function(n){ n.remove(); });
+    clearTimeout(pill._pfxT);
+    Array.prototype.forEach.call(pill.querySelectorAll('.pfx-ring, .pfx-sweep'), function(n){ n.remove(); });
+    pill.classList.remove('pfx-firing');
+    void pill.offsetWidth;                         /* restart cleanly on a repeat tap */
 
     var sweep = document.createElement('span');
-    sweep.className = 'tele-sweep';
+    sweep.className = 'pfx-sweep';
     pill.appendChild(sweep);
-
-    ['', 'r2', 'r3'].forEach(function(cls){
-      var r = document.createElement('span');
-      r.className = 'tele-ring' + (cls ? ' ' + cls : '');
-      pill.appendChild(r);
+    ['r1','r2','r3'].forEach(function(r){
+      var ring = document.createElement('span');
+      ring.className = 'pfx-ring ' + r;
+      pill.appendChild(ring);
     });
+    pill.setAttribute('data-pfx', key);
+    pill.classList.add('pfx-firing');
 
-    pill.classList.add('tele-firing');
-    ping();
-
-    setTimeout(function(){
-      pill.classList.remove('tele-firing');
-      var nodes = pill.querySelectorAll('.tele-ring, .tele-sweep');
-      Array.prototype.forEach.call(nodes, function(n){ n.remove(); });
+    pill._pfxT = setTimeout(function(){
+      pill.classList.remove('pfx-firing');
+      Array.prototype.forEach.call(pill.querySelectorAll('.pfx-ring, .pfx-sweep'), function(n){ n.remove(); });
     }, 1250);
   }
 
-  function arrive(){
-    if(reduced) return;
-    var sec = document.getElementById('recent-activity');
-    if(!sec) return;
-    sec.classList.remove('tele-arrived');
-    /* the scan line travels the section's real height */
-    sec.style.setProperty('--tele-h', Math.min(sec.offsetHeight, 900) + 'px');
-    void sec.offsetWidth;                 /* restart the animation */
-    sec.classList.add('tele-arrived');
-    setTimeout(function(){ sec.classList.remove('tele-arrived'); }, 1700);
+  /* ---- run cb once the page has stopped scrolling ---- */
+  function whenScrollSettles(cb){
+    var done = false, last = -1, still = 0, t0 = performance.now();
+    function finish(){
+      if(done) return; done = true;
+      window.removeEventListener('scrollend', finish);
+      cb();
+    }
+    if('onscrollend' in window) window.addEventListener('scrollend', finish);
+    (function poll(){
+      if(done) return;
+      var y = window.pageYOffset, el = performance.now() - t0;
+      still = (y === last) ? still + 1 : 0; last = y;
+      if((still >= 6 && el > 280) || el > 2400) return finish();
+      requestAnimationFrame(poll);
+    })();
   }
 
-  pill.addEventListener('click', function(){
-    fire();
-    /* let the browser's smooth scroll begin before the scan runs */
-    setTimeout(arrive, 620);
+  /* ---- land exactly on a section ----
+     Sections further down render lazily and grow while the page scrolls,
+     which pushed the target down and left the old anchor jump 750–930px
+     short on phones. This keeps re-aiming during the flight (one smooth
+     motion, the browser retargets the scroll), then checks once more
+     after it settles. */
+  /* height of the header only if it really stays on screen: `sticky` does
+     nothing when an ancestor other than the page scroller clips overflow
+     (on phones <body> has overflow-x:hidden, so the header scrolls away) */
+  function headerOffset(){
+    var h = document.querySelector('header');
+    if(!h) return 0;
+    var pos = getComputedStyle(h).position;
+    if(pos === 'fixed') return h.getBoundingClientRect().height;
+    if(pos !== 'sticky') return 0;
+    for(var n = h.parentElement; n && n !== document.documentElement; n = n.parentElement){
+      var cs = getComputedStyle(n);
+      if(cs.overflowY !== 'visible' || cs.overflowX !== 'visible'){
+        return n === document.scrollingElement ? h.getBoundingClientRect().height : 0;
+      }
+    }
+    return h.getBoundingClientRect().height;
+  }
+  /* lazily-rendered blocks (content-visibility:auto) above the target are
+     only estimated in size; render them now so the first aim is right
+     and the scroll is one motion instead of re-aiming mid-flight */
+  var _cvDone = false;
+  function renderLazyAbove(el){
+    if(_cvDone) return;
+    _cvDone = true;
+    var list = document.querySelectorAll('.testimonials, .certifications');
+    for(var i = 0; i < list.length; i++){
+      if(el.compareDocumentPosition(list[i]) & Node.DOCUMENT_POSITION_PRECEDING){
+        list[i].style.contentVisibility = 'visible';
+      }
+    }
+  }
+  function prepTarget(el){
+    renderLazyAbove(el);
+    /* a section waiting for its scroll-in animation has no final size yet */
+    if(el.hasAttribute('data-aos')){
+      el.removeAttribute('data-aos'); el.removeAttribute('data-aos-duration');
+      el.classList.add('aos-animate');
+      el.style.opacity = '1'; el.style.transform = 'none';
+    }
+  }
+  function landOn(el, done){
+    prepTarget(el);
+    /* the browser's scroll anchoring nudges the page while sections above
+       finish rendering; pause it for the jump so the motion is clean */
+    var root = document.documentElement, prevAnchor = root.style.overflowAnchor;
+    root.style.overflowAnchor = 'none';
+    /* layout position (offsetTop chain): unlike getBoundingClientRect it
+       ignores the sections' slide-in transform, which put the aim 20px low */
+    var docTop = function(){ var y = 0; for(var n = el; n; n = n.offsetParent) y += n.offsetTop; return y; };
+    var aimTop = function(){ return Math.max(0, Math.round(docTop() - headerOffset() - 8)); };
+    var go = function(top){ try{ window.scrollTo({ top: top, behavior: 'smooth' }); }catch(e){ window.scrollTo(0, top); } };
+    var target = aimTop(), fixes = 0, finished = false;
+    go(target);
+    var watch = setInterval(function(){
+      var now = aimTop();
+      if(Math.abs(now - target) > 24 && fixes < 6){ target = now; fixes++; go(target); }
+    }, 120);
+    whenScrollSettles(function check(){
+      if(finished) return;
+      var now = aimTop();
+      if(Math.abs(now - window.pageYOffset) > 10 && fixes < 8){
+        fixes++; target = now; go(target);
+        return whenScrollSettles(check);
+      }
+      finished = true; clearInterval(watch);
+      root.style.overflowAnchor = prevAnchor;
+      done && done();
+    });
+  }
+
+  /* ---- arrival scan line inside the destination ---- */
+  function scan(key){
+    if(reduced) return;
+    var th = THEMES[key]; if(!th) return;
+    var host = document.querySelector(th.target);
+    if(!host || !host.getBoundingClientRect().height) return;
+    var old = host.querySelector(':scope > .pfx-scan'); if(old) old.remove();
+    var line = document.createElement('span');
+    line.className = 'pfx-scan';
+    line.setAttribute('data-pfx', key);
+    line.style.setProperty('--pfx-h', Math.min(host.clientHeight - 2, 900) + 'px');
+    host.appendChild(line);
+    var kill = function(){ if(line.parentNode) line.parentNode.removeChild(line); };
+    line.addEventListener('animationend', kill);
+    setTimeout(kill, 1900);
+  }
+
+  function arrive(key){
+    var th = THEMES[key]; if(!th) return;
+    if(th.scroll) whenScrollSettles(function(){ scan(key); });
+    else setTimeout(function(){ scan(key); }, th.wait || 250);
+  }
+  /* for the desktop header menu: accepts a key, '#section', 'search' or 'chat' */
+  window.shzPillArrive = function(what){
+    var key = what;
+    Object.keys(THEMES).forEach(function(k){ if(THEMES[k].target === what) key = k; });
+    if(what === 'chat') key = 'ai';
+    arrive(key);
+  };
+
+  Object.keys(THEMES).forEach(function(key){
+    var th = THEMES[key];
+    var pill = document.querySelector('.hero-cta-group ' + th.pill);
+    if(!pill) return;
+    pill.addEventListener('click', function(e){
+      fire(pill, key);
+      if(!reduced && th.sound) th.sound();
+      if(th.scroll){
+        var dest = document.querySelector(th.target);
+        if(!dest) return;                       /* fall back to the plain link */
+        e.preventDefault();
+        if(location.hash !== th.target){ try{ history.pushState(null, '', th.target); }catch(err){} }
+        landOn(dest, function(){ scan(key); });
+      } else {
+        arrive(key);
+      }
+    });
   });
 })();
