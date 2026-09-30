@@ -966,7 +966,7 @@ html {
 </script>
 
 </div>
-<div class="btn-group"><div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;"><div style="text-align: center;"></div><div class="hero-cta-group"><a class="hero-cta-btn" href="#projects"><svg viewBox="0 0 24 24" fill="none" stroke="#50d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>View Experience</a><a class="hero-cta-btn" href="#recent-activity"><svg viewBox="0 0 24 24" fill="none" stroke="#50d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>View Telemetry</a><button type="button" class="hero-cta-btn hero-cta-search" data-command-palette aria-label="Open quick search"><svg viewBox="0 0 24 24" fill="none" stroke="#50d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Quick Search<kbd class="hero-kbd">⌘K</kbd></button><a class="hero-cta-btn" href="#ask-ai" role="button" aria-label="Talk to my AI assistant" onclick="event.preventDefault();window.openChat&&window.openChat();"><svg viewBox="0 0 24 24" fill="none" stroke="#50d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h.01M12 10h.01M16 10h.01"/></svg>Talk to My AI Assistant</a><a class="hero-cta-btn" href="#contact"><svg viewBox="0 0 24 24" fill="none" stroke="#50d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 17a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"/><path d="m2 7 8.97 6.21a1.94 1.94 0 0 0 2.06 0L22 7"/></svg>Contact Me</a></div></div></div>
+<div class="btn-group"><div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;"><div style="text-align: center;"></div><div class="hero-cta-group"><a class="hero-cta-btn" href="#projects"><svg viewBox="0 0 24 24" fill="none" stroke="#50d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>View Experience</a><a class="hero-cta-btn" href="#recent-activity"><svg viewBox="0 0 24 24" fill="none" stroke="#50d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>View Telemetry</a><button type="button" class="hero-cta-btn hero-cta-search" data-command-palette aria-label="Open quick search"><svg viewBox="0 0 24 24" fill="none" stroke="#50d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Quick Search<kbd class="hero-kbd">⌘K</kbd></button><a class="hero-cta-btn" href="#contact"><svg viewBox="0 0 24 24" fill="none" stroke="#50d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 17a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"/><path d="m2 7 8.97 6.21a1.94 1.94 0 0 0 2.06 0L22 7"/></svg>Contact Me</a></div></div></div>
 
 <!-- ══ LIVE STATS BAR ══ -->
 <div class="hero-stats-bar" id="heroStatsBar">
@@ -4392,43 +4392,6 @@ function sendMail(e) { if(e) e.preventDefault(); ctSendMail(); }
 <div class="hint" id="hint">💡 Type <b>help</b> to see available commands</div>
 </div>
 
-<script>
-function suraiyaFinalEffect() {
-  // Final glowing message
-  let msg = document.createElement("div");
-  msg.className = "final-message";
-  msg.innerText = "✦ End of Transmission — Heart Overloaded ✦";
-  const outEl = document.getElementById('out');
-  if (outEl) { outEl.appendChild(msg); outEl.scrollTop = outEl.scrollHeight; }
-
-  // Heartbeat pulse effect
-  document.body.style.animation = "pulse 1.5s ease";
-  setTimeout(() => { document.body.style.animation = ""; }, 1600);
-
-  // Burst of particles
-  for (let i = 0; i < 12; i++) {
-    let el = document.createElement("div");
-    el.innerHTML = ["💖","🌸","⭐"][Math.floor(Math.random()*3)];
-    el.style.position = "fixed";
-    el.style.left = "50%";
-    el.style.top = "50%";
-    el.style.fontSize = "20px";
-    el.style.opacity = "0.9";
-    el.style.transform = "translate(-50%,-50%)";
-    el.style.animation = "burst 1s forwards";
-    el.style.setProperty("--x", (Math.random()*200-100)+"px");
-    el.style.setProperty("--y", (Math.random()*200-100)+"px");
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 1200);
-  }
-}
-
-/* waitForFinaleAnchor() removed (2026 cleanup) — was polling for
-   #suraiya-finale-anchor, which never exists anywhere in the DOM, so it
-   always burned its full 600-retry/200ms budget (up to 2 real minutes)
-   before falling back anyway. suraiyaFinalEffect() is now called
-   directly with a short fixed delay instead — see the call site above. */
-</script>
 </div>
 <script src="js/portfolio-06.js"></script>
 </footer>
@@ -4674,7 +4637,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
 <!-- Chat window HTML -->
 <div id="chatPill">
-  <img src="https://raw.githubusercontent.com/SahnawazL/sahnawaz-portfolio/main/favicon-32x32.png" alt="Sahnawaz"/>
+  <img src="chat-avatar.jpg" width="32" height="32" alt="Sahnawaz" onerror="this.onerror=null;this.src='favicon-32x32.png'"/>
   <span class="pill-dot"></span>
   <span>💬 Ask Sahnawaz</span>
   <span id="pillClose" title="Dismiss" aria-label="Dismiss">×</span>
@@ -4683,7 +4646,7 @@ document.addEventListener('DOMContentLoaded', function(){
   <div id="chatHeader">
     <div class="chat-identity">
       <div class="chat-avatar">
-        <img src="https://raw.githubusercontent.com/SahnawazL/sahnawaz-portfolio/main/favicon-32x32.png" alt="Sahnawaz" />
+        <img src="chat-avatar.jpg" width="32" height="32" alt="Sahnawaz" onerror="this.onerror=null;this.src='favicon-32x32.png'"/>
       </div>
       <div class="chat-meta">
         <div class="chat-name">
@@ -4722,12 +4685,9 @@ document.addEventListener('DOMContentLoaded', function(){
     <div style="font-size:0.67rem; color:rgba(0,255,255,0.45); margin-bottom:5px; letter-spacing:0.3px;">💡 People also ask</div>
     <div id="chatFollowChips" style="display:flex; flex-wrap:wrap; gap:5px;"></div>
   </div>
-  <!-- Quick-reply CTA buttons — hidden on open, shown via chips toggle -->
-  <div id="chatQuickReply" style="display:none;">
-    <button class="chat-qr-btn" data-q="What services do you offer?" data-icon="💼">💼 See my work</button>
-    <button class="chat-qr-btn" data-q="What's your pricing?" data-icon="💰">💰 Check pricing</button>
-    <button class="chat-qr-btn" data-q="How can I hire you?" data-icon="📞">📞 Contact now</button>
-  </div>
+  <!-- Quick replies — filled by portfolio-09.js (renderQuickReplies):
+       "What brings you here?" on a first visit, then starters that fit -->
+  <div id="chatQuickReply" style="display:none;"></div>
   <!-- ⚡ Commands + 💡 Suggestions + ❓ Help — single merged toggle row -->
   <div id="cmdSuggestRow">
     <div id="cmdToggle" class="cs-pill">
@@ -4828,20 +4788,27 @@ document.addEventListener('DOMContentLoaded', function(){
   var bar    = document.getElementById('chatToastBar');
   if (!toast) return;
 
-  /* Only show once per session */
-  if (sessionStorage.getItem('chatToastSeen')) return;
+  /* Only show once per session (storage can throw in private modes) */
+  try { if (sessionStorage.getItem('chatToastSeen')) return; } catch (e) {}
 
-  var autoTimer, barEl;
+  var autoTimer, showTimer, barEl;
+  var widget = document.getElementById('chatWidget');
+  function chatIsOpen() { return !!(widget && widget.classList.contains('chat-open')); }
 
   function hideToast() {
+    clearTimeout(showTimer);
+    clearTimeout(autoTimer);
+    if (!toast.classList.contains('toast-show')) return;
     toast.classList.remove('toast-show');
     toast.classList.add('toast-hide');
-    clearTimeout(autoTimer);
   }
 
   function showToast() {
+    /* The invite is pointless — and covered the input box — once the chat is
+       already open (e.g. the visitor tapped the Live Chat card first). */
+    if (chatIsOpen()) return;
     toast.classList.add('toast-show');
-    sessionStorage.setItem('chatToastSeen', '1');
+    try { sessionStorage.setItem('chatToastSeen', '1'); } catch (e) {}
     /* restart the progress bar animation */
     bar.style.animation = 'none';
     void bar.offsetWidth; /* reflow */
@@ -4851,7 +4818,14 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 
   /* Show after 12 s — visitor has had time to read the hero */
-  setTimeout(showToast, 12000);
+  showTimer = setTimeout(showToast, 12000);
+
+  /* Whenever the chat opens (any launcher), cancel / hide the invite */
+  if (widget && window.MutationObserver) {
+    new MutationObserver(function () {
+      if (chatIsOpen()) hideToast();
+    }).observe(widget, { attributes: true, attributeFilter: ['class'] });
+  }
 
   /* Dismiss × */
   if (closeX) closeX.addEventListener('click', function(e) {
