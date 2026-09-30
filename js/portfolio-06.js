@@ -1743,6 +1743,8 @@ window.__shzAudio = (function(){
     if(th.scroll) whenScrollSettles(function(){ scan(key); });
     else setTimeout(function(){ scan(key); }, th.wait || 250);
   }
+  /* precise section landing for other scripts (Quick Search "Go to") */
+  window.shzLandOn = function(el, done){ if(el) landOn(el, done); };
   /* for the desktop header menu: accepts a key, '#section', 'search' or 'chat' */
   window.shzPillArrive = function(what){
     var key = what;

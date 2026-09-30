@@ -20,7 +20,10 @@
   function go(hash) {
     var el = document.querySelector(hash);
     if (!el) return false;
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    /* same precise landing as the hero pills (portfolio-06.js): plain
+       scrollIntoView lands short while lazy sections above are growing */
+    if (typeof window.shzLandOn === 'function') window.shzLandOn(el);
+    else el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     return true;
   }
   function has(fn) { return typeof window[fn] === 'function'; }
@@ -212,21 +215,19 @@
 
   /* ---------- styles -------------------------------------- */
   var CSS = [
-/* shell */
+/* shell — deliberately light: no backdrop blur (it re-blurred the animated
+   page behind every frame), no glow, only opacity/transform animate */
 '#cmdp-overlay{position:fixed;inset:0;z-index:100200;display:none;',
-'  background:radial-gradient(120% 90% at 50% 0%,rgba(8,20,34,.78),rgba(2,7,14,.88));',
-'  backdrop-filter:blur(10px) saturate(1.2);-webkit-backdrop-filter:blur(10px) saturate(1.2);',
+'  background:rgba(2,8,15,.74);touch-action:none;',
 '  align-items:flex-start;justify-content:center;padding:10vh 16px 16px;}',
-'#cmdp-overlay.is-open{display:flex;animation:cmdpFade .18s ease both;}',
+'#cmdp-overlay.is-open{display:flex;animation:cmdpFade .12s ease-out both;}',
 '@keyframes cmdpFade{from{opacity:0}to{opacity:1}}',
 '#cmdp-box{width:100%;max-width:480px;position:relative;display:flex;flex-direction:column;max-height:72vh;',
-'  background:linear-gradient(180deg,rgba(14,23,37,.99),rgba(9,15,26,.99));',
-'  border:1px solid rgba(120,205,255,.18);border-radius:16px;overflow:hidden;',
-'  box-shadow:0 30px 80px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.05);',
-'  animation:cmdpRise .24s cubic-bezier(.2,.85,.3,1) both;}',
-'@keyframes cmdpRise{from{opacity:0;transform:translateY(-10px) scale(.985)}to{opacity:1;transform:none}}',
-'#cmdp-box::before{content:"";position:absolute;top:0;left:14%;right:14%;height:1px;',
-'  background:linear-gradient(90deg,transparent,rgba(120,220,255,.5),transparent);}',
+'  background:#0c1522;',
+'  border:1px solid rgba(120,205,255,.16);border-radius:16px;overflow:hidden;',
+'  box-shadow:0 18px 44px rgba(0,0,0,.45);touch-action:manipulation;',
+'  animation:cmdpRise .16s cubic-bezier(.2,.85,.3,1) both;will-change:transform,opacity;}',
+'@keyframes cmdpRise{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}',
 
 /* search bar */
 '#cmdp-head{display:flex;align-items:center;gap:10px;padding:10px 11px 10px 14px;',
@@ -245,7 +246,8 @@
 '#cmdp-close .cmdp-x{display:none;width:14px;height:14px;}',
 
 /* list */
-'#cmdp-list{overflow-y:auto;padding:5px 6px 8px;flex:1 1 auto;overscroll-behavior:contain;position:relative;}',
+'#cmdp-list{overflow-y:auto;padding:5px 6px 8px;flex:1 1 auto;overscroll-behavior:contain;position:relative;',
+'  touch-action:pan-y;-webkit-overflow-scrolling:touch;}',
 '#cmdp-list::-webkit-scrollbar{width:8px}',
 '#cmdp-list::-webkit-scrollbar-thumb{background:rgba(120,200,255,.15);border-radius:8px;',
 '  border:3px solid transparent;background-clip:content-box;}',
@@ -271,16 +273,13 @@
 '.cmdp-sec.is-open .cmdp-chev{transform:rotate(90deg);color:#8ad8ff;}',
 '.cmdp-sec.is-open .cmdp-cat-ic{background:rgba(110,210,255,.15);border-color:rgba(130,215,255,.36);}',
 
-/* the smooth reveal: height animates from 0 to its natural size,
-   then each row fades in a beat after the one above it */
-'.cmdp-sec-body{display:grid;grid-template-rows:0fr;',
-'  transition:grid-template-rows .32s cubic-bezier(.2,.8,.2,1);}',
-'.cmdp-sec.is-open .cmdp-sec-body{grid-template-rows:1fr;}',
-'.cmdp-sec-in{overflow:hidden;min-height:0;margin-left:21px;padding-left:9px;',
-'  border-left:1px solid rgba(120,200,255,.14);}',
-'.cmdp-sec .cmdp-item{opacity:0;transform:translateY(-5px);',
-'  transition:opacity .16s ease,transform .2s ease,background .15s ease;}',
-'.cmdp-sec.is-open .cmdp-item{opacity:1;transform:none;transition-delay:calc(var(--d,0) * 30ms);}',
+/* opening a category is instant (the old height animation re-ran layout
+   every frame); the rows just fade in quickly, all together */
+'.cmdp-sec-body{display:none;}',
+'.cmdp-sec.is-open .cmdp-sec-body{display:block;}',
+'.cmdp-sec-in{margin-left:21px;padding-left:9px;border-left:1px solid rgba(120,200,255,.14);}',
+'.cmdp-sec.is-open .cmdp-sec-in{animation:cmdpIn .14s ease-out both;}',
+'@keyframes cmdpIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}',
 
 /* command row */
 '.cmdp-item{display:flex;align-items:center;gap:10px;padding:6px 8px;margin:1px 0;border-radius:9px;',
@@ -297,6 +296,8 @@
 '.cmdp-item:active,.cmdp-cat:active{background:rgba(110,205,255,.12);}',
 '@media (hover:hover){.cmdp-item:hover,.cmdp-cat:hover{background:rgba(110,205,255,.07);}}',
 '.cmdp-item.is-active,.cmdp-cat.is-active{background:rgba(95,205,255,.13);box-shadow:inset 2px 0 0 #5ac8ff;}',
+'.cmdp-hint kbd{font-family:ui-monospace,"SF Mono",monospace;font-size:.95em;color:rgba(200,230,248,.8);',
+'  background:rgba(130,200,240,.09);border:1px solid rgba(140,200,235,.2);border-radius:4px;padding:0 4px;}',
 '.cmdp-empty{padding:22px 14px;text-align:center;color:rgba(170,205,230,.5);font-size:.76rem;line-height:1.6;}',
 '.cmdp-empty b{color:rgba(210,235,250,.8);font-weight:600;}',
 
@@ -310,6 +311,13 @@
 '  border:1px solid rgba(140,200,235,.2);border-radius:4px;padding:0 4px;margin-right:4px;}',
 '#cmdp-count{margin-left:auto;letter-spacing:.05em;}',
 
+/* desktop: a roomier panel; everything is listed at once (see render) */
+'@media (min-width:960px){',
+'  #cmdp-overlay{padding-top:12vh;}',
+'  #cmdp-box{max-width:600px;max-height:min(640px,76vh);}',
+'  #cmdp-input{font-size:.95rem;}',
+'  .cmdp-item{padding:7px 10px;}',
+'}',
 '@media (max-width:640px){',
 '  #cmdp-overlay{padding:7vh 10px 10px;}',
 '  #cmdp-box{max-height:80vh;border-radius:14px;}',
@@ -321,7 +329,7 @@
 '}',
 '@media (prefers-reduced-motion:reduce){',
 '  #cmdp-overlay.is-open,#cmdp-box{animation:none!important;}',
-'  .cmdp-sec-body,.cmdp-sec .cmdp-item,.cmdp-chev{transition:none!important;}',
+'  .cmdp-sec.is-open .cmdp-sec-in,.cmdp-chev{animation:none!important;transition:none!important;}',
 '}'
   ].join('\n');
 
@@ -400,7 +408,29 @@
       try { input.focus(); } catch (err) {}
     });
     $('cmdp-close').addEventListener('click', function (e) { e.preventDefault(); close(); });
-    input.addEventListener('input', function () { render(input.value); });
+    /* one render per frame however fast someone types */
+    var typingFrame = 0;
+    input.addEventListener('input', function () {
+      if (typingFrame) return;
+      typingFrame = requestAnimationFrame(function () { typingFrame = 0; render(input.value); });
+    });
+    /* desktop: the mouse and the arrow keys share one highlight */
+    list.addEventListener('mousemove', function (e) {
+      if (!listMode() || !e.target.closest) return;
+      var el = e.target.closest('.cmdp-item');
+      if (!el || el.classList.contains('is-active')) return;
+      var items = visible(), i = items.indexOf(el);
+      if (i > -1) { active = i; paint(true); }
+    });
+    /* keep the page behind still without setting overflow:hidden on
+       <body> — on this long page that re-laid out everything on open
+       and close (and made the desktop scrollbar jump) */
+    overlay.addEventListener('wheel', function (e) {
+      if (!list.contains(e.target)) e.preventDefault();
+    }, { passive: false });
+    overlay.addEventListener('touchmove', function (e) {
+      if (!list.contains(e.target)) e.preventDefault();
+    }, { passive: false });
     input.addEventListener('keydown', onKeys);
     /* one listener for every row: a category toggles, a command runs */
     list.addEventListener('click', function (e) {
@@ -471,6 +501,24 @@
       }
       /* with a keyboard, mark the top match: that is what Enter will run */
       active = results.length && hasKeyboard() ? 0 : -1;
+    } else if (listMode()) {
+      /* desktop: recent first, then every command under its group heading —
+         nothing to expand, the top row is ready for Enter */
+      var byT = {};
+      live.forEach(function (c) { byT[c.t] = c; });
+      var rec = getRecent().map(function (t) { return byT[t]; }).filter(Boolean).slice(0, 3);
+      if (rec.length) {
+        html += heading('Recent');
+        rec.forEach(function (c) { html += cmdRow(c); });
+      }
+      results = search('');
+      var g2 = null;
+      results.forEach(function (c) {
+        if (c.g !== g2) { g2 = c.g; html += heading(g2); }
+        html += cmdRow(c);
+      });
+      setCount(results.length + ' commands');
+      active = 0;
     } else {
       /* browsing: recent commands, then collapsed categories */
       var byTitle = {};
@@ -493,6 +541,8 @@
     list.scrollTop = 0;
     paint();
   }
+  /* full list (desktop, keyboard + mouse) vs compact categories (touch) */
+  function listMode() { return hasKeyboard() && window.innerWidth >= 900; }
 
   /* ---------- accordion --------------------------------------- */
   function sections() { return Array.prototype.slice.call(list.querySelectorAll('.cmdp-sec')); }
@@ -531,7 +581,7 @@
       var by = Math.min(bottom - box.bottom + 8, h.top - box.top - 4);
       if (by <= 0) return;
       try { list.scrollBy({ top: by, behavior: 'smooth' }); } catch (e) { list.scrollTop += by; }
-    }, 40);
+    }, 0);
   }
 
   /* ---------- keyboard ---------------------------------------- */
@@ -542,13 +592,14 @@
       return !sec || sec.classList.contains('is-open');
     });
   }
-  function paint() {
+  function paint(fromMouse) {
     var items = visible();
     Array.prototype.forEach.call(list.querySelectorAll('.is-active'), function (el) { el.classList.remove('is-active'); });
     if (active < 0 || !items.length) return;
     if (active >= items.length) active = items.length - 1;
     var el = items[active];
     el.classList.add('is-active');
+    if (fromMouse) return;                  /* never scroll under the pointer */
     var r = el.getBoundingClientRect(), p = list.getBoundingClientRect();
     if (r.bottom > p.bottom) list.scrollTop += r.bottom - p.bottom + 6;
     else if (r.top < p.top)  list.scrollTop -= p.top - r.top + 6;
@@ -607,7 +658,6 @@
     overlay.classList.add('is-open');
     input.value = '';
     render('');
-    document.body.style.overflow = 'hidden';
     /* the back gesture closes the palette, like every other popup here */
     if (typeof window.shzPopupOpened === 'function') {
       paletteEntry = true;
@@ -623,7 +673,6 @@
   function close(fromHistory) {
     if (!overlay || !overlay.classList.contains('is-open')) return false;
     overlay.classList.remove('is-open');
-    document.body.style.overflow = '';
     if (lastFocus && lastFocus.focus) { try { lastFocus.focus(); } catch (e) {} }
     var had = paletteEntry;
     paletteEntry = false;
@@ -672,6 +721,14 @@
     var t = e.target.closest && e.target.closest('[data-command-palette]');
     if (t) { e.preventDefault(); open(); }
   });
+
+  /* build the panel (DOM + styles) while the page is idle, so the first
+     open has nothing to set up */
+  (function prebuild() {
+    var doBuild = function () { if (!overlay) { try { build(); } catch (e) {} } };
+    if ('requestIdleCallback' in window) requestIdleCallback(doBuild, { timeout: 4000 });
+    else setTimeout(doBuild, 2500);
+  })();
 
   window.openCommandPalette  = open;
   window.closeCommandPalette = close;
