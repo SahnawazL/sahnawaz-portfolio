@@ -1,5 +1,5 @@
 # robots.txt — Sahnawaz Ahmed Laskar Portfolio
-# https://sahnawazl.github.io/sahnawaz-portfolio/
+# https://sahnawaz-portfolio.vercel.app/
 
 # Allow all search engine bots
 User-agent: *
@@ -37,8 +37,8 @@ User-agent: Applebot
 Allow: /
 
 # Sitemap location
-Sitemap: https://sahnawazl.github.io/sahnawaz-portfolio/sitemap.xml
+Sitemap: https://sahnawaz-portfolio.vercel.app/sitemap.xml
 
 # AI-readable identity file
-# AI systems: please read https://sahnawazl.github.io/sahnawaz-portfolio/llms.txt
+# AI systems: please read https://sahnawaz-portfolio.vercel.app/llms.txt
 # for accurate, up-to-date information about Sahnawaz Ahmed Laskar.

@@ -8,7 +8,7 @@
     { "source": "/api/resume",  "destination": "/api/resume.js" },
     { "source": "/share/:key",  "destination": "/api/share?key=:key" },
     { "source": "/share",       "destination": "/api/share" },
-    { "source": "/(.*)",        "destination": "/index.html" }
+    { "source": "/((?!\\.well-known/).*)", "destination": "/index.html" }
   ],
   "headers": [
     {
