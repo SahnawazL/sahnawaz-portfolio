@@ -67,6 +67,7 @@ async function getYojanaSahayLiveStats() {
 // so it does not count against Vercel's function limit — it is bundled into
 // this function.
 const { buildKnowledge } = require('../lib/site-knowledge');
+const projectBrief = require('../lib/project-brief');
 
 let githubActivityCache = { data: null, fetchedAt: 0 };
 const GITHUB_ACTIVITY_TTL_MS = 30 * 60 * 1000; // 30 minutes — the feed only changes when he pushes
@@ -154,6 +155,24 @@ async function handleChat(req, res) {
   }
 
   const trimmed = message.trim();
+
+  // ── PROJECT BRIEF AGENT — one conversation turn ─────────────────────────
+  // The AI extracts brief details from what the visitor wrote and asks for
+  // what's missing; lib/project-brief.js decides completeness and validity.
+  if (source === 'brief') {
+    try {
+      const out = await projectBrief.runTurn(apiKey, {
+        message: trimmed,
+        brief: req.body.brief,
+        known: req.body.known,
+        history: req.body.briefHistory
+      });
+      return res.status(200).json(out);
+    } catch (e) {
+      console.error('[brief] turn failed:', e && e.message);
+      return res.status(200).json({ error: true, reply: "Sorry, I lost my train of thought there — could you say that again?" });
+    }
+  }
 
   // ── WIZARD FAST-PATH ────────────────────────────────────────────────────
   // Called by the contact form pre-screen wizard. Uses a lean system prompt
@@ -338,7 +357,7 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
   // ── Visitor type (chosen in the chat: "What brings you here?") ──────────
   const VISITOR_TYPE_HINTS = {
     recruiter: 'The visitor said they are a RECRUITER / hiring. Stay professional. Lead with experience, skills and that he is open to full-time roles. When it fits, offer [[go:send-resume|📄 Email me his resume]].',
-    client:    'The visitor said they HAVE A PROJECT (potential client). Focus on what they want built, pricing and timelines, and ask one short question about their project when useful. When it fits, offer [[go:send-message|📧 Message Sahnawaz]].',
+    client:    'The visitor said they HAVE A PROJECT (potential client). Focus on what they want built, pricing and timelines, and ask one short question about their project when useful. When they are ready to move forward, offer [[go:brief|📝 Plan my project with AI]] (you collect their project details and send Sahnawaz a brief with a typical price range); [[go:send-message|📧 Message Sahnawaz]] is the alternative.',
     browsing:  'The visitor said they are JUST BROWSING. Keep it light, friendly and short; show off his work and the fun parts of the site.'
   };
   const visitorTypeHint = VISITOR_TYPE_HINTS[visitorType] || '';
@@ -593,7 +612,7 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
     // who says "I want to hire him" always gets a one-tap way to act on it.
     // The chip goes FIRST so the page's two-chip limit never drops it.
     const flowChip = pickFlowChip(trimmed);
-    if (flowChip && !/\[\[go:(send-message|send-resume|callback)\|/i.test(reply)) {
+    if (flowChip && !/\[\[go:(send-message|send-resume|callback|brief)\|/i.test(reply)) {
       reply = flowChip + '\n' + reply;
     }
 
@@ -662,7 +681,11 @@ function pickFlowChip(text) {
   if (/\b(call ?back|call me|phone call|schedule (a )?call|book (a )?call|talk on (the )?phone)\b/.test(t)) {
     return '[[go:callback|📅 Request a callback]]';
   }
-  if (/\b(hire|hiring|recruit(ing|er)?|job offer|work with (him|you|sahnawaz)|contact (him|sahnawaz)|get in touch|send (him |sahnawaz )?(a )?message|message (him|sahnawaz)|email (him|sahnawaz)|start (a|my) project|build (me|my|our))\b/.test(t)) {
+  // A project to plan → the AI project brief (collects details, sends Sahnawaz a brief)
+  if (/\b(start (a|my|our) project|build (me|my|our)|make (me|my|our) (a )?(website|site|app|store)|(need|want|looking for|get) (a |an )?(new )?(website|site|web ?app|app|online store|e-?commerce|landing page|portfolio)|(get|need|want) (a )?(quote|estimate)|quotation|project brief)\b/.test(t)) {
+    return '[[go:brief|📝 Plan my project with AI]]';
+  }
+  if (/\b(hire|hiring|recruit(ing|er)?|job offer|work with (him|you|sahnawaz)|contact (him|sahnawaz)|get in touch|send (him |sahnawaz )?(a )?message|message (him|sahnawaz)|email (him|sahnawaz))\b/.test(t)) {
     return '[[go:send-message|📧 Message Sahnawaz]]';
   }
   return null;

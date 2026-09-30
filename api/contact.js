@@ -3,6 +3,109 @@
 const nodemailer = require('nodemailer');
 const { initializeApp, getApps, cert } = require('firebase-admin/app');
 const { getFirestore, FieldValue }      = require('firebase-admin/firestore');
+const projectBrief = require('../lib/project-brief');
+
+// ── AI project brief (sent from the chat assistant) ─────────────────────────
+// Spam guard: a few briefs per visitor per hour (per warm instance), and
+// never the same brief twice.
+const briefLog = new Map();            // ip -> [timestamps]
+const briefSeen = new Map();           // fingerprint -> time
+function briefAllowed(ip, fp) {
+  const now = Date.now(), hour = 3600000;
+  const list = (briefLog.get(ip) || []).filter(function (t) { return now - t < hour; });
+  if (list.length >= 3) return 'limit';
+  if (briefSeen.has(fp) && now - briefSeen.get(fp) < 6 * hour) return 'duplicate';
+  list.push(now); briefLog.set(ip, list); briefSeen.set(fp, now);
+  if (briefSeen.size > 500) briefSeen.clear();
+  return 'ok';
+}
+/* A send that failed must not count: otherwise the visitor's retry would be
+   treated as a duplicate and silently dropped. */
+function briefForget(ip, fp) {
+  briefSeen.delete(fp);
+  const list = briefLog.get(ip) || [];
+  list.pop();
+  briefLog.set(ip, list);
+}
+
+async function sendBrief(req, res) {
+  const brief = projectBrief.clean(req.body.brief);
+  const miss = projectBrief.missing(brief);
+  if (miss.length) return res.status(400).json({ error: 'incomplete', missing: miss });
+
+  const ip = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'unknown';
+  const fp = (brief.email + '|' + brief.projectType + '|' + brief.goal).toLowerCase().slice(0, 300);
+  const gate = briefAllowed(ip, fp);
+  if (gate === 'duplicate') return res.status(200).json({ success: true, duplicate: true });
+  if (gate === 'limit') return res.status(429).json({ error: 'Too many briefs — please try again later.' });
+
+  const refId = 'BRF-' + Date.now().toString(36).toUpperCase().slice(-6);
+  const meta = {
+    city: req.headers['x-vercel-ip-city'] ? decodeURIComponent(req.headers['x-vercel-ip-city']) : '',
+    country: req.headers['x-vercel-ip-country'] || '',
+    lang: String(req.body.lang || '').slice(0, 30)
+  };
+
+  // Private analysis for Sahnawaz (lead score, questions for the call).
+  // Best effort: if the AI is slow or down the brief still goes out.
+  let analysis = null;
+  if (process.env.GROQ_API_KEY) {
+    analysis = await projectBrief.groqJSON(
+      process.env.GROQ_API_KEY,
+      [{ role: 'system', content: projectBrief.analysisPrompt(brief) }, { role: 'user', content: 'Analyse this brief.' }],
+      projectBrief.ANALYSIS_SCHEMA,
+      { temperature: 0.3, maxTokens: 900, timeoutMs: 8000, totalMs: 9000 }
+    );
+    if (analysis && ['Hot', 'Warm', 'Cool'].indexOf(analysis.leadScore) < 0) analysis = null;
+  }
+
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS },
+  });
+  const scoreTag = analysis ? (analysis.leadScore === 'Hot' ? '🔥 ' : analysis.leadScore === 'Warm' ? '🌤️ ' : '❄️ ') : '📝 ';
+  const subject = scoreTag + 'Project brief: ' + (brief.projectType || 'New project') +
+    (brief.budget ? ' · ' + brief.budget : '') + ' — ' + brief.name;
+
+  try {
+    await Promise.all([
+      transporter.sendMail({
+        from: '"AI Project Brief" <' + process.env.GMAIL_USER + '>',
+        to: 'shzthedigitalalchemist@gmail.com',
+        replyTo: brief.email,
+        subject: subject.slice(0, 180),
+        html: projectBrief.ownerEmailHtml(brief, analysis, refId, meta),
+        text: projectBrief.plainText(brief, analysis, refId),
+      }),
+      transporter.sendMail({
+        from: '"Sahnawaz Ahmed Laskar" <' + process.env.GMAIL_USER + '>',
+        to: brief.email,
+        replyTo: 'shzthedigitalalchemist@gmail.com',
+        subject: '✅ Your project brief is with Sahnawaz (' + refId + ')',
+        html: projectBrief.visitorEmailHtml(brief, refId),
+      }),
+    ]);
+  } catch (err) {
+    console.error('[brief] mail error:', err && err.message);
+    briefForget(ip, fp);
+    return res.status(500).json({ error: 'Failed to send' });
+  }
+
+  // Show it in the admin inbox (messages collection). Non-fatal.
+  try {
+    await getDB().collection('messages').add({
+      name: brief.name, email: brief.email,
+      message: projectBrief.plainText(brief, analysis, refId),
+      source: 'ai-brief', refId: refId, brief: brief, analysis: analysis || null,
+      country: meta.country || 'unknown', city: meta.city || 'unknown',
+      createdAt: FieldValue.serverTimestamp(), time: new Date().toISOString(),
+    });
+  } catch (logErr) {
+    console.error('[brief] log error (non-fatal):', logErr && logErr.message);
+  }
+
+  return res.status(200).json({ success: true, refId: refId });
+}
 
 // Same Admin-SDK init as api/analytics.js. Logs each contact message to the
 // `messages` collection so it appears in the admin dashboard.
@@ -28,6 +131,8 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  if (req.body && req.body.mode === 'brief') return sendBrief(req, res);
 
   const { name, email, message } = req.body;
 
@@ -225,9 +330,9 @@ module.exports = async function handler(req, res) {
         html:
           '<div style="font-family:sans-serif;max-width:520px;margin:auto;background:#0b1a2b;padding:2rem;border-radius:12px;color:#e2f6ff;">' +
           '<h2 style="color:#00ffff;margin-bottom:1rem;">New Portfolio Message</h2>' +
-          '<p><strong style="color:#7ec8e3;">Name:</strong> ' + name + '</p>' +
-          '<p><strong style="color:#7ec8e3;">Email:</strong> ' + email + '</p>' +
-          '<p><strong style="color:#7ec8e3;">Message:</strong><br>' + message.replace(/\n/g, '<br>') + '</p>' +
+          '<p><strong style="color:#7ec8e3;">Name:</strong> ' + projectBrief.esc(name) + '</p>' +
+          '<p><strong style="color:#7ec8e3;">Email:</strong> ' + projectBrief.esc(email) + '</p>' +
+          '<p><strong style="color:#7ec8e3;">Message:</strong><br>' + projectBrief.esc(message).replace(/\n/g, '<br>') + '</p>' +
           '<hr style="border:none;border-top:1px solid rgba(0,255,255,0.2);margin:1.5rem 0;">' +
           '<p style="font-size:0.8rem;color:#4a7a8a;">Sent from sahnawaz-portfolio.vercel.app</p>' +
           '</div>',
