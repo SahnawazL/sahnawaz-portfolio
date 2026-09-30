@@ -458,3 +458,161 @@
   #chatWidget { width: 430px; }
   #chatWidget.chat-expanded { width: 620px; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   CHAT WINDOW v2 — size, keyboard, speed (every screen)
+   Kept in one place, in the last stylesheet, so it wins cleanly.
+
+   Sizes
+     Phone  (≤600px)  normal: compact window above the launcher
+                      expanded: full screen
+     Tablet/desktop   normal: fixed-height corner window
+                      expanded: large window (above the site header)
+     Keyboard open    portfolio-09.js pins the window to the visible
+                      area (.kb-open + inline top/height)
+   Speed
+     - only opacity/transform animate on open/close (GPU work only)
+     - a closed window is visibility:hidden and its animations pause
+     - no blur layers inside the window (its background is solid, so the
+       blurs were invisible but redrawn every frame, per bubble)
+     - no endless box-shadow/filter/left animations
+     - touch-action: manipulation → no 300ms tap delay or double-tap-zoom
+       swallowing taps (matters in "Desktop site" mode on a phone)
+   ═══════════════════════════════════════════════════════════════════ */
+
+#chatWidget {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  visibility: hidden;
+  z-index: 10001;          /* above the sticky site header (9999) */
+  will-change: opacity, transform;
+  transition: opacity .16s ease, transform .2s cubic-bezier(.16,1,.3,1), visibility 0s linear .2s;
+  /* fixed height: the window no longer grows and jumps as messages arrive */
+  height: min(580px, calc(100vh - 190px));
+  height: min(580px, calc(100dvh - 190px));
+  max-height: none;
+}
+#chatWidget.chat-open {
+  visibility: visible;
+  transition: opacity .16s ease, transform .22s cubic-bezier(.16,1,.3,1), visibility 0s;
+}
+/* the message list fills whatever the header, panels and input leave */
+#chatWidget #chatMessages,
+#chatWidget.chat-expanded #chatMessages {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  transition: none;
+  overscroll-behavior: contain;          /* scrolling the chat never scrolls the page */
+  -webkit-overflow-scrolling: touch;
+}
+#chatWidget #cmdSuggestRow,
+#chatWidget #chatFooter,
+#chatWidget #chatHeader { flex-shrink: 0; }
+
+/* expanded: bigger on tablet/desktop, above the sticky site header */
+#chatWidget.chat-expanded {
+  width: min(680px, calc(100vw - 32px));
+  height: calc(100vh - 110px);
+  height: calc(100dvh - 110px);
+  max-height: 900px;
+  z-index: 10005;
+}
+@media (min-width: 601px) and (max-width: 959px) {
+  #chatWidget { width: 380px; }
+}
+
+/* ── phones ─────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  #chatWidget {
+    left: 10px;
+    right: 10px;
+    width: auto;
+    max-width: none;
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    height: clamp(300px, calc(100vh - 240px), 520px);
+    height: clamp(300px, calc(100dvh - 240px), 520px);
+  }
+  #chatWidget.chat-expanded {
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: auto;
+    height: auto;
+    max-height: none;
+    border-radius: 0;
+    border-width: 0;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+/* keyboard open: JS sets top/height inline; this just removes the bottom anchor */
+#chatWidget.kb-open { bottom: auto; max-height: none; }
+
+/* restore icon on the expand button when expanded (was an injected <style>) */
+#chatWidget.chat-expanded #chatExpand::before {
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='15 3 21 3 21 9'/%3E%3Cpolyline points='9 21 3 21 3 15'/%3E%3Cline x1='21' y1='3' x2='14' y2='10'/%3E%3Cline x1='3' y1='21' x2='10' y2='14'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='15 3 21 3 21 9'/%3E%3Cpolyline points='9 21 3 21 3 15'/%3E%3Cline x1='21' y1='3' x2='14' y2='10'/%3E%3Cline x1='3' y1='21' x2='10' y2='14'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+/* ── taps: instant, never swallowed, never select text ─────────────── */
+#chatWidget, #chatWidget *, #chatPill, #chatPill *, #chatLauncher, #chatLauncher *, #chatToast, #chatToast * {
+  touch-action: manipulation;
+}
+#chatWidget button, #chatWidget .cs-pill, #chatWidget .chat-chip, #chatWidget .chat-qr-btn,
+#chatWidget .help-btn, #chatWidget .cmd-btn, #chatWidget .bot-link, #chatPill {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+@media (pointer: coarse) {
+  /* bigger targets for fingers; icons stay the same size */
+  #chatExpand, #chatClear, #chatClose { width: 36px; height: 36px; }
+  #chatSend, #chatMic { width: 40px; height: 40px; }
+  #chatWidget .cs-pill { min-height: 40px; }
+  /* 16px stops iPhones zooming the whole page when the input is tapped */
+  #chatWidget #chatInput { font-size: 16px; }
+  #chatWidget #chatInput::placeholder { font-size: 14px; }
+}
+
+/* ── no redraw-every-frame work inside the window ──────────────────── */
+#chatWidget .chat-identity,
+#chatWidget .chat-header-actions,
+#chatWidget .chat-msg.bot,
+#chatScrollBtn,
+.tts-highlight-pill {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+/* header shimmer: slides with transform (GPU) instead of `left` (layout) */
+#chatHeader::after {
+  left: 0;
+  transform: translateX(-100%);
+  animation: chatHeaderSweep 3.5s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+@keyframes chatHeaderSweep {
+  0%   { transform: translateX(-100%); opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { transform: translateX(270%); opacity: 0; }
+}
+/* avatar ring: one glow on open, then a steady glow (was filter + shadow
+   animating forever) */
+.chat-avatar { animation: none; box-shadow: 0 0 10px rgba(0,200,255,0.40), 0 0 22px rgba(0,200,255,0.18); }
+#chatWidget.chat-open .chat-avatar { animation: avatarWake 1.6s cubic-bezier(0.16,1,0.3,1) forwards; }
+.chat-ai-badge { animation: none; }
+/* status dots blink with opacity instead of an expanding box-shadow */
+.chat-live-dot, .pill-dot { animation: chatDotBlink 2s ease-in-out infinite; }
+@keyframes chatDotBlink { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
+
+/* closed window: freeze its animations (nothing to see anyway) */
+#chatWidget:not(.chat-open) *,
+#chatWidget:not(.chat-open) *::before,
+#chatWidget:not(.chat-open) *::after {
+  animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #chatHeader::after, .chat-live-dot, .pill-dot, .chat-ai-badge .badge-dot { animation: none !important; }
+  #chatWidget, #chatWidget.chat-open { transition-duration: .01s !important; }
+}

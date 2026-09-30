@@ -11363,30 +11363,3 @@ div#popup.popup {
 .bot-link svg { width: 12px; height: 12px; }
 .bot-link:focus-visible { outline: 2px solid #5ac8ff; outline-offset: 2px; }
 
-/* ═══════════════════════════════════════════════════════════
-   📱 CHAT ON PHONES — use the screen
-   The default widget is 320px wide with a 256px message area,
-   which left only ~4 lines of conversation visible above the
-   buttons on a phone. On narrow screens the widget now spans
-   the width and most of the height; the message list (flex:1)
-   takes whatever the header, panels and input don't need.
-   The keyboard handler in portfolio-09.js still sets an inline
-   max-height when the keyboard opens, which wins over this.
-   ═══════════════════════════════════════════════════════════ */
-@media (max-width: 520px) {
-  #chatWidget,
-  #chatWidget.chat-expanded {
-    width: calc(100vw - 20px);
-    right: 10px;
-    /* 80px gap below (launcher) + ~140px above so the top edge stays
-       clear of the sticky site header (z-index 9999) at the top of the page */
-    height: calc(100vh - 220px);   /* fallback */
-    height: calc(100dvh - 220px);  /* excludes mobile browser bars */
-    min-height: 380px;
-    max-height: 640px;
-  }
-  #chatWidget #chatMessages,
-  #chatWidget.chat-expanded #chatMessages {
-    max-height: none;
-  }
-}
