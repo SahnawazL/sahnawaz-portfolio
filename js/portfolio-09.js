@@ -634,6 +634,8 @@
             sep.textContent = '── new session ──';
             msgs.appendChild(sep);
             scrollMsgs();
+            /* opened by a planner button: the brief replaces the greeting */
+            if (startPendingBrief()) return;
             /* Smart AI-powered returning visitor greeting via Groq API */
             var _act = window._visitorActivity;
             var h = new Date().getHours();
@@ -672,6 +674,8 @@
             })
             .then(function(d){
               if (loadingGreet.parentNode) loadingGreet.parentNode.removeChild(loadingGreet);
+              /* the planner started while this greeting was loading */
+              if (briefApi && briefApi.isActive()) { buildChips(); setChipsOpen(false); return; }
               var aiGreeting = (d && d.reply && d.reply.trim())
                 ? d.reply.replace(/^\[CAT:[^\]]*\]\s*/,'').trim()
                 : greeting;
@@ -687,6 +691,7 @@
             })
             .catch(function(){
               if (loadingGreet.parentNode) loadingGreet.parentNode.removeChild(loadingGreet);
+              if (briefApi && briefApi.isActive()) { buildChips(); setChipsOpen(false); return; }
               if (!hasVisitedBefore) { try { localStorage.setItem('chatVisited','1'); } catch(e){} }
               addMsgTypewriter(greeting);
               buildChips();
@@ -698,6 +703,7 @@
             });
             return; /* API callback handles rendering — skip below */
           }
+          if (startPendingBrief()) return;
           if (!hasVisitedBefore) { try { localStorage.setItem('chatVisited','1'); } catch(e){} }
           addMsgTypewriter(greeting);
           buildChips();
@@ -710,6 +716,7 @@
       } else {
         /* Not logged in, or Firebase never became ready — show greeting immediately */
         _removeHistSkeleton();
+        if (startPendingBrief()) return;
         if (!hasVisitedBefore) { try { localStorage.setItem('chatVisited','1'); } catch(e){} }
         addMsgTypewriter(greeting);
         buildChips();
@@ -1337,6 +1344,20 @@
       budget:      'Budget — e.g. ₹15k, or not sure…',
       timeline:    'When do you need it?…'
     };
+    /* Same types and typical ranges as lib/project-brief.js (the server
+       confirms them on every reply). Used when a button starts the brief
+       with the project type already chosen, e.g. a pricing card. */
+    var TYPES = {
+      'Business website':         { range: '₹9,999 – ₹14,999',    time: '2–3 weeks',               say: 'business website' },
+      'Landing page':             { range: '₹9,999 – ₹14,999',    time: '2–3 weeks',               say: 'landing page' },
+      'Portfolio website':        { range: '₹6,999 – ₹9,999',     time: '1–2 weeks',               say: 'portfolio website' },
+      'E-commerce store':         { range: '₹14,999 – ₹24,999',   time: '3–5 weeks',               say: 'online store' },
+      'UI/UX design':             { range: '₹3,999 per screen',   time: '1–2 weeks',               say: 'UI/UX design' },
+      'AI chatbot / integration': { range: '₹2,999 – ₹7,999',     time: '1–3 weeks',               say: 'AI chatbot' },
+      'Web ads & promotion':      { range: '₹3,999 per campaign', time: 'Monthly report included', say: 'ad campaign' },
+      'Web app / custom build':   { range: 'Custom quote',        time: 'Depends on scope',        say: 'web app' },
+      'Website redesign':         { range: 'Custom quote',        time: 'Depends on scope',        say: 'website redesign' }
+    };
     var REDUCED = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
     var st = load() || fresh();
@@ -1348,7 +1369,7 @@
 
     /* ── state ── */
     function fresh(){
-      return { brief:{}, history:[], ready:false, estimate:null, missing:REQUIRED.slice(), turns:0, nudged:false, t:0 };
+      return { brief:{}, history:[], ready:false, estimate:null, missing:REQUIRED.slice(), turns:0, nudged:false, from:'', t:0 };
     }
     function missingOf(b){ return REQUIRED.filter(function(k){ return !b || !b[k]; }); }
     function load(){
@@ -1407,6 +1428,12 @@
       b.classList.toggle('bb-on', !!on);
     }
 
+    /* what to ask next: before the visitor has said anything, invite them
+       to describe the project rather than asking for a single field */
+    function nextAsk(){
+      if (!st.turns) return "Tell me about it in your own words — what it's for, what it should do, your budget and when you need it.";
+      return ASK[st.missing[0]] || '';
+    }
     function placeholder(){
       if (st.ready) return 'Anything to change? Or tap Send ↑';
       if (!st.turns) return 'Describe your project…';
@@ -1600,23 +1627,47 @@
       applyInput();
     }
 
-    function start(){
+    /* opts (all optional): type — a project type from TYPES, chosen by the
+       button that started the brief; context — words for the intro
+       ("clinic website"); from — which button, reported to Sahnawaz */
+    function start(opts){
+      opts = opts || {};
       if (sending) return true;
       /* wait for a reply that is still arriving, then start */
       if (botBusy || turnBusy) {
         var tries = 0;
         (function later(){
           if ((botBusy || turnBusy) && tries++ < 40) { setTimeout(later, 150); return; }
-          start();
+          start(opts);
         })();
         return true;
       }
       if (window._cancelHelpFlow) window._cancelHelpFlow();
       if (!getVisitorType()) setVisitorType('client');
+      if (!st.from) st.from = opts.from || 'chat';   /* the first button counts */
 
+      var type = TYPES[opts.type] ? opts.type : '';
+      var prevType = st.brief.projectType || '';
+      var typeNew = !!(type && type !== prevType);
+      if (typeNew) {
+        st.brief.projectType = type;
+        st.estimate = { range: TYPES[type].range, time: TYPES[type].time };
+        st.missing = missingOf(st.brief);
+        st.ready = st.turns > 0 && !st.missing.length;
+        if (st.turns > 0) save();
+      }
+      var typeLine = typeNew ? (prevType ? "I've switched your project to " + type + "." : "Got it — " + TYPES[type].say + ".") : '';
+
+      if (active && typeNew) {
+        updateBar(); applyInput();
+        if (liveCard) staleCard();
+        if (st.ready) say(typeLine + " Here's your updated brief 👇", '', renderCard, true);
+        else say(typeLine + " " + nextAsk(), '', null, true);
+        return true;
+      }
       if (active) {
         if (st.ready && !liveCard) say("Your brief is ready — have a look and send it when you're happy.", '', renderCard, true);
-        else say(st.ready ? "Your brief is ready just above ↑ — send it, or tell me what to change." : "We're on it 🙂 " + ASK[st.missing[0]], '', null, true);
+        else say(st.ready ? "Your brief is ready just above ↑ — send it, or tell me what to change." : "We're on it 🙂 " + nextAsk(), '', null, true);
         return true;
       }
 
@@ -1631,14 +1682,21 @@
 
       if (st.turns > 0) {
         var done = REQUIRED.length - st.missing.length;
-        if (st.ready) say("Welcome back 👋 Your project brief is ready — have a look and send it when you're happy.", '', renderCard, true);
-        else say("Welcome back to your project brief 👋 " + done + " of " + REQUIRED.length + " details so far. " + ASK[st.missing[0]], '', null, true);
+        if (st.ready && liveCard && !typeNew) say("Welcome back 👋 Your brief is ready just above ↑ — send it, or tell me what to change.", '', null, true);
+        else if (st.ready) say("Welcome back 👋 " + (typeLine ? typeLine + " " : "") + "Your project brief is ready — have a look and send it when you're happy.", '', renderCard, true);
+        else say("Welcome back to your project brief 👋 " + (typeLine ? typeLine + " " : "") + done + " of " + REQUIRED.length + " details so far. " + ASK[st.missing[0]], '', null, true);
       } else {
         var first = k.name ? String(k.name).split(' ')[0] : '';
-        say("Let's plan your project" + (first ? ", " + first : "") + " 📝\n\n" +
-          "Tell me about it in your own words — what you'd like built, who it's for, your budget and when you need it. " +
+        var what = String(opts.context || (type ? TYPES[type].say : '')).slice(0, 40);
+        var intro = "Let's plan your " + (what || "project") + (first ? ", " + first : "") + " 📝\n\n" +
+          (what ? "Tell me about it in your own words — what it's for, what it should do, your budget and when you need it. "
+                : "Tell me about it in your own words — what you'd like built, who it's for, your budget and when you need it. ") +
           "I'll pick out the details, ask only for what's missing, and prepare a brief for Sahnawaz with a typical price range." +
-          (k.name && k.email ? "\n\nI already have your name and email from your Google sign-in ✓" : ""), '', null, true);
+          (k.name && k.email ? "\n\nI already have your name and email from your Google sign-in ✓" : "") +
+          "\n\nHere for something else? Tap ✕ on the bar below to just chat.";
+        /* the AI reads this too, so it knows what the visitor tapped */
+        st.history = [{ role: 'assistant', content: intro }];
+        say(intro, '', null, true);
       }
       return true;
     }
@@ -1721,7 +1779,7 @@
         btn.innerHTML = label;
         status.textContent = msg;
       }
-      post('contact', { mode: 'brief', brief: brief, lang: langOf() }, 30000).then(function(r){
+      post('contact', { mode: 'brief', brief: brief, lang: langOf(), from: st.from || 'chat' }, 30000).then(function(r){
         var d = r.body || {};
         if (r.ok && d.success) { sent(card, d.duplicate ? null : d.refId, !!d.duplicate); return; }
         if (r.status === 400 && Array.isArray(d.missing) && d.missing.length) {
@@ -1793,6 +1851,79 @@
     };
   })();
   /* ========== End AI Project Brief ========== */
+
+  /* Open the chat straight into the planner — used by the hero pill, the
+     desktop header and menu, the pricing cards, "Ready to Work With Me?",
+     the Why-website pop-up and the ?plan link. On the very first open the
+     planner replaces the greeting and the "What brings you here?"
+     question (initChat → startPendingBrief), so nothing stacks up. */
+  var pendingBrief = null;
+  window.openBrief = function(opts){
+    opts = opts || {};
+    if (!inited) { pendingBrief = opts; window.openChat(); return true; }
+    if (!isOpen) window.openChat();
+    briefApi.start(opts);
+    return true;
+  };
+  function startPendingBrief(){
+    if (!pendingBrief) return false;
+    var o = pendingBrief;
+    pendingBrief = null;
+    if (!hasVisitedBefore) { try { localStorage.setItem('chatVisited', '1'); } catch (e) {} }
+    buildChips();
+    setChipsOpen(false);
+    briefApi.start(o);
+    return true;
+  }
+
+  /* Buttons around the page that start the planner:
+       data-brief="<project type, or empty>"
+       data-brief-context="clinic website"   (optional, for the intro)
+       data-brief-from="card"                (which button, for Sahnawaz) */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-brief]'), function(el){
+    el.addEventListener('click', function(e){
+      var card = el.closest('.wio-card');
+      /* on a pricing card the button sits on the back face: while the card
+         shows its front, the tap is for flipping it */
+      if (card && !card.classList.contains('wio-flipped')) return;
+      e.preventDefault();
+      if (card) e.stopPropagation();   /* keep the card showing its price */
+      var opts = {
+        type: el.getAttribute('data-brief') || '',
+        context: el.getAttribute('data-brief-context') || '',
+        from: el.getAttribute('data-brief-from') || ''
+      };
+      /* from the pop-up: let it fade out first */
+      setTimeout(function(){ window.openBrief(opts); }, el.closest('#wnwOverlay') ? 220 : 0);
+    });
+  });
+
+  /* Shareable link: sahnawaz-portfolio.vercel.app/?plan opens the site
+     straight into the planner (?plan=store | portfolio | business | ads |
+     landing | app | redesign | chatbot | design picks the type too).
+     The parameter is removed so a reload or a re-share doesn't repeat it. */
+  (function planLink(){
+    var p;
+    try { p = new URLSearchParams(location.search); } catch (e) { return; }
+    if (!p.has('plan')) return;
+    var v = String(p.get('plan') || '').toLowerCase();
+    var MAP = { website: 'Business website', business: 'Business website', landing: 'Landing page',
+                portfolio: 'Portfolio website', store: 'E-commerce store', shop: 'E-commerce store',
+                ecommerce: 'E-commerce store', 'e-commerce': 'E-commerce store', ads: 'Web ads & promotion',
+                app: 'Web app / custom build', redesign: 'Website redesign', chatbot: 'AI chatbot / integration',
+                design: 'UI/UX design' };
+    p.delete('plan');
+    var q = p.toString();
+    try { history.replaceState(history.state, '', location.pathname + (q ? '?' + q : '') + location.hash); } catch (e) {}
+    var fired = false;
+    var go = function(){
+      if (fired) return;
+      fired = true;
+      setTimeout(function(){ window.openBrief({ type: MAP[v] || '', from: 'link' }); }, 500);
+    };
+    if (document.readyState === 'complete') go();
+    else { window.addEventListener('load', go, { once: true }); setTimeout(go, 2500); }
+  })();
 
   /* Suggestions — all phrased to the assistant, ABOUT Sahnawaz, so the
      voice matches the header ("Sahnawaz's Assistant"). The AI answers them. */

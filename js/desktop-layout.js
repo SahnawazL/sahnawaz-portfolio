@@ -245,7 +245,12 @@
       if (!b) return;
       var act = b.getAttribute('data-act'), dr = b.getAttribute('data-dr');
       if (act === 'search' && fn('openCommandPalette')) window.openCommandPalette();
-      if (act === 'talk') goTo('#contact');
+      /* "Let's talk" opens the chat straight into the AI project planner
+         (Contact stays one click away in the nav) */
+      if (act === 'talk') {
+        if (fn('openBrief')) { window.openBrief({ from: 'header' }); if (fn('shzPillArrive')) window.shzPillArrive('brief'); }
+        else goTo('#contact');
+      }
       if (act === 'menu') { setDrawer(!drawerOpen()); return; }
     });
     /* close on a click elsewhere or on Escape */
@@ -331,21 +336,26 @@
   var docClick = null, docKey = null, drawerEl = null, hdrSpacer = null, hdrRO = null;
   function drawerItems() {
     var pills = [].slice.call(document.querySelectorAll('.hero-cta-group .hero-cta-btn'));
-    return pills.map(function (p, i) {
+    var plain = '', ai = '';
+    pills.forEach(function (p, i) {
       var c = p.cloneNode(true);
       [].slice.call(c.querySelectorAll('kbd, svg')).forEach(function (k) { k.remove(); });
       var label = c.textContent.replace(/\s+/g, ' ').trim();
       var icon = p.querySelector('svg');
       var isSearch = p.classList.contains('hero-cta-search') || p.hasAttribute('data-command-palette');
-      var isChat = p.hasAttribute('data-open-chat');   /* "Talk to My AI Assistant" */
-      var target = isSearch ? 'search' : isChat ? 'chat' : (p.getAttribute('href') || '');
-      if (!label || !target) return '';
-      return '<button type="button" class="dsk-dr-item" role="menuitem" style="--d:' + i + '" data-dr="' + target + '">' +
+      var isChat = p.hasAttribute('data-open-chat');         /* "Talk to My AI Assistant" */
+      var isPlan = p.classList.contains('hero-cta-plan');    /* "Plan Your Project with AI" */
+      var target = isSearch ? 'search' : isChat ? 'chat' : isPlan ? 'brief' : (p.getAttribute('href') || '');
+      if (!label || !target) return;
+      var html = '<button type="button" class="dsk-dr-item' + (isPlan ? ' is-plan' : isChat ? ' is-ai' : '') + '" role="menuitem" style="--d:' + i + '" data-dr="' + target + '">' +
                '<span class="dsk-dr-ic">' + (icon ? icon.outerHTML : '') + '</span>' +
                '<span class="dsk-dr-t">' + label.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</span>' +
                (isSearch ? '<kbd>\u2318K</kbd>' : '') +
              '</button>';
-    }).join('');
+      /* the two AI actions share one box, as they do in the hero */
+      if (p.closest('.hero-ai-duo')) ai += html; else plain += html;
+    });
+    return plain + (ai ? '<div class="dsk-dr-ai" role="group" aria-label="AI assistant"><div class="dsk-dr-ai-h">\u2726 AI assistant \u00b7 24/7</div>' + ai + '</div>' : '');
   }
   function drawerOpen() { var d = drawerEl; return !!(d && d.classList.contains('is-open')); }
   function setDrawer(on) {
@@ -366,6 +376,7 @@
     var arrive = function (t) { if (fn('shzPillArrive')) window.shzPillArrive(t); };
     if (target === 'search') { if (fn('openCommandPalette')) window.openCommandPalette(); arrive('search'); return; }
     if (target === 'chat') { if (fn('openChat')) window.openChat(); arrive('chat'); return; }
+    if (target === 'brief') { if (fn('openBrief')) window.openBrief({ from: 'menu' }); arrive('brief'); return; }
     if (target.charAt(0) !== '#') return;
     goTo(target);
     /* the same arrival scan line as the hero pills (portfolio-06.js) */

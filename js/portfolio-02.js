@@ -148,6 +148,23 @@
   var ctaEl     = document.getElementById('wnwModalCta');
   var ctaTxtEl  = document.getElementById('wnwModalCtaText');
 
+  /* The CTA opens the AI project planner (portfolio-09.js reads these
+     attributes) with the kind of website this card is about, so the
+     planner starts with "Let's plan your clinic website" instead of a
+     blank question. Same order as `data` above. */
+  var PLAN = [
+    ['Portfolio website', 'portfolio website'],
+    ['Business website',  'shop website'],
+    ['Business website',  'school or coaching website'],
+    ['Business website',  'professional website'],
+    ['Business website',  'clinic website'],
+    ['Business website',  'restaurant website'],
+    ['Portfolio website', 'student portfolio'],
+    ['Business website',  'NGO website'],
+    ['Portfolio website', 'photography portfolio'],
+    ['Portfolio website', 'personal brand website']
+  ];
+
   function fill(d) {
     /* Update CSS accent color */
     modal.style.setProperty('--mc', d.color);
@@ -175,6 +192,9 @@
     var d = data[idx];
     if (!d) return;
     fill(d);
+    var plan = PLAN[idx] || ['', ''];
+    ctaEl.setAttribute('data-brief', plan[0]);
+    ctaEl.setAttribute('data-brief-context', plan[1]);
 
     /* Show overlay. No overflow:hidden on <body> — on this long page that
        re-laid out everything and delayed the first frame; the page behind
@@ -237,7 +257,8 @@
     if (e.key === 'Escape' && isOpen) closeModal();
   });
 
-  /* CTA scrolls to contact and closes */
+  /* CTA closes the pop-up; the planner opens from portfolio-09.js (the
+     link still goes to Contact if that script is missing) */
   ctaEl.addEventListener('click', function() {
     closeModal();
   });

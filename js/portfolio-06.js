@@ -1558,7 +1558,7 @@ window.__shzAudio = (function(){
 /* ==== index.html line 8561 ==== */
 
 /* ══ Hero shortcut pills — click signature + arrival scan ══
-   One engine for all five pills. Each has the same two-part signature the
+   One engine for all six pills. Each has the same two-part signature the
    View Telemetry pill introduced, themed to where it goes:
      click   → rings + a light sweep across the pill, its icon reacts, a
                short synthesized sound
@@ -1599,7 +1599,9 @@ window.__shzAudio = (function(){
     contact:    { pill:'.hero-cta-btn[href="#contact"]',         target:'#contact',         scroll:true,
                   sound:function(){ tone(880, 880, 0.12, 0.07); tone(1320, 1320, 0.16, 0.07, 0.11); } }, /* message sent */
     ai:         { pill:'.hero-cta-ai',                           target:'#chatWidget',      scroll:false, wait:300,
-                  sound:null }   /* the chat plays its own chime when it opens */
+                  sound:null },  /* the chat plays its own chime when it opens */
+    plan:       { pill:'.hero-cta-plan',                         target:'#chatWidget',      scroll:false, wait:300,
+                  sound:null }   /* opens the chat straight into the project planner */
   };
 
   /* ---- click signature on the pill ---- */
@@ -1745,11 +1747,13 @@ window.__shzAudio = (function(){
   }
   /* precise section landing for other scripts (Quick Search "Go to") */
   window.shzLandOn = function(el, done){ if(el) landOn(el, done); };
-  /* for the desktop header menu: accepts a key, '#section', 'search' or 'chat' */
+  /* for the desktop header menu: accepts a key, '#section', 'search',
+     'chat' or 'brief' (the project planner) */
   window.shzPillArrive = function(what){
     var key = what;
     Object.keys(THEMES).forEach(function(k){ if(THEMES[k].target === what) key = k; });
     if(what === 'chat') key = 'ai';
+    if(what === 'brief') key = 'plan';
     arrive(key);
   };
 
