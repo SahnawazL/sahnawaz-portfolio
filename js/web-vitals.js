@@ -145,14 +145,32 @@
   /* ---------- render scheduling --------------------------------
      Observers can fire in bursts; coalesce redraws into one frame. */
   var queued = false;
+  /* Redraw only what someone can see. Measuring never stops, but the card
+     is rebuilt only while it is near the screen (or the full report is
+     open); otherwise it is just marked out of date and redrawn the moment
+     it comes into view. Rebuilding it on every measurement while it sat
+     far off screen cost a phone ~75 ms of work per second, because looping
+     animations elsewhere report a new measurement every frame. */
+  var cardNear = false, cardStale = true;
   function schedule() {
+    var panelOpen = !!(overlay && overlay.classList.contains('is-open'));
+    if (!cardNear && !panelOpen) { cardStale = true; return; }
     if (queued) return;
     queued = true;
     (window.requestAnimationFrame || function (f) { return setTimeout(f, 16); })(function () {
       queued = false;
+      cardStale = false;
       renderCard();
       if (overlay && overlay.classList.contains('is-open')) renderPanel();
     });
+  }
+  function watchCard() {
+    var card = document.getElementById('wvCard');
+    if (!card || typeof IntersectionObserver === 'undefined') { cardNear = true; schedule(); return; }
+    new IntersectionObserver(function (en) {
+      cardNear = en[0].isIntersecting;
+      if (cardNear && cardStale) schedule();
+    }, { rootMargin: '400px 0px' }).observe(card);
   }
 
   /* ---------- observers ---------------------------------------- */
@@ -925,8 +943,8 @@ scopeShared(SHARED),
   });
 
   /* ---------- first paint of the card -------------------------- */
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { renderCard(); watchField(); });
-  else setTimeout(function () { renderCard(); watchField(); }, 0);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { renderCard(); watchField(); watchCard(); });
+  else setTimeout(function () { renderCard(); watchField(); watchCard(); }, 0);
   [600, 1500, 3500].forEach(function (d) { setTimeout(schedule, d); });
 
   window.openWebVitals  = open;

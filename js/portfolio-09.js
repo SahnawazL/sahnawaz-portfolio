@@ -769,7 +769,11 @@
         wireQuickReply();
       }
     }
-    tryLoadHistory(10);
+    /* Firebase now starts on the visitor's first tap (see visitor-auth.js),
+       so give a returning visitor's saved history up to 6 seconds to arrive
+       — the "loading history…" line shows meanwhile. */
+    if (_savedVisitor && window._startVisitorAuth) window._startVisitorAuth();
+    tryLoadHistory(20);
   }
 
   /* ========== Chips scroll hint ========== */

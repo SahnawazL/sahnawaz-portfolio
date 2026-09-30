@@ -98,22 +98,15 @@
       });
   }
 
-  /* Same "poll every 300ms" pattern engagement.js itself uses to wait
-     for Firebase Auth — here waiting one layer further down the chain
-     for Firestore specifically. Gives up quietly after ~10s rather than
-     retrying forever if Firestore never loads for some reason. */
-  function waitForFirestore(attemptsLeft) {
-    if (window._firestoreDB) {
-      attachListener(window._firestoreDB);
-      return;
-    }
-    if (attemptsLeft <= 0) return;
-    setTimeout(function () { waitForFirestore(attemptsLeft - 1); }, 300);
-  }
-
+  /* Firestore now starts a moment after the page is ready, so listen for
+     engagement.js's ready signal, with polling (up to a minute) as a backup. */
+  var attached = false;
+  function attachOnce() { if (attached || !window._firestoreDB) return; attached = true; attachListener(window._firestoreDB); }
+  window.addEventListener('shz:firestore-ready', attachOnce);
+  function poll(n) { if (attached) return; if (window._firestoreDB) { attachOnce(); return; } if (n > 0) setTimeout(function () { poll(n - 1); }, 300); }
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () { waitForFirestore(32); });
+    document.addEventListener('DOMContentLoaded', function () { poll(200); });
   } else {
-    waitForFirestore(32);
+    poll(200);
   }
 })();

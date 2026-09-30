@@ -1770,6 +1770,7 @@ function ptestiToggle(card) {
   const AUTOPLAY_MS = 4200;
   let current   = 0;
   let autoTimer = null;
+  let fillTok   = 0;
 
   /* build story-style progress segments */
   cards.forEach(() => {
@@ -1797,9 +1798,14 @@ function ptestiToggle(card) {
         f.style.width = '100%';
       } else if (i === current) {
         f.style.width = '0%';
-        void f.offsetWidth; /* force reflow so the animation restarts */
-        f.style.transition = `width ${AUTOPLAY_MS}ms linear`;
-        f.style.width = '100%';
+        /* restart the fill on the next frame instead of forcing the
+           browser to lay out the whole page right now */
+        var tok = ++fillTok;
+        requestAnimationFrame(function () { requestAnimationFrame(function () {
+          if (tok !== fillTok) return;
+          f.style.transition = `width ${AUTOPLAY_MS}ms linear`;
+          f.style.width = '100%';
+        }); });
       } else {
         f.style.width = '0%';
       }

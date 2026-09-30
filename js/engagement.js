@@ -7,6 +7,16 @@
 
   var db = null;
 
+  /* Firebase now starts a moment after the page is ready (see
+     visitor-auth.js). Chat messages sent before the database is ready are
+     held here and saved as soon as it is, instead of being dropped. */
+  var pendingChat = [];
+  if (!window._saveChatMessage) {
+    window._saveChatMessage = function (role, content) {
+      if (pendingChat.length < 40) pendingChat.push([role, content]);
+    };
+  }
+
   function loadScript(src, cb) {
     var s = document.createElement('script');
     s.src = src; s.onload = cb;
@@ -18,6 +28,7 @@
     loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js', function () {
       db = firebase.firestore();
       window._firestoreDB = db;
+      try { window.dispatchEvent(new Event('shz:firestore-ready')); } catch (e) {}
       injectStyles();
       injectReviewModal();
       initReviewSection();
@@ -752,6 +763,8 @@
           time: new Date().toISOString()
         }).catch(function(err){ console.error('Chat message save error:', err); });
     };
+    /* save anything said before the database was ready */
+    pendingChat.splice(0).forEach(function (m) { window._saveChatMessage(m[0], m[1]); });
 
     window._loadChatHistory = function(cb) {
       var visitor = getVisitor();

@@ -595,11 +595,36 @@ window.openLoginModal  = openLoginModal;
 window.closeLoginModal = closeLoginModal;
 window.signOut         = signOut;
 
+/* Firebase (three large Google files) and Google sign-in are not needed to
+   show the page, so they start on the visitor's first tap, key or scroll —
+   or once the page has fully loaded and the browser is idle, whichever
+   comes first. A signed-in visitor still sees their name and photo at once
+   (restored from this device above), and a tap on "Sign In" starts the
+   loading straight away. */
+var _authStarted = false;
+function startAuth() {
+  if (_authStarted) return;
+  _authStarted = true;
+  init();
+}
+function startAuthWhenNeeded() {
+  ['pointerdown', 'keydown', 'touchstart', 'wheel'].forEach(function(t) {
+    window.addEventListener(t, startAuth, { once: true, passive: true, capture: true });
+  });
+  function whenIdle() {
+    if ('requestIdleCallback' in window) window.requestIdleCallback(startAuth, { timeout: 4000 });
+    else setTimeout(startAuth, 1500);
+  }
+  if (document.readyState === 'complete') setTimeout(whenIdle, 1200);
+  else window.addEventListener('load', function() { setTimeout(whenIdle, 1200); }, { once: true });
+}
+window._startVisitorAuth = startAuth;
+
 document.addEventListener('DOMContentLoaded', function() {
   injectHTML();
   var saved = loadVisitor();
   /* only restore the logged-in UI for a real Google session; a saved
      "guest" keeps the Sign In button visible so they can still sign in */
   if (saved && saved.type === 'google' && saved.email) applyVisitorSession(saved, false);
-  init();
+  startAuthWhenNeeded();
 });
