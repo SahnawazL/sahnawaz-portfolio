@@ -1732,11 +1732,12 @@ section p {
   animation: resumeShimmer 3.5s ease-in-out infinite;
   pointer-events: none;
 }
+/* moved with transform instead of "left" (same path: start where it always did and travel the same distance, measured in its own width) so the graphics chip draws it */
 @keyframes resumeShimmer {
-  0%   { left: -80%; opacity: 0; }
+  0%   { transform: translateX(0) skewX(-18deg); opacity: 0; }
   20%  { opacity: 1; }
-  60%  { left: 130%; opacity: 0; }
-  100% { left: 130%; opacity: 0; }
+  60%  { transform: translateX(381.8182%) skewX(-18deg); opacity: 0; }
+  100% { transform: translateX(381.8182%) skewX(-18deg); opacity: 0; }
 }
 /* Bottom glow line */
 .glassy-resume::after {

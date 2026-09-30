@@ -531,11 +531,9 @@ img {
 <!-- ── 11. PERFORMANCE PRECONNECTS ──────────────────────────────── -->
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link rel="dns-prefetch" href="https://cdn.jsdelivr.net"/>
 <link rel="preconnect" href="https://unpkg.com" crossorigin/>
 <link rel="dns-prefetch" href="https://www.googletagmanager.com"/>
 <link rel="dns-prefetch" href="https://img.icons8.com"/>
-<link rel="dns-prefetch" href="https://cdnjs.cloudflare.com"/>
 
 <!-- Hero photo: a light copy (13–24 KB instead of 165 KB), fetched first
      because it is the biggest thing on the first screen. profile.jpg stays
@@ -975,7 +973,17 @@ section.hero-enter.sec-wipe { opacity: 1; transform: none; clip-path: none; tran
   if (!el) return;
   let ri = 0, ci = 0, deleting = false;
   const TYPE_SPEED = 68, DELETE_SPEED = 38, PAUSE = 1600;
+  /* rests while the role line is off screen (it re-typed the page ~20
+     times a second for nobody) and carries on where it left off */
+  let onScreen = true, resting = false;
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (en) {
+      onScreen = en[0].isIntersecting;
+      if (onScreen && resting) { resting = false; setTimeout(tick, TYPE_SPEED); }
+    }, { rootMargin: '200px 0px' }).observe(document.getElementById('typingRoleTag') || el);
+  }
   function tick() {
+    if (!onScreen) { resting = true; return; }
     const word = roles[ri];
     if (!deleting) {
       el.textContent = word.slice(0, ++ci);
@@ -1867,6 +1875,18 @@ function ptestiToggle(card) {
 
   render();
   startAuto();
+
+  /* autoplay only while the slider is on screen; coming back restarts the
+     current story's bar so it matches the next change */
+  if ('IntersectionObserver' in window) {
+    let seen = true;
+    new IntersectionObserver(function (en) {
+      const vis = en[0].isIntersecting;
+      if (vis === seen) return;
+      seen = vis;
+      if (vis) { render(); startAuto(); } else clearInterval(autoTimer);
+    }, { rootMargin: '200px 0px' }).observe(stage);
+  }
 })();
 </script>
 <!-- ===== STATS DASHBOARD ===== -->
@@ -2840,9 +2860,12 @@ window.addEventListener('resize', () => {
     "Others: Hidden costs after quote 👉 Me: 100% transparent fixed pricing",
     "Others: Ghosts after payment 👉 Me: Lifetime update support"
   ];
-  var ci = 0;
+  var ci = 0, cmpSeen = true;
+  if (compareEl && 'IntersectionObserver' in window) {
+    new IntersectionObserver(function(en){ cmpSeen = en[0].isIntersecting; }, { rootMargin: '200px 0px' }).observe(compareEl);
+  }
   setInterval(function(){
-    if (!compareEl) return;
+    if (!compareEl || !cmpSeen) return; /* nobody is looking: skip this change */
     compareEl.style.opacity = '0';
     setTimeout(function(){
       ci = (ci + 1) % lines.length;
@@ -4429,7 +4452,11 @@ function sendMail(e) { if(e) e.preventDefault(); ctSendMail(); }
     dateEl.textContent = days[now.getDay()] + ' ' + String(now.getDate()).padStart(2,'0') + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
   }
   tick();
-  setInterval(tick, 1000);
+  var clockSeen = true;
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function(en){ clockSeen = en[0].isIntersecting; if (clockSeen) tick(); }, { rootMargin: '100px 0px' }).observe(timeEl);
+  }
+  setInterval(function(){ if (clockSeen) tick(); }, 1000);
 
   /* ── Secret easter egg on date/time click ── */
   var hideTimer = null;
@@ -4699,7 +4726,17 @@ document.addEventListener('DOMContentLoaded', function(){
       });
     }
 
+    /* plays while the card is on screen and picks up where it stopped
+       (it used to keep adding bubbles off screen all visit) */
+    var clSeen = true, clResting = false;
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function(en){
+        clSeen = en[0].isIntersecting;
+        if (clSeen && clResting) { clResting = false; nextMessage(); }
+      }, { rootMargin: '200px 0px' }).observe(card);
+    }
     function nextMessage() {
+      if (!clSeen) { clResting = true; return; }
       var item = script[idx % script.length];
       idx++;
       showTyping(item.side).then(function(){
@@ -4936,15 +4973,9 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 <script defer src="/_vercel/speed-insights/script.js"></script>
 
-<script>
-/* Load particles.js async — was previously blocking render in <head> */
-(function(){
-  var s = document.createElement('script');
-  s.src = 'https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js';
-  s.async = true;
-  document.body.appendChild(s);
-})();
-</script>
+<!-- particles.js used to be downloaded here, but nothing starts it any
+     more (the particle background was switched off for speed), so the
+     download was pure waste and has been removed. -->
 
 
 <script>

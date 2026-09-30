@@ -136,10 +136,14 @@
 
   /* ---------- styles ------------------------------------------- */
   var CSS =
-    /* off-screen pausing: one class per place an animation can live */
-    '.pg-off-e{animation-play-state:paused !important}' +
-    '.pg-off-b::before{animation-play-state:paused !important}' +
-    '.pg-off-a::after{animation-play-state:paused !important}' +
+    /* off-screen pausing: one class per place an animation can live.
+       The :not(#pg-z) parts only add weight: some effects set their
+       animation with !important under an ID (the live performance card)
+       or a class + tag (the bio keywords), which outranked a plain class,
+       so those kept running off screen. This outranks them. */
+    '.pg-off-e:not(#pg-z):not(#pg-z):not(#pg-z){animation-play-state:paused !important}' +
+    '.pg-off-b:not(#pg-z):not(#pg-z):not(#pg-z)::before{animation-play-state:paused !important}' +
+    '.pg-off-a:not(#pg-z):not(#pg-z):not(#pg-z)::after{animation-play-state:paused !important}' +
     /* lite tier: frosted glass off everywhere */
     'html.pg-lite *,html.pg-lite *::before,html.pg-lite *::after{' +
       '-webkit-backdrop-filter:none !important;backdrop-filter:none !important}' +

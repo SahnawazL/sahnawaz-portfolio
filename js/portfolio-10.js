@@ -24,12 +24,25 @@
     d.style.transform = `translate(-50%,-50%) scale(${0.4 + Math.random() * 0.7})`;
     clearTimeout(d._t);
     d._t = setTimeout(() => { d.style.opacity = '0'; }, 150);
+    wakeRing();
   });
-  (function animRing() {
+  /* The ring glides after the mouse. It used to be moved every frame
+     forever — even on phones, where it is hidden, and while the mouse sat
+     still — so now it only runs while it still has somewhere to go and
+     sleeps until the mouse moves again. Same glide as before. */
+  let ringOn = false;
+  function animRing() {
     rx += (mx - rx) * 0.13; ry += (my - ry) * 0.13;
+    if (Math.abs(mx - rx) < 0.3 && Math.abs(my - ry) < 0.3) { rx = mx; ry = my; ringOn = false; }
     ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+    if (ringOn) requestAnimationFrame(animRing);
+  }
+  function wakeRing() {
+    if (ringOn || !ring) return;
+    ringOn = true;
     requestAnimationFrame(animRing);
-  })();
+  }
+  if (ring) { ring.style.left = rx + 'px'; ring.style.top = ry + 'px'; }
 
   /* ── 3. SECTION WIPE ── */
   document.querySelectorAll('section').forEach(s => {
