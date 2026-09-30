@@ -750,7 +750,40 @@ header::after {
    .language-switch, #shipToastRoot), so the trigger lives in the hero
    row with the other CTAs. The ⌘K hint is hidden on touch devices,
    where it would simply be untrue. */
-.hero-cta-search{ font-family:inherit; cursor:pointer; }
+/* <button> pills don't inherit the font/line-height the <a> pills get, so
+   set them to match (same font, same 1.6 line-height → same height) */
+.hero-cta-search{ font-family:'DM Sans', sans-serif; line-height:1.6; cursor:pointer; }
+
+/* ══ "Talk to My AI Assistant" pill — opens the chat ══
+   Same glass pill as its neighbours, with a cyan→violet gradient border,
+   a sparkle icon and a green "online" dot so it reads as a live assistant.
+   Only opacity animates (cheap). On phones it wraps onto its own row. */
+.hero-cta-ai{
+  font-family:'DM Sans', sans-serif; line-height:1.6; cursor:pointer;
+  border:1px solid transparent;
+  background:
+    linear-gradient(135deg, rgba(14,30,48,.92), rgba(18,24,52,.92)) padding-box,
+    linear-gradient(120deg, rgba(80,210,255,.75), rgba(150,120,255,.75), rgba(80,210,255,.75)) border-box;
+  color:#eef7ff;
+  touch-action:manipulation;
+  -webkit-user-select:none; user-select:none;
+}
+.hero-cta-ai:hover{
+  border-color:transparent;
+  background:
+    linear-gradient(135deg, rgba(18,38,60,.95), rgba(26,30,66,.95)) padding-box,
+    linear-gradient(120deg, #50d2ff, #9a84ff, #50d2ff) border-box;
+  box-shadow:0 10px 26px rgba(0,0,0,.35), 0 0 22px rgba(140,120,255,.28);
+}
+.hero-ai-live{
+  width:7px; height:7px; border-radius:50%; flex-shrink:0;
+  margin-left:2px;
+  background:#2dff9b;
+  box-shadow:0 0 8px rgba(45,255,155,.75);
+  animation:heroAiLive 2s ease-in-out infinite;
+}
+@keyframes heroAiLive{ 0%,100%{ opacity:1; } 50%{ opacity:.35; } }
+@media (prefers-reduced-motion: reduce){ .hero-ai-live{ animation:none; } }
 .hero-kbd{
   margin-left:8px; padding:2px 6px; border-radius:5px;
   font-family:ui-monospace,'SF Mono','Fira Code',monospace;
