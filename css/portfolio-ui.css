@@ -794,66 +794,119 @@ header::after {
 }
 @media (hover:none),(max-width:768px){ .hero-kbd{ display:none; } }
 
-/* ══ View Telemetry — click signature ══
-   The other two pills land on sections that animate on arrival; this one
-   didn't have anything. Given it links to live engineering telemetry, the
-   effect is a radar sweep + signal burst rather than a generic ripple.
-   Everything animates transform/opacity only, so it stays on the
-   compositor. */
-/* Keep the base `overflow:hidden`. Overriding it to visible let the
-   rings escape, but it also un-clipped the shared ::before hover
-   shimmer, which then slid out past the pill’s edge. Clipped rings
-   read as a ripple filling the button, which is the better look
-   anyway; the lock-on glow is a box-shadow, so it still extends
-   outside regardless of clipping. */
-.hero-cta-btn[href="#recent-activity"]{ position:relative; }
+/* ══ Hero shortcut pills — click signature + arrival scan ══
+   Shared by all five pills (engine: portfolio-06.js "Hero shortcut pills").
+   Each pill gets a theme through data-pfx; colors come from custom
+   properties so the mechanics are identical and only the look changes.
+   Rings + sweep are clipped by the pill (overflow:hidden), the lock-on
+   glow is a box-shadow so it still shows outside. Only transform and
+   opacity animate → compositor only, no layout, no lag while scrolling. */
+.hero-cta-btn{ --fx1:rgba(80,210,255,.85); --fx2:rgba(80,255,190,.7); --fx3:rgba(140,160,255,.55);
+               --fxs:rgba(140,255,220,.75); --fxl:rgba(120,255,220,.85); --fxg:rgba(80,210,255,.45); }
+.hero-cta-btn[data-pfx="experience"]{ --fx1:rgba(255,190,90,.9); --fx2:rgba(80,210,255,.7); --fx3:rgba(255,130,90,.55);
+               --fxs:rgba(255,210,130,.8); --fxl:rgba(255,200,110,.85); --fxg:rgba(255,170,70,.42); }
+.hero-cta-btn[data-pfx="search"]{ --fx1:rgba(200,240,255,.9); --fx2:rgba(80,210,255,.75); --fx3:rgba(160,220,255,.55);
+               --fxs:rgba(220,245,255,.8); --fxl:rgba(190,235,255,.85); --fxg:rgba(120,210,255,.45); }
+.hero-cta-btn[data-pfx="contact"]{ --fx1:rgba(60,255,160,.9); --fx2:rgba(80,210,255,.7); --fx3:rgba(60,230,200,.55);
+               --fxs:rgba(120,255,190,.8); --fxl:rgba(80,255,170,.85); --fxg:rgba(40,230,150,.42); }
+.hero-cta-btn[data-pfx="ai"]{ --fx1:rgba(170,140,255,.9); --fx2:rgba(80,210,255,.75); --fx3:rgba(255,140,230,.5);
+               --fxs:rgba(200,180,255,.8); --fxl:rgba(170,150,255,.9); --fxg:rgba(150,120,255,.45); }
 
-/* expanding radar rings */
-.tele-ring{
+/* expanding rings (search: rings focus inward, like a lens) */
+.pfx-ring{
   position:absolute; left:50%; top:50%;
   width:14px; height:14px; margin:-7px 0 0 -7px;
-  border:1.5px solid rgba(80,210,255,0.85);
-  border-radius:50%;
+  border:1.5px solid var(--fx1); border-radius:50%;
   pointer-events:none;
-  animation:teleRing 900ms cubic-bezier(.22,.7,.3,1) forwards;
+  animation:pfxRing 900ms cubic-bezier(.22,.7,.3,1) forwards;
+  will-change:transform, opacity;
 }
-.tele-ring.r2{ animation-delay:140ms; border-color:rgba(80,255,190,0.7); }
-.tele-ring.r3{ animation-delay:280ms; border-color:rgba(140,160,255,0.55); }
-@keyframes teleRing{
-  0%   { transform:scale(0.3); opacity:0.95; }
-  70%  { opacity:0.40; }
-  100% { transform:scale(13); opacity:0; }   /* clipped by the pill */
-}
+.pfx-ring.r2{ animation-delay:140ms; border-color:var(--fx2); opacity:0; }
+.pfx-ring.r3{ animation-delay:280ms; border-color:var(--fx3); opacity:0; }
+@keyframes pfxRing{ 0%{ transform:scale(.3); opacity:.95; } 70%{ opacity:.4; } 100%{ transform:scale(13); opacity:0; } }
+.hero-cta-btn[data-pfx="search"] .pfx-ring{ animation-name:pfxFocus; }
+@keyframes pfxFocus{ 0%{ transform:scale(13); opacity:0; } 25%{ opacity:.7; } 100%{ transform:scale(.4); opacity:0; } }
 
-/* a signal sweep that runs the width of the pill */
-.tele-sweep{
-  position:absolute; inset:0; border-radius:inherit;
-  pointer-events:none; overflow:hidden;
-}
-.tele-sweep::after{
-  content:''; position:absolute; top:0; bottom:0; width:38%;
-  background:linear-gradient(90deg,
-    rgba(80,210,255,0) 0%,
-    rgba(80,210,255,0.55) 45%,
-    rgba(140,255,220,0.75) 55%,
-    rgba(80,210,255,0) 100%);
+/* a light sweep across the pill */
+.pfx-sweep{ position:absolute; inset:0; border-radius:inherit; pointer-events:none; overflow:hidden; }
+.pfx-sweep::after{
+  content:''; position:absolute; top:0; bottom:0; left:0; width:38%;
+  background:linear-gradient(90deg, transparent 0%, var(--fx1) 45%, var(--fxs) 55%, transparent 100%);
+  opacity:.75;
   transform:translateX(-140%);
-  animation:teleSweep 620ms ease-out forwards;
+  animation:pfxSweep 620ms ease-out forwards;
+  will-change:transform;
 }
-@keyframes teleSweep{ to { transform:translateX(320%); } }
+@keyframes pfxSweep{ to{ transform:translateX(320%); } }
 
-/* the pill briefly "locks on" */
-.hero-cta-btn.tele-firing{
-  border-color:rgba(120,255,220,0.85) !important;
-  box-shadow:0 0 0 1px rgba(120,255,220,0.35),
-             0 0 22px rgba(80,210,255,0.45) !important;
+/* the pill "locks on" for a moment */
+.hero-cta-btn.pfx-firing{
+  border-color:var(--fxl) !important;
+  box-shadow:0 0 0 1px var(--fxg), 0 0 22px var(--fxg) !important;
 }
-/* its waveform icon pulses like an incoming reading */
-.hero-cta-btn.tele-firing svg{ animation:teleBeat 620ms ease-out; }
-@keyframes teleBeat{
-  0%,100%{ transform:scaleY(1); }
-  30%    { transform:scaleY(1.65); }
-  60%    { transform:scaleY(0.75); }
+.hero-cta-btn.pfx-firing svg{ will-change:transform; }
+/* each icon reacts to its own theme */
+.hero-cta-btn.pfx-firing[data-pfx="telemetry"]  svg{ animation:pfxBeat 620ms ease-out; }
+.hero-cta-btn.pfx-firing[data-pfx="experience"] svg{ animation:pfxLaunch 700ms cubic-bezier(.3,.7,.3,1); }
+.hero-cta-btn.pfx-firing[data-pfx="search"]     svg{ animation:pfxZoom 600ms ease-out; }
+.hero-cta-btn.pfx-firing[data-pfx="contact"]    svg{ animation:pfxSend 700ms cubic-bezier(.3,.7,.3,1); }
+.hero-cta-btn.pfx-firing[data-pfx="ai"]         svg{ animation:pfxTwinkle 700ms ease-out; }
+@keyframes pfxBeat{ 0%,100%{ transform:scaleY(1); } 30%{ transform:scaleY(1.65); } 60%{ transform:scaleY(.75); } }
+@keyframes pfxLaunch{ 0%{ transform:none; } 35%{ transform:translate(4px,-5px) rotate(-8deg); opacity:.4; } 36%{ transform:translate(-4px,5px); opacity:0; } 100%{ transform:none; opacity:1; } }
+@keyframes pfxZoom{ 0%,100%{ transform:scale(1); } 35%{ transform:scale(1.4); } 65%{ transform:scale(.9); } }
+@keyframes pfxSend{ 0%{ transform:none; } 40%{ transform:translateX(6px) scale(.85); opacity:0; } 41%{ transform:translateX(-6px); opacity:0; } 100%{ transform:none; opacity:1; } }
+@keyframes pfxTwinkle{ 0%{ transform:none; } 40%{ transform:rotate(90deg) scale(1.35); } 100%{ transform:rotate(180deg) scale(1); } }
+
+/* arrival: one scan line passes down the destination (section, search
+   panel or chat window). Hosts are already position:relative/fixed. */
+.pfx-scan{
+  --c:rgba(80,210,255,.9); --g:rgba(80,210,255,.8);
+  position:absolute; left:0; right:0; top:0; height:2px;
+  background:linear-gradient(90deg, transparent 0%, var(--c) 50%, transparent 100%);
+  box-shadow:0 0 16px var(--g);
+  pointer-events:none; z-index:30;
+  animation:pfxScan 1500ms ease-in-out forwards;
+  will-change:transform, opacity;
+}
+.pfx-scan[data-pfx="experience"]{ --c:rgba(255,200,110,.95); --g:rgba(255,170,70,.75); }
+.pfx-scan[data-pfx="search"]    { --c:rgba(200,240,255,.95); --g:rgba(120,210,255,.8); animation-duration:900ms; }
+.pfx-scan[data-pfx="contact"]   { --c:rgba(80,255,170,.95);  --g:rgba(40,230,150,.75); }
+.pfx-scan[data-pfx="ai"]        { --c:rgba(180,160,255,.95); --g:rgba(150,120,255,.8); animation-duration:1100ms; }
+@keyframes pfxScan{
+  0%  { transform:translateY(0); opacity:0; }
+  12% { opacity:1; }
+  88% { opacity:1; }
+  100%{ transform:translateY(var(--pfx-h, 420px)); opacity:0; }
+}
+
+/* taps on phones: no "stuck" hover (lifted, glowing pill after a tap);
+   the :active press is the feedback instead */
+@media (hover: none){
+  .hero-cta-btn:hover{
+    transform:none;
+    border-color:rgba(80,210,255,0.22);
+    background:linear-gradient(135deg, rgba(80,210,255,0.09), rgba(255,255,255,0.02));
+    box-shadow:0 4px 16px rgba(0,0,0,0.25);
+  }
+  .hero-cta-ai:hover{
+    border-color:transparent;
+    background:
+      linear-gradient(135deg, rgba(14,30,48,.92), rgba(18,24,52,.92)) padding-box,
+      linear-gradient(120deg, rgba(80,210,255,.75), rgba(150,120,255,.75), rgba(80,210,255,.75)) border-box;
+    box-shadow:0 4px 16px rgba(0,0,0,0.25);
+  }
+  .hero-cta-btn:hover::before{ transform:translateX(-150%) skewX(-20deg); }
+  .hero-cta-btn:active{ transform:scale(0.96); }
+}
+.hero-cta-btn{ touch-action:manipulation; }
+/* hover shimmer glides with transform instead of `left` (no re-layout) */
+.hero-cta-btn::before{
+  left:0 !important;
+  transform:translateX(-150%) skewX(-20deg);
+  transition:transform 0.65s ease !important;
+}
+@media (hover: hover){
+  .hero-cta-btn:hover::before{ transform:translateX(250%) skewX(-20deg); }
 }
 
 /* arrival: a scan line crosses the telemetry section once */
@@ -874,10 +927,10 @@ header::after {
 }
 
 @media (prefers-reduced-motion: reduce){
-  .tele-ring, .tele-sweep::after,
-  .hero-cta-btn.tele-firing svg,
+  .pfx-ring, .pfx-sweep::after, .pfx-scan,
+  .hero-cta-btn.pfx-firing svg,
   .ra-section.tele-arrived::before { animation:none !important; }
-  .tele-ring, .tele-sweep { display:none !important; }
+  .pfx-ring, .pfx-sweep, .pfx-scan { display:none !important; }
 }
 @media (max-width: 480px) {
   .hero-cta-btn { font-size: 0.72rem; padding: 0.55rem 0.95rem; }
