@@ -934,3 +934,24 @@
   .dsk-dr-item.is-plan .dsk-dr-ic { color: #7ff2c4; background: rgba(79,224,162,.12); border-color: rgba(79,224,162,.3); }
   .dsk-dr-item.is-plan .dsk-dr-t { color: #dfffee; font-weight: 600; }
 }
+
+/* Help menu: 5 actions now (planner + website check + 3 flows) */
+#helpPanel.help-open { max-height: 270px; }
+#chatWidget .help-btn-check {
+  border-color: rgba(80,210,255,.38);
+  background: rgba(80,210,255,.08);
+  color: #9fe6ff;
+  font-weight: 700;
+}
+
+/* Chat bubbles: the width limit lives on the row, not the bubble.
+   The bubble's max-width was a % of its own shrink-to-fit row, so short
+   messages ("💼 I have a project", "spiceroute.in") wrapped or clipped
+   early. Rich replies keep their wider limit. */
+#chatMessages .chat-msg-wrap.user,
+#chatMessages .chat-msg-wrap.bot { max-width: 86%; }
+#chatMessages .chat-msg-wrap.bot:has(> .chat-msg.rich-reply) { max-width: 94%; }
+#chatMessages .chat-msg-wrap.user > .chat-msg,
+#chatMessages .chat-msg-wrap.bot > .chat-msg { max-width: 100%; }
+#chatMessages .chat-msg-wrap.brief-card-wrap,
+#chatMessages .chat-msg-wrap.wc-mini-wrap { max-width: none; }
