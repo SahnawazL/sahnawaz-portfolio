@@ -612,9 +612,11 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
     // who says "I want to hire him" always gets a one-tap way to act on it.
     // The chip goes FIRST so the page's two-chip limit never drops it.
     const flowChip = pickFlowChip(trimmed);
-    if (flowChip && !/\[\[go:(send-message|send-resume|callback|brief)\|/i.test(reply)) {
+    if (flowChip && !/\[\[go:(send-message|send-resume|callback|brief|website-check)\|/i.test(reply)) {
       reply = flowChip + '\n' + reply;
     }
+    // Every chip must fit what was asked, and say where it goes
+    reply = tidyChips(reply, trimmed);
 
     // ── UPGRADE 6: Question logging ──────────────────────────────────────
     // Logs intent + question (no personal data) for knowledge base improvement
@@ -672,6 +674,67 @@ function handleTerminal(req, res) {
   });
 }
 
+// ── Chips: right destination, honest label ────────────────────────────────
+// The model sometimes copies an example chip onto an unrelated answer (a
+// "See what's included" pricing chip under "How was this chatbot built?").
+// Here a chip is kept only if the question or the answer is about where it
+// leads; otherwise it is swapped for the chip the question is really about.
+// Labels are fixed per destination so a chip always says where it goes.
+const LINK_LABELS = {
+  services: '💰 See services & pricing',
+  portfolio: '🧩 How this site was built',
+  studylens: '📚 StudyLens AI case study',
+  yojanasahay: '🇮🇳 YojanaSahay case study',
+  projects: '🚀 See his projects',
+  experience: '💼 See his work experience',
+  stack: '🛠️ See his tech stack',
+  telemetry: '📡 Live coding activity',
+  contact: '📬 Go to contact',
+  resume: '📄 Get his resume',
+  performance: '⚡ Live performance report'
+};
+const ACTION_LABELS = {
+  'send-message': '📧 Message Sahnawaz',
+  'send-resume': '📄 Email me his resume',
+  'callback': '📅 Request a callback',
+  'brief': '📝 Plan my project with AI',
+  'website-check': '🩺 Free website check'
+};
+const CHIP_TOPICS = [            // order = which one wins when several fit
+  ['studylens',   /studylens|study lens|homework (helper|app)/i],
+  ['yojanasahay', /yojana|welfare scheme|government scheme|sarkari yojana/i],
+  ['portfolio',   /\bthis (ai )?(chat ?bot|bot|assistant|website|site|portfolio)\b|\b(the|your) (chat ?bot|assistant)\b|how (was|is|did) (this|the|your) (site|website|portfolio|chat|chat ?bot|bot|assistant)|hacker mode|built (this|the) (site|website|chat ?bot)|chat ?bot (was )?built/i],
+  ['performance', /performance report|core web vitals|lighthouse|how fast is (this|his) (site|website|portfolio)/i],
+  ['services',    /pric|\bcost|charge|\bfees?\b|rate card|package|how much|₹|\brs\.?\s?\d|budget|quote|services? (does|do) (he|you) offer|what (services|does he offer)/i],
+  ['experience',  /experience|worked (at|with|for)|flipkart|xiaomi|rapido|career|previous (jobs?|compan)|big brands/i],
+  ['stack',       /tech ?stack|technolog|tools (does|do) he|languages (does|do) he|frameworks?|which stack|what does he (code|build) with/i],
+  ['telemetry',   /github|streak|\bcommits?\b|shipped recently|coding right now|telemetry|recent activity/i],
+  ['projects',    /\bprojects?\b|\bapps?\b.*\b(built|made|created)\b|what (has|did) he (built|build|make|made)|his work\b|work samples/i],
+  ['resume',      /\b(resume|résumé|cv)\b/i],
+  ['contact',     /\bcontact\b|reach (him|sahnawaz)|get in touch|email (him|address)|phone number/i]
+];
+function topicsOf(s) { return CHIP_TOPICS.filter(function (t) { return t[1].test(s); }).map(function (t) { return t[0]; }); }
+function tidyChips(reply, question) {
+  const found = [];
+  let text = String(reply).replace(/\[\[go:([a-z-]+)\|([^\]]{1,60})\]\]/gi, function (_, key) { found.push(String(key).toLowerCase()); return ''; });
+  const q = String(question || '');
+  const qTopics = topicsOf(q);
+  const allTopics = topicsOf(q + ' ' + text);
+  const out = [];
+  const add = function (k) { if (k && out.indexOf(k) < 0) out.push(k); };
+  found.forEach(function (k) {
+    if (ACTION_LABELS[k]) return add(k);
+    if (!LINK_LABELS[k]) return;                     // not a real destination
+    if (allTopics.indexOf(k) > -1) return add(k);    // fits the conversation
+    add(qTopics[0]);                                 // wrong chip → the one the question is about
+  });
+  /* the question clearly points at a part of the site: offer it */
+  if (!out.some(function (k) { return LINK_LABELS[k]; }) && qTopics[0]) add(qTopics[0]);
+  text = text.replace(/\n{3,}/g, '\n\n').trim();
+  const chips = out.slice(0, 2).map(function (k) { return '[[go:' + k + '|' + (LINK_LABELS[k] || ACTION_LABELS[k]) + ']]'; });
+  return chips.length ? text + '\n' + chips.join('\n') : text;
+}
+
 // Strong, explicit wishes only — a passing "project" or "email" is not enough.
 function pickFlowChip(text) {
   const t = String(text || '').toLowerCase();
@@ -680,6 +743,10 @@ function pickFlowChip(text) {
   }
   if (/\b(call ?back|call me|phone call|schedule (a )?call|book (a )?call|talk on (the )?phone)\b/.test(t)) {
     return '[[go:callback|📅 Request a callback]]';
+  }
+  // Their existing website → the free website check (speed on a phone, Google, WhatsApp preview…)
+  if (/\b(check|audit|test|scan|analy[sz]e|review|improve|fix)\b[^.?!]{0,30}\b(my|our)\s+(web ?site|site)\b|\bwhy is (my|our) (web ?site|site)\b|\b(my|our) (web ?site|site) is (slow|not working|outdated|old)\b|\bwebsite (audit|check)\b/.test(t)) {
+    return '[[go:website-check|🩺 Free website check]]';
   }
   // A project to plan → the AI project brief (collects details, sends Sahnawaz a brief)
   if (/\b(start (a|my|our) project|build (me|my|our)|make (me|my|our) (a )?(website|site|app|store)|(need|want|looking for|get) (a |an )?(new )?(website|site|web ?app|app|online store|e-?commerce|landing page|portfolio)|(get|need|want) (a )?(quote|estimate)|quotation|project brief)\b/.test(t)) {

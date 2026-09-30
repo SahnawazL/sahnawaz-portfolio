@@ -11,6 +11,10 @@
 
 const { initializeApp, getApps, cert } = require('firebase-admin/app');
 const { getFirestore, FieldValue }      = require('firebase-admin/firestore');
+/* The free "Website check" for business owners also runs here
+   (POST { mode: 'check' | 'check-email' }), so it needs no function of
+   its own — the logic lives in lib/website-check.js. */
+const websiteCheck = require('../lib/website-check');
 
 /* ── Init Firebase Admin once (survives warm restarts) ── */
 function getDB() {
@@ -60,6 +64,16 @@ module.exports = async function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
+  /* ---------------- the free website check ---------------- */
+  if (req.method === 'POST') {
+    let mb = req.body;
+    if (typeof mb === 'string') { try { mb = JSON.parse(mb || '{}'); } catch (e) { mb = {}; } }
+    if (mb && (mb.mode === 'check' || mb.mode === 'check-email')) {
+      req.body = mb;
+      return websiteCheck.handle(req, res, { getDB, FieldValue });
+    }
+  }
+
   /* ---------------- read: the field numbers ---------------- */
   if (req.method === 'GET') {
     if (cache.body && Date.now() - cache.at < CACHE_MS) {
@@ -105,7 +119,9 @@ module.exports = async function handler(req, res) {
     return res.status(403).json({ error: 'forbidden' });
   }
 
-  const b = (typeof req.body === 'string' ? JSON.parse(req.body || '{}') : req.body) || {};
+  let b;
+  try { b = (typeof req.body === 'string' ? JSON.parse(req.body || '{}') : req.body) || {}; }
+  catch (e) { return res.status(400).json({ stored: false, reason: 'bad body' }); }
   const sample = {
     lcp:  num(b.lcp, 120000),
     cls:  num(b.cls, 10),
