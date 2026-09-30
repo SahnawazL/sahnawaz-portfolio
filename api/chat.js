@@ -4,10 +4,16 @@
 // Upgrades: conversation memory, intent detection, name memory,
 //           language auto-detect, spam filter, question logging
 // Knowledge: added "What he doesn't offer" + "Current Focus 2025-2026"
-// Concurrency: single-user lock (max 1 request at a time)
+// Concurrency: small per-instance cap (MAX_IN_FLIGHT), always released in `finally`
 
-// ── Single-user lock (max 1 request at a time) ──────────────────────────────
-let isProcessing = false;
+// ── Concurrency cap ─────────────────────────────────────────────────────────
+// Previously a single boolean lock allowed only ONE chat request per warm
+// instance, so a second visitor chatting at the same moment was turned away,
+// and any uncaught exception left the lock stuck until the instance recycled.
+// Now: a small counter (a few requests at once is well inside Groq's free-tier
+// RPM) that is ALWAYS released in the wrapper's `finally`, crash or not.
+const MAX_IN_FLIGHT = 3;
+let inFlight = 0;
 
 // ── LIVE YOJANASAHAY STATS ───────────────────────────────────────────────────
 // The knowledge base used to hardcode "3,000+ schemes" for YojanaSahay, which
@@ -113,22 +119,37 @@ const handler = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  // Enforce single-user: reject if another request is already being processed
-  if (isProcessing) {
-    return res.status(429).json({ reply: "I'm thinking for a moment — please wait and try again! 😊" });
-  }
-  isProcessing = true;
+  // Private terminal commands — tiny lookup, no AI call, so no concurrency slot
+  if (req.body && req.body.source === 'terminal') return handleTerminal(req, res);
 
-  const { message, history = [], visitorName = null, visitorActivity = null, source = null } = req.body || {};
+  if (inFlight >= MAX_IN_FLIGHT) {
+    res.setHeader('Retry-After', '2');
+    return res.status(429).json({ busy: true, reply: "I'm answering a few people at once — give me a second and try again! 😊" });
+  }
+  inFlight++;
+  try {
+    return await handleChat(req, res);
+  } catch (err) {
+    console.error('[chat] unhandled error:', err);
+    if (!res.headersSent) {
+      return res.status(200).json({
+        reply: "Something went wrong! 😅 Contact Sahnawaz at shzthedigitalalchemist@gmail.com"
+      });
+    }
+  } finally {
+    inFlight--;
+  }
+};
+
+async function handleChat(req, res) {
+  const { message, history = [], visitorName = null, visitorActivity = null, source = null, visitorType = null } = req.body || {};
 
   if (!message || !message.trim()) {
-    isProcessing = false;
     return res.status(400).json({ reply: 'No message received.' });
   }
 
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
-    isProcessing = false;
     return res.status(500).json({ reply: 'API key not configured.' });
   }
 
@@ -181,7 +202,6 @@ STRICT RULES:
         if (wizReply) {
           // Strip any [CAT:...] tags just in case (all variants)
           wizReply = wizReply.replace(/\*{0,2}\[?(?:CAT|KAT|CATEGORY):[\w]+\]?\*{0,2}[\s\n]*/gi, '').trim();
-          isProcessing = false;
           return res.status(200).json({ reply: wizReply });
         } else {
           console.error('[wizard] Groq returned no content:', JSON.stringify(wizData));
@@ -195,7 +215,6 @@ STRICT RULES:
     }
 
     // Wizard fallback — should rarely trigger
-    isProcessing = false;
     return res.status(200).json({
       reply: "Based on your selections, Sahnawaz will have an accurate quote ready for you — just fill in the form below and he'll reply within 24 hours! 🚀"
     });
@@ -203,7 +222,7 @@ STRICT RULES:
   // ── END WIZARD FAST-PATH ────────────────────────────────────────────────
 
   // ── SMART GREETING HANDLER ──────────────────────────────────────────────
-  // Bypasses lock, spam filter, knowledge base. Generates unique personalised
+  // Bypasses spam filter and knowledge base. Generates unique personalised
   // greeting every time using visitor activity data.
   if (trimmed.startsWith('__GREETING__:')) {
     const va = visitorActivity || {};
@@ -260,7 +279,6 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
         const greetData = await greetRes.json();
         const greetReply = greetData?.choices?.[0]?.message?.content?.trim() || null;
         if (greetReply) {
-          isProcessing = false;
           return res.status(200).json({ reply: greetReply });
         } else {
           console.error('[greeting] Groq returned no content:', JSON.stringify(greetData));
@@ -274,7 +292,6 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
     }
 
     // Fallback if API fails
-    isProcessing = false;
     const fallbacks = [
       `Welcome back, ${name}! 😊 Great to see you again — I'm here whenever you need me.`,
       `Hey ${name}! 👋 Good ${timeOfDay} — glad you're back. What's on your mind?`,
@@ -293,11 +310,9 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
   const isAbusive = /\b(fuck|shit|bastard|idiot|stupid|moron|asshole|bitch|damn you)\b/i.test(trimmed);
 
   if (isGibberish) {
-    isProcessing = false;
     return res.status(200).json({ reply: "Hmm, I didn't quite catch that 😄 Try asking me something about Sahnawaz!" });
   }
   if (isAbusive) {
-    isProcessing = false;
     return res.status(200).json({ reply: "Hey, let's keep it friendly! 😊 I'm here to help — ask me anything about Sahnawaz's work." });
   }
 
@@ -319,6 +334,14 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
     intent === 'skills'   ? 'The visitor is curious about technical skills — be specific and confident.'   :
     intent === 'greeting' ? 'The visitor is just saying hi — be warm, fun and welcoming.'                 :
     '';
+
+  // ── Visitor type (chosen in the chat: "What brings you here?") ──────────
+  const VISITOR_TYPE_HINTS = {
+    recruiter: 'The visitor said they are a RECRUITER / hiring. Stay professional. Lead with experience, skills and that he is open to full-time roles. When it fits, offer [[go:send-resume|📄 Email me his resume]].',
+    client:    'The visitor said they HAVE A PROJECT (potential client). Focus on what they want built, pricing and timelines, and ask one short question about their project when useful. When it fits, offer [[go:send-message|📧 Message Sahnawaz]].',
+    browsing:  'The visitor said they are JUST BROWSING. Keep it light, friendly and short; show off his work and the fun parts of the site.'
+  };
+  const visitorTypeHint = VISITOR_TYPE_HINTS[visitorType] || '';
 
   // ── SITE COMMAND DETECTION (client-side execution, zero extra tokens) ─────
   // Detects natural language requests to control the portfolio site.
@@ -349,7 +372,6 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
       q: trimmed.slice(0, 80), t: new Date().toISOString()
     }));
 
-    isProcessing = false;
     return res.status(200).json({
       reply:   commandReplies[siteCommand],
       command: siteCommand   // ← frontend reads this and executes
@@ -455,7 +477,7 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
     : '';
 
   const retrieved = buildKnowledge(trimmed, recentTurns, {
-    intentHint: intentHint ? `INTENT HINT: ${intentHint}` : '',
+    intentHint: [intentHint ? `INTENT HINT: ${intentHint}` : '', visitorTypeHint ? `VISITOR TYPE: ${visitorTypeHint}` : ''].filter(Boolean).join('\n'),
     langHint: langHint ? `LANGUAGE HINT: ${langHint}` : '',
     nameHint: nameHint ? `VISITOR HINT: ${nameHint}` : '',
     visitorActivityHint: visitorActivityHint || '',
@@ -491,6 +513,16 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
     'qwen/qwen3-32b'         // Fallback 2: safety net, 60 RPM / 6K TPM (free)
   ];
 
+  // Reasoning models spend part of max_tokens on hidden "thinking". Without a
+  // cap, a long think could use the whole budget and return EMPTY content,
+  // which used to surface as the generic "please reach Sahnawaz" fallback.
+  // gpt-oss: keep reasoning low (same as the greeting/wizard calls).
+  // qwen3:   turn thinking off, otherwise <think>…</think> lands in the reply.
+  const reasoningFor = (model) =>
+    model.startsWith('openai/gpt-oss') ? { reasoning_effort: 'low' } :
+    model.startsWith('qwen/')          ? { reasoning_effort: 'none' } :
+    {};
+
   const callGroq = async (model) => {
     return await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -502,41 +534,68 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
         model,
         messages,
         temperature: 0.75,
-        max_tokens: 900   // 900 is safe for single-user — detailed answers without hitting TPM limits
+        max_tokens: 1000,
+        ...reasoningFor(model)
       })
     });
   };
 
-  try {
-    let groqRes, lastError;
+  const cleanContent = (text) => String(text || '')
+    .replace(/<think>[\s\S]*?<\/think>/gi, '')   // safety net for any leaked reasoning
+    .trim();
 
+  try {
+    let reply = null, lastError = null;
+
+    // Try each model in order. Move on to the next one when a model is rate
+    // limited (429), the provider has a server error (5xx), or the model
+    // returned an empty reply. Other 4xx errors are request problems that the
+    // next model would hit too, so stop there.
     for (const model of MODELS) {
-      groqRes = await callGroq(model);
-      if (groqRes.ok) break;
+      let groqRes;
+      try {
+        groqRes = await callGroq(model);
+      } catch (netErr) {
+        lastError = { network: netErr && netErr.message };
+        console.warn(`Model ${model} network error:`, netErr && netErr.message);
+        continue;
+      }
+
+      if (groqRes.ok) {
+        const data = await groqRes.json().catch(() => null);
+        const content = cleanContent(data?.choices?.[0]?.message?.content);
+        if (content) { reply = content; break; }
+        lastError = { empty: true, finish: data?.choices?.[0]?.finish_reason };
+        console.warn(`Model ${model} returned an empty reply (finish_reason: ${lastError.finish})`);
+        continue;
+      }
 
       const errData = await groqRes.json().catch(() => ({}));
       lastError = errData;
       console.warn(`Model ${model} failed (${groqRes.status}):`, errData?.error?.code);
-
-      if (groqRes.status !== 429) break;
+      if (groqRes.status !== 429 && groqRes.status < 500) break;
     }
 
-    if (!groqRes.ok) {
+    if (!reply) {
       console.error('All models failed:', lastError);
-      isProcessing = false;
       return res.status(200).json({
         reply: "I'm having a small hiccup right now! 😊 Try again in a moment, or reach Sahnawaz at shzthedigitalalchemist@gmail.com"
       });
     }
 
-    const data  = await groqRes.json();
-    let reply = data?.choices?.[0]?.message?.content?.trim()
-      || "Please reach Sahnawaz directly at shzthedigitalalchemist@gmail.com 😊";
-
     // Strip ALL [CAT:...] tag variants from reply — used internally for intent routing,
     // should never be visible to visitors. Handles: [CAT:x], **[CAT:x]**, **CAT:x**, CAT:x
     // anywhere in the text (AI sometimes embeds them mid-response or wraps in bold).
     reply = reply.replace(/\*{0,2}\[?(?:CAT|KAT|CATEGORY):[\w]+\]?\*{0,2}[\s\n]*/gi, '').trim();
+
+    // ── Offer the right in-chat action when the visitor clearly wants one ──
+    // The model is asked to add these chips itself; this makes sure a visitor
+    // who says "I want to hire him" always gets a one-tap way to act on it.
+    // The chip goes FIRST so the page's two-chip limit never drops it.
+    const flowChip = pickFlowChip(trimmed);
+    if (flowChip && !/\[\[go:(send-message|send-resume|callback)\|/i.test(reply)) {
+      reply = flowChip + '\n' + reply;
+    }
 
     // ── UPGRADE 6: Question logging ──────────────────────────────────────
     // Logs intent + question (no personal data) for knowledge base improvement
@@ -548,16 +607,65 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
       t:      new Date().toISOString()
     }));
 
-    isProcessing = false;
     return res.status(200).json({ reply });
 
   } catch (err) {
     console.error('Server error:', err);
-    isProcessing = false;
     return res.status(200).json({
       reply: "Something went wrong! 😅 Contact Sahnawaz at shzthedigitalalchemist@gmail.com"
     });
   }
-};
+}
+
+// ── PRIVATE TERMINAL COMMANDS ───────────────────────────────────────────────
+// Personal easter eggs for the retro terminal (family names etc.) are NOT in
+// the repo or the page. They live in the Vercel environment variable
+// TERMINAL_EGGS as JSON:
+//   { "<command>": { "lines": ["..."], "style": "seq", "effect": "hearts" },
+//     "<public command>": { "variants": [["...", "..."]] } }
+// The terminal asks here only when someone types a command it doesn't know,
+// so the list of names can't be read from the site's code. Changing the
+// variable in Vercel needs a redeploy to take effect.
+let terminalEggs = null;
+function loadTerminalEggs() {
+  if (terminalEggs) return terminalEggs;
+  try {
+    terminalEggs = process.env.TERMINAL_EGGS ? JSON.parse(process.env.TERMINAL_EGGS) : {};
+  } catch (e) {
+    console.error('[terminal] TERMINAL_EGGS is not valid JSON:', e && e.message);
+    terminalEggs = {};
+  }
+  return terminalEggs;
+}
+
+function handleTerminal(req, res) {
+  res.setHeader('Cache-Control', 'no-store');
+  const cmd = String(req.body.cmd || '').toLowerCase().trim().slice(0, 40);
+  const eggs = loadTerminalEggs();
+  const e = cmd && Object.prototype.hasOwnProperty.call(eggs, cmd) ? eggs[cmd] : null;
+  if (!e || typeof e !== 'object') return res.status(200).json({ found: false });
+  const strList = (a) => Array.isArray(a) ? a.filter(x => typeof x === 'string') : [];
+  return res.status(200).json({
+    found: true,
+    lines: strList(e.lines),
+    variants: Array.isArray(e.variants) ? e.variants.map(strList).filter(v => v.length) : [],
+    effect: e.effect === 'hearts' ? 'hearts' : null
+  });
+}
+
+// Strong, explicit wishes only — a passing "project" or "email" is not enough.
+function pickFlowChip(text) {
+  const t = String(text || '').toLowerCase();
+  if (/\b(resume|résumé|cv|curriculum vitae)\b/.test(t) && /\b(send|share|email|mail|get|need|want|download|see)\b/.test(t)) {
+    return '[[go:send-resume|📄 Email me his resume]]';
+  }
+  if (/\b(call ?back|call me|phone call|schedule (a )?call|book (a )?call|talk on (the )?phone)\b/.test(t)) {
+    return '[[go:callback|📅 Request a callback]]';
+  }
+  if (/\b(hire|hiring|recruit(ing|er)?|job offer|work with (him|you|sahnawaz)|contact (him|sahnawaz)|get in touch|send (him |sahnawaz )?(a )?message|message (him|sahnawaz)|email (him|sahnawaz)|start (a|my) project|build (me|my|our))\b/.test(t)) {
+    return '[[go:send-message|📧 Message Sahnawaz]]';
+  }
+  return null;
+}
 
 module.exports = handler;
