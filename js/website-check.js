@@ -5,7 +5,8 @@
 
    Server: api/vitals.js → lib/website-check.js
      POST { mode:'check', part:'basics' }  quick read of the homepage (~2 s)
-     POST { mode:'check', part:'full' }    + Google's phone test + AI (~15–40 s)
+     POST { mode:'check', part:'full' }    + Google's phone test + AI (~15–40 s; very big
+                                           pages up to ~2 min — the server may wait 150 s)
      POST { mode:'check', part:'speed' }   Google's test again, when it didn't finish
                                            (the "↻ Run speed test" button; once by itself)
      POST { mode:'check-email', id, email } emails the report, tells Sahnawaz
@@ -71,7 +72,7 @@
       else if (d.report) { if (cb.onBasics) cb.onBasics(d.report); }
       else if (d.error && d.error !== 'server') fail(d.message);   /* the site can't be opened: no need to wait */
     }).catch(function () {});
-    post(Object.assign({ part: 'full' }, q), 75000).then(function (r) {
+    post(Object.assign({ part: 'full' }, q), 160000).then(function (r) {
       var d = r.body;
       if (d.report) finish(d.report); else fail(d.message);
     }).catch(function () {
@@ -143,7 +144,7 @@
     var sp = r.speed;
     if (!sp || !sp.opportunities || !sp.opportunities.length) return '';
     return '<div class="wc-block"><h4>Why it\'s slow</h4><ul class="wc-why">' + sp.opportunities.map(function (o) {
-      return '<li>' + esc(o.label) + ' <em>≈ ' + secs(o.savingsMs) + ' s</em></li>';
+      return '<li>' + esc(o.label) + ' <em>' + (o.savingsMs >= 150 ? '≈ ' + secs(o.savingsMs) + ' s' : o.savingsKb ? '≈ ' + esc(o.savingsKb) + ' KB' : '') + '</em></li>';
     }).join('') + '</ul>' +
       (sp.field ? '<p class="wc-note">Real visitors on Chrome: <b>' + esc(sp.field.category === 'FAST' ? 'fast' : sp.field.category === 'SLOW' ? 'slow' : 'average') + '</b>' +
         (sp.field.lcpMs ? ' (main content after ~' + secs(sp.field.lcpMs) + ' s)' : '') + '.</p>' : '') +
@@ -215,7 +216,7 @@
     if (r.speed && r.speed.lcp) parts.push('Main content shows after ' + secs(r.speed.lcp.value) + ' s on a phone.');
     var probs = (r.findings || []).slice(0, 5).map(function (f) { return f.title; });
     if (probs.length) parts.push('Problems: ' + probs.join('; ') + '.');
-    if (r.speed && r.speed.opportunities && r.speed.opportunities.length) parts.push('Why slow: ' + r.speed.opportunities.map(function (o) { return o.label + ' (≈' + secs(o.savingsMs) + ' s)'; }).join('; ') + '.');
+    if (r.speed && r.speed.opportunities && r.speed.opportunities.length) parts.push('Why slow: ' + r.speed.opportunities.map(function (o) { return o.label + (o.savingsMs >= 150 ? ' (≈' + secs(o.savingsMs) + ' s)' : o.savingsKb ? ' (≈' + o.savingsKb + ' KB)' : ''); }).join('; ') + '.');
     if (r.builtWith) parts.push('Built with ' + r.builtWith + '.');
     if (t.headline) parts.push(t.headline);
     return parts.join(' ');
@@ -284,7 +285,7 @@
     if (mi) mi.value = typed || (k ? k.email : '');
   }
 
-  /* "↻ Run speed test": only Google's phone test runs again (up to ~60 s) */
+  /* "↻ Run speed test": only Google's phone test runs again (up to ~2 min) */
   var AUTO_RETRY = { timeout: 1, google: 1, network: 1, failed: 1 };
   function retrySpeed(auto) {
     var r = current;
@@ -293,12 +294,12 @@
     var mine = gen;
     var box = out.querySelector('.wc-tile-speed .wc-speed-extra');
     if (box) box.innerHTML = '<small class="wc-retrying" role="status"><span class="wc-spin" aria-hidden="true"></span><span>' +
-      (auto ? 'Google\'s test needed more time — running it again…' : 'Running Google\'s phone test…') + ' <em>(up to 60 s)</em></span></small>';
+      (auto ? 'Google\'s test needed more time — running it again…' : 'Running Google\'s phone test…') + ' <em>(big pages take up to 2 min)</em></span></small>';
     var shot = out.querySelector('.wc-phone-empty');
     if (shot) shot.innerHTML = '<span class="wc-spin"></span>Taking the screenshot…';
     var url = lastInput && cleanHost(lastInput) === r.host ? lastInput : (r.key || r.host);
     var stale = function () { return mine !== gen || current !== r; };
-    post({ mode: 'check', part: 'speed', url: url, type: r.type, lang: r.lang || 'en' }, 75000).then(function (res) {
+    post({ mode: 'check', part: 'speed', url: url, type: r.type, lang: r.lang || 'en' }, 160000).then(function (res) {
       retrying = false;
       if (stale()) return;
       var d = res.body || {};
@@ -328,7 +329,7 @@
     return '<div class="wc-progress" role="status"><div class="wc-prog-head"><span class="wc-spin" aria-hidden="true"></span>Checking <b>' + esc(host) + '</b>' +
       '<span class="wc-elapsed">0 s</span></div><ol class="wc-steps">' +
       '<li class="is-active" data-s="open">Opening your website</li><li data-s="read">Reading what customers see</li>' +
-      '<li data-s="speed">Testing it on a phone with Google\'s test and writing your report <em>(usually 15–40 s)</em></li></ol></div>';
+      '<li data-s="speed">Testing it on a phone with Google\'s test and writing your report <em>(usually 15–40 s, big pages up to 2 min)</em></li></ol></div>';
   }
   function markSteps(n) {
     var li = out.querySelectorAll('.wc-steps li');
