@@ -1,5 +1,8 @@
 {
   "outputDirectory": ".",
+  "functions": {
+    "api/vitals.js": { "maxDuration": 60 }
+  },
   "rewrites": [
     { "source": "/api/chat",    "destination": "/api/chat.js" },
     { "source": "/api/resume",  "destination": "/api/resume.js" },

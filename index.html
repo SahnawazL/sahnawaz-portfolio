@@ -759,6 +759,7 @@ html {
      ═══════════════════════════════════════════ -->
 <link rel="stylesheet" href="css/portfolio-ui.css">
 <link rel="stylesheet" href="css/desktop.css">
+<link rel="stylesheet" href="css/website-check.css">
 <link rel="stylesheet" href="css/print.css" media="print">
 
 <!-- DOM elements -->
@@ -2940,13 +2941,47 @@ window.addEventListener('resize', () => {
 
   <div class="wnw-bottom-cta">
     <p class="wnw-bottom-sub">Don't see your field? Every person has a reason. Let's find yours.</p>
-    <a class="wnw-main-cta" href="#contact">💬 Let's Build Your Website</a>
+    <a class="wnw-main-cta" href="#contact" data-brief="" data-brief-from="why-website">💬 Let's Build Your Website</a>
   </div>
 
 </section>
 <!-- ══ END WHY YOU NEED A WEBSITE ══ -->
 
 <script src="js/portfolio-02.js"></script>
+
+<!-- ══ FREE WEBSITE CHECK ══ (js/website-check.js · server: api/vitals.js → lib/website-check.js) -->
+<section class="wc-section" id="website-check" aria-labelledby="wcTitle">
+  <div class="wc-head">
+    <div class="wc-eyebrow"><span class="wc-dot"></span>Free · Instant · No sign-up<span class="wc-dot"></span></div>
+    <h2 class="wc-title" id="wcTitle"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4fe0a2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg>Free Website Check</h2>
+    <p class="wc-sub">Already have a website? See how it does on a phone — speed, Google basics, how your link looks on WhatsApp and what customers can't find. Takes about 30 seconds.</p>
+  </div>
+  <form class="wc-form" id="wcForm" novalidate>
+    <div class="wc-inputrow">
+      <input id="wcUrl" type="text" inputmode="url" autocomplete="url" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="200" placeholder="yourbusiness.com" aria-label="Your website address">
+      <button type="submit" class="wc-go" id="wcGo">Check my website</button>
+    </div>
+    <div class="wc-types" role="radiogroup" aria-label="Type of business">
+      <button type="button" class="wc-type" data-type="clinic" role="radio" aria-checked="false">🏥 Clinic</button>
+      <button type="button" class="wc-type" data-type="restaurant" role="radio" aria-checked="false">🍽️ Restaurant</button>
+      <button type="button" class="wc-type" data-type="shop" role="radio" aria-checked="false">🛍️ Shop</button>
+      <button type="button" class="wc-type" data-type="school" role="radio" aria-checked="false">🏫 School</button>
+      <button type="button" class="wc-type is-on" data-type="other" role="radio" aria-checked="true">💼 Other</button>
+    </div>
+    <div class="wc-langs" role="radiogroup" aria-label="Report language">
+      <span class="wc-langs-l">Report in</span>
+      <button type="button" class="wc-lang is-on" data-lang="en" role="radio" aria-checked="true">English</button>
+      <button type="button" class="wc-lang" data-lang="hi" role="radio" aria-checked="false" lang="hi">हिन्दी</button>
+      <button type="button" class="wc-lang" data-lang="bn" role="radio" aria-checked="false" lang="bn">বাংলা</button>
+      <button type="button" class="wc-lang" data-lang="as" role="radio" aria-checked="false" lang="as">অসমীয়া</button>
+    </div>
+    <p class="wc-err" id="wcErr" role="alert" hidden></p>
+  </form>
+  <button type="button" class="wc-nosite" id="wcNoSite">Don't have a website yet? Plan one with AI →</button>
+  <div class="wc-out" id="wcOut" aria-live="polite" hidden></div>
+</section>
+<script src="js/website-check.js" defer></script>
+<!-- ══ END FREE WEBSITE CHECK ══ -->
 
 
 <section id="tools-services" class="syb-section" data-aos="fade-up" style="max-width:100%!important;width:100%!important;padding-left:1.5rem!important;padding-right:1.5rem!important;margin:0!important;box-sizing:border-box!important;">
@@ -4727,6 +4762,7 @@ document.addEventListener('DOMContentLoaded', function(){
   <div id="helpPanel">
     <div class="help-grid">
       <button class="help-btn help-btn-brief" data-help="brief">📝 Plan my project with AI</button>
+      <button class="help-btn help-btn-check" data-help="check">🩺 Free website check</button>
       <button class="help-btn" data-help="quickmail">📧 Quick Mail to Sahnawaz</button>
       <button class="help-btn" data-help="resume">📄 Send Me His Resume</button>
       <button class="help-btn" data-help="callback">📅 Request a Callback</button>
