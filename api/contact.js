@@ -43,7 +43,8 @@ async function sendBrief(req, res) {
   const meta = {
     city: req.headers['x-vercel-ip-city'] ? decodeURIComponent(req.headers['x-vercel-ip-city']) : '',
     country: req.headers['x-vercel-ip-country'] || '',
-    lang: String(req.body.lang || '').slice(0, 30)
+    lang: String(req.body.lang || '').slice(0, 30),
+    from: projectBrief.fromLabel(req.body.from) ? String(req.body.from) : ''
   };
 
   // Private analysis for Sahnawaz (lead score, questions for the call).
@@ -97,6 +98,7 @@ async function sendBrief(req, res) {
       name: brief.name, email: brief.email,
       message: projectBrief.plainText(brief, analysis, refId),
       source: 'ai-brief', refId: refId, brief: brief, analysis: analysis || null,
+      startedFrom: meta.from || 'unknown',
       country: meta.country || 'unknown', city: meta.city || 'unknown',
       createdAt: FieldValue.serverTimestamp(), time: new Date().toISOString(),
     });
