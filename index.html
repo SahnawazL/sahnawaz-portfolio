@@ -528,11 +528,16 @@ img {
 <!-- ── 11. PERFORMANCE PRECONNECTS ──────────────────────────────── -->
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/>
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net"/>
 <link rel="preconnect" href="https://unpkg.com" crossorigin/>
-<link rel="preconnect" href="https://www.googletagmanager.com" crossorigin/>
+<link rel="dns-prefetch" href="https://www.googletagmanager.com"/>
 <link rel="dns-prefetch" href="https://img.icons8.com"/>
 <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com"/>
+
+<!-- Hero photo: a light copy (13–24 KB instead of 165 KB), fetched first
+     because it is the biggest thing on the first screen. profile.jpg stays
+     for the WhatsApp/Google link preview. -->
+<link rel="preload" as="image" type="image/webp" href="profile-hero-360.webp" imagesrcset="profile-hero-360.webp 360w, profile-hero-540.webp 540w" imagesizes="174px" fetchpriority="high"/>
 
 <!-- ── 12. FONTS ─────────────────────────────────────────────────── -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Syne:wght@600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet"/>
@@ -626,7 +631,9 @@ function hideWhatsAppNotice() {
 <link href="./site.webmanifest" rel="manifest"/>
 <!-- Open Graph and Twitter meta consolidated in head — no duplicates needed here -->
 
-<link href="https://cdn.jsdelivr.net/npm/lightgallery@2/css/lightgallery-bundle.min.css" rel="stylesheet"/>
+<!-- lightGallery stylesheet removed (2026-10): the gallery itself was removed
+     earlier, but this file still loaded from another site and held up the
+     first screen. Nothing on the page uses it. -->
 <!-- Open Graph and Twitter consolidated in head -->
 
 <style>
@@ -754,12 +761,29 @@ html {
 <link rel="stylesheet" href="css/login-modal.css">
 </head><body>
 <style id="print-only-style">.print-only{display:none}</style>
+<style id="hero-first">
+/* The hero (photo, name, buttons) is the first thing a visitor sees, so it
+   must never wait for scripts. It used to be hidden twice: by the fade-up
+   library until the whole page had loaded, and by the section wipe
+   (portfolio-10.js) until almost every script had run. Every other section
+   keeps both effects. On larger screens the hero still does the same wipe-in,
+   but it starts with the first frame instead of waiting. */
+section.hero-enter.sec-wipe { opacity: 1; transform: none; clip-path: none; transition: none; }
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+  section.hero-enter { animation: heroWipeIn .72s cubic-bezier(.22,1,.36,1) both; }
+}
+@keyframes heroWipeIn {
+  from { clip-path: polygon(0 7%, 100% 0%, 100% 100%, 0% 100%); opacity: 0; transform: translateY(20px); }
+  to   { clip-path: polygon(0 0%, 100% 0%, 100% 100%, 0% 100%); opacity: 1; transform: translateY(0); }
+}
+</style>
 <!-- ═══════════════════════════════════════════
      PREMIUM SCROLL PROGRESS BAR v8
      ═══════════════════════════════════════════ -->
 <link rel="stylesheet" href="css/portfolio-ui.css">
 <link rel="stylesheet" href="css/desktop.css">
-<link rel="stylesheet" href="css/website-check.css">
+<link rel="preload" href="css/website-check.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="css/website-check.css"></noscript>
 <link rel="stylesheet" href="css/print.css" media="print">
 
 <!-- DOM elements -->
@@ -856,7 +880,7 @@ html {
     </div>
 
   </div>
-</header><section data-aos="fade-up" data-aos-duration="1200" style="color:#ffffff;padding:3rem 1rem;border-radius:16px;box-shadow:0 0 30px rgba(0,255,255,0.1);background:linear-gradient(135deg,#091b2f,#0c2c44);">
+</header><section class="hero-enter" style="color:#ffffff;padding:3rem 1rem;border-radius:16px;box-shadow:0 0 30px rgba(0,255,255,0.1);background:linear-gradient(135deg,#091b2f,#0c2c44);">
 
 <!-- ── PREMIUM PROFILE PICTURE ── -->
 <div class="pfp-stage pop-in" id="pfpStage" onclick="
@@ -871,7 +895,7 @@ html {
   <div class="pfp-ring1"></div>
   <!-- Photo + overlays -->
   <div class="pfp-img-wrap">
-    <img src="profile.jpg" alt="Sahnawaz Ahmed Laskar" loading="lazy"/>
+    <img src="profile-hero-360.webp" srcset="profile-hero-360.webp 360w, profile-hero-540.webp 540w" sizes="174px" width="540" height="540" alt="Sahnawaz Ahmed Laskar" fetchpriority="high" decoding="async" onerror="this.onerror=null;this.removeAttribute('srcset');this.src='profile.jpg'"/>
     <div class="pfp-glare"></div>
   </div>
 
@@ -890,7 +914,7 @@ html {
 
   <!-- Name block -->
   <div class="prem-name-wrap pop-in" onclick="this.classList.add('clicked'); setTimeout(()=>this.classList.remove('clicked'),1600);">
-    <h1 class="prem-name sheen-pop-in">
+    <h1 class="prem-name">
       <span class="prem-word prem-word-fill" style="animation-delay:0.3s">Sahnawaz</span>
       <span class="prem-word prem-word-fill" style="animation-delay:0.46s">Ahmed</span>
       <span class="prem-word prem-word-outline" style="animation-delay:0.62s">Laskar</span>
@@ -933,7 +957,6 @@ html {
   stripOnceDone('.prem-name-wrap.pop-in', 'premFadeScaleIn', 'pop-in');
   stripOnceDone('.pfp-stage.pop-in', 'pfpStageIn', 'pop-in');
   stripOnceDone('.prem-signature-path.sig-pop-in', 'premSigDraw', 'sig-pop-in');
-  stripOnceDone('.prem-name.sheen-pop-in', 'premSheenSweep', 'sheen-pop-in');
 })();
 </script>
 
@@ -5082,7 +5105,7 @@ document.addEventListener('DOMContentLoaded', function(){
 <div id="print-cv" class="print-only" aria-hidden="true">
 
   <header class="cv-top">
-    <img class="cv-photo" src="profile.jpg" alt="Sahnawaz Ahmed Laskar">
+    <img class="cv-photo" src="profile-hero-360.webp" srcset="profile-hero-360.webp 360w, profile-hero-540.webp 540w" sizes="174px" alt="Sahnawaz Ahmed Laskar" onerror="this.onerror=null;this.removeAttribute('srcset');this.src='profile.jpg'">
     <div class="cv-id">
       <h1>Sahnawaz Ahmed Laskar</h1>
       <p class="cv-role">Full Stack Developer <span>&middot;</span> UI/UX Designer</p>
