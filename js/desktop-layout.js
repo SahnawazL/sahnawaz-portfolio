@@ -337,7 +337,8 @@
       var label = c.textContent.replace(/\s+/g, ' ').trim();
       var icon = p.querySelector('svg');
       var isSearch = p.classList.contains('hero-cta-search') || p.hasAttribute('data-command-palette');
-      var target = isSearch ? 'search' : (p.getAttribute('href') || '');
+      var isChat = p.hasAttribute('data-open-chat');   /* "Talk to My AI Assistant" */
+      var target = isSearch ? 'search' : isChat ? 'chat' : (p.getAttribute('href') || '');
       if (!label || !target) return '';
       return '<button type="button" class="dsk-dr-item" role="menuitem" style="--d:' + i + '" data-dr="' + target + '">' +
                '<span class="dsk-dr-ic">' + (icon ? icon.outerHTML : '') + '</span>' +
@@ -363,7 +364,7 @@
   }
   function runDrawer(target) {
     if (target === 'search') { if (fn('openCommandPalette')) window.openCommandPalette(); return; }
-    if (target === '#ask-ai') { if (window.openChat) window.openChat(); return; }
+    if (target === 'chat') { if (fn('openChat')) window.openChat(); return; }
     if (target.charAt(0) !== '#') return;
     goTo(target);
     /* arriving at telemetry plays the same scan-line sweep as the hero pill */
