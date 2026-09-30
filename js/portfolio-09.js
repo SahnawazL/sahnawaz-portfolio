@@ -237,46 +237,87 @@
   }
 
 
-  /* ========== Keyboard / viewport fix ========== */
+  /* ========== Keyboard / viewport ==========
+     When the on-screen keyboard is open, the chat is pinned to the part of
+     the screen the visitor can actually see (window.visualViewport), so the
+     input always sits just above the keyboard — on Android and iPhone, in
+     the normal and the expanded size. The old version worked the keyboard
+     height out as innerHeight - vv.height - vv.offsetTop; the offsetTop part
+     is the browser scrolling to reveal the input, so the chat was placed
+     too low and the input ended up under the keyboard.
+     All work is batched into one animation frame (the viewport fires many
+     resize/scroll events while the keyboard slides in). */
+  var _vvFrame = 0;
   function handleViewport(){
-    if (!window.visualViewport || !widget || !isOpen) return;
+    if (_vvFrame) return;
+    _vvFrame = requestAnimationFrame(applyViewport);
+  }
+  function clearViewportPin(){
+    widget.classList.remove('kb-open');
+    widget.style.top = '';
+    widget.style.height = '';
+    widget.style.bottom = '';
+    widget.style.maxHeight = '';
+  }
+  function applyViewport(){
+    _vvFrame = 0;
+    if (!widget) return;
+    if (!isOpen) { clearViewportPin(); return; }
     var vv = window.visualViewport;
-    var winH = window.innerHeight;
-    var keyboardH = winH - vv.height - vv.offsetTop;
-    if (keyboardH > 100) {
-      // keyboard is open — pin widget above keyboard
-      widget.style.bottom = (keyboardH + 8) + 'px';
-      widget.style.maxHeight = (vv.height - 16) + 'px';
-    } else {
-      widget.style.bottom = '80px';
-      widget.style.maxHeight = '';
+    var typing = !!input && document.activeElement === input;
+    /* keyboard = input focused and a big slice of the window hidden;
+       pinch-zoom (scale > 1) is not a keyboard */
+    var kb = !!vv && typing && (window.innerHeight - vv.height) > 120 && vv.scale < 1.05;
+    if (!kb) {
+      var was = widget.classList.contains('kb-open');
+      clearViewportPin();
+      if (was) scrollMsgs(true);
+      return;
     }
-    scrollMsgs();
+    var gap = widget.classList.contains('chat-expanded') ? 0 : 6;
+    widget.classList.add('kb-open');
+    widget.style.bottom = 'auto';
+    widget.style.top = Math.round(vv.offsetTop + gap) + 'px';
+    widget.style.height = Math.round(vv.height - gap * 2) + 'px';
+    widget.style.maxHeight = 'none';
+    scrollMsgs(true);
   }
 
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', handleViewport, { passive: true });
     window.visualViewport.addEventListener('scroll', handleViewport, { passive: true });
   }
+  window.addEventListener('resize', handleViewport, { passive: true });
 
-  /* Focus input → trigger viewport handler */
-  input && input.addEventListener('focus', function(){
-    setTimeout(handleViewport, 300);
-  });
-  input && input.addEventListener('blur', function(){
-    setTimeout(handleViewport, 300);
-  });
+  /* The keyboard slides in/out over ~300ms and some browsers only report
+     the final size late, so check again a few times after focus changes. */
+  function followKeyboard(){
+    handleViewport();
+    [120, 300, 600].forEach(function(t){ setTimeout(handleViewport, t); });
+  }
+  input && input.addEventListener('focus', followKeyboard);
+  input && input.addEventListener('blur', followKeyboard);
 
   /* ========== Open / Close ========== */
   window.openChat = function(){
     if (!widget) return;
+    if (isOpen) return;
     widget.classList.add('chat-open');
     isOpen = true;
     idleCount = 0; /* reset so nudges fire fresh every time chat is opened */
-    if (!inited){ inited = true; initChat(); }
-    setTimeout(handleViewport, 350);
+    /* Start the open animation first; do the heavier work (first-time
+       setup, sound) right after the first frame so the window appears
+       instantly instead of waiting for it. */
+    var firstOpen = !inited;
+    if (firstOpen) inited = true;
+    requestAnimationFrame(function(){
+      setTimeout(function(){
+        if (firstOpen) initChat();
+        playOpen();
+        handleViewport();
+      }, 0);
+    });
     resetIdleTimer();
-    playOpen();
 
     /* Option 3 — hide pill when chat opens */
     var pill = document.getElementById('chatPill');
@@ -292,16 +333,20 @@
   };
 
   function closeChat(){
+    if (!isOpen && !widget.classList.contains('chat-open')) return;
     widget.classList.remove('chat-open');
     isOpen = false;
-    playClose();
+    /* close the keyboard with the chat */
+    if (input && document.activeElement === input) input.blur();
     clearTimeout(idleTimer);
     clearTimeout(idleTimer2);
     clearTimeout(idleTimer3);
     idleCount = 0;
-    setChipsOpen(false);
-    widget.style.bottom = '80px';
-    widget.style.maxHeight = '';
+    closeAllPanels();
+    /* keep the pinned-above-keyboard position until the fade-out ends,
+       then reset it, so the window doesn't jump while it disappears */
+    setTimeout(function(){ if (!isOpen) clearViewportPin(); }, 220);
+    setTimeout(playClose, 0);
 
     /* Option 3 — show pill when chat closes, auto-hide after 30s */
     var pill = document.getElementById('chatPill');
@@ -321,30 +366,27 @@
 
   closeBtn && closeBtn.addEventListener('click', closeChat);
 
-  /* Expand / shrink toggle — Windows-style resize */
+  /* Esc closes the chat on a keyboard (desktop) */
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && isOpen && !(window._helpFlowActive && window._helpFlowActive())) closeChat();
+  });
+
+  /* Expand / shrink toggle
+     Phone: normal = compact window, expanded = full screen.
+     Tablet / desktop: normal = corner window, expanded = large window.
+     Sizes live in CSS (desktop.css, "CHAT WINDOW v2"); the icon swap is a
+     CSS rule on .chat-expanded, so nothing is injected into <head>. */
   var isExpanded = false;
-  expandBtn && expandBtn.addEventListener('click', function(){
-    isExpanded = !isExpanded;
+  function setExpanded(on){
+    isExpanded = !!on;
     widget.classList.toggle('chat-expanded', isExpanded);
-    /* Swap icon: restore icon when expanded, maximise icon when normal */
-    var restoreMask = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='15 3 21 3 21 9'/%3E%3Cpolyline points='9 21 3 21 3 15'/%3E%3Cline x1='21' y1='3' x2='14' y2='10'/%3E%3Cline x1='3' y1='21' x2='10' y2='14'/%3E%3C/svg%3E\") center/contain no-repeat";
-    var expandMask = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Crect x='8' y='8' width='13' height='13' rx='1.5'/%3E%3C/svg%3E\") center/contain no-repeat";
-    var pseudo = expandBtn.querySelector('::before');
-    /* Update via a small injected style rule */
-    var styleId = 'chatExpandIconStyle';
-    var existing = document.getElementById(styleId);
-    if (existing) existing.remove();
-    var s = document.createElement('style');
-    s.id = styleId;
-    s.textContent = isExpanded
-      ? '#chatExpand::before { -webkit-mask: ' + restoreMask + '; mask: ' + restoreMask + '; }'
-      : '#chatExpand::before { -webkit-mask: ' + expandMask  + '; mask: ' + expandMask  + '; }';
-    document.head.appendChild(s);
     expandBtn.title = isExpanded ? 'Shrink chat' : 'Expand chat';
     expandBtn.setAttribute('aria-label', isExpanded ? 'Shrink chat' : 'Expand chat');
-    /* Scroll to bottom after resize so messages stay visible */
-    setTimeout(function(){ msgs.scrollTop = msgs.scrollHeight; }, 320);
-  });
+    expandBtn.setAttribute('aria-pressed', isExpanded ? 'true' : 'false');
+    handleViewport();
+    requestAnimationFrame(function(){ scrollMsgs(true); });
+  }
+  expandBtn && expandBtn.addEventListener('click', function(){ setExpanded(!isExpanded); });
 
   /* Clear conversation */
   clearBtn && clearBtn.addEventListener('click', function(){
@@ -1708,20 +1750,29 @@
     }, thinkDelay);
   }
 
-  function scrollMsgs(){
-    msgs.scrollTo({ top: msgs.scrollHeight, behavior: 'smooth' });
-    /* Option 7 — toggle scroll shadow class */
-    setTimeout(function(){
-      if (msgs.scrollTop > 10) msgs.classList.add('scrolled');
-      else msgs.classList.remove('scrolled');
-    }, 320);
+  /* Scroll the conversation to the newest message. Many callers can ask
+     in the same frame (typewriter, new bubbles, keyboard); they are merged
+     into one scroll per frame. instant=true jumps without animation (used
+     for resizes, where a smooth scroll would visibly lag behind). */
+  var _scrollFrame = 0, _scrollInstant = false;
+  function scrollMsgs(instant){
+    if (instant === true) _scrollInstant = true;
+    if (_scrollFrame) return;
+    _scrollFrame = requestAnimationFrame(function(){
+      _scrollFrame = 0;
+      var jump = _scrollInstant || (msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight) > msgs.clientHeight * 2;
+      _scrollInstant = false;
+      if (jump) msgs.scrollTop = msgs.scrollHeight;
+      else msgs.scrollTo({ top: msgs.scrollHeight, behavior: 'smooth' });
+    });
   }
 
-  /* Option 7 — also update shadow on manual scroll */
+  /* Option 7 — top shadow while scrolled; toggled only when it changes */
+  var _scrolledState = false;
   msgs.addEventListener('scroll', function(){
-    if (msgs.scrollTop > 10) msgs.classList.add('scrolled');
-    else msgs.classList.remove('scrolled');
-  });
+    var on = msgs.scrollTop > 10;
+    if (on !== _scrolledState) { _scrolledState = on; msgs.classList.toggle('scrolled', on); }
+  }, { passive: true });
 
   /* ── Feature 6: Back-to-bottom button ── */
   (function(){
@@ -1735,17 +1786,23 @@
        so it never shows on an empty / just-opened chat. */
     var THRESHOLD = 500; /* px from bottom — adjust up/down if needed */
 
+    /* Batched to one check per frame: the old version re-counted every
+       bubble and re-measured the list on every scroll event and on every
+       character the typewriter wrote. */
+    var _btnFrame = 0, _btnShown = null;
     function updateScrollBtn(){
-      var totalMsgs = msgs.querySelectorAll('.chat-msg-wrap').length;
-      if (totalMsgs < 3) { scrollBtn.style.display = 'none'; return; }
-
-      var distFromBottom = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight;
-      scrollBtn.style.display = distFromBottom > THRESHOLD ? 'block' : 'none';
+      if (_btnFrame) return;
+      _btnFrame = requestAnimationFrame(function(){
+        _btnFrame = 0;
+        var show = msgs.childElementCount >= 3 &&
+                   (msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight) > THRESHOLD;
+        if (show !== _btnShown) { _btnShown = show; scrollBtn.style.display = show ? 'block' : 'none'; }
+      });
     }
 
     msgs.addEventListener('scroll', updateScrollBtn, { passive: true });
     var mo = new MutationObserver(updateScrollBtn);
-    mo.observe(msgs, { childList: true, subtree: true });
+    mo.observe(msgs, { childList: true });
 
     scrollBtn.addEventListener('click', function(){
       msgs.scrollTo({ top: msgs.scrollHeight, behavior: 'smooth' });
