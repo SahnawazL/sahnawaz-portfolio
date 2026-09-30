@@ -543,33 +543,9 @@ header::after {
   gap: 0 0.3em;
   user-select: none;
 }
-/* Light sweep across the name — plays once on load, replays smoothly on tap.
-   Base rule stays static (no animation-name) so toggling .clicked on/off
-   never falls back to an animation still declared on a parent rule. */
-.prem-name::after {
-  content: '';
-  position: absolute;
-  top: -10%; left: -60%;
-  width: 34%; height: 120%;
-  background: linear-gradient(115deg, transparent 0%, rgba(255,255,255,0.65) 50%, transparent 100%);
-  transform: skewX(-18deg);
-  pointer-events: none;
-  mix-blend-mode: screen;
-  opacity: 0;
-  z-index: 2;
-}
-.prem-name.sheen-pop-in::after {
-  animation: premSheenSweep 1.5s cubic-bezier(.4,0,.2,1) 1.55s 1 forwards;
-}
-.prem-name-wrap.clicked .prem-name::after {
-  animation: premSheenSweep 1.5s cubic-bezier(.4,0,.2,1) forwards;
-}
-@keyframes premSheenSweep {
-  0%   { left: -60%; opacity: 0; }
-  22%  { opacity: 1; }
-  70%  { left: 130%; opacity: 1; }
-  100% { left: 130%; opacity: 0; }
-}
+/* (The light sweep that crossed the name on load and on tap was removed in
+   2026-10: on desktop the wide name block turned it into a large grey band
+   that ran past the name and was cut off at the column edge.) */
 .prem-word {
   display: inline-block;
   opacity: 0;
