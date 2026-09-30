@@ -6,6 +6,8 @@
    Server: api/vitals.js → lib/website-check.js
      POST { mode:'check', part:'basics' }  quick read of the homepage (~2 s)
      POST { mode:'check', part:'full' }    + Google's phone test + AI (~15–40 s)
+     POST { mode:'check', part:'speed' }   Google's test again, when it didn't finish
+                                           (the "↻ Run speed test" button; once by itself)
      POST { mode:'check-email', id, email } emails the report, tells Sahnawaz
    Both check requests start together: the quick one fills the report in
    while Google's test runs, the full one completes it.
@@ -86,12 +88,29 @@
       '<circle class="wc-ring-fg" cx="32" cy="32" r="' + r + '" stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + off.toFixed(1) + '"/></svg>' +
       '<span class="wc-ring-n">' + (v == null ? '–' : v) + '</span></div>';
   }
-  function tiles(s, speedNote) {
+  /* why Google's phone test is missing (the server says which) */
+  var SPEED_NOTE = {
+    timeout: "Google's test didn't finish in time — big pages can take longer.",
+    quota: "Google's test is busy right now.",
+    nokey: "Google's test is busy right now.",
+    key: "Google's speed test isn't available right now.",
+    lighthouse: "Google's test phone couldn't open this page.",
+    google: "Google's test didn't respond.",
+    network: "Google's test didn't respond.",
+    failed: "Google's test didn't respond."
+  };
+  function speedExtra(r) {
+    return '<small>' + esc(SPEED_NOTE[r.speedError] || SPEED_NOTE.failed) + '</small>' +
+      '<button type="button" class="wc-retry" data-wc="retry-speed">↻ Run speed test</button>';
+  }
+  function tiles(r) {
+    var s = r.scores || {};
     var T = [['⚡', 'Speed on a phone', s.speed], ['🔎', 'Google basics', s.google], ['👆', 'Easy to use', s.easy], ['📞', 'Contact & trust', s.contact]];
-    return '<div class="wc-tiles">' + T.map(function (t) {
-      return '<div class="wc-tile wc-' + color(t[2]) + '"><div class="wc-tile-top"><span>' + t[0] + ' ' + t[1] + '</span><b>' + (t[2] == null ? '–' : t[2]) + '</b></div>' +
+    return '<div class="wc-tiles">' + T.map(function (t, i) {
+      var speedGone = i === 0 && t[2] == null && r.speedUnavailable;
+      return '<div class="wc-tile wc-' + color(t[2]) + (i === 0 ? ' wc-tile-speed' : '') + '"><div class="wc-tile-top"><span>' + t[0] + ' ' + t[1] + '</span><b>' + (t[2] == null ? '–' : t[2]) + '</b></div>' +
         '<div class="wc-bar"><i style="transform:scaleX(' + ((t[2] || 0) / 100) + ')"></i></div>' +
-        (t[2] == null && t[1] === 'Speed on a phone' && speedNote ? '<small>' + esc(speedNote) + '</small>' : '') + '</div>';
+        (speedGone ? '<div class="wc-speed-extra">' + speedExtra(r) + '</div>' : '') + '</div>';
     }).join('') + '</div>';
   }
   function checklist(r) {
@@ -116,7 +135,8 @@
     var shot = safeShot(r.screenshot), sp = r.speed || {};
     var cap = sp.lcp ? 'Main content shows after <b>' + esc(sp.lcp.text || secs(sp.lcp.value) + ' s') + '</b>' + (sp.fcp ? ' · first thing after ' + esc(sp.fcp.text || secs(sp.fcp.value) + ' s') : '') : '';
     return '<figure class="wc-vis wc-phone"><figcaption>📱 What customers see on a phone</figcaption><div class="wc-phone-frame">' +
-      (shot ? '<img src="' + shot + '" alt="Your homepage on a phone">' : '<div class="wc-phone-empty">' + (r.part === 'basics' ? '<span class="wc-spin"></span>Taking the screenshot…' : 'Screenshot unavailable') + '</div>') +
+      (shot ? '<img src="' + shot + '" alt="Your homepage on a phone">' : '<div class="wc-phone-empty">' + (r.part === 'basics' ? '<span class="wc-spin"></span>Taking the screenshot…'
+        : r.speedUnavailable ? '<span>No screenshot yet — it comes from Google\'s phone test. Tap <b>↻ Run speed test</b> above.</span>' : 'Screenshot unavailable') + '</div>') +
       '</div>' + (cap ? '<p class="wc-note">' + cap + '</p>' : '') + '</figure>';
   }
   function speedWhy(r) {
@@ -142,7 +162,6 @@
     var t = r.text || {}, s = r.scores || {};
     var full = r.part === 'full';
     var type = TYPES[r.type] || TYPES.other;
-    var speedNote = r.speedUnavailable ? "Google's test was busy — try again later" : '';
     return '<div class="wc-report' + (full ? '' : ' is-partial') + '" data-id="' + esc(r.id) + '">' +
       '<div class="wc-r-head">' + ring(full ? s.overall : null, 84) +
         '<div class="wc-r-txt"><div class="wc-r-site">' + esc(r.host) + ' · ' + esc(type.label) + ' · tested on a phone</div>' +
@@ -150,7 +169,7 @@
                 (t.headline ? '<p class="wc-r-headline">' + esc(t.headline) + '</p>' : '') + (t.summary ? '<p class="wc-r-summary">' + esc(t.summary) + '</p>' : '')
               : '<div class="wc-r-verdict">Checking speed on a phone…</div><p class="wc-r-summary">Your homepage is read — Google\'s phone test is running. The full report appears here in a few seconds.</p>') +
         '</div></div>' +
-      (full ? tiles(s, speedNote) : '') +
+      (full ? tiles(r) : '') +
       '<div class="wc-visuals">' + phone(r) + whatsapp(r) + '</div>' +
       fixes(r) +
       '<div class="wc-cols">' + checklist(r) + speedWhy(r) + '</div>' +
@@ -250,6 +269,51 @@
   var sec = document.getElementById('website-check');
   var form, input, out, errEl, goBtn, current = null, job = null, tick = 0;
   var state = { type: 'other', lang: 'en' };
+  var gen = 0, lastInput = '', retrying = false;   /* gen: which report is on screen (a new check or report makes older replies stale) */
+
+  /* redraw the report in place, keeping what the visitor typed in the email box
+     (or the "✓ Sent" note if they already emailed it) */
+  function rerender(r) {
+    var old = out.querySelector('.wc-mail'), oldInput = old && old.querySelector('input');
+    var sentHtml = old && !oldInput ? old.innerHTML : null, typed = oldInput ? oldInput.value : '';
+    out.innerHTML = reportHtml(r);
+    var f = out.querySelector('.wc-mail');
+    if (!f) return;
+    if (sentHtml) { f.innerHTML = sentHtml; return; }
+    var mi = f.querySelector('input'), k = knownEmail();
+    if (mi) mi.value = typed || (k ? k.email : '');
+  }
+
+  /* "↻ Run speed test": only Google's phone test runs again (up to ~60 s) */
+  var AUTO_RETRY = { timeout: 1, google: 1, network: 1, failed: 1 };
+  function retrySpeed(auto) {
+    var r = current;
+    if (!r || retrying || !r.speedUnavailable) return;
+    retrying = true;
+    var mine = gen;
+    var box = out.querySelector('.wc-tile-speed .wc-speed-extra');
+    if (box) box.innerHTML = '<small class="wc-retrying" role="status"><span class="wc-spin" aria-hidden="true"></span><span>' +
+      (auto ? 'Google\'s test needed more time — running it again…' : 'Running Google\'s phone test…') + ' <em>(up to 60 s)</em></span></small>';
+    var shot = out.querySelector('.wc-phone-empty');
+    if (shot) shot.innerHTML = '<span class="wc-spin"></span>Taking the screenshot…';
+    var url = lastInput && cleanHost(lastInput) === r.host ? lastInput : (r.key || r.host);
+    var stale = function () { return mine !== gen || current !== r; };
+    post({ mode: 'check', part: 'speed', url: url, type: r.type, lang: r.lang || 'en' }, 75000).then(function (res) {
+      retrying = false;
+      if (stale()) return;
+      var d = res.body || {};
+      if (d.report) { current = d.report; rerender(d.report); return; }
+      rerender(r);
+      var b = out.querySelector('.wc-tile-speed .wc-speed-extra small');
+      if (b) b.textContent = d.message || "Couldn't run the test just now — please try again in a minute.";
+    }).catch(function () {
+      retrying = false;
+      if (stale()) return;
+      rerender(r);
+      var b = out.querySelector('.wc-tile-speed .wc-speed-extra small');
+      if (b) b.textContent = navigator.onLine === false ? 'You seem to be offline — check your connection.' : "Google's test took too long again — try once more in a minute.";
+    });
+  }
 
   function setChoice(group, attr, val) {
     Array.prototype.forEach.call(sec.querySelectorAll(group), function (b) {
@@ -276,7 +340,7 @@
     showError('');
     if (job) job.cancel();
     clearInterval(tick);
-    current = null;
+    current = null; gen++; retrying = false; lastInput = url;
     var host = cleanHost(url), t0 = Date.now();
     out.hidden = false;
     out.innerHTML = progressHtml(host) + '<div class="wc-slot"></div>';
@@ -292,6 +356,8 @@
         var k = knownEmail(), mi = out.querySelector('.wc-mail input');
         if (k && mi) mi.value = k.email;
         requestAnimationFrame(function () { out.classList.add('is-ready'); });
+        /* Google ran out of time (not a refusal): try once more by itself */
+        if (r.speedUnavailable && AUTO_RETRY[r.speedError || 'failed']) setTimeout(function () { retrySpeed(true); }, 600);
       },
       onError: function (m) { end(); out.innerHTML = ''; out.hidden = true; showError(m); }
     });
@@ -300,7 +366,7 @@
     if (!sec || !r) return;
     if (job) job.cancel();
     clearInterval(tick);
-    current = r;
+    current = r; gen++; retrying = false; lastInput = '';
     input.value = r.host;
     state.type = r.type; setChoice('.wc-type', 'data-type', r.type);
     out.hidden = false;
@@ -335,6 +401,7 @@
       if (act === 'fix') fix(current);
       else if (act === 'share') share(current, t);
       else if (act === 'ask') askChat(current);
+      else if (act === 'retry-speed') retrySpeed(false);
       else if (act === 'again') { land(form); setTimeout(function () { try { input.focus({ preventScroll: true }); input.select(); } catch (er) {} }, 500); }
     });
     sec.addEventListener('submit', function (e) {
