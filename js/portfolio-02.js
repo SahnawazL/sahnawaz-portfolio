@@ -148,10 +148,7 @@
   var ctaEl     = document.getElementById('wnwModalCta');
   var ctaTxtEl  = document.getElementById('wnwModalCtaText');
 
-  function openModal(idx) {
-    var d = data[idx];
-    if (!d) return;
-
+  function fill(d) {
     /* Update CSS accent color */
     modal.style.setProperty('--mc', d.color);
     ctaEl.style.setProperty('--mc', d.color);
@@ -172,18 +169,49 @@
       bulletsEl.appendChild(li);
     });
 
-    /* Show overlay */
+  }
+
+  function openModal(idx) {
+    var d = data[idx];
+    if (!d) return;
+    fill(d);
+
+    /* Show overlay. No overflow:hidden on <body> — on this long page that
+       re-laid out everything and delayed the first frame; the page behind
+       is held still by the wheel/touch guards below instead. */
     overlay.classList.add('wnw-open');
-    document.body.style.overflow = 'hidden';
+    isOpen = true;
 
-    /* Trap focus */
-    setTimeout(function(){ closeBtn.focus(); }, 420);
+    /* keyboard users land on the close button; on touch it would only
+       draw a focus ring */
+    var fine = false;
+    try { fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches; } catch (e) {}
+    if (fine) setTimeout(function(){ try { closeBtn.focus({ preventScroll: true }); } catch (e) {} }, 280);
   }
 
+  var isOpen = false;
   function closeModal() {
+    if (!isOpen) return;
+    isOpen = false;
     overlay.classList.remove('wnw-open');
-    document.body.style.overflow = '';
+    /* reused for every card: back to the top, once it has faded out
+       (doing this on open forced a layout inside the tap) */
+    setTimeout(function(){ if (!isOpen && innerEl) innerEl.scrollTop = 0; }, 260);
   }
+
+  /* lay the pop-up out once while the page is idle, so the first tap
+     doesn't pay for it (it was ~40ms on a slow phone) */
+  (function warm(){
+    var go = function(){ if (!isOpen) { fill(data[0]); void modal.offsetHeight; } };
+    if ('requestIdleCallback' in window) requestIdleCallback(go, { timeout: 5000 });
+    else setTimeout(go, 3000);
+  })();
+
+  /* keep the page behind still while the pop-up is open */
+  var innerEl = modal.querySelector('.wnw-modal-inner');
+  function outsideScroller(t) { return !(innerEl && innerEl.contains(t)); }
+  overlay.addEventListener('wheel', function (e) { if (outsideScroller(e.target)) e.preventDefault(); }, { passive: false });
+  overlay.addEventListener('touchmove', function (e) { if (outsideScroller(e.target)) e.preventDefault(); }, { passive: false });
 
   /* Attach card click listeners */
   document.querySelectorAll('.wnw-card[data-wnw]').forEach(function(card) {
@@ -206,7 +234,7 @@
     if (e.target === overlay) closeModal();
   });
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeModal();
+    if (e.key === 'Escape' && isOpen) closeModal();
   });
 
   /* CTA scrolls to contact and closes */
