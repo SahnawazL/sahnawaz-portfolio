@@ -4917,6 +4917,8 @@ document.addEventListener('DOMContentLoaded', function(){
 
   function attachListeners() {
     document.querySelectorAll('a[href="#contact"]').forEach(function (el) {
+      /* the hero pill lands on Contact itself (portfolio-06.js, landOn) */
+      if (el.closest('.hero-cta-group')) return;
       if (!el._contactFixed) {
         el._contactFixed = true;
         el.addEventListener('click', scrollToContact, true);
