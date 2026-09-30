@@ -4274,6 +4274,134 @@ header::after {
 }
 
 
+/* ══ WHY YOU NEED A WEBSITE — v3: smooth + lighter ══════════════════
+   Overrides the rules above. What changed and why:
+   - fonts: the wide Syne ExtraBold is replaced by DM Sans (the site's
+     text face) on the pop-up title and both buttons
+   - buttons no longer animate their gradient forever (that repainted
+     them, glow included, every frame while on screen)
+   - cards don't each hold a permanent GPU layer; hover effects only
+     with a real mouse (on phones they stuck after a tap)
+   - pop-up: no full-screen blur, hidden completely when closed, a soft
+     fade-and-rise, fits short screens and scrolls inside itself
+   ══════════════════════════════════════════════════════════════════ */
+/* entrance plays once and then lets go (the old one held its end state
+   forever, which silently overrode the tap/hover feedback) */
+.wnw-card{ will-change:auto; touch-action:manipulation; opacity:1; transform:none;
+  animation:wnw-enter-v3 .6s cubic-bezier(.23,1.04,.32,1) backwards; }
+@keyframes wnw-enter-v3{ from{ opacity:0; transform:translateY(22px) scale(.96); } }
+.wnw-card-icon{ transition:transform .35s cubic-bezier(.34,1.56,.64,1); }
+@media (hover:hover) and (pointer:fine){
+  .wnw-card:hover .wnw-card-icon{ filter:drop-shadow(0 0 8px color-mix(in srgb, var(--c,#00ffff) 50%, transparent)); }
+}
+@media (hover:none){
+  .wnw-card:hover{ transform:none; box-shadow:0 6px 24px rgba(0,0,0,0.5); border-color:rgba(255,255,255,0.065); }
+  .wnw-card:hover::before{ animation:none; opacity:0.6; background-size:100% 100%; }
+  .wnw-card:hover .wnw-card-icon{ transform:none; }
+  .wnw-card:hover .wnw-card-hint{ opacity:0.45; gap:4px; }
+  .wnw-card:hover .wnw-hint-arrow{ animation:none; }
+  .wnw-card:active{ transform:scale(0.97); transition-duration:.12s; }
+}
+
+/* bottom button: clean font, static gradient, soft glow */
+.wnw-main-cta{
+  font-family:'DM Sans', sans-serif;
+  font-weight:700;
+  font-size:0.86rem;
+  letter-spacing:0.6px;
+  text-transform:none;
+  gap:9px;
+  padding:0.85rem 2rem;
+  background:linear-gradient(135deg, #3ff0ff 0%, #a0fff0 100%);
+  background-size:100% 100%;
+  animation:none;
+  box-shadow:0 0 18px rgba(0,255,255,0.22), 0 8px 20px rgba(0,0,0,0.3);
+  touch-action:manipulation;
+  transition:transform .2s ease, box-shadow .2s ease;
+}
+@media (hover:hover){
+  .wnw-main-cta:hover{ transform:translateY(-2px); box-shadow:0 0 26px rgba(0,255,255,0.35), 0 12px 26px rgba(0,0,0,0.35); }
+}
+@media (hover:none){ .wnw-main-cta:hover{ transform:none; box-shadow:0 0 18px rgba(0,255,255,0.22), 0 8px 20px rgba(0,0,0,0.3); } }
+.wnw-main-cta:active{ transform:scale(0.97); }
+
+/* pop-up: plain dim, fully hidden when closed */
+.wnw-overlay{
+  background:rgba(2,7,14,0.82);
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  visibility:hidden;
+  transition:opacity .22s ease, visibility 0s linear .22s;
+  touch-action:none;
+  padding:16px;
+}
+.wnw-overlay.wnw-open{
+  visibility:visible;
+  transition:opacity .22s ease, visibility 0s;
+}
+/* soft fade-and-rise; only transform/opacity animate */
+.wnw-modal{
+  max-height:calc(100vh - 32px);
+  max-height:calc(100dvh - 32px);
+  display:flex; flex-direction:column;
+  box-shadow:0 20px 50px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05);
+  opacity:0;
+  transform:translateY(16px) scale(0.98);
+  transition:transform .28s cubic-bezier(.2,.8,.2,1), opacity .22s ease;
+  will-change:transform, opacity;
+  touch-action:manipulation;
+}
+.wnw-overlay.wnw-open .wnw-modal{ opacity:1; transform:none; }
+/* long content scrolls inside the pop-up, never the page behind it */
+.wnw-modal-inner{
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-y;
+  min-height:0;
+}
+.wnw-modal-close{ width:34px; height:34px; touch-action:manipulation; }
+@media (hover:none){ .wnw-modal-close:hover{ transform:none; } }
+/* icon: a gentle float only while open (pauses when closed) */
+.wnw-overlay:not(.wnw-open) .wnw-modal-icon{ animation-play-state:paused; }
+
+/* pop-up title: DM Sans instead of the wide Syne ExtraBold */
+.wnw-modal-title{
+  font-family:'DM Sans', sans-serif;
+  font-weight:700;
+  font-size:clamp(1.3rem, 5.4vw, 1.65rem);
+  letter-spacing:-0.3px;
+  line-height:1.22;
+}
+/* pop-up button: same clean font, static gradient */
+.wnw-modal-cta{
+  font-family:'DM Sans', sans-serif;
+  font-weight:700;
+  font-size:0.84rem;
+  letter-spacing:0.8px;
+  background:linear-gradient(135deg, var(--mc,#00ffff), color-mix(in srgb, var(--mc,#00ffff) 72%, white));
+  background-size:100% 100%;
+  animation:none;
+  box-shadow:0 0 16px color-mix(in srgb, var(--mc,#00ffff) 28%, transparent), 0 6px 18px rgba(0,0,0,0.35);
+  touch-action:manipulation;
+  transition:transform .2s ease, box-shadow .2s ease;
+}
+@media (hover:hover){
+  .wnw-modal-cta:hover{ transform:translateY(-2px); letter-spacing:0.8px;
+    box-shadow:0 0 24px color-mix(in srgb, var(--mc,#00ffff) 40%, transparent), 0 10px 24px rgba(0,0,0,0.4); }
+}
+@media (hover:none){ .wnw-modal-cta:hover{ transform:none; letter-spacing:0.8px; } }
+.wnw-modal-cta:active{ transform:scale(0.98); }
+
+@media (max-width:480px){
+  .wnw-overlay{ padding:12px; }
+  .wnw-modal{ max-height:calc(100vh - 24px); max-height:calc(100dvh - 24px); border-radius:20px; }
+}
+@media (prefers-reduced-motion: reduce){
+  .wnw-overlay, .wnw-modal{ transition-duration:.01s !important; }
+  .wnw-modal-icon{ animation:none !important; }
+}
+
 /* ---- from index.html line 9927 ---- */
 
 /* ═══════════ MY PROJECTS SECTION ═══════════ */
