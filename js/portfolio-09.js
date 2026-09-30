@@ -2,319 +2,23 @@
 
 (function(){
 
-  /* ====================================================
-     KNOWLEDGE BASE — warm, human, first-person voice
-  ==================================================== */
-  var QA = [
-    { q:"Who are you?",
-      a:"Hey! I'm Sahnawaz Ahmed Laskar — a 28-year-old Full Stack Developer & UI/UX Designer from Silchar (Berenga), Assam. I don't just build websites, I craft experiences that people actually enjoy using. Every pixel, every line of code comes from a genuine love for this craft. 🚀" },
-    { q:"What services do you offer?",
-      a:"Whatever your digital presence needs — full websites, portfolio sites, e-commerce stores, UI/UX design, web ads, SEO basics, SSL & hosting setup, or just someone to talk through your idea with.\n\nPrices start from ₹3,999. Flip the cards in the Services section to see everything in detail! 💼" },
-    { q:"How can I hire you?",
-      a:"I'd love to hear about your project! 😊\n\n📧 shzthedigitalalchemist@gmail.com\n📸 Instagram: @sahnawaz.ui.dev\n\nOr just fill the Contact form right here — I personally read every message and reply within a few hours. No bots, no delays." },
-    { q:"What's your tech stack?",
-      a:"My main playground: HTML · CSS · JavaScript · React · Node.js · Python · Advanced Excel · Figma · WordPress. I pick the right tool for each job rather than forcing everything into one box. Check the Tech Stack section for the full map! 🛠️" },
-    { q:"Worked with big brands?",
-      a:"Yes — and honestly, those experiences shaped how I work today. Flipkart taught me speed and precision. Xiaomi taught me quality at scale. Rapido taught me staying calm under pressure. Each one made me sharper. 🏆" },
-    { q:"How long does a project take?",
-      a:"Depends on what we're building together! A portfolio or landing page usually takes 2–5 days. A feature-rich or e-commerce site is more like 1–3 weeks. I always share a clear timeline before we start — no surprises. ⏱️" },
-    { q:"Is pricing negotiable?",
-      a:"I believe in fair, transparent pricing. My rates are prepaid and clearly listed in the Services section. For custom or larger projects, just message me — I'll always work with you to find something that feels right for both sides. 💡" },
-    { q:"Post-delivery support?",
-      a:"Always. I genuinely care about how your project performs after launch. Minor updates, bug fixes, small tweaks — I'm there. No ghosting, no excuses. That's just how I work. ✅" },
-    { q:"Where are you based?",
-      a:"I'm from Silchar — specifically the Berenga area — in Assam, India. But location has never been a barrier. I've worked with clients across India fully remotely via WhatsApp, Zoom, and email without a single hiccup. 🌐" },
-    { q:"What makes this portfolio special?",
-      a:"Honestly? Everything here was hand-coded with love — retro hacker mode 🖥️, laptop typing popup, particle animations, XP gamification, this very chat, character-by-character text effects. No templates. No shortcuts. Just me, my laptop, late nights, and lo-fi music. ❤️" }
-  ];
-
-  /* ====================================================
-     TOPIC RULES — specific before generic, ORDER MATTERS
-  ==================================================== */
-  var TOPICS = [
-
-    /* ── Greetings first — time-aware & warm ── */
-    { rx:/^(hello|hi|hey|howdy|sup|hola|namaste|salam|assalamu|what'?s up|yo|good morning|good evening|good afternoon)\b/i,
-      ans:(function(){
-        var h = new Date().getHours();
-        var greet = h < 12 ? "Good morning ☀️" : h < 17 ? "Good afternoon 👋" : h < 21 ? "Good evening 🌆" : "Hey, night owl! 🌙";
-        var lines = [
-          greet + " So glad you're here!",
-          "I'm Sahnawaz's personal assistant — ask me anything about him.",
-          "",
-          "Here's what I can help you with:",
-          "💼 Services & pricing",
-          "🏆 Work experience (Flipkart, Xiaomi, Rapido)",
-          "🛠️ Tech skills & projects",
-          "📞 How to hire him",
-          "",
-          "What would you like to know? 😊"
-        ].join("\n");
-        return lines;
-      })() },
-
-    /* ── Gratitude ── */
-    { rx:/\b(thank|thanks|thank you|appreciate|grateful|thx|ty)\b/i,
-      ans:"Aww, you're so welcome! 😊 That genuinely means a lot. Feel free to ask anything else — I'm happy to chat!" },
-
-    /* ── Age / DOB — must be before generic 'who' ── */
-    { rx:/\b(how old|age|years old|born|birth|dob|year.?born)\b/i,
-      ans:"Sahnawaz is 28 years old! Born and raised right here in Silchar, Assam — in the Berenga area specifically. Still young, already done so much. 🎂" },
-
-    /* ── Identity / intro ── */
-    { rx:/\b(who are you|who is sahnawaz|about you|tell me about|introduce yourself|introduce him|what do you do|your name)\b/i,
-      idx:0 },
-
-    /* ── Personality / vibe ── */
-    { rx:/\b(personality|character|nature|kind of person|vibe|attitude|like as a person|what are you like)\b/i,
-      ans:"People who know Sahnawaz well describe him in one word: creative. But dig a little deeper and you find someone who is genuinely calm under pressure, obsessively detail-oriented, and deeply loyal to the people he works with. He doesn't just deliver — he cares. 🎯" },
-
-    /* ── Working style ── */
-    { rx:/\b(working style|work style|how do you work|work with client|approach|collaborate|process)\b/i,
-      ans:"Sahnawaz adapts to what each client actually needs. Sometimes that means being direct and honest — 'this won't work, here's why.' Sometimes it means being patient and walking someone through every decision. And sometimes it means treating the client as a true creative partner. He reads the room and adjusts. Always. 🤝" },
-
-    /* ── Best creative time ── */
-    { rx:/\b(when.*work|creative time|productive|best time|night|morning|work hours|routine)\b/i,
-      ans:"Late nights are where the magic happens for Sahnawaz ☕ — lo-fi music playing softly, a strong cup of chai on the desk, the world quiet outside. That's when his best ideas flow and his best code gets written. There's something about that stillness that makes everything click. 🌙" },
-
-    /* ── Proudest moment ── */
-    { rx:/\b(proud|proudest|achievement|accomplish|moment|milestone|best moment|happiest)\b/i,
-      ans:"There's one moment that will always stand out — a senior at Flipkart praised Sahnawaz's work publicly, in front of the entire team. No heads-up, no preparation. Just genuine recognition. For someone from a small city who worked incredibly hard to earn his place there, that moment meant everything. 🏅" },
-
-    /* ── Dream / future ── */
-    { rx:/\b(dream|goal|ambition|future|vision|5 years|next year|plan|aspire|want to be)\b/i,
-      ans:"Sahnawaz's dream — and it's not a small one — is to build his own digital agency. A team of sharp, creative people building real things for real clients. Not just freelancing, but something that leaves a legacy. He's been quietly laying the foundation for that, one project at a time. 🌍" },
-
-    /* ── What work means ── */
-    { rx:/\b(meaning|beyond money|why.*work|passion for|love about|what drives|purpose|legacy)\b/i,
-      ans:"For Sahnawaz, work has never really been just about money. It's about building something that outlasts you — putting your name on something great and knowing it will still be helping people long after you're done. That's the fuel that keeps him going at 2am when everyone else has logged off. 🔥" },
-
-    /* ── Bias / small city ── */
-    { rx:/\b(assam|northeast|small city|silchar|bias|underestimate|judge|regional|tier.?2|tier.?3)\b/i,
-      ans:"Honestly? The bias is real. People assume that being from a smaller city like Silchar means limited thinking, basic work, less ambition. Sahnawaz has faced every one of those assumptions — and quietly, consistently, let his work do all the talking. Flipkart, Xiaomi, Rapido don't hire average people. 💪" },
-
-    /* ── Hobbies / interests ── */
-    { rx:/\b(hobbies|hobby|free time|fun|interest|outside work|when not coding|relax|leisure)\b/i,
-      ans:"When he's not building something, Sahnawaz is usually exploring something — new design trends, YouTube content (@shzmotivation3767), or just thinking through his next big idea. Creativity doesn't really clock out for him. It's just who he is. 🎬" },
-
-    /* ── Strengths ── */
-    { rx:/\b(strength|superpower|best at|speciality|specialty|what makes you different|stand out|unique quality)\b/i,
-      ans:"The thing that truly sets Sahnawaz apart? He can think like a developer AND design like an artist — and most people can only do one of those well. That means clients don't have to choose between a beautiful product and a functional one. They get both. ⚡" },
-
-    /* ── Weakness / honest ── */
-    { rx:/\b(weakness|flaw|not good at|struggle|challenge|difficult|hard for you|improve)\b/i,
-      ans:"Sahnawaz will be the first to admit it — he's a perfectionist. He'll spend an extra hour on something that 'looks fine' because he knows it could look great. It's not always efficient, but clients never complain about the results. He's also actively levelling up his backend and DevOps skills. 🔧" },
-
-    /* ── Motivation / inspiration ── */
-    { rx:/\b(motivat|inspir|what keeps you|why do you|driven by|fuel|push you)\b/i,
-      ans:"What keeps Sahnawaz going is the idea of permanence — building things that last, that carry his name, that people use and love without even knowing who made them. He's also motivated by proving that talent from Assam can compete with anyone, anywhere in the world. 🔥" },
-
-    /* ── Languages spoken ── */
-    { rx:/\b(speak|language|fluent|hindi|assamese|english|bengali|multilingual)\b/i,
-      ans:"Sahnawaz speaks Hindi, Assamese, Bengali and English — all fluently. Honestly, it makes collaboration so much smoother with clients from different parts of India and beyond. No communication gaps, ever. 🗣️" },
-
-    /* ── Experience / career ── */
-    { rx:/\b(experience|years? of exp|career|professional background|work history|worked.*years|years.*worked)\b/i,
-      ans:"5+ years total as a developer — including 2.4+ years of hands-on IT-industry experience: L1 inbound support → MSM troubleshooting at Xiaomi India, L2 returns/refunds support at Flipkart, and an IT/Developer role (internal tooling, agent training, live chat support) at Rapido — plus freelance and personal development work since 2021. Not just resume experience. Real work, real impact, real teams. 📅" },
-
-    /* ── Brand specifics ── */
-    { rx:/\b(flipkart|ienergizer)\b/i,
-      ans:"At Flipkart (via Ienergizer), Sahnawaz started on L2 backend support — handling return and refund queries escalated from frontline agents — before moving onto the internal IT team, where he helped build tools that automated resolution workflows and got his first real hands-on development experience. Fast-paced, high-stakes work — and he loved every minute of it. 🛒" },
-    { rx:/\b(xiaomi|one point one|1point1|mi support)\b/i,
-      ans:"At Xiaomi India (via One Point One Solutions), Sahnawaz started out on L1 — taking live customer calls and resolving mobile issues via MSM-based troubleshooting — before moving into owning the order escalation dashboard. The Quality Head, Hemalatha, personally recognised his meticulous work — which meant a lot. 📱" },
-    { rx:/\b(rapido|ride|cab)\b/i,
-      ans:"At Rapido (via Ienergizer), Sahnawaz worked as IT/Developer — supporting internal tooling, leading live chat support for ride-related issues, and training agents on deep-resolution workflows. IT Head Santoosh Reddy called him someone who 'brings calm creativity to pressure-driven environments.' That one stuck. 🛵" },
-
-    /* ── Education ── */
-    { rx:/\b(certif|qualification|degree|education|study|college|diploma|background|university|mca|bca|school|secondary)\b/i,
-      ans:"Here's Sahnawaz's full educational journey:\n\n🎓 Master of Computer Applications (MCA) — Yenepoya University, Bangalore, Karnataka (2025 – Present)\n🎓 Bachelor of Computer Applications (BCA) — Yenepoya University, Bangalore, Karnataka (2022 – 2025)\n🎓 Bachelor of Arts (BA) — G.C. College, Silchar, Assam (2018 – 2021)\n📚 Higher Secondary / AHSEC — Ahmed Ali Junior College, Assam (2016 – 2018)\n📚 High School / HSLC — Badripar Public High School, Assam (2015 – 2016)\n💻 Diploma in Computer Applications (DCA) — Info Education Computer Institute, Silchar, Assam (2015 – 2016)\n\nCurrently pursuing his MCA while actively building real-world projects — the perfect blend of theory and practice! 🚀" },
-
-    /* ── Skills ── */
-    { rx:/\b(skill|expert|good at|proficient|what can you do|capabilities|know how)\b/i,
-      ans:"Core skills: HTML/CSS/JS, React, UI/UX Design, Excel Analytics, Info Architecture, Problem Solving, Agile workflows. But honestly, what makes those skills valuable is how Sahnawaz applies them — with care, context, and a genuine focus on the end user. 💪" },
-
-    /* ── GitHub / open source ── */
-    { rx:/\b(github|commit|open.?source|contribution|code repo|repository)\b/i,
-      ans:"100+ GitHub contributions, 5+ deployed web apps, and 200+ algorithmic challenges solved. The code doesn't lie — it's all there if you want to see it. 🥇" },
-
-    /* ── Testimonials ── */
-    { rx:/\b(testimonial|review|client|feedback|say about|what.*people.*say|reference)\b/i,
-      ans:"People who've worked with Sahnawaz consistently say the same things — professional, quick, meticulous, and genuinely cares about the outcome. Those aren't just nice words; they come from team leads and managers at Flipkart, Xiaomi and Rapido. Scroll down to the testimonials section to read them! ⭐" },
-
-    /* ── Timeline — MUST be before pricing (catches "how much time", "how long", "time for a project") ── */
-    { rx:/how (long|much time|many days|many weeks)|how (long|much time)|time (for|to (complete|finish|build|make|deliver))|(deadline|timeline|turnaround|delivery time|days|weeks|how fast|how quick|when.*ready|when.*done|when.*finish|when.*complete)\b/i,
-      idx:5 },
-
-    /* ── Pricing — only after timeline is ruled out ── */
-    { rx:/\b(price|cost|fee|rate|rupee|budget|cheap|expensive|how much(?! time)|₹|affordable|charges|what.*charge|what.*cost)\b/i,
-      ans:"Here's the full, transparent pricing — all prepaid, no hidden costs:\n\n🌐 Full Website Design — from ₹9,999\n📁 Portfolio Site — from ₹6,999\n🛒 E-Commerce Store — from ₹14,999\n📢 Web Ads / Campaign — from ₹3,999\n\n⚙️ Individual services:\n🖥️ Frontend Dev — from ₹4,999\n🔧 Backend / API — from ₹5,999\n🎨 UI/UX Design — from ₹3,999\n\nNeed something custom or have a tight budget? Just message — Sahnawaz always finds a way to make it work. 💡" },
-
-    /* ── Post support ── */
-    { rx:/\b(after.*deliver|maintain|update|bug.*fix|support|post.*launch|warranty|after.*project|once.*done)\b/i,
-      idx:7 },
-
-    /* ── Services ── */
-    { rx:/\b(service|offer|build|create|make|can you help|what do you do|looking for|what.*offer)\b/i,
-      idx:1 },
-
-    /* ── Hiring / contact ── */
-    { rx:/\b(hire|contact|reach|get in touch|work together|start a project|collaborate|work with you)\b/i,
-      idx:2 },
-
-    /* ── Tech stack ── */
-    { rx:/\b(tech|stack|tool|html|css|javascript|react|python|figma|node|wordpress|framework|language.*use|what.*use)\b/i,
-      idx:3 },
-
-    /* ── Location ── */
-    { rx:/\b(where.*based|location|city|assam|silchar|berenga|india|remote.*work|timezone|where.*from|which.*city)\b/i,
-      idx:8 },
-
-    /* ── Hacker Mode / Terminal — specific, before generic portfolio ── */
-    { rx:/\b(hacker.?mode|retro.?terminal|retro.?hacker|terminal.*command|command.*terminal|hacker.*toggle|type.*command|what.*command|available.*command|how.*activate.*hacker|how.*turn.*on.*hacker|how.*use.*terminal|hacker.*feature|retro.*feature|easter.?egg|selfdestruct|warpdrive|timewarp|blackout|earthquake|matrixanim|hack.*command)\b/i,
-      ans:"[CAT:about]\n##🖥️ Retro Hacker Mode##\n!!One of the most creative features on this portfolio — built 100% from scratch. 🔥!!\n---\n##⚡ How to Activate##\n- Click the **🎮 toggle button** in the bottom-right corner\n- The entire page transforms into a **green monospace terminal aesthetic** with scanline overlays\n- A fully functional **retro terminal** appears — type commands and explore\n---\n##💻 Commands You Can Try##\n>>General | help · about · clear · date · ping<<\n>>Fun | joke · fortune · quote · matrix · easteregg<<\n>>System | whoami · sysinfo · hack · scan · ipconfig<<\n>>Premium Effects | selfdestruct · earthquake · timewarp · blackout · warpdrive<<\n---\n##🐣 Hidden Easter Eggs##\n- Type **secret**, **diagnose**, **heartbeat**, **prescription** for surprise responses\n- Type a **family member\'s first name** (e.g. jamal, afiya) for personal messages\n- Type **easteregg** for a hint about even more hidden commands\n---\n!!Pure vanilla JavaScript — zero libraries. A creative flex that most developers can\'t even imagine, let alone build. 💪!!" },
-
-    /* ── Portfolio ── */
-    { rx:/\b(portfolio|this website|how.*built|retro|hacker.*mode|particle|animation|special.*about|what.*special)\b/i,
-      idx:9 },
-
-    /* ── Email specifics ── */
-    { rx:/\b(official.?email|business.?email|professional.?email|work.*email)\b/i,
-      ans:"Best email for project work: shzthedigitalalchemist@gmail.com — Sahnawaz checks it personally and replies fast. 📧" },
-    { rx:/\b(personal.?email)\b/i,
-      ans:"Sahnawaz's email for everything — personal and professional — is shzthedigitalalchemist@gmail.com. He checks it personally and replies fast. 📧" },
-
-    /* ── Social ── */
-    { rx:/\b(youtube|channel|video|content creator)\b/i,
-      ans:"Sahnawaz runs a YouTube channel — @shzmotivation3767 — covering tech, motivation, and creative ideas. Worth a watch! 🎬" },
-    { rx:/\b(instagram|insta|social media|follow)\b/i,
-      ans:"You can follow Sahnawaz on Instagram @sahnawaz.ui.dev — it's where he shares design experiments, UI work, and creative updates. 📸" },
-
-    /* ── Salary (handled with grace) ── */
-    { rx:/\b(salary|ctc|package|earn|income|pay.*scale)\b/i,
-      ans:"Freelance rates depend on the scope of work — all clearly listed in the Services section. For corporate opportunities, Sahnawaz is open to conversations. Just reach out and he'll be completely honest with you. 💼" },
-
-    /* ── Blog / writing ── */
-    { rx:/\b(blog|article|write|post|content|publishing)\b/i,
-      ans:"Sahnawaz writes about things he actually knows from experience — building portfolios, Excel tricks, responsive design, debugging strategies, frontend performance. Real insights, not filler content. Check the Blog section! 📰" },
-
-    /* ── Comparison ── */
-    { rx:/\b(compare|better than|vs|other developer|different from|why.*you|why not.*else)\b/i,
-      ans:"Honestly, here's the difference:\n\n✅ Custom animated UI — not recycled templates\n✅ Replies on WhatsApp within hours — not days\n✅ Lifetime post-delivery support — not just 'done and gone'\n✅ Transparent fixed pricing — no surprise invoices\n✅ One person who genuinely cares — not a faceless agency\n\nThat's not marketing. That's just how Sahnawaz works. 💥" },
-
-    /* ── Fun / jokes ── */
-    { rx:/\b(funny|joke|humor|laugh|comedy|tell me something fun)\b/i,
-      ans:"Haha, okay! 😄 Sahnawaz once spent 3 hours debugging a layout issue — only to discover he'd accidentally typed 'marign' instead of 'margin'. A typo. Three hours. The chai did not help. 😂 Anyway — what can I actually help you with?" },
-
-    /* ── Compliments ── */
-    { rx:/\b(amazing|incredible|impressive|wow|great work|love.*portfolio|beautiful|sick|fire)\b/i,
-      ans:"That really means a lot — and Sahnawaz would genuinely love to hear that too! 😊 Feel free to drop him a message. He reads every single one." },
-
-    /* ── Smart / genius ── */
-    { rx:/\b(smart|genius|intelligent|brilliant|talented|gifted)\b/i,
-      ans:"I'll pass that on! 😄 But honestly, what makes Sahnawaz effective isn't just raw talent — it's the combination of technical depth, creative instinct, and a genuine desire to do good work. Clients at Flipkart, Xiaomi & Rapido noticed that too. 🧠✨" },
-
-    /* ── Personal / relationship ── */
-    { rx:/\b(married|single|relationship|girlfriend|wife|dating|love life)\b/i,
-      ans:"Ha, that's a personal one! 😄 What I can say is — Sahnawaz's full commitment right now is to his craft and his clients. His work gets all the love. Want to hire him? 🚀" },
-
-    /* ── Can you help me ── */
-    { rx:/\b(can you help|need.*help|looking for|need.*website|want.*site|need.*developer|find.*developer)\b/i,
-      ans:"Absolutely — that's exactly what this chat is for! 😊 Tell me a bit about what you need, and I'll point you to the right information. Or just reach out directly:\n\n📧 shzthedigitalalchemist@gmail.com\n📸 @sahnawaz.ui.dev\n\nSahnawaz will personally respond." },
-
-    /* ── Trust / reliability ── */
-    { rx:/\b(trust|reliable|honest|genuine|safe|legit|real|scam)\b/i,
-      ans:"Completely valid to ask. Sahnawaz has worked with Flipkart, Xiaomi India, and Rapido — those don't take chances on unreliable people. Every testimonial on this page is real, from people who have his number. If you want references before committing, just ask. He has nothing to hide. 🤝" },
-
-    /* ── Generic 'who' fallback ── */
-    { rx:/\b(who|name|sahnawaz|about|himself|introduce)\b/i,
-      idx:0 },
-
-    /* ══════════════════════════════════════════
-       PEOPLE — Family, close ones & Suraiya
-    ══════════════════════════════════════════ */
-
-    /* Suraiya — dignified, unbothered, total class */
-    { rx:/\bsuraiya\b/i,
-      ans:"That name belongs to a chapter Sahnawaz has already closed — quietly, with no bitterness and no explanation needed. Some things in life teach you more about yourself than you ever expected. He learned, he grew, and he moved forward. That's all that matters. 🚀" },
-
-    /* Father */
-    { rx:/\bjamal\b|\bfather\b|\babba\b|\bdad\b/i,
-      ans:"Jamal is Sahnawaz's beloved father — the root of the family, the source of his strength and guidance. A man Sahnawaz deeply respects and loves. 💙" },
-
-    /* Mother */
-    { rx:/\bmomotaz\b|\bmother\b|\bammi\b|\bmom\b/i,
-      ans:"Momotaz was Sahnawaz's beloved mother — the angel of his life. She passed away in 2019, but her love, prayers, and blessings live on in everything he does. May Allah grant her Jannah. 💙🤲" },
-
-    /* Siblings */
-    { rx:/\bafiya\b/i,
-      ans:"Afiya is Sahnawaz's eldest sister — protective, caring, and a second mother to him. She's one of the most important people in his life. ❤️" },
-    { rx:/\bfayaz\b/i,
-      ans:"Fayaz is Sahnawaz's elder brother — strong, wise, and someone who has always guided him forward. 🤝" },
-    { rx:/\bafaz\b/i,
-      ans:"Afaz is Sahnawaz's elder brother — loving, supportive, and a true companion through everything. 🤝" },
-    { rx:/\bchufiya\b/i,
-      ans:"Chufiya is Sahnawaz's sister — sweet, kind, and full of love for the whole family. 🌸" },
-    { rx:/\bnahaz\b/i,
-      ans:"Nahaz is Sahnawaz's brother — energetic, fun, and always close to his heart. ⚡" },
-    { rx:/\brajiya\b/i,
-      ans:"Rajiya is Sahnawaz's sister — caring, graceful, and a pillar of warmth in their family. 🌹" },
-    { rx:/\brejina\b/i,
-      ans:"Rejina is Sahnawaz's sister — loving, cheerful, and a true blessing to the family. 🌼" },
-    { rx:/\bminhaz\b/i,
-      ans:"Minhaz is Sahnawaz's youngest brother — the most adorable one, deeply loved by everyone. 💙" },
-
-    /* Extended family */
-    { rx:/\bnurun\b/i,
-      ans:"Nurun is Sahnawaz's beloved aunt — a guiding figure full of love in his life. 🌷" },
-    { rx:/\bathikur\b/i,
-      ans:"Athikur is Sahnawaz's uncle — kind, wise, and always deeply respected. 🤲" },
-    { rx:/\bpapiya\b/i,
-      ans:"Papiya is Sahnawaz's cousin sister — elder to him, like a friend and guide at the same time. 🌟" },
-    { rx:/\bsabaz\b/i,
-      ans:"Sabaz is Sahnawaz's cousin brother — younger, lively, and full of energy. 🔥" },
-    { rx:/\bjabir\b/i,
-      ans:"Jabir is Sahnawaz's cousin brother — cheerful, playful, and dearly loved. 😊" },
-
-    /* In-laws & nieces/nephews */
-    { rx:/\bazad\b/i,
-      ans:"Azad is Afiya's husband — respected and a valued part of the family bond. 🤝" },
-    { rx:/\bafreen\b/i,
-      ans:"Afreen is Afiya's daughter — sweet, lovely, and a little star in the family. 🌟" },
-    { rx:/\bkhaleda\b/i,
-      ans:"Khaleda is Fayaz's wife — caring, kind, and a joy in their home. 💐" },
-    { rx:/\btashfiya\b/i,
-      ans:"Tashfiya is Fayaz's daughter — a little princess, bright and loved by everyone. 👑" },
-    { rx:/\bmampi\b/i,
-      ans:"Mampi is Afaz's wife — warm, graceful, and full of love for the family. 🌺" },
-    { rx:/\bfaizan\b/i,
-      ans:"Faizan is Afaz's son — small, innocent, and the heart of joy for the whole family. 🍼" },
-    { rx:/\brushon\b/i,
-      ans:"Rushon is Chufiya's husband — respected and a close part of their family circle. 🤝" },
-    { rx:/\bsabana\b/i,
-      ans:"Sabana is Chufiya's daughter — sweet and playful, always bringing smiles. 🌼" },
-    { rx:/\bsaddik\b/i,
-      ans:"Saddik is Chufiya's son — little, bright, and a treasure of happiness. 🧸" },
-    { rx:/\bkomoi\b/i,
-      ans:"Komoi is Rajiya's husband — a valued and respected part of their family. 🙏" },
-    { rx:/\bridwan\b/i,
-      ans:"Ridwan is Rajiya's son — smart, cheerful, and deeply loved. 😇" },
-    { rx:/\benaya\b/i,
-      ans:"Enaya is Rajiya's daughter — tiny, lovely, and the soul of joy in the family. 💕" },
-    { rx:/\bakbar\b/i,
-      ans:"Akbar is Rejina's husband — respected with love, making the family stronger. 🤝" },
-  ];
+  /* Canned answers (QA / TOPICS) were removed: every question — typed or a
+     tapped suggestion — is answered by the AI in api/chat.js, so they were
+     never shown, and they exposed personal details via view-source. */
 
   /* ========== Smart greeting by time of day (name-aware) ========== */
   function getWelcomeMsg(name){
     var h = new Date().getHours();
-    var n = name ? ', ' + name + '!' : '!';
-    if (h >= 5 && h < 12)
-      return "Good morning" + n + " \u2600\uFE0F Ready to build something great today?\n\nI'm Sahnawaz's assistant \u2014 ask me about his work, pricing, or how to get started.";
-    if (h >= 12 && h < 17)
-      return "Good afternoon" + n + " \uD83D\uDC4B Hope your day's going well.\n\nI'm Sahnawaz's assistant \u2014 ask me about his services, past work, or pricing anytime.";
-    if (h >= 17 && h < 21)
-      return "Good evening" + n + " \uD83C\uDF06 Sahnawaz is online and available.\n\nAsk me about his work, pricing, or drop him a message directly.";
-    return "Hey, night owl" + n + " \uD83C\uDF19 So is Sahnawaz!\n\nAsk me anything \u2014 services, pricing, or how to hire him. He replies fast even at night.";
+    var n = name ? ', ' + name : '';
+    var hello =
+      (h >= 5  && h < 12) ? "Good morning" + n + "! \u2600\uFE0F" :
+      (h >= 12 && h < 17) ? "Good afternoon" + n + "! \uD83D\uDC4B" :
+      (h >= 17 && h < 21) ? "Good evening" + n + "! \uD83C\uDF06" :
+                            "Hey there, night owl" + n + "! \uD83C\uDF19";
+    /* Who the assistant is + what it can do, in one consistent voice */
+    /* Kept under 160 characters so it renders as a plain message (no badge) */
+    return hello + " I'm Sahnawaz's AI assistant.\n\n" +
+      "Ask me about his work, pricing, availability, or how to reach him directly.";
   }
   var WELCOME = getWelcomeMsg();
   var WELCOME_RETURN = "Welcome back. What can I help you with today?";
@@ -532,53 +236,6 @@
     }
   }
 
-  /* ========== Follow-up chips map ========== */
-  var FOLLOWUP_MAP = {
-    'who are you':       ['What\'s your dream?','Worked with big brands?','When do you do your best work?'],
-    'how old are you':   ['Where are you from?','What\'s your educational background?','What\'s your proudest moment?'],
-    'where are you from':['What languages do you speak?','What\'s your dream?','Who are you?'],
-    'worked with big brands': ['What makes you different?','Can I trust you?','How long does a project take?'],
-    'what services do you offer': ['What\'s your pricing?','How long does a project take?','How can I hire you?'],
-    'what makes you different': ['Can I trust you?','Do you offer post-delivery support?','What\'s your pricing?'],
-    'how can i hire you':['What\'s your pricing?','How long does a project take?','What services do you offer?'],
-    "what's your pricing":['How long does a project take?','Do you offer post-delivery support?','Can you build me a website like this?'],
-    'how long does a project take':['What\'s your pricing?','What makes you different?','Do you offer post-delivery support?'],
-    'can i trust you':   ['Worked with big brands?','Do you offer post-delivery support?','How can I hire you?'],
-    "what's your dream": ['What does your work mean to you?','When do you do your best work?','What\'s your proudest moment?'],
-    "what's your proudest moment":['What does your work mean to you?','Who are you?','What makes you different?'],
-    'how was this website built':['What\'s special about this portfolio?','Is this portfolio mobile friendly?','Can you build me a website like this?'],
-    'what apps has sahnawaz built': ['What has Sahnawaz shipped recently? 🚀','Tell me about Yojana Sahay 🇮🇳','What is StudyLens AI? 📚'],
-    'what has sahnawaz shipped recently': ['Is he actively coding right now?','What\'s his current GitHub streak? 🔥','What apps has Sahnawaz built? 🚀'],
-    'is he actively coding right now': ['What has Sahnawaz shipped recently? 🚀','What\'s his current GitHub streak? 🔥','What\'s your tech stack?'],
-    'whats his current github streak': ['What has Sahnawaz shipped recently? 🚀','Is he actively coding right now?','How was this AI chatbot built?'],
-    'default':           ['Who are you?','What services do you offer?','How can I hire you?']
-  };
-
-  function showFollowUpChips(questionAsked){
-    if (!followUpWrap || !followUpChips) return;
-    var key = questionAsked.toLowerCase().replace(/[^a-z0-9 ']/g,'').trim();
-    var suggestions = FOLLOWUP_MAP[key] || FOLLOWUP_MAP['default'];
-
-    followUpChips.innerHTML = '';
-    suggestions.forEach(function(q){
-      // Don't show the same question that was just asked
-      if (q.toLowerCase() === questionAsked.toLowerCase()) return;
-      var btn = document.createElement('button');
-      btn.className = 'chat-chip';
-      btn.style.cssText = 'font-size:0.7rem; padding:4px 10px;';
-      btn.textContent = q;
-      btn.addEventListener('click', function(){
-        btn.classList.add('used');
-        followUpWrap.style.display = 'none';
-        // find answer from CHIPS or QA
-        var found = CHIPS.find(function(c){ return c.q.toLowerCase() === q.toLowerCase(); });
-        if (found) handleQ(found.q, found.a);
-        else handleQ(q, findAnswer(q));
-      });
-      followUpChips.appendChild(btn);
-    });
-    followUpWrap.style.display = 'block';
-  }
 
   /* ========== Keyboard / viewport fix ========== */
   function handleViewport(){
@@ -694,7 +351,7 @@
     msgs.innerHTML = '';
     conversationHistory = [];
     followUpWrap && (followUpWrap.style.display = 'none');
-    if (quickReply) quickReply.style.display = 'flex';
+    renderQuickReplies();
     var _sv = null; try { _sv = JSON.parse(localStorage.getItem('shnz_visitor_v1')||'null'); } catch(e){}
     addMsg('bot', getWelcomeMsg(_sv && _sv.firstName ? _sv.firstName : null)); /* always use fresh time-based greeting */
     document.querySelectorAll('.chat-chip').forEach(function(c){ c.classList.remove('used'); });
@@ -772,23 +429,104 @@
   }
 
   /* ========== Init ========== */
-  function wireQuickReply() {
-    /* Feature 6: Wire up quick-reply CTA buttons */
-    if (quickReply){
-      var qrBtns = quickReply.querySelectorAll('.chat-qr-btn');
-      qrBtns.forEach(function(btn){
-        btn.addEventListener('click', function(){
-          var q = btn.getAttribute('data-q');
-          quickReply.style.display = 'none'; /* hide after first use */
-          followUpWrap && (followUpWrap.style.display = 'none');
-          var found = CHIPS.find ? CHIPS.find(function(c){ return c.q === q; }) : null;
-          /* fallback for IE */
-          if (!found){ for(var i=0;i<CHIPS.length;i++){ if(CHIPS[i].q===q){found=CHIPS[i];break;} } }
-          handleQ(q, found ? found.a : findAnswer(q));
+  /* ========== Visitor type + quick replies ==========
+     First visit: "What brings you here?" with three buttons. The choice is
+     remembered on this device, sent to the server with every message so
+     answers are tailored, and swaps the starters for ones that fit. */
+  var VISITOR_TYPES = [
+    { type: 'recruiter', label: "👔 I'm hiring / recruiting" },
+    { type: 'client',    label: '💼 I have a project' },
+    { type: 'browsing',  label: '👀 Just browsing' }
+  ];
+  var VISITOR_TYPE_REPLY = {
+    recruiter: "Thanks! 👔 Sahnawaz is open to full-time roles as well as freelance work.\n\n" +
+               "I can email you his resume right now, or answer anything about his experience and skills.\n" +
+               "[[go:send-resume|📄 Email me his resume]]\n[[go:experience|See his experience]]",
+    client:    "Great, let's get your project moving! 🚀 Tell me what you're building and I'll share pricing and timelines, " +
+               "or message Sahnawaz directly.\n[[go:send-message|📧 Message Sahnawaz]]\n[[go:services|See services & pricing]]",
+    browsing:  "Welcome! 😊 Have a look around. Ask me anything, or try one of these below."
+  };
+  var STARTERS = {
+    none:      [['💼 See his best work', 'What apps has Sahnawaz built? 🚀'], ['💰 Pricing', "What's his pricing?"],
+                ['🤝 Hire Sahnawaz', 'How can I hire Sahnawaz?'], ['✅ Is he available?', 'Is he available for work right now?']],
+    recruiter: [['🧑‍💼 His experience', 'Has he worked with big brands?'], ['🛠️ Tech stack', "What's his tech stack?"],
+                ['🚀 What he built', 'What apps has Sahnawaz built? 🚀']],
+    client:    [['💰 Pricing', "What's his pricing?"], ['⏱️ Timelines', 'How long does a project take?'],
+                ['✨ A site like this', 'Can Sahnawaz build me a website like this?']],
+    browsing:  [['🚀 His apps', 'What apps has Sahnawaz built? 🚀'], ['🖥️ Hacker Mode', 'What is the Hacker Mode? 🖥️'],
+                ['✨ This portfolio', "What's special about this portfolio?"]]
+  };
+
+  function getVisitorType() {
+    var t = null;
+    try { t = localStorage.getItem('shz_visitor_type'); } catch (e) {}
+    if (!t && window._visitorTypeMem) t = window._visitorTypeMem;
+    return (t === 'recruiter' || t === 'client' || t === 'browsing') ? t : null;
+  }
+  function setVisitorType(t) {
+    window._visitorTypeMem = t; /* in case storage is blocked */
+    try { localStorage.setItem('shz_visitor_type', t); } catch (e) {}
+  }
+  window._getVisitorType = getVisitorType;
+
+  function qrButton(label, onClick) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chat-qr-btn';
+    b.textContent = label;
+    b.addEventListener('click', onClick);
+    return b;
+  }
+
+  function renderQuickReplies() {
+    if (!quickReply) return;
+    quickReply.innerHTML = '';
+    var vt = getVisitorType();
+
+    if (!vt) {
+      var cap = document.createElement('div');
+      cap.className = 'chat-qr-caption';
+      cap.textContent = 'What brings you here?';
+      quickReply.appendChild(cap);
+      VISITOR_TYPES.forEach(function (v) {
+        quickReply.appendChild(qrButton(v.label, function () { chooseVisitorType(v.type, v.label); }));
+      });
+    } else {
+      (STARTERS[vt] || STARTERS.none).forEach(function (st) {
+        quickReply.appendChild(qrButton(st[0], function () {
+          quickReply.style.display = 'none';
+          handleQ(st[1]);
           resetIdleTimer();
-        });
+        }));
       });
     }
+    quickReply.style.display = 'flex';
+  }
+
+  function chooseVisitorType(type, label) {
+    if (botBusy) return;
+    if (window._helpFlowActive && window._helpFlowActive()) return;
+    setVisitorType(type);
+    quickReply.style.display = 'none';
+    setChipsOpen(false);
+    playSend && playSend();
+    addMsg('user', label);
+    if (window._saveChatMessage) window._saveChatMessage('user', label);
+    var reply = VISITOR_TYPE_REPLY[type];
+    addBotTyping(reply, label);
+    /* once the reply has rendered, offer starters that fit — unless the
+       visitor has already moved on (typed, tapped a chip, started a flow) */
+    setTimeout(function () {
+      var last = conversationHistory[conversationHistory.length - 1];
+      if (botBusy || !last || last.role !== 'bot' || last.text !== reply) return;
+      if (window._helpFlowActive && window._helpFlowActive()) return;
+      renderQuickReplies();
+      scrollMsgs();
+    }, 1900);
+  }
+
+  function wireQuickReply() {
+    renderQuickReplies();
   }
 
   function initChat(){
@@ -873,7 +611,11 @@
                 clientHour: new Date().getHours()
               })
             })
-            .then(function(r){ return r.json(); })
+            .then(function(r){
+              /* A busy (429) or error body is not a greeting — use the local one */
+              if (!r.ok) throw new Error('greeting status ' + r.status);
+              return r.json();
+            })
             .then(function(d){
               if (loadingGreet.parentNode) loadingGreet.parentNode.removeChild(loadingGreet);
               var aiGreeting = (d && d.reply && d.reply.trim())
@@ -1278,6 +1020,12 @@
 
     /* Handle each step of the flow — called from sendMessage intercept */
     window._helpFlowActive = function() { return _flow !== null; };
+    /* Lets chat replies start a flow in place (chips like [[go:send-resume|…]]) */
+    window._startHelpFlow = function(type) {
+      if (type !== 'quickmail' && type !== 'resume' && type !== 'callback') return false;
+      startFlow(type);
+      return true;
+    };
 
     window._helpFlowStep = function(userInput) {
       if (!_flow) return false;
@@ -1483,90 +1231,50 @@
   })();
   /* ========== End Help Panel ========== */
 
+  /* Suggestions — all phrased to the assistant, ABOUT Sahnawaz, so the
+     voice matches the header ("Sahnawaz's Assistant"). The AI answers them. */
   var CHIPS = [
-    /* ── 🎯 Top 3 CTA questions — shown first ── */
-    { q:"What services do you offer?",
-      a: QA[1].a },
-    { q:"What's your pricing?",
-      a:"[CAT:pricing]\n##💰 Pricing Breakdown##\n!!All prepaid · Transparent · No hidden costs 🙌!!\n---\n##🌐 Full Packages##\n>>Full Website Design | from ₹9,999<<\n>>Portfolio Website | from ₹6,999<<\n>>E-Commerce Store | from ₹14,999<<\n>>Web Ads & Campaign | from ₹3,999<<\n---\n##⚙️ Individual Services##\n>>Frontend Dev (HTML/CSS/JS) | from ₹4,999<<\n>>Backend / API (Node/Firebase) | from ₹5,999<<\n>>UI/UX Design (Figma/XD) | from ₹3,999<<\n>>Custom Domain Setup | ₹1,500 one-time<<\n---\n!!Need something custom? Just message — Sahnawaz always finds a way. 💡!!" },
-    { q:"How can I hire you?",
-      a: QA[2].a },
+    /* ── 🎯 Top CTA questions — shown first ── */
+    "What services does Sahnawaz offer?",
+    "What's his pricing?",
+    "How can I hire Sahnawaz?",
+    "Is he available for work right now?",
 
-    /* ── 🤖 AI & Chatbot highlights first ── */
-    { q:"Is Sahnawaz recognized by AI?",
-      a:"[CAT:about]\n##🌐 AI & Search Recognition##\n!!Sahnawaz is verified across every major AI platform — that's rare. 🚀!!\n---\n##🔍 Where He's Recognized##\n- **Google Search** — ranks at the top when you search his name\n- **Google Gemini** — accurately describes his skills & services\n- **ChatGPT** — identifies him as Website Developer & UI/UX Designer\n- **WhatsApp Meta AI** — knows his background & work\n- **Instagram Meta AI** — confirms his full skill set\n---\n##💡 Why This Matters##\nWhen multiple AI systems describe you consistently, it builds **digital trust** before you even speak. That's the power of a strong online identity." },
-    { q:"How was this AI chatbot built?",
-      a:"[CAT:skills]\n##🤖 About This AI Chatbot##\n!!Built from scratch by Sahnawaz — no third-party widget, no shortcuts. 🧠!!\n---\n##⚡ Tech Stack##\n- **Groq AI** — ultra-fast inference engine\n- **Llama Model** — powerful open-source AI\n- **Vercel Serverless** — lightning-fast scalable backend\n---\n##✅ Features Built In##\n- Custom knowledge base trained on everything about Sahnawaz\n- Conversation memory within a session\n- Intent detection (pricing, hiring, contact, skills)\n- Hindi & Bengali language auto-detection\n- Spam & abuse filter\n- 14,400 free messages / day capacity\n---\n!!This is v2.0 — and v3.0 is already in the works. 🔥!!" },
+    /* ── 🚀 Live products & recent work ── */
+    "What apps has Sahnawaz built? 🚀",
+    "What is StudyLens AI? 📚",
+    "Tell me about Yojana Sahay 🇮🇳",
+    "What has Sahnawaz shipped recently? 🚀",
+    "Is he actively coding right now?",
+    "What's his current GitHub streak? 🔥",
 
-    /* ── 🚀 Live Products — StudyLens AI & Yojana Sahay ── */
-    { q:"What apps has Sahnawaz built? 🚀",
-      a:"[CAT:about]\n##🚀 Live Products — Built & Shipped##\n!!Two real, live AI-powered products — built solo, deployed to the world. 🌍!!\n---\n##📚 StudyLens AI##\n- AI homework helper for students in Assam\n- Covers **SEBA, AHSEC, CBSE & ICSE** syllabi\n- Answers in **4 languages** — English, Bengali, Hindi & Assamese\n- Snap a photo from your textbook — AI solves it instantly\n- 🔗 studylens-ai-gamma.vercel.app\n---\n##🇮🇳 Yojana Sahay##\n- India's free AI-powered **government scheme finder**\n- Covers **3,000+ Central & State welfare schemes**\n- Bilingual — **Hindi & English**\n- Find what you qualify for in minutes\n- 🔗 yojanasahay.vercel.app\n---\n!!Both built solo — from idea to deployed product. That's what a real full stack developer does. 💪!!" },
-
-    { q:"What is StudyLens AI? 📚",
-      a:"[CAT:about]\n##📚 StudyLens AI — AI Homework Helper##\n!!A full AI study platform built by Sahnawaz — live and free to use. 🎓!!\n---\n##🎯 What It Does##\n- Select your **board, class & subject** — fully personalised\n- **Type a question** or **snap a photo** from your textbook\n- Get a **step-by-step AI answer instantly**\n- Answers available in **English, Bengali, Hindi & Assamese**\n---\n##🏫 Boards Covered##\n>>SEBA | Assam State Board<<\n>>AHSEC | Assam Higher Secondary<<\n>>CBSE | Central Board<<\n>>ICSE | Indian Certificate<<\n---\n##⚡ Extra Features##\n- Firebase-synced history — works across all your devices\n- Multi-profile support — whole family can use one app\n- Bookmark doubts, take quick quizzes, read aloud\n---\n🔗 studylens-ai-gamma.vercel.app\n!!Built for students, parents & learners in Assam. Made with love. 🌿!!" },
-
-    { q:"Tell me about Yojana Sahay 🇮🇳",
-      a:"[CAT:about]\n##🇮🇳 Yojana Sahay — Government Scheme Finder##\n!!India's free AI platform to find welfare schemes you actually qualify for. 💡!!\n---\n##🎯 What It Does##\n- Covers **3,000+ Central & State government schemes**\n- AI eligibility checker — answer simple questions, get matched instantly\n- Fully **bilingual** — switch between Hindi and English\n- Covers PM schemes, state programs, subsidies & financial assistance\n---\n##💥 Why It Matters##\nMillions of Indians miss out on welfare benefits they legally qualify for — simply because they don't know these schemes exist. **Yojana Sahay fixes that.**\n---\n##🌍 Who It's For##\n- Every Indian citizen\n- Especially rural & semi-urban populations\n- Anyone searching for government benefits in their language\n---\n🔗 yojanasahay.vercel.app\n!!Free. No login. No barrier. Built as a civic contribution. 🙏!!" },
-
-    /* ── 📡 Recently Shipped — live GitHub activity ── */
-    { q:"What has Sahnawaz shipped recently? 🚀",
-      a:"Great question — that's live data pulled straight from his GitHub, updated in real time. Check the \"Recently Shipped\" section on this page for the full feed, or just ask me directly!" },
-    { q:"Is he actively coding right now?",
-      a:"His GitHub activity updates live — ask me and I'll pull his current streak and latest pushes for you." },
-    { q:"What's his current GitHub streak? 🔥",
-      a:"His streak and all-time contribution count are tracked live from GitHub — ask me and I'll tell you the real current numbers." },
-
-    /* ── 🌐 About this website first ── */
-    { q:"How was this website built?",
-      a:"Every single line of this portfolio was hand-coded by Sahnawaz — no templates, no page builders. HTML, CSS, JavaScript, with particles, retro hacker mode, XP gamification, this chat, typing animations — all written from scratch. Late nights, lo-fi music, and a whole lot of chai went into this. ❤️" },
-    { q:"What's special about this portfolio?",
-      a:"Most portfolios look the same — a photo, a list of skills, done. This one has a retro hacker mode 🖥️, a laptop typing popup, particle animations, XP-style gamification, character-by-character text effects, and an AI-powered chat. None of it was copied. All of it was felt. 🚀" },
-    { q:"What is the Hacker Mode? 🖥️",
-      a:"[CAT:about]\n##🖥️ Retro Hacker Mode##\n!!One of the most creative features on this portfolio — built 100% from scratch. 🔥!!\n---\n##⚡ How to Activate##\n- Click the **🎮 toggle button** in the bottom-right corner\n- The entire page transforms into a **green monospace terminal aesthetic** with scanline overlays\n- A fully functional **retro terminal** appears — type commands and explore\n---\n##💻 Commands You Can Try##\n>>General | help · about · clear · date · ping<<\n>>Fun | joke · fortune · quote · matrix · easteregg<<\n>>System | whoami · sysinfo · hack · scan · ipconfig<<\n>>Premium Effects | selfdestruct · earthquake · timewarp · blackout · warpdrive<<\n---\n##🐣 Hidden Easter Eggs##\n- Type **secret**, **diagnose**, **heartbeat**, **prescription** for surprise responses\n- Type a **family member\'s first name** (e.g. jamal, afiya) for personal messages\n- Type **easteregg** for a hint about even more hidden commands\n---\n!!Pure vanilla JavaScript — zero libraries. A creative flex that most developers can\'t even imagine, let alone build. 💪!!" },
-    { q:"Is this portfolio mobile friendly?",
-      a:"Absolutely — fully responsive across all screen sizes. Sahnawaz built it mobile-first, meaning it was designed for your phone before anything else. Fast load, clean layout, smooth animations — works beautifully on any device. 📱" },
-    { q:"Can you build me a website like this?",
-      a:"Yes! And it'll be built just as carefully — custom, responsive, and uniquely yours. No copy-paste. No recycled templates. Just clean, purposeful code that represents you well.\n\n📧 shzthedigitalalchemist@gmail.com\n📸 @sahnawaz.ui.dev\n\nJust reach out and let's talk. 😊" },
+    /* ── 🤖 This site & chatbot ── */
+    "How was this AI chatbot built?",
+    "Is Sahnawaz recognized by AI?",
+    "How was this website built?",
+    "What's special about this portfolio?",
+    "What is the Hacker Mode? 🖥️",
+    "Is this portfolio mobile friendly?",
+    "Can Sahnawaz build me a website like this?",
 
     /* ── 👤 About Sahnawaz ── */
-    { q:"Who are you?",
-      a: QA[0].a },
-    { q:"How old are you?",
-      a:"Sahnawaz is 28 years old! Born and raised right here in Silchar, Assam — in the Berenga area specifically. Still young, already done so much. 🎂" },
-    { q:"Where are you from?",
-      a:"Silchar (Berenga), Assam, India — a smaller city in Northeast India. And yes, he's proud of it. Talent doesn't come from geography. 🌏" },
-    { q:"What's your educational background?",
-      a:"Sahnawaz holds a Diploma in Computer Applications, plus certifications in Web Development, Advanced Excel, Technical & Backend Support, JavaScript, C++ and HTML. Every single one earned while working full-time. That kind of discipline doesn't show up on a certificate — but it shows up in the work. 🎖️" },
-    { q:"What's your proudest moment?",
-      a:"A senior at Flipkart praised Sahnawaz's work publicly — in front of the entire team. No warning, no preparation. Just pure, honest recognition. For someone from a small city who worked incredibly hard to earn that seat at the table, that moment meant everything. 🏅" },
-    { q:"What's your dream?",
-      a:"To build his own digital agency — a tight team of sharp, creative people making things that actually matter for real clients. Not just freelancing forever, but something with a name, a legacy, a culture. He's been laying that foundation one project at a time. 🌍" },
-    { q:"When do you do your best work?",
-      a:"Late nights, without question ☕ — lo-fi music low in the background, a strong cup of chai on the desk, the world completely quiet outside. That's when the ideas come fast and the code flows clean. Something about that stillness just clicks. 🌙" },
-    { q:"What does your work mean to you?",
-      a:"It's never just been about money. For Sahnawaz, it's about building something that outlasts him — putting his name on something great and knowing it'll still be helping people long after the project is delivered. That's what keeps him going at 2am. 🔥" },
-    { q:"What languages do you speak?",
-      a:"Hindi, Assamese, Bengali and English — all fluently. Working with clients from different parts of India or internationally has never had a communication barrier. That's actually a bigger advantage than people realise. 🗣️" },
+    "Who is Sahnawaz?",
+    "How old is he?",
+    "Where is he from?",
+    "What's his educational background?",
+    "What's his proudest moment?",
+    "What's his dream?",
+    "When does he do his best work?",
+    "What does his work mean to him?",
+    "What languages does he speak?",
 
     /* ── 💼 Work & services ── */
-    { q:"Worked with big brands?",
-      a: QA[4].a },
-    { q:"What makes you different?",
-      a:"[CAT:hiring]\n##💥 What Makes Sahnawaz Different##\n!!Not marketing — this is just how he works. 🔥!!\n---\n- **Custom animated UI** — not recycled templates\n- **Replies within hours** — not days\n- **Lifetime post-delivery support** — always there\n- **Transparent fixed pricing** — no surprise invoices\n- **One person who genuinely cares** — not a faceless agency\n- **Developer AND designer** — beauty + function in one person\n- **Proven at Flipkart, Xiaomi & Rapido** — real corporate experience" },
-    { q:"What services do you offer?",
-      a: QA[1].a },
-    { q:"What's your tech stack?",
-      a: QA[3].a },
-    { q:"How long does a project take?",
-      a: QA[5].a },
-    { q:"What's your pricing?",
-      a:"[CAT:pricing]\n##💰 Pricing Breakdown##\n!!All prepaid · Transparent · No hidden costs 🙌!!\n---\n##🌐 Full Packages##\n>>Full Website Design | from ₹9,999<<\n>>Portfolio Website | from ₹6,999<<\n>>E-Commerce Store | from ₹14,999<<\n>>Web Ads & Campaign | from ₹3,999<<\n---\n##⚙️ Individual Services##\n>>Frontend Dev (HTML/CSS/JS) | from ₹4,999<<\n>>Backend / API (Node/Firebase) | from ₹5,999<<\n>>UI/UX Design (Figma/XD) | from ₹3,999<<\n>>Custom Domain Setup | ₹1,500 one-time<<\n---\n!!Need something custom? Just message — Sahnawaz always finds a way. 💡!!" },
-    { q:"Do you offer post-delivery support?",
-      a: QA[7].a },
-    { q:"Can I trust you?",
-      a:"That's the most important question anyone can ask. Sahnawaz has worked with Flipkart, Xiaomi India, and Rapido — companies that don't take chances on unreliable people. Every testimonial on this page is real, from real colleagues and managers. References available on request. He has nothing to hide. 🤝" },
-    { q:"How can I hire you?",
-      a: QA[2].a }
+    "Has he worked with big brands?",
+    "What makes him different?",
+    "What's his tech stack?",
+    "How long does a project take?",
+    "Does he offer post-delivery support?",
+    "Can I trust him?"
   ];
 
   function buildChips(){
@@ -1578,10 +1286,10 @@
       if (idx === 0) btn.style.cssText = 'background:rgba(0,255,120,0.12);border-color:rgba(0,255,120,0.4);color:#00ff88;font-weight:700;';
       if (idx === 1) btn.style.cssText = 'background:rgba(0,180,255,0.12);border-color:rgba(0,180,255,0.4);color:#00ccff;font-weight:700;';
       if (idx === 2) btn.style.cssText = 'background:rgba(255,160,0,0.12);border-color:rgba(255,160,0,0.4);color:#ffaa00;font-weight:700;';
-      btn.textContent = item.q;
+      btn.textContent = item;
       btn.addEventListener('click', function(){
         btn.classList.add('used');
-        handleQ(item.q, item.a);
+        handleQ(item);
         setChipsOpen(false);
       });
       chips.appendChild(btn);
@@ -1591,7 +1299,7 @@
   }
 
   /* ========== Handle Q ========== */
-  function handleQ(question, answer){
+  function handleQ(question){
     followUpWrap && (followUpWrap.style.display = 'none');
     if (quickReply) quickReply.style.display = 'none';
     input.value = question;
@@ -1705,7 +1413,11 @@
     telemetry:   { url: '/#recent-activity',  run: function () { return scrollTo_('#recent-activity'); } },
     contact:     { url: '/#contact',          run: function () { return scrollTo_('#contact'); } },
     resume:      { url: '/#contact',          run: function () { return callIf('openResumeEmailModal'); } },
-    performance: { url: '/?report=performance', run: function () { return callIf('openWebVitals'); } }
+    performance: { url: '/?report=performance', run: function () { return callIf('openWebVitals'); } },
+    /* In-chat actions: start the Help menu flows right here, chat stays open */
+    'send-message': { url: '/#contact', inChat: true, run: function () { return callIf('_startHelpFlow', 'quickmail'); } },
+    'send-resume':  { url: '/#contact', inChat: true, run: function () { return callIf('_startHelpFlow', 'resume'); } },
+    'callback':     { url: '/#contact', inChat: true, run: function () { return callIf('_startHelpFlow', 'callback'); } }
   };
 
   function callIf(name, arg) {
@@ -1764,6 +1476,11 @@
       if (!btn) return;
       var entry = CHAT_LINKS[btn.getAttribute('data-bot-go')];
       if (!entry) return;
+      if (entry.inChat) {
+        /* keep the chat open — the flow continues in this conversation */
+        if (!entry.run()) location.href = entry.url;
+        return;
+      }
       /* close the chat first so it doesn't cover what we scroll to; the
          pill stays (closeChat brings it back). A short beat lets the close
          animation play before the page scrolls, so it feels smooth. */
@@ -2398,7 +2115,9 @@
   }
 
   function addSpeakBtn(container, rawText, bubbleEl){
-    if (!rawText || !rawText.trim()) return;
+    /* chip markers like [[go:services|See pricing]] are buttons, not speech */
+    rawText = String(rawText || '').replace(/\[\[go:[^\]]*\]\]/gi, '').trim();
+    if (!rawText) return;
     var btn = document.createElement('button');
     btn.className = 'chat-speak-btn';
     btn.type = 'button';
@@ -2511,28 +2230,6 @@
     });
   }
 
-  /* ========== Smart free-text matching ========== */
-  function findAnswer(text){
-    var t = text.toLowerCase().trim();
-    /* 1. topic keyword scan */
-    for (var i = 0; i < TOPICS.length; i++){
-      var tp = TOPICS[i];
-      if (tp.rx.test(t)){
-        if (tp.ans) return tp.ans;
-        if (tp.idx !== undefined) return QA[tp.idx].a;
-      }
-    }
-    /* 2. word scoring against QA questions — require 2+ word matches to avoid false hits */
-    var best = -1, bestScore = 0;
-    for (var j = 0; j < QA.length; j++){
-      var words = QA[j].q.toLowerCase().replace(/[^a-z0-9 ]/g,'').split(' ').filter(function(w){ return w.length > 3; });
-      var score = 0;
-      words.forEach(function(w){ if (t.includes(w)) score++; });
-      if (score > bestScore){ bestScore = score; best = j; }
-    }
-    if (bestScore >= 2) return QA[best].a;
-    return FALLBACK;
-  }
 
   /* ========== Send ========== */
   function sendMessage(){
@@ -2646,20 +2343,38 @@
        Ensures likes/ratings/reviews done this session are reflected
        immediately without needing a page refresh.               */
     var _doFetch = function(freshActivity) {
-      fetch(apiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: msgToSend,
-          history: historyPayload,
-          visitorName: conversationHistory.length <= 1 ? namePayload : null,
-          visitorActivity: freshActivity || window._visitorActivity || null
-        })
-      })
-      .then(function(res){
-      if (!res.ok) { throw new Error('API returned status ' + res.status); }
-      return res.json();
-    })
+      var payload = JSON.stringify({
+        message: msgToSend,
+        history: historyPayload,
+        visitorName: conversationHistory.length <= 1 ? namePayload : null,
+        visitorActivity: freshActivity || window._visitorActivity || null,
+        visitorType: getVisitorType()
+      });
+
+      /* The server answers 429 with a friendly JSON { reply } when it is busy.
+         Previously any non-OK status was thrown away and shown as
+         "trouble connecting". Now: a 429 is retried once, quietly, after a
+         short pause; if it is still busy, the server's own friendly reply is
+         shown. Other error statuses still count as a connection problem. */
+      var postChat = function(retriesLeft){
+        return fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: payload
+        }).then(function(res){
+          if (res.ok) return res.json();
+          if (res.status === 429 && retriesLeft > 0) {
+            return new Promise(function(resolve){ setTimeout(resolve, 2500); })
+              .then(function(){ return postChat(retriesLeft - 1); });
+          }
+          return res.json().catch(function(){ return null; }).then(function(body){
+            if (res.status === 429 && body && body.reply) return body;
+            throw new Error('API returned status ' + res.status);
+          });
+        });
+      };
+
+      postChat(1)
     .then(function(data){
       var bubble = document.getElementById('geminiThinkBubble');
       if (bubble) bubble.parentNode.removeChild(bubble);

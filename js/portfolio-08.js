@@ -581,27 +581,6 @@ function typeSeqSmart(arr, lineDelay=300, charDelay=35){
   nextLine();
 }
 
-function resetSuraiyaEffects(){
-  document.body.classList.remove('suraiya-aura');
-}
-
-function createStarsAndEmojis(){
-  const emojis=["💖","🌹","✨","🌸"];
-  const count=10;
-  for(let i=0;i<count;i++){
-    setTimeout(()=>{
-      let el=document.createElement("div");
-      el.textContent=emojis[Math.floor(Math.random()*emojis.length)];
-      el.className="suraiya-emoji";
-      el.style.left=Math.random()*100+"%";
-      el.style.fontSize=(Math.random()*1.1+1.1)+"rem";
-      document.body.appendChild(el);
-      setTimeout(()=>el.remove(),6000);
-    }, i*700);
-  }
-}
-
-
 /* ==== index.html line 10050 ==== */
 
 /* Unlock on click + modal open (static border) */

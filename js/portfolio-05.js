@@ -124,7 +124,11 @@
           source: 'wizard'
         })
       })
-      .then(function(r){ return r.json(); })
+      .then(function(r){
+        /* A busy (429) body is not a price quote — use the local estimate */
+        if (!r.ok) throw new Error('status ' + r.status);
+        return r.json();
+      })
       .then(function(data){
         var reply = (data && data.reply) ? data.reply.trim() : null;
         if (!reply) throw new Error('empty');

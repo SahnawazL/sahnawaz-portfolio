@@ -471,14 +471,75 @@ window.__shzAudio = (function(){
     ],
   };
 
+  /* ─── Private commands ──────────────────────────────────────────
+     Personal easter eggs are deliberately NOT in this file. When a command
+     isn't known here, the terminal asks the server, which keeps them in a
+     private Vercel environment variable (TERMINAL_EGGS). Some public
+     commands also have extra private variants that are fetched the same way. */
+  const PRIVATE_API='https://sahnawaz-portfolio.vercel.app/api/chat';
+  const _privCache={};
+  function fetchPrivate(cmd){
+    if(!/^[a-z][a-z0-9_-]{0,39}$/.test(cmd)) return Promise.resolve(null);
+    if(Object.prototype.hasOwnProperty.call(_privCache,cmd)) return Promise.resolve(_privCache[cmd]);
+    const ctrl=(typeof AbortController!=='undefined')?new AbortController():null;
+    const timer=ctrl?setTimeout(()=>ctrl.abort(),4000):null;
+    return fetch(PRIVATE_API,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({source:'terminal',cmd:cmd}),
+      signal:ctrl?ctrl.signal:undefined
+    })
+    .then(r=>r.ok?r.json():Promise.reject(new Error('status '+r.status)))
+    .then(d=>{ const e=(d&&d.found)?d:null; _privCache[cmd]=e; return e; }) /* cache only real answers */
+    .catch(()=>null)
+    .finally(()=>{ if(timer) clearTimeout(timer); });
+  }
+  function seqThen(lines, done, i=0){
+    if(i<lines.length) typeLine(lines[i], ()=>seqThen(lines, done, i+1));
+    else if(done) done();
+  }
+  /* Public variants + any private ones, then pick one at random */
+  function withPrivateVariants(cmd, publicVariants){
+    tpromise(fetchPrivate(cmd).then(e=>{
+      const extra=(e&&Array.isArray(e.variants))?e.variants:[];
+      printSeq(rand(publicVariants.concat(extra)));
+    }));
+  }
+  function heartsEffect(){
+    const msg=document.createElement('div');
+    msg.className='final-message';
+    msg.innerText='✦ End of Transmission — Heart Overloaded ✦';
+    out.appendChild(msg); autoscroll();
+    document.body.style.animation='pulse 1.5s ease';
+    setTimeout(()=>{ document.body.style.animation=''; },1600);
+    for(let i=0;i<12;i++){
+      const el=document.createElement('div');
+      el.innerHTML=['💖','🌸','⭐'][Math.floor(Math.random()*3)];
+      el.style.cssText='position:fixed;left:50%;top:50%;font-size:20px;opacity:.9;transform:translate(-50%,-50%);animation:burst 1s forwards;z-index:10050;pointer-events:none';
+      el.style.setProperty('--x',(Math.random()*200-100)+'px');
+      el.style.setProperty('--y',(Math.random()*200-100)+'px');
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(),1200);
+    }
+  }
+  function runPrivateOrNotFound(cmd){
+    tpromise(fetchPrivate(cmd).then(e=>{
+      if(e&&Array.isArray(e.lines)&&e.lines.length){
+        if(e.effect==='hearts') setTimeout(heartsEffect,400);
+        seqThen(e.lines);
+      } else {
+        printRaw('<span style="color:#ff6b6b">command not found: '+escHtml(cmd)+'</span>  — type <span style="color:#00ffcc">help</span> to see all commands, <span style="color:#00ffcc">Tab</span> to autocomplete');
+        _playErr();
+      }
+    }));
+  }
+  function escHtml(t){ return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
   /* ─── Medical easter eggs ───────────────────────────────────────── */
   function cmdDiagnose(){
-    const v=[
-      ['[LOADING: Patient profile]','[ANALYZING: Vitals, Labs, Smile Index]','Case: Suraiya A. Mazumder — JRRMCH MBBS','Dx: Acute Brilliance Syndrome (ABS) 🧠','Rx: Hydration, deep sleep, and unlimited love doses 💘'],
-      ['[Connecting to JRRMCH console 🏥]','[Fetching academic metrics…]','Report: Beautiful soul + razor-sharp mind','Dx: Hyper-Intelligent Scholar Status','Rx: Confidence 100mg b.i.d, Avoid overthinking'],
+    withPrivateVariants('diagnose',[
       ['[Scan complete 🧠]','Finding: Exceptional neuron density','Dx: Chronic Cuteness with Complications of Perfection','Rx: 1 hug q6h, 1 smile t.i.d, PRN for stress'],
-    ];
-    printSeq(rand(v));
+    ]);
   }
   function cmdHeartbeat(){
     printSeq(rand([
@@ -487,10 +548,9 @@ window.__shzAudio = (function(){
     ]));
   }
   function cmdPrescription(){
-    printSeq(rand([
-      ['🧾 Prescription #SRY-001','Tab. Happiness 500mg — 1-0-1 with meals','Cap. Confidence 100mg — b.i.d','Note: Long calls q.d  |  Refills: Infinite'],
+    withPrivateVariants('prescription',[
       ['🧾 Prescription #HEART','Rx: Hugs — t.i.d, Smiles — q.i.d','PRN: Chocolate for stress','Prognosis: Lifelong happiness together ❤️'],
-    ]));
+    ]);
   }
 
   /* ─── Tab autocomplete ──────────────────────────────────────────── */
@@ -500,10 +560,6 @@ window.__shzAudio = (function(){
     'weather','website','social','projects','reboot','selfdestruct',
     'earthquake','timewarp','blackout','scan','warpdrive','diagnose',
     'heartbeat','prescription','stethoscope','galaxy','key',
-    'jamal','momotaz','afiya','fayaz','afaz','chufiya','nahaz','rajiya',
-    'rejina','minhaz','nurun','athikur','papiya','sabaz','jabir','azad',
-    'afreen','khaleda','tashfiya','mampi','faizan','rushon','sabana',
-    'saddik','komoi','ridwan','enaya','akbar','amir','fatima','suraiya',
     'pwd','ls','cd','cat','mkdir','touch','rm','grep','find',
     'echo','env','history','alias','which','man',
     'git','npm','node','python3','vim','nano','exit','quit',
@@ -1208,7 +1264,6 @@ window.__shzAudio = (function(){
 
       case 'clear':
         out.innerHTML='';
-        if(typeof resetSuraiyaEffects==='function') resetSuraiyaEffects();
         break;
 
       /* ── Info ── */
@@ -1314,12 +1369,6 @@ window.__shzAudio = (function(){
         printSeq(['[Searching for master key 🔑...]','Access Granted: Only one key unlocks this heart ❤️','Key Holder: (Hidden… but she knows it\'s her 🌹)']);
         break;
 
-      /* ── Suraiya (archived, special) ── */
-      case 'suraiya':
-        typeSeqSmart(["Unknown command: 'suraiya'.",'','No active record found.','This identifier has been archived due to irrelevance.','','Some stories fade from the system — intentionally.','Moving forward with cleaner code and clearer purpose.','','Autoclean: performative affection detected and purged.','System note: identity updated — operating as THE DIGITAL ALCHEMIST.','','— End of log —'],40,function(){});
-        setTimeout(suraiyaFinalEffect,400);
-        break;
-
       /* ── Owner identity (deliberately undocumented in `help`) ── */
       case 'sahnawaz': case 'shz': case 'laskar':
       case 'bytewithsahnawaz': case 'alchemist': case 'sahnawaz ahmed laskar':
@@ -1340,41 +1389,8 @@ window.__shzAudio = (function(){
         ]);
         break;
 
-      /* ── Family & relatives ── */
-      case 'jamal':    typeLine('Jamal is my beloved father — the root of our family tree, my strength and guidance. 💙'); break;
-      case 'momotaz':  printSeq(['💙 My beloved mother, Momotaz —','the angel of my life.','She left us in 2019, but her love,','prayers, and blessings stay forever','in my heart. May Allah grant her Jannah. 💙']); break;
-      case 'afiya':    typeLine('Afiya is my eldest sister — always protective, caring, and a second mother to me. ❤️'); break;
-      case 'fayaz':    typeLine('Fayaz is my elder brother — strong, wise, and always guiding me forward. 🤝'); break;
-      case 'afaz':     typeLine('Afaz is my elder brother — loving, supportive, and my true companion. 🤝'); break;
-      case 'chufiya':  typeLine('Chufiya is my sister — sweet, kind, and full of love for the family. 🌸'); break;
-      case 'nahaz':    typeLine('Nahaz is my brother — energetic, fun, and always close to my heart. ⚡'); break;
-      case 'rajiya':   typeLine('Rajiya is my sister — caring and graceful, a pillar of warmth in our family. 🌹'); break;
-      case 'rejina':   typeLine('Rejina is my sister — loving, cheerful, and a true blessing to us all. 🌼'); break;
-      case 'minhaz':   typeLine('Minhaz is my youngest brother — the most adorable, and deeply loved by everyone. 💙'); break;
-      case 'nurun':    typeLine('Nurun is my beloved aunt — a guiding figure full of love. 🌷'); break;
-      case 'athikur':  typeLine('Athikur is my uncle — kind, wise, and always respected. 🤲'); break;
-      case 'papiya':   typeLine('Papiya is my cousin sister — elder to me, like a friend and guide. 🌟'); break;
-      case 'sabaz':    typeLine('Sabaz is my cousin brother — younger, lively and full of energy. 🔥'); break;
-      case 'jabir':    typeLine('Jabir is my cousin brother — cheerful, playful, and dearly loved. 😊'); break;
-      case 'azad':     typeLine("Azad is my brother-in-law (Afiya's husband) — respected and part of our family bond. 🤝"); break;
-      case 'afreen':   typeLine("Afreen is Afiya's daughter — sweet and lovely, a little star in our family. 🌟"); break;
-      case 'khaleda':  typeLine("Khaleda is my sister-in-law (Fayaz's wife) — caring and kind, adding joy to our home. 💐"); break;
-      case 'tashfiya': typeLine("Tashfiya is Fayaz's daughter — a little princess, bright and loved by everyone. 👑"); break;
-      case 'mampi':    typeLine("Mampi is my sister-in-law (Afaz's wife) — warm, graceful, and part of our family love. 🌺"); break;
-      case 'faizan':   typeLine("Faizan is Afaz's son — small, innocent, and the heart of joy for us all. 🍼"); break;
-      case 'rushon':   typeLine("Rushon is my brother-in-law (Chufiya's husband) — respected and part of our family circle. 🤝"); break;
-      case 'sabana':   typeLine("Sabana is Chufiya's daughter — sweet and playful, bringing smiles always. 🌼"); break;
-      case 'saddik':   typeLine("Saddik is Chufiya's son — little, bright, and a treasure of happiness. 🧸"); break;
-      case 'komoi':    typeLine("Komoi is my brother-in-law (Rajiya's husband) — valued and respected in our family. 🙏"); break;
-      case 'ridwan':   typeLine("Ridwan is Rajiya's son — smart, cheerful, and deeply loved. 😇"); break;
-      case 'enaya':    typeLine("Enaya is Rajiya's daughter — tiny, lovely, and the soul of joy in our family. 💕"); break;
-      case 'akbar':    typeLine("Akbar is my brother-in-law (Rejina's husband) — respected with love, making our family stronger. 🤝"); break;
-      case 'amir':     typeLine('Amir is my elder brother, always supportive. 💪'); break;
-      case 'fatima':   typeLine('Fatima is my lovely sister, caring and kind. 🌸'); break;
-
       default:
-        printRaw('<span style="color:#ff6b6b">command not found: '+cmd+'</span>  — type <span style="color:#00ffcc">help</span> to see all commands, <span style="color:#00ffcc">Tab</span> to autocomplete');
-        _playErr();
+        runPrivateOrNotFound(cmd);
     }
   }
 
