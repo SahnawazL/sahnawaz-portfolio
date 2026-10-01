@@ -1589,19 +1589,102 @@ window.__shzAudio = (function(){
     }catch(e){}
   }
 
+  /* ---- pill sounds: the same "machine" for every pill, then a scan ----
+     engage(ms): plays for exactly as long as the click effect — a soft
+       servo whirr winding up (filtered sawtooth, pitch and filter rising),
+       relay ticks that speed up, and two clean notes as it "locks" and the
+       pill acts.
+     scanHum(ms): runs with the scan line — a gentle tone gliding down with
+       the line, a light shimmer and an airy data hiss, then a small two-note
+       chime when the scan completes.
+     All synthesized on the page's one shared AudioContext; quiet, with
+     smooth fades so nothing clicks. */
+  var _noise = null;
+  function noiseBuf(actx){
+    if(_noise && _noise.sampleRate === actx.sampleRate) return _noise;
+    var len = actx.sampleRate, b = actx.createBuffer(1, len, actx.sampleRate), d = b.getChannelData(0);
+    for(var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    return (_noise = b);
+  }
+  function env(g, t0, peak, attack, holdEnd, end){
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(peak, t0 + attack);
+    g.gain.setValueAtTime(peak, holdEnd);
+    g.gain.exponentialRampToValueAtTime(0.0001, end);
+  }
+  function engage(ms){
+    try{
+      var actx = window.__shzAudio && window.__shzAudio();
+      if(!actx) return;
+      var t0 = actx.currentTime + 0.005, dur = Math.max(0.3, ms / 1000);
+      /* servo whirr */
+      var o = actx.createOscillator(), lp = actx.createBiquadFilter(), g = actx.createGain();
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(70, t0);
+      o.frequency.exponentialRampToValueAtTime(185, t0 + dur * 0.85);
+      lp.type = 'lowpass'; lp.Q.value = 4;
+      lp.frequency.setValueAtTime(320, t0);
+      lp.frequency.exponentialRampToValueAtTime(1700, t0 + dur * 0.85);
+      env(g, t0, 0.05, 0.05, t0 + dur * 0.7, t0 + dur);
+      o.connect(lp); lp.connect(g); g.connect(actx.destination);
+      o.start(t0); o.stop(t0 + dur + 0.03);
+      /* relay ticks, speeding up */
+      var buf = noiseBuf(actx), t = t0 + 0.04, gap = 0.07;
+      while(t < t0 + dur * 0.8){
+        var src = actx.createBufferSource(), bp = actx.createBiquadFilter(), tg = actx.createGain();
+        src.buffer = buf;
+        bp.type = 'bandpass'; bp.Q.value = 6; bp.frequency.value = 3000 + Math.random() * 900;
+        tg.gain.setValueAtTime(0.0001, t);
+        tg.gain.exponentialRampToValueAtTime(0.06, t + 0.002);
+        tg.gain.exponentialRampToValueAtTime(0.0001, t + 0.02);
+        src.connect(bp); bp.connect(tg); tg.connect(actx.destination);
+        src.start(t, Math.random() * 0.8, 0.03);
+        t += gap; gap = Math.max(0.028, gap * 0.86);
+      }
+      /* locked: two clean notes as the pill acts */
+      tone(1318.5, 1318.5, 0.09, 0.045, dur - 0.1);
+      tone(1975.5, 1975.5, 0.14, 0.04, dur - 0.04);
+    }catch(e){}
+  }
+  function scanHum(ms){
+    try{
+      var actx = window.__shzAudio && window.__shzAudio();
+      if(!actx) return;
+      var t0 = actx.currentTime + 0.005, dur = Math.max(0.5, ms / 1000);
+      /* tone gliding down with the line, with a light shimmer */
+      var o = actx.createOscillator(), g = actx.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(1050, t0);
+      o.frequency.exponentialRampToValueAtTime(520, t0 + dur);
+      env(g, t0, 0.028, 0.09, t0 + dur * 0.8, t0 + dur);
+      var lfo = actx.createOscillator(), depth = actx.createGain();
+      lfo.frequency.value = 22; depth.gain.value = 0.009;
+      lfo.connect(depth); depth.connect(g.gain);
+      o.connect(g); g.connect(actx.destination);
+      o.start(t0); lfo.start(t0); o.stop(t0 + dur + 0.03); lfo.stop(t0 + dur + 0.03);
+      /* airy data hiss, its band sliding down too */
+      var n = actx.createBufferSource(), bp = actx.createBiquadFilter(), ng = actx.createGain();
+      n.buffer = noiseBuf(actx); n.loop = true;
+      bp.type = 'bandpass'; bp.Q.value = 9;
+      bp.frequency.setValueAtTime(2600, t0);
+      bp.frequency.exponentialRampToValueAtTime(1100, t0 + dur);
+      env(ng, t0, 0.03, 0.12, t0 + dur * 0.75, t0 + dur);
+      n.connect(bp); bp.connect(ng); ng.connect(actx.destination);
+      n.start(t0); n.stop(t0 + dur + 0.03);
+      /* scan complete */
+      tone(1568, 1568, 0.12, 0.035, dur - 0.02);
+      tone(2093, 2093, 0.2, 0.03, dur + 0.07);
+    }catch(e){}
+  }
+
+  /* every pill plays the same engage sound (engage() above) */
   var THEMES = {
-    experience: { pill:'.hero-cta-btn[href="#projects"]',        target:'#projects',        scroll:true,
-                  sound:function(){ tone(520, 1180, 0.30, 0.08); } },                       /* launch */
-    telemetry:  { pill:'.hero-cta-btn[href="#recent-activity"]', target:'#recent-activity', scroll:true,
-                  sound:function(){ tone(1180, 620, 0.34, 0.10); } },                       /* sonar ping */
-    search:     { pill:'.hero-cta-search',                       target:'#cmdp-box',        scroll:false, wait:260,
-                  sound:function(){ tone(1400, 1400, 0.05, 0.06, 0, 'triangle'); tone(1900, 1900, 0.05, 0.05, 0.07, 'triangle'); } }, /* shutter tick */
-    contact:    { pill:'.hero-cta-btn[href="#contact"]',         target:'#contact',         scroll:true,
-                  sound:function(){ tone(880, 880, 0.12, 0.07); tone(1320, 1320, 0.16, 0.07, 0.11); } }, /* message sent */
-    ai:         { pill:'.hero-cta-ai',                           target:'#chatWidget',      scroll:false, wait:300,
-                  sound:null },  /* the chat plays its own chime when it opens */
-    plan:       { pill:'.hero-cta-plan',                         target:'#chatWidget',      scroll:false, wait:300,
-                  sound:null }   /* opens the chat straight into the project planner */
+    experience: { pill:'.hero-cta-btn[href="#projects"]',        target:'#projects',        scroll:true },
+    telemetry:  { pill:'.hero-cta-btn[href="#recent-activity"]', target:'#recent-activity', scroll:true },
+    search:     { pill:'.hero-cta-search',                       target:'#cmdp-box',        scroll:false, wait:260 },
+    contact:    { pill:'.hero-cta-btn[href="#contact"]',         target:'#contact',         scroll:true },
+    ai:         { pill:'.hero-cta-ai',                           target:'#chatWidget',      scroll:false, wait:300 },
+    plan:       { pill:'.hero-cta-plan',                         target:'#chatWidget',      scroll:false, wait:300 }   /* opens the chat straight into the project planner */
   };
 
   /* ---- click signature on the pill ---- */
@@ -1724,7 +1807,7 @@ window.__shzAudio = (function(){
   }
 
   /* ---- arrival scan line inside the destination ---- */
-  function scan(key){
+  function scan(key, withSound){
     if(reduced) return;
     var th = THEMES[key]; if(!th) return;
     var host = document.querySelector(th.target);
@@ -1735,15 +1818,16 @@ window.__shzAudio = (function(){
     line.setAttribute('data-pfx', key);
     line.style.setProperty('--pfx-h', Math.min(host.clientHeight - 2, 900) + 'px');
     host.appendChild(line);
+    if(withSound) scanHum((parseFloat(getComputedStyle(line).animationDuration) || 1.5) * 1000);
     var kill = function(){ if(line.parentNode) line.parentNode.removeChild(line); };
     line.addEventListener('animationend', kill);
     setTimeout(kill, 1900);
   }
 
-  function arrive(key){
+  function arrive(key, withSound){
     var th = THEMES[key]; if(!th) return;
-    if(th.scroll) whenScrollSettles(function(){ scan(key); });
-    else setTimeout(function(){ scan(key); }, th.wait || 250);
+    if(th.scroll) whenScrollSettles(function(){ scan(key, withSound); });
+    else setTimeout(function(){ scan(key, withSound); }, th.wait || 250);
   }
   /* precise section landing for other scripts (Quick Search "Go to") */
   window.shzLandOn = function(el, done){ if(el) landOn(el, done); };
@@ -1777,7 +1861,7 @@ window.__shzAudio = (function(){
     if(held && held.pill === pill) return;            /* a second tap while it plays */
     if(held) clearTimeout(held.t);                    /* another pill: the newest tap wins */
     fire(pill, key);
-    if(THEMES[key].sound) THEMES[key].sound();
+    engage(HOLD[key] || 650);
     held = { pill: pill, t: setTimeout(function(){
       held = null;
       pill._pfxReplay = true;                         /* let this one through to its handlers */
@@ -1794,16 +1878,16 @@ window.__shzAudio = (function(){
       /* a replayed tap has already played its signature */
       if(!pill._pfxReplay){
         fire(pill, key);
-        if(!reduced && th.sound) th.sound();
+        if(!reduced) engage(HOLD[key] || 650);
       }
       if(th.scroll){
         var dest = document.querySelector(th.target);
         if(!dest) return;                       /* fall back to the plain link */
         e.preventDefault();
         if(location.hash !== th.target){ try{ history.pushState(null, '', th.target); }catch(err){} }
-        landOn(dest, function(){ scan(key); });
+        landOn(dest, function(){ scan(key, true); });
       } else {
-        arrive(key);
+        arrive(key, true);
       }
     });
   });
