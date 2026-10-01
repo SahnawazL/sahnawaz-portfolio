@@ -30,7 +30,7 @@
    effect on the very next load, with no second refresh needed.
    ============================================================ */
 
-const VERSION     = 'v32';
+const VERSION     = 'v33';
 const PRECACHE    = 'shz-precache-' + VERSION;
 const RUNTIME     = 'shz-runtime-' + VERSION;
 const OFFLINE_URL = './offline.html';
@@ -55,6 +55,7 @@ const PRECACHE_URLS = [
   './js/portfolio-02.js',
   './js/portfolio-03.js',
   './js/portfolio-04.js',
+  './js/pricing.js',
   './js/portfolio-05.js',
   './js/portfolio-06.js',
   './js/portfolio-07.js',
