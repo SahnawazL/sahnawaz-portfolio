@@ -43,6 +43,7 @@
   }
 
   function inr(n) { return PR.inr(n); }
+  function an(w) { return (/^[aeiou]/i.test(w) ? 'an ' : 'a ') + w; }
   function P() { return PR.TYPES[ans.type] || null; }
 
   /* ── steps ── */
@@ -97,7 +98,8 @@
     if (!p || !ans.budget) return null;
     if (ans.bLo == null) return { kind: 'unsure', tag: 'budget open' };
     if (p.custom) return { kind: 'ok', tag: 'noted' };
-    if (ans.bHi < p.lo) return { kind: 'short', tag: 'below usual' };
+    /* "Under ₹15K" for a store that starts at ₹14,999 is at or below the start */
+    if (ans.bHi < p.lo || (ans.bLo === 0 && ans.bHi <= p.lo && p.lo !== p.hi)) return { kind: 'short', tag: 'below usual' };
     if (ans.bLo > p.hi && p.lo !== p.hi) return { kind: 'room', tag: 'room for extras' };
     return { kind: 'ok', tag: 'fits ✓' };
   }
@@ -105,7 +107,7 @@
   function timeNote(p) {
     if (!p || !ans.weeks || p.custom || !p.weeks) return '';
     if (ans.weeks < p.weeks[0]) {
-      return 'A ' + p.say + ' usually takes ' + p.time + '. For ' + (ans.time === 'ASAP' ? 'ASAP' : ans.time.toLowerCase()) +
+      return (/^[aeiou]/i.test(p.say) ? 'An ' : 'A ') + p.say + ' usually takes ' + p.time + '. For ' + (ans.time === 'ASAP' ? 'ASAP' : ans.time.toLowerCase()) +
         ', Sahnawaz can start with the most important part first — mention it in your brief.';
     }
     return '';
@@ -120,11 +122,11 @@
     if (!p.custom && p.lo !== p.hi) out.push(bar(p));
 
     var adv = '';
-    if (!fit || fit.kind === 'unsure') adv = p.custom ? 'Send a brief and Sahnawaz will come back with a clear quote.' : 'Most clients spend ' + PR.range(p) + ' on a ' + p.say + '.';
+    if (!fit || fit.kind === 'unsure') adv = p.custom ? 'Send a brief and Sahnawaz will come back with a clear quote.' : 'Most clients spend ' + PR.range(p) + ' on ' + an(p.say) + '.';
     else if (fit.kind === 'short') adv = 'Your budget is below the usual starting price (' + inr(p.lo) + '). What fits: ' + p.starter + '.';
     else if (fit.kind === 'room') adv = 'Your budget has room for extras: ' + PR.EXTRAS.filter(function (x) { return !(ans.type === 'AI chatbot / integration' && /AI/.test(x[0])) && !(ans.type === 'Web ads & promotion' && /ad campaign/.test(x[0])); })
       .slice(0, 3).map(function (x) { return x[0] + ' (from ' + inr(x[1]) + ')'; }).join(', ') + '.';
-    else adv = p.custom ? 'Budget noted — it helps Sahnawaz suggest the right approach.' : '✓ Your budget fits the usual range for a ' + p.say + '.';
+    else adv = p.custom ? 'Budget noted — it helps Sahnawaz suggest the right approach.' : '✓ Your budget fits the usual range for ' + an(p.say) + '.';
     out.push('<p class="ctq-fit ctq-fit-' + (fit ? fit.kind : 'unsure') + '">' + esc(adv) + '</p>');
     var tn = timeNote(p);
     if (tn) out.push('<p class="ctq-fit ctq-fit-short">' + esc(tn) + '</p>');

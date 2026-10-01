@@ -7612,6 +7612,7 @@ textarea.ct-field { min-height: 90px; }
   .ct-wiz-next:hover { box-shadow: 0 0 16px rgba(0,220,255,0.25); transform: translateY(-1px); }
   .ct-wiz-next:active { transform: scale(0.97); }
 
+  #ctQuoteCard { text-align: left; }
   #ctQuoteText { display: flex; flex-direction: column; gap: 10px; }
   .ctq-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
   .ctq-type { flex-basis: 100%; font-size: 0.78rem; color: rgba(180,230,255,0.7); }

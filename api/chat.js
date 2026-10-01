@@ -73,6 +73,7 @@ function getYojanaSahayLiveStats() {
 // limit — it is bundled into this function.
 const { buildKnowledge, placeholdersIn } = require('../lib/site-knowledge');
 const projectBrief = require('../lib/project-brief');
+const PRICING = require('../js/pricing.js');
 
 let githubActivityCache = { data: null, fetchedAt: 0, pending: null };
 const GITHUB_ACTIVITY_TTL_MS = 30 * 60 * 1000; // 30 minutes — the feed only changes when he pushes
@@ -156,13 +157,8 @@ async function handleChat(req, res) {
     const wizardSystem = `You are the AI assistant on Sahnawaz Ahmed Laskar's portfolio website.
 A visitor just answered 3 quick questions about their project. Give them an instant price estimate.
 
-Sahnawaz's pricing:
-- Website / Landing Page: ₹9,999 – ₹14,999 | delivery 2–3 weeks
-- Portfolio Website: ₹6,999 – ₹9,999 | delivery 1–2 weeks
-- E-Commerce Store: ₹14,999 – ₹24,999 | delivery 3–5 weeks
-- UI/UX Design (Figma): ₹3,999/screen | delivery 1–2 weeks
-- AI Integration: ₹2,999 – ₹7,999 | delivery 1–3 weeks
-- Something Else / Custom: Custom quote | delivery varies
+Sahnawaz's pricing (js/pricing.js, the site's one price list):
+${Object.keys(PRICING.TYPES).map(k => '- ' + k + ': ' + PRICING.range(PRICING.TYPES[k]) + ' | delivery ' + PRICING.TYPES[k].time).join('\n')}
 
 STRICT RULES:
 - Reply in EXACTLY 2 sentences. No more.

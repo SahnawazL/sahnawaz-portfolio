@@ -1494,7 +1494,11 @@
     /* what to ask next: before the visitor has said anything, invite them
        to describe the project rather than asking for a single field */
     function nextAsk(){
-      if (!st.turns) return "Tell me about it in your own words — what it's for, what it should do, your budget and when you need it.";
+      if (!st.turns) {
+        /* budget and timeline already chosen (the contact estimate) → don't ask again */
+        if (st.brief.budget && st.brief.timeline) return "Tell me a bit more in your own words — what it's for and what it should do.";
+        return "Tell me about it in your own words — what it's for, what it should do, your budget and when you need it.";
+      }
       return ASK[st.missing[0]] || '';
     }
     function placeholder(){
@@ -1716,6 +1720,7 @@
           if (v && !st.brief[k]) st.brief[k] = String(v).slice(0, k === 'notes' ? 380 : 180);
         });
         st.missing = missingOf(st.brief);
+        save();
       }
 
       var type = TYPES[opts.type] ? opts.type : '';
@@ -1726,7 +1731,7 @@
         st.estimate = { range: TYPES[type].range, time: TYPES[type].time };
         st.missing = missingOf(st.brief);
         st.ready = st.turns > 0 && !st.missing.length;
-        if (st.turns > 0) save();
+        if (st.turns > 0 || opts.prefill) save();
       }
       var typeLine = typeNew ? (prevType ? "I've switched your project to " + type + "." : "Got it — " + TYPES[type].say + ".") : '';
 
