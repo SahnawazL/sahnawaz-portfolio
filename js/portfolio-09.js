@@ -1415,6 +1415,11 @@
       'Web app / custom build':   { range: 'Custom quote',        time: 'Depends on scope',        say: 'web app' },
       'Website redesign':         { range: 'Custom quote',        time: 'Depends on scope',        say: 'website redesign' }
     };
+    /* prices and times come from the site's one price list (js/pricing.js) */
+    if (window.SHZ_PRICING) Object.keys(TYPES).forEach(function (k) {
+      var p = window.SHZ_PRICING.TYPES[k];
+      if (p) { TYPES[k].range = window.SHZ_PRICING.range(p); TYPES[k].time = p.time; }
+    });
     var REDUCED = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
     var st = load() || fresh();
@@ -1706,10 +1711,11 @@
       /* details another feature already knows (the website check hands
          over the site and what to fix); never overwrites the visitor's own */
       if (opts.prefill && typeof opts.prefill === 'object') {
-        ['website', 'notes', 'business'].forEach(function(k){
+        ['website', 'notes', 'business', 'budget', 'timeline', 'goal'].forEach(function(k){
           var v = opts.prefill[k];
           if (v && !st.brief[k]) st.brief[k] = String(v).slice(0, k === 'notes' ? 380 : 180);
         });
+        st.missing = missingOf(st.brief);
       }
 
       var type = TYPES[opts.type] ? opts.type : '';
@@ -2129,7 +2135,7 @@
       var m = t.replace(/\S+@\S+/g, ' ').match(/((?:https?:\/\/)?(?:[a-z0-9-]+\.)+[a-z]{2,24}(?:\/[^\s,;!?]*)?)/i);
       return m ? { url: m[1], type: typeFromText(t.replace(m[1], ' ')) } : null;
     }
-    window._startWebsiteCheck = function(){ return start(); };
+    window._startWebsiteCheck = function(opts){ return start(opts); };
     window._checkChatReset = reset;
     /* from the section's "Ask the AI about this report" */
     window._chatAboutReport = function(r){
