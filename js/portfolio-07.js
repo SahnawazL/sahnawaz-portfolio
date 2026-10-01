@@ -245,6 +245,11 @@
        stylesheet, and the column layout is what docks the output
        panel to the bottom and lets the editor area shrink. */
     popup.style.display    = 'flex';
+    /* in front of the chat window: on a phone the chat covers the same
+       spot, so a popup opened from the chat ("open code popup", Commands)
+       opened behind it and looked like nothing happened. Opening the chat
+       again puts the chat back in front (portfolio-09.js openChat). */
+    popup.style.zIndex     = '10002';
     popup.style.opacity    = '0';
     popup.style.transform  = 'translateY(18px) scale(0.95)';
     popup.style.transition = 'opacity 0.38s cubic-bezier(0.16,1,0.3,1), transform 0.38s cubic-bezier(0.16,1,0.3,1)';

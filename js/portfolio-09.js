@@ -350,6 +350,9 @@
     if (isOpen) return;
     widget.classList.add('chat-open');
     isOpen = true;
+    /* the chat opened last, so it goes in front of an open code popup */
+    var cp = document.getElementById('codePopup');
+    if (cp) cp.style.zIndex = '';
     idleCount = 0; /* reset so nudges fire fresh every time chat is opened */
     /* Start the open animation first; do the heavier work (first-time
        setup, sound) right after the first frame so the window appears
