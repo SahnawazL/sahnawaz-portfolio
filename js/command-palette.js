@@ -86,6 +86,21 @@
     { t:'Open session.js', s:'Live telemetry about your device', g:'Interactive', i:I.code, k:'session live device battery browser telemetry',
       when:function(){ return has('_openCodePopup') && has('_cpOpenFile'); },
       run:function(){ window._openCodePopup(); setTimeout(function(){ window._cpOpenFile('session.js'); }, 300); return true; } },
+    /* the two AI tools: the planner opens in the chat, the website check
+       is a section with its own form */
+    { t:'Plan Your Project with AI', s:'Describe it, see a typical price, send me a brief', g:'Interactive', i:I.doc,
+      k:'plan project brief quote price cost estimate budget hire build website app ai planner continue',
+      when:function(){ return has('openBrief'); },
+      run:function(){ window.openBrief({ from:'search' }); return true; } },
+    { t:'Free Website Check', s:'Speed and customer check for any business site', g:'Interactive', i:I.action,
+      k:'website check audit test speed pagespeed seo scan report business site free my',
+      when:function(){ return !!$('website-check'); },
+      run:function(){
+        var ok = go('#website-check');
+        /* with a real keyboard, put the cursor in the address box once there */
+        if (ok && hasKeyboard()) setTimeout(function () { var u = $('wcUrl'); if (u) { try { u.focus({ preventScroll:true }); } catch (e) {} } }, 900);
+        return ok;
+      } },
     { t:'Ask the AI Assistant', s:'Chat about my work', g:'Interactive', i:I.chat, k:'chat ai assistant bot ask question',
       when:function(){ return has('openChat') || $('chatToggle'); },
       run:function(){
