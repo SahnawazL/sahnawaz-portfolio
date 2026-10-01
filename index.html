@@ -882,6 +882,11 @@ section.hero-enter.sec-wipe { opacity: 1; transform: none; clip-path: none; tran
       <span class="hdr-badge-line right" aria-hidden="true"></span>
     </div>
 
+    <!-- Sign In: in the page from the first paint. It used to be added by
+         js/visitor-auth.js a moment later, which made the header taller and
+         pushed the whole page down (Google counted it as a layout shift). -->
+    <div style="display:flex;justify-content:center;margin-top:8px;"><button id="visitorLoginBtn" type="button" onclick="window.openLoginModal&&window.openLoginModal()" style="display:inline-flex;align-items:center;gap:8px;padding:7px 18px;border-radius:30px;background:transparent;border:1.5px solid #00ffff;color:#00ffff;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;"><img class="vl-avatar" src="data:," alt="" style="width:24px;height:24px;border-radius:50%;display:none;object-fit:cover;"><span class="vl-icon">🔑</span><span class="vl-label">Sign In</span></button></div>
+
   </div>
 </header><main id="main">
 <section class="hero-enter" style="color:#ffffff;padding:3rem 1rem;border-radius:16px;box-shadow:0 0 30px rgba(0,255,255,0.1);background:linear-gradient(135deg,#091b2f,#0c2c44);">
@@ -919,9 +924,9 @@ section.hero-enter.sec-wipe { opacity: 1; transform: none; clip-path: none; tran
   <!-- Name block -->
   <div class="prem-name-wrap pop-in" onclick="this.classList.add('clicked'); setTimeout(()=>this.classList.remove('clicked'),1600);">
     <h1 class="prem-name">
-      <span class="prem-word prem-word-fill" style="animation-delay:0.3s">Sahnawaz</span>
-      <span class="prem-word prem-word-fill" style="animation-delay:0.46s">Ahmed</span>
-      <span class="prem-word prem-word-outline" style="animation-delay:0.62s">Laskar</span>
+      <span class="prem-word prem-word-fill">Sahnawaz</span>
+      <span class="prem-word prem-word-fill" style="animation-delay:0.12s">Ahmed</span>
+      <span class="prem-word prem-word-outline" style="animation-delay:0.24s">Laskar</span>
     </h1>
     <svg class="prem-signature" viewBox="0 0 300 20" preserveAspectRatio="none" aria-hidden="true">
       <defs>
@@ -958,7 +963,7 @@ section.hero-enter.sec-wipe { opacity: 1; transform: none; clip-path: none; tran
       if (e.animationName === animName) el.classList.remove(className);
     });
   }
-  stripOnceDone('.prem-name-wrap.pop-in', 'premFadeScaleIn', 'pop-in');
+  stripOnceDone('.prem-name-wrap.pop-in', 'premNameIn', 'pop-in');
   stripOnceDone('.pfp-stage.pop-in', 'pfpStageIn', 'pop-in');
   stripOnceDone('.prem-signature-path.sig-pop-in', 'premSigDraw', 'sig-pop-in');
 })();

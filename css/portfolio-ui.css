@@ -505,9 +505,18 @@ header::after {
   cursor: pointer;
   opacity: 1;
 }
+/* The name is the largest thing on the first screen, so Google times the
+   page by it. It used to start fully invisible and only begin fading in
+   after 0.28 s (and each word after another 0.3–0.6 s), which Google
+   counted as the page not being ready. Now it is faintly there from the
+   very first frame and settles in the same way, just without the wait. */
 .prem-name-wrap.pop-in {
-  opacity: 0;
-  animation: premFadeScaleIn 0.9s cubic-bezier(.2,.9,.2,1) 0.28s forwards;
+  opacity: 0.4;
+  animation: premNameIn 0.9s cubic-bezier(.2,.9,.2,1) forwards;
+}
+@keyframes premNameIn {
+  from { opacity: 0.4; transform: scale(0.93) translateY(8px); }
+  to   { opacity: 1;   transform: scale(1) translateY(0); }
 }
 .prem-name-wrap:hover .prem-word {
   filter: drop-shadow(0 0 2px rgba(255,255,255,0.4)) drop-shadow(0 0 24px rgba(80,210,255,0.55)) drop-shadow(0 8px 22px rgba(0,0,0,0.25));
@@ -563,7 +572,7 @@ header::after {
    that ran past the name and was cut off at the column edge.) */
 .prem-word {
   display: inline-block;
-  opacity: 0;
+  opacity: 0.35;
   transform: translateY(16px);
   letter-spacing: 0.14em;
   transition: filter 0.35s ease;
@@ -586,12 +595,12 @@ header::after {
   animation: premWordInOutline 0.8s cubic-bezier(.16,1,.3,1) forwards;
 }
 @keyframes premWordIn {
-  0%   { opacity: 0; transform: translateY(16px); letter-spacing: 0.14em; filter: blur(5px) drop-shadow(0 0 16px rgba(80,210,255,0.32)); }
+  0%   { opacity: 0.35; transform: translateY(16px); letter-spacing: 0.14em; filter: blur(5px) drop-shadow(0 0 16px rgba(80,210,255,0.32)); }
   65%  { filter: blur(0px) drop-shadow(0 0 16px rgba(80,210,255,0.32)); }
   100% { opacity: 1; transform: translateY(0); letter-spacing: normal; filter: blur(0px) drop-shadow(0 0 16px rgba(80,210,255,0.32)); }
 }
 @keyframes premWordInOutline {
-  0%   { opacity: 0; transform: translateY(16px); letter-spacing: 0.14em; filter: blur(5px) drop-shadow(0 0 14px rgba(80,210,255,0.4)); }
+  0%   { opacity: 0.35; transform: translateY(16px); letter-spacing: 0.14em; filter: blur(5px) drop-shadow(0 0 14px rgba(80,210,255,0.4)); }
   65%  { filter: blur(0px) drop-shadow(0 0 14px rgba(80,210,255,0.4)); }
   100% { opacity: 1; transform: translateY(0); letter-spacing: normal; filter: blur(0px) drop-shadow(0 0 14px rgba(80,210,255,0.4)); }
 }

@@ -450,7 +450,11 @@ window._handleOneTapCredential = handleOneTapCredential;
 /* ── Inject HTML ────────────────────────────────────────── */
 function injectHTML() {
   var header = document.querySelector('header .hdr-inner') || document.querySelector('header');
-  if (header && !document.getElementById('visitorLoginBtn')) {
+  /* the button is normally already in the page (index.html) so the header
+     doesn't grow after the first paint; it only needs its click handler */
+  var existing = document.getElementById('visitorLoginBtn');
+  if (existing) existing.onclick = openLoginModal;
+  if (header && !existing) {
     var w = document.createElement('div');
     w.style.cssText = 'display:flex;justify-content:center;margin-top:8px;';
     w.innerHTML = '<button id="visitorLoginBtn" style="display:inline-flex;align-items:center;gap:8px;padding:7px 18px;border-radius:30px;background:transparent;border:1.5px solid #00ffff;color:#00ffff;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;"><img class="vl-avatar" src="" alt="" style="width:24px;height:24px;border-radius:50%;display:none;object-fit:cover;"><span class="vl-icon">🔑</span><span class="vl-label">Sign In</span></button>';

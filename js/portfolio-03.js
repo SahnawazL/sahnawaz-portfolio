@@ -1561,7 +1561,22 @@
   }
 
   if (btn) btn.addEventListener('click', runCheck);
-  runCheck();
+
+  /* Checks (and the 30 s auto-refresh) run while the panel is near the
+     screen. They used to start with the page and keep going wherever the
+     visitor was — three requests competing with the page's own loading,
+     and Google's test waited on them. */
+  var panelNear = false;
+  var panel = rowsEl.closest('section') || rowsEl;
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (en) {
+      panelNear = en[0].isIntersecting;
+      if (panelNear && !document.hidden) {
+        if (Date.now() - lastRunAt > POLL_MS) runCheck();
+        startPolling();
+      } else stopPolling();
+    }, { rootMargin: '400px 0px' }).observe(panel);
+  } else { panelNear = true; runCheck(); }
 
   // Auto-refresh every 30s — matches the endpoint's own 30s cache window,
   // so this never fires faster than a "new" check could actually exist.
@@ -1584,7 +1599,7 @@
   }
 
   document.addEventListener('visibilitychange', function () {
-    if (document.hidden) {
+    if (document.hidden || !panelNear) {
       stopPolling();
     } else {
       if (Date.now() - lastRunAt > POLL_MS) runCheck();
@@ -1592,7 +1607,7 @@
     }
   });
 
-  if (!document.hidden) startPolling();
+  if (!document.hidden && panelNear) startPolling();
 })();
 
 
