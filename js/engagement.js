@@ -25,19 +25,25 @@
   }
 
   function initFirestore() {
-    loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js', function () {
-      db = firebase.firestore();
-      window._firestoreDB = db;
-      try { window.dispatchEvent(new Event('shz:firestore-ready')); } catch (e) {}
-      injectStyles();
-      injectReviewModal();
-      initReviewSection();
-      initProjectLikes();
-      initMpjLikes();
-      initChatHistory();
-      initResumeLogger();
-      initVisitorActivity();
-    });
+    /* visitor-auth.js has normally loaded Firestore already (it needs it
+       before sign-in finishes); loading it again downloaded and ran the same
+       93 KB file twice. Only fetch it if it really isn't there. */
+    if (window.firebase && typeof window.firebase.firestore === 'function') return firestoreReady();
+    loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js', firestoreReady);
+  }
+  function firestoreReady() {
+    if (db) return;               /* only ever set up once */
+    db = firebase.firestore();
+    window._firestoreDB = db;
+    try { window.dispatchEvent(new Event('shz:firestore-ready')); } catch (e) {}
+    injectStyles();
+    injectReviewModal();
+    initReviewSection();
+    initProjectLikes();
+    initMpjLikes();
+    initChatHistory();
+    initResumeLogger();
+    initVisitorActivity();
   }
 
   function getVisitor() {

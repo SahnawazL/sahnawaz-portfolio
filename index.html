@@ -808,7 +808,9 @@ section.hero-enter.sec-wipe { opacity: 1; transform: none; clip-path: none; tran
     var pctRounded = Math.round(pct);
 
     bar.style.width = pct + '%';
-    bar.setAttribute('aria-valuenow', pctRounded);
+    /* the value belongs on the track, which has role="progressbar"; the bar
+       inside it is decoration (an aria-valuenow there was flagged by
+       Google's accessibility check) */
     track.setAttribute('aria-valuenow', pctRounded);
     tooltip.textContent = pctRounded + '%';
 
@@ -881,7 +883,8 @@ section.hero-enter.sec-wipe { opacity: 1; transform: none; clip-path: none; tran
     </div>
 
   </div>
-</header><section class="hero-enter" style="color:#ffffff;padding:3rem 1rem;border-radius:16px;box-shadow:0 0 30px rgba(0,255,255,0.1);background:linear-gradient(135deg,#091b2f,#0c2c44);">
+</header><main id="main">
+<section class="hero-enter" style="color:#ffffff;padding:3rem 1rem;border-radius:16px;box-shadow:0 0 30px rgba(0,255,255,0.1);background:linear-gradient(135deg,#091b2f,#0c2c44);">
 
 <!-- ── PREMIUM PROFILE PICTURE ── -->
 <div class="pfp-stage pop-in" id="pfpStage" onclick="
@@ -4386,6 +4389,7 @@ function sendMail(e) { if(e) e.preventDefault(); ctSendMail(); }
 </div>
 
 <!-- ===== END ===== -->
+</main>
 <footer style="text-align:center; padding: 0; margin-top: 0; position: relative;">
 
 
