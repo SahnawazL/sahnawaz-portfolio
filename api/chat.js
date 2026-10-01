@@ -27,90 +27,62 @@ let inFlight = 0;
 // the underlying numbers only change roughly once a day anyway (daily cron).
 // A short fetch timeout + try/catch means a slow or dead endpoint NEVER
 // delays or breaks a chat reply — it just falls back to a safe static line.
-let yojanaStatsCache = { data: null, fetchedAt: 0 };
+let yojanaStatsCache = { data: null, fetchedAt: 0, pending: null };
 const YOJANA_STATS_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
-async function getYojanaSahayLiveStats() {
+// ── Live data never holds a reply up for long ──────────────────────────────
+// A reply used to wait for BOTH live feeds, one after the other, before the
+// AI was even asked: up to 6 s + 4 s for the GitHub feed (a heavy endpoint,
+// slow on a cold start) plus 2.5 s for YojanaSahay — on every cold instance,
+// and for every question, even "what's his education?".
+// Now: fetched only when the question's sections use them, both at once, and
+// a reply waits at most `wait` ms. If the fetch is slower, the last copy (or
+// the static line) is used and the fetch carries on to refresh the cache for
+// the next message.
+function liveValue(cache, ttl, load, wait, label) {
   const now = Date.now();
-  if (yojanaStatsCache.data && (now - yojanaStatsCache.fetchedAt) < YOJANA_STATS_TTL_MS) {
-    return yojanaStatsCache.data;
+  if (cache.data && now - cache.fetchedAt < ttl) return Promise.resolve(cache.data);
+  if (!cache.pending) {
+    cache.pending = load()
+      .then((d) => { cache.data = d; cache.fetchedAt = Date.now(); return d; })
+      .catch((err) => { console.warn('[chat] ' + label + ' fetch failed:', err && err.message); return null; })
+      .finally(() => { cache.pending = null; });
   }
-  try {
-    const res = await fetch('https://yojanasahay.vercel.app/api/stats', {
-      signal: AbortSignal.timeout(2500) // never let a slow endpoint delay a chat reply for long
-    });
+  const fallback = cache.data || null;   // a slightly stale copy beats "unavailable"
+  return Promise.race([
+    cache.pending.then((d) => d || fallback),
+    new Promise((resolve) => setTimeout(() => resolve(fallback), fallback ? Math.min(wait, 300) : wait))
+  ]);
+}
+
+function getYojanaSahayLiveStats() {
+  return liveValue(yojanaStatsCache, YOJANA_STATS_TTL_MS, async () => {
+    const res = await fetch('https://yojanasahay.vercel.app/api/stats', { signal: AbortSignal.timeout(4000) });
     if (!res.ok) throw new Error(`bad status ${res.status}`);
     const data = await res.json();
-    if (typeof data.schemeCount === 'number' && typeof data.linkHealthPercent === 'number') {
-      yojanaStatsCache = { data, fetchedAt: now };
-      return data;
-    }
-    throw new Error('missing expected fields');
-  } catch (err) {
-    console.warn('[chat] YojanaSahay live stats fetch failed, using static fallback:', err && err.message);
-    return null; // caller falls back to a fixed, still-accurate static line
-  }
+    if (typeof data.schemeCount !== 'number' || typeof data.linkHealthPercent !== 'number') throw new Error('missing expected fields');
+    return data;
+  }, 1200, 'YojanaSahay stats');
 }
 
 // ── LIVE GITHUB ACTIVITY ("Recently Shipped") ────────────────────────────────
-// Same self-referential pattern as getYojanaSahayLiveStats() above: the
-// portfolio's own /api/github-activity endpoint (already cached there via
-// s-maxage=600, stale-while-revalidate=1800) is fetched here so the chatbot
-// can talk about what Sahnawaz has actually shipped lately — instead of a
-// static, always-drifting list. Cached at module scope so a burst of chat
-// messages on the same warm Vercel instance doesn't refetch every time; the
-// underlying feed only changes as often as Sahnawaz pushes commits anyway.
-// A short fetch timeout + try/catch means a slow or dead endpoint NEVER
-// delays or breaks a chat reply — it just falls back to a safe static line.
-// Knowledge retrieval: send only the sections relevant to each question
-// instead of the full ~6,700-token base every time. lib/ lives outside /api
-// so it does not count against Vercel's function limit — it is bundled into
-// this function.
-const { buildKnowledge } = require('../lib/site-knowledge');
+// The portfolio's own /api/github-activity endpoint (cached there via
+// s-maxage) so the assistant can talk about what Sahnawaz has shipped lately.
+// Knowledge retrieval: send only the sections relevant to each question.
+// lib/ lives outside /api so it does not count against Vercel's function
+// limit — it is bundled into this function.
+const { buildKnowledge, placeholdersIn } = require('../lib/site-knowledge');
 const projectBrief = require('../lib/project-brief');
 
-let githubActivityCache = { data: null, fetchedAt: 0 };
+let githubActivityCache = { data: null, fetchedAt: 0, pending: null };
 const GITHUB_ACTIVITY_TTL_MS = 30 * 60 * 1000; // 30 minutes — the feed only changes when he pushes
 
-async function getGithubActivitySnapshot() {
-  const now = Date.now();
-  if (githubActivityCache.data && (now - githubActivityCache.fetchedAt) < GITHUB_ACTIVITY_TTL_MS) {
-    return githubActivityCache.data;
-  }
-  // The activity endpoint is heavy (GitHub API + streak + language
-  // aggregation), so a single 2.5s attempt frequently timed out on a cold
-  // start — which is why the assistant kept saying "GitHub data is
-  // temporarily unavailable" even though the data exists. Two attempts with
-  // a longer budget on the first, plus serving the last cached copy rather
-  // than nothing, makes the streak reliably available.
-  const attempt = (ms) => fetch('https://sahnawaz-portfolio.vercel.app/api/github-activity', {
-    signal: AbortSignal.timeout(ms)
-  }).then((res) => {
+function getGithubActivitySnapshot() {
+  return liveValue(githubActivityCache, GITHUB_ACTIVITY_TTL_MS, async () => {
+    const res = await fetch('https://sahnawaz-portfolio.vercel.app/api/github-activity', { signal: AbortSignal.timeout(8000) });
     if (!res.ok) throw new Error(`bad status ${res.status}`);
     return res.json();
-  });
-
-  try {
-    let data;
-    try {
-      data = await attempt(6000);            // first try: generous, covers a cold start
-    } catch (first) {
-      console.warn('[chat] GitHub activity first attempt failed, retrying:', first && first.message);
-      data = await attempt(4000);            // one quick retry
-    }
-    githubActivityCache = { data, fetchedAt: now };
-    return data;
-  } catch (err) {
-    console.warn('[chat] GitHub activity fetch failed:', err && err.message);
-    // If we ever fetched it successfully before, a slightly stale snapshot
-    // (streak, commits) is far better than "unavailable". Only fall back to
-    // the static line when we have never had any data at all.
-    if (githubActivityCache.data) {
-      console.warn('[chat] serving last cached GitHub snapshot instead of failing');
-      return githubActivityCache.data;
-    }
-    return null;
-  }
+  }, 1500, 'GitHub activity');
 }
 
 const handler = async (req, res) => {
@@ -344,11 +316,16 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
 
   // Whole words only: "which" used to count as "hi" (a greeting hint on
   // ordinary questions) and "generate" as "rate" (a pricing hint).
+  // Education and work history get no hint here: the knowledge picks those
+  // topics from the question and names them last (QUESTION TOPIC).
+  // "experience" is not a skills question, and "how much experience" is not
+  // a pricing one.
+  const aboutHim = /\b(experience|worked|education|degree|college|studied|qualification)\b/i.test(msgLower);
   const intent =
-    /\b(price|prices|pricing|cost|costs|rates?|charges?|fees?|budget|how much|rupees?|packages?|quote|quotation)\b|₹|\brs\.?\s?\d/i.test(msgLower) ? 'pricing' :
+    !aboutHim && /\b(price|prices|pricing|cost|costs|rates?|charges?|fees?|budget|how much|rupees?|packages?|quote|quotation)\b|₹|\brs\.?\s?\d/i.test(msgLower) ? 'pricing' :
     /\b(hire|hiring|job|jobs|work with|collaborat\w*|available|availability|freelanc\w*|contract|recruit\w*)\b/i.test(msgLower) ? 'hiring' :
     /\b(contact|email|e-mail|whatsapp|phone|reach|connect|instagram|linkedin)\b/i.test(msgLower)             ? 'contact'   :
-    /\b(skills?|tech|stack|languages?|frameworks?|tools|experience|expert\w*)\b/i.test(msgLower)               ? 'skills'    :
+    /\b(skills?|tech|stack|languages?|frameworks?|tools|expert\w*)\b/i.test(msgLower)                          ? 'skills'    :
     (trimmed.length <= 40 && /^(hi+|hello|hey+|hii+|sup|yo|good (morning|afternoon|evening|night)|salaam|assalamu?\s?alaikum|namaste|namaskar)\b/i.test(msgLower)) ? 'greeting' :
     'general';
 
@@ -462,21 +439,44 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
     visitorActivityHint = lines.join('\n');
   }
 
-  // ── Live YojanaSahay stats — fetched once here, used in KNOWLEDGE below ──
-  const yojanaStats = await getYojanaSahayLiveStats();
+  // ── KNOWLEDGE BASE ─────────────────────────────────────────────────────
+  // Only the sections this question needs. The QUESTION picks the topic;
+  // earlier messages only help a follow-up that names no topic of its own
+  // ("how long did that take?"). Visitor messages count fully, the last
+  // reply at half weight.
+  const past = Array.isArray(history) ? history.slice(-6) : [];
+  const recent = {
+    user: past.filter(m => m && m.role !== 'bot' && m.role !== 'assistant').slice(-3).map(m => String(m.content || '')).join(' \n '),
+    bot: String((past.filter(m => m && (m.role === 'bot' || m.role === 'assistant')).slice(-1)[0] || {}).content || '').slice(0, 600)
+  };
+  // The page's live tools (website check / brief) come along when the
+  // question has no topic of its own ("again", "is it good?").
+  const force = (ctx.report || ctx.brief) ? ['site-ai-tools'] : [];
+  const hints = {
+    intentHint: [intentHint ? `INTENT HINT: ${intentHint}` : '', visitorTypeHint ? `VISITOR TYPE: ${visitorTypeHint}` : ''].filter(Boolean).join('\n'),
+    langHint: langHint ? `LANGUAGE HINT: ${langHint}` : '',
+    nameHint: nameHint ? `VISITOR HINT: ${nameHint}` : '',
+    visitorActivityHint: visitorActivityHint || ''
+  };
+  const plan = buildKnowledge(trimmed, recent, hints, { force });
+
+  // ── Live values, only when a chosen section shows them ─────────────────
+  const needs = placeholdersIn(plan.used);
+  const [yojanaStats, githubSnapshot] = await Promise.all([
+    needs.includes('yojanaSchemesLine') ? getYojanaSahayLiveStats() : null,
+    needs.includes('recentShippedLine') ? getGithubActivitySnapshot() : null
+  ]);
   const yojanaSchemesLine = yojanaStats
     ? `Covers: ${yojanaStats.schemeCount.toLocaleString('en-IN')}+ Central and State government schemes tracked (${yojanaStats.linkHealthPercent}% of links currently verified live) across every state in India`
     : 'Covers: 1,116+ Central and State government schemes across every state in India';
 
-  // ── Live GitHub activity snapshot — fetched once here, used in KNOWLEDGE below ──
-  const githubSnapshot = await getGithubActivitySnapshot();
   let recentShippedLine;
   if (githubSnapshot) {
     const items = (githubSnapshot.activity || []).slice(0, 5).map(a => `- ${a.message}`).join('\n');
     const pulse = githubSnapshot.pulse;
     const stats = githubSnapshot.stats;
     const pulseLine = pulse
-      ? `Streak: ${pulse.currentStreak} day(s) current, ${pulse.longestStreak} day(s) longest | All-time contributions: ${pulse.totalContributions.toLocaleString('en-IN')}`
+      ? `Streak: ${pulse.currentStreak} day(s) current, ${pulse.longestStreak} day(s) longest | All-time contributions: ${Number(pulse.totalContributions || 0).toLocaleString('en-IN')}`
       : '';
     const statsLine = stats
       ? `This year so far: ${stats.commits} commits, ${stats.pullRequests} pull requests, ${stats.issues} issues, across ${stats.repos} repositories`
@@ -490,35 +490,19 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
     recentShippedLine = 'Live GitHub data is temporarily unavailable right now — Sahnawaz ships regularly across his portfolio, StudyLens AI, and YojanaSahay.';
   }
 
-  // ── KNOWLEDGE BASE ─────────────────────────────────────────────────────
-  // Retrieve only the sections this question needs. Core sections (persona,
-  // formatting rules, identity, contact, deep-links) always go; topic
-  // sections are matched against the question and the last few turns, so a
-  // follow-up like "and how much for that?" keeps its topic. The live values
-  // below are injected into the section placeholders exactly as the old
-  // inline template used them.
-  const recentTurns = Array.isArray(history)
-    ? history.slice(-4).map(m => String(m && m.content || '')).join(' ')
-    : '';
-
-  const force = (ctx.report || ctx.brief) ? ['site-ai-tools'] : [];
-  const retrieved = buildKnowledge(trimmed, recentTurns, {
-    intentHint: [intentHint ? `INTENT HINT: ${intentHint}` : '', visitorTypeHint ? `VISITOR TYPE: ${visitorTypeHint}` : ''].filter(Boolean).join('\n'),
-    langHint: langHint ? `LANGUAGE HINT: ${langHint}` : '',
-    nameHint: nameHint ? `VISITOR HINT: ${nameHint}` : '',
-    visitorActivityHint: visitorActivityHint || '',
-    yojanaSchemesLine: yojanaSchemesLine || '',
-    recentShippedLine: recentShippedLine || ''
-  }, { force });
+  const retrieved = buildKnowledge(trimmed, recent, Object.assign({}, hints, { yojanaSchemesLine, recentShippedLine }), { force });
 
   const stateBlock = stateText(ctx);
-  const KNOWLEDGE = retrieved.text + (stateBlock ? '\n\n' + stateBlock : '');
-  console.log('[chat] knowledge ' + retrieved.tokens + ' tokens \u00b7 ' + retrieved.used.join(', '));
+  // The question's topic goes last, where the model weighs it most.
+  const KNOWLEDGE = retrieved.text + (stateBlock ? '\n\n' + stateBlock : '') + (retrieved.focus ? '\n\n' + retrieved.focus : '');
+  console.log('[chat] knowledge ' + retrieved.tokens + ' tokens \u00b7 ' + retrieved.used.join(', ') + (retrieved.topics.length ? ' \u00b7 topic ' + retrieved.topics.join(', ') : ''));
 
   // ── UPGRADE 1: Conversation history ───────────────────────────────────
-  // Accept the last 10 messages from the frontend, trimmed to keep tokens in check
+  // The last 8 messages, each capped, so a long chat stays well inside the
+  // free tier's tokens-per-minute (a request over it is bumped to a smaller,
+  // less accurate fallback model).
   const safeHistory = Array.isArray(history)
-    ? history.slice(-10).filter(m => m && m.content).map(m => ({
+    ? history.slice(-8).filter(m => m && m.content).map(m => ({
         role: m.role === 'bot' ? 'assistant' : 'user',
         content: String(m.content).slice(0, 700) // cap each message at 700 chars
       }))
@@ -560,7 +544,7 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
       body: JSON.stringify({
         model,
         messages,
-        temperature: 0.75,
+        temperature: 0.5,      // facts about him must come out the same every time
         max_tokens: 1000,
         ...reasoningFor(model)
       })

@@ -2620,7 +2620,10 @@
 
   /* Instagram / Meta AI style — dots → full message with CSS animation
      isNudge=true → do NOT restart the idle timer after rendering (prevents loop) */
-  function addBotTyping(answer, questionAsked, isNudge){
+  /* `instant`: the visitor already waited for the AI behind the "thinking"
+     bubble, so its answer shows straight away instead of after another
+     0.65–1 s of dots. */
+  function addBotTyping(answer, questionAsked, isNudge, instant){
     setBotBusy(true);
     setTypingStatus(true);
 
@@ -2650,7 +2653,7 @@
     scrollMsgs();
 
     /* 2. After think-delay: swap dots → full message, replay CSS animation */
-    var thinkDelay = 650 + Math.random() * 350;
+    var thinkDelay = instant ? 0 : 650 + Math.random() * 350;
     setTimeout(function(){
       /* Reset so botMsgIn animation fires cleanly */
       dot.style.animation = 'none';
@@ -3496,9 +3499,9 @@
                        || val.match(/^([A-Z][a-z]{1,20})(?:\s+here|$)/);
           if (nameMatch) window._chatVisitorName = nameMatch[1];
         }
-        addBotTyping(aiReply, val);
+        addBotTyping(aiReply, val, false, true);
       } else {
-        addBotTyping("⚠️ I didn't get a response. Please try again in a moment.", val);
+        addBotTyping("⚠️ I didn't get a response. Please try again in a moment.", val, false, true);
       }
 
       /* ── SITE COMMAND EXECUTOR ──────────────────────────────────────────
