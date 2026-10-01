@@ -1757,13 +1757,45 @@ window.__shzAudio = (function(){
     arrive(key);
   };
 
+  /* ---- the pill acts when its click signature has played ----
+     Every pill used to act on the same tap: the page scrolled away, or the
+     chat / Quick Search opened over it, so the signature was never seen.
+     Now the tap plays the signature first and the pill does its job as the
+     signature ends (the sweep and icon motion, 0.6–0.7 s). The tap is held
+     at the window, before any of the pill's own handlers (its onclick,
+     Quick Search's listener) run, then replayed. With reduced motion there
+     is no signature, so pills act at once. */
+  var HOLD = { experience:700, telemetry:620, search:600, contact:700, ai:700, plan:700 };
+  var held = null;
+  window.addEventListener('click', function(e){
+    if(reduced || !e.isTrusted) return;
+    var pill = e.target && e.target.closest && e.target.closest('.hero-cta-group .hero-cta-btn');
+    var key = pill && pill.getAttribute('data-pfx-key');
+    if(!key || pill._pfxReplay) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if(held && held.pill === pill) return;            /* a second tap while it plays */
+    if(held) clearTimeout(held.t);                    /* another pill: the newest tap wins */
+    fire(pill, key);
+    if(THEMES[key].sound) THEMES[key].sound();
+    held = { pill: pill, t: setTimeout(function(){
+      held = null;
+      pill._pfxReplay = true;                         /* let this one through to its handlers */
+      try{ pill.click(); }finally{ pill._pfxReplay = false; }
+    }, HOLD[key] || 650) };
+  }, true);
+
   Object.keys(THEMES).forEach(function(key){
     var th = THEMES[key];
     var pill = document.querySelector('.hero-cta-group ' + th.pill);
     if(!pill) return;
+    pill.setAttribute('data-pfx-key', key);
     pill.addEventListener('click', function(e){
-      fire(pill, key);
-      if(!reduced && th.sound) th.sound();
+      /* a replayed tap has already played its signature */
+      if(!pill._pfxReplay){
+        fire(pill, key);
+        if(!reduced && th.sound) th.sound();
+      }
       if(th.scroll){
         var dest = document.querySelector(th.target);
         if(!dest) return;                       /* fall back to the plain link */
