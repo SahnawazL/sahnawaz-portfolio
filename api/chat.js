@@ -223,7 +223,7 @@ STRICT RULES:
         let wizReply = wizData?.choices?.[0]?.message?.content?.trim() || null;
         if (wizReply) {
           // Strip any [CAT:...] tags just in case (all variants)
-          wizReply = wizReply.replace(/\*{0,2}\[?(?:CAT|KAT|CATEGORY):[\w]+\]?\*{0,2}[\s\n]*/gi, '').trim();
+          wizReply = stripTags(wizReply);
           return res.status(200).json({ reply: wizReply });
         } else {
           console.error('[wizard] Groq returned no content:', JSON.stringify(wizData));
@@ -302,7 +302,7 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
         const greetData = await greetRes.json();
         const greetReply = greetData?.choices?.[0]?.message?.content?.trim() || null;
         if (greetReply) {
-          return res.status(200).json({ reply: greetReply });
+          return res.status(200).json({ reply: stripTags(greetReply) || greetReply });
         } else {
           console.error('[greeting] Groq returned no content:', JSON.stringify(greetData));
         }
@@ -613,7 +613,7 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
     // Strip ALL [CAT:...] tag variants from reply — used internally for intent routing,
     // should never be visible to visitors. Handles: [CAT:x], **[CAT:x]**, **CAT:x**, CAT:x
     // anywhere in the text (AI sometimes embeds them mid-response or wraps in bold).
-    reply = reply.replace(/\*{0,2}\[?(?:CAT|KAT|CATEGORY):[\w]+\]?\*{0,2}[\s\n]*/gi, '').trim();
+    reply = stripTags(reply);
 
     // ── Offer the right in-chat action when the visitor clearly wants one ──
     // The model is asked to add these chips itself; this makes sure a visitor
@@ -893,5 +893,29 @@ function guardReply(reply, question, ctx) {
   return text;
 }
 
+// ── Category labels never reach the visitor ───────────────────────────────
+// Older prompts asked the model to start with "[CAT:pricing]" and the like.
+// It no longer has to, but a model can still write one — sometimes misspelt
+// ("CATA:general") and even followed by "Oops, typo! 😅". Removed here,
+// whatever the spelling, together with that kind of self-correction.
+function stripTags(text) {
+  let t = String(text || '');
+  const lead = t.match(/^\s*\**\s*\[?\s*(?:c\s*a\s*t\s*a?|k\s*a\s*t|category|cta)\s*:\s*/i);
+  if (lead) {
+    const rest = t.slice(lead[0].length);
+    /* a real category in any case ("General"), else a lowercase word, so
+       "generalOops" → "general" */
+    const known = rest.match(/^(?:pricing|skills|contact|hiring|about|general)/i);
+    const word = known || rest.match(/^[a-z_]+/);
+    /* "Category: …" is ordinary English unless a real category follows */
+    if (word && (known || !/^\W*\[?\s*category/i.test(lead[0]))) {
+      t = rest.slice(word[0].length).replace(/^\s*\]?\s*\**\s*/, '');
+      t = t.replace(/^[,.:;!\s-]*(?:oops|whoops|sorry)[,!.\s]*(?:(?:a|my|that was a|small|tiny)\s+)?typo(?:\s+there)?[!.,]*\s*(?:\p{Extended_Pictographic}️?\s*)*/iu, '');
+    }
+  }
+  t = t.replace(/\*{0,2}\[?\s*(?:CATA?|KAT|CATEGORY)\s*:\s*(?:pricing|skills|contact|hiring|about|general)\s*\]?\*{0,2}[ \t]*\n?/gi, '');
+  return t.trim();
+}
+
 module.exports = handler;
-module.exports._test = { readContext, stateText, guardReply, pickFlowChip, tidyChips };
+module.exports._test = { readContext, stateText, guardReply, pickFlowChip, tidyChips, stripTags };
