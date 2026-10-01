@@ -1589,119 +1589,89 @@ window.__shzAudio = (function(){
     }catch(e){}
   }
 
-  /* ---- pill sounds: hacker-terminal style, the same for every pill ----
-     engage(ms) — "decrypting", exactly as long as the click effect:
-       a digital glitch stutter, then fast computer data-chatter (random
-       square-wave blips that speed up) over a low pulsing machine hum,
-       ending in an "access granted" double beep as the pill acts.
-     scanHum(ms) — runs with the scan line, as long as it does:
-       a laser-scanner buzz (a sawtooth wobbled fast so it "zzzrrr"s)
-       sweeping down with the line, steady read ticks, scattered data
-       blips, and a three-note "scan complete" chirp at the end.
-     Synthesized on the page's one shared AudioContext, through a soft
-     low-pass so the square waves never get harsh. */
-  var _noise = null;
-  function noiseBuf(actx){
-    if(_noise && _noise.sampleRate === actx.sampleRate) return _noise;
-    var len = actx.sampleRate, b = actx.createBuffer(1, len, actx.sampleRate), d = b.getChannelData(0);
-    for(var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
-    return (_noise = b);
+  /* ---- pill sounds: "Target Lock" on the tap, "Laser Barcode" on the scan ----
+     Chosen by Sahnawaz from the sound picker (Click 6 + Scanner 1), and
+     built exactly as they played there:
+     engage(ms) — Target Lock, as long as the click effect: a camera
+       shutter, a tiny focus motor, then beep-beep-BEEEP as the pill locks on
+       and acts.
+     scanHum(ms) — Laser Barcode, as long as the scan line: a laser scanner
+       humming while the line moves, then the shop-counter "beep" as it ends.
+     Synthesized on the page's one shared AudioContext through a small
+     compressor and a short room reverb (the beeps ring a little); each
+     sound builds its own chain, which is released when it finishes. */
+  var _snd = null;   /* noise + room impulse, made once per AudioContext */
+  function sndKit(A){
+    if(_snd && _snd.ctx === A) return _snd;
+    var nb = A.createBuffer(1, A.sampleRate * 2, A.sampleRate), nd = nb.getChannelData(0);
+    for(var j = 0; j < nd.length; j++) nd[j] = Math.random() * 2 - 1;
+    var len = Math.floor(A.sampleRate * 1.3), ir = A.createBuffer(2, len, A.sampleRate);
+    for(var c = 0; c < 2; c++){ var d = ir.getChannelData(c); for(var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3.2); }
+    return (_snd = { ctx: A, noise: nb, ir: ir });
   }
-  function bus(actx, vol){
-    var lp = actx.createBiquadFilter(), g = actx.createGain();
-    lp.type = 'lowpass'; lp.frequency.value = 6500; lp.Q.value = 0.5;
-    g.gain.value = vol;
-    g.connect(lp); lp.connect(actx.destination);
-    return g;
+  /* out.dry goes straight out, out.room also rings in the reverb */
+  function sndBus(A, trim){
+    var K = sndKit(A), comp = A.createDynamicsCompressor(), vol = A.createGain();
+    comp.threshold.value = -16; comp.knee.value = 12; comp.ratio.value = 3; comp.attack.value = 0.003; comp.release.value = 0.15;
+    vol.gain.value = 0.8;
+    comp.connect(vol); vol.connect(A.destination);
+    var verb = A.createConvolver(), wet = A.createGain();
+    verb.buffer = K.ir; wet.gain.value = 0.32; verb.connect(wet); wet.connect(comp);
+    var g = A.createGain(); g.gain.value = trim; g.connect(comp);
+    var room = A.createGain(); room.connect(g); room.connect(verb);
+    return { dry: g, room: room };
   }
-  /* one short note: square/saw/sine blip with a quick attack and release */
-  function blip(actx, out, type, freq, t, len, vol){
-    var o = actx.createOscillator(), g = actx.createGain();
-    o.type = type; o.frequency.setValueAtTime(freq, t);
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(vol, t + 0.003);
-    g.gain.setValueAtTime(vol, t + len * 0.6);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + len);
-    o.connect(g); g.connect(out);
-    o.start(t); o.stop(t + len + 0.02);
+  function sndRamp(p, t, a, peak, d, ping, rel){
+    p.setValueAtTime(0.0001, t);
+    p.exponentialRampToValueAtTime(peak, t + a);
+    if(ping) p.exponentialRampToValueAtTime(0.0001, t + d);
+    else { var r = rel || Math.min(0.08, d * 0.3); p.setValueAtTime(peak, Math.max(t + a + 0.001, t + d - r)); p.exponentialRampToValueAtTime(0.0001, t + d); }
   }
-  var DATA = [1046.5, 1318.5, 1568, 2093, 2637, 3136, 3520];   /* C6–A7, all in key */
-  function engage(ms){
+  /* {type,f,f2,t,dur,vol,attack,release,ping,vib:[rate,depth],am:[rate,depth],lp:[f,q],bp:[f,q]} */
+  function sndTone(A, dest, o){
+    var x = A.createOscillator(), g = A.createGain(), node = x;
+    x.type = o.type || 'sine';
+    x.frequency.setValueAtTime(o.f, o.t);
+    if(o.f2) x.frequency.exponentialRampToValueAtTime(o.f2, o.t + o.dur);
+    if(o.vib){ var l = A.createOscillator(), lg = A.createGain(); l.frequency.value = o.vib[0]; lg.gain.value = o.vib[1]; l.connect(lg); lg.connect(x.frequency); l.start(o.t); l.stop(o.t + o.dur + 0.05); }
+    var flt = o.lp || o.bp;
+    if(flt){ var f = A.createBiquadFilter(); f.type = o.lp ? 'lowpass' : 'bandpass'; f.Q.value = flt[1]; f.frequency.value = flt[0]; node.connect(f); node = f; }
+    node.connect(g); g.connect(dest);
+    sndRamp(g.gain, o.t, o.attack || 0.004, o.vol, o.dur, o.ping, o.release);
+    if(o.am){ var m = A.createOscillator(), mg = A.createGain(); m.frequency.value = o.am[0]; mg.gain.value = o.am[1]; m.connect(mg); mg.connect(g.gain); m.start(o.t); m.stop(o.t + o.dur + 0.05); }
+    x.start(o.t); x.stop(o.t + o.dur + 0.05);
+  }
+  /* {t,dur,vol,f,q,attack,ping,release} band-passed noise */
+  function sndNoise(A, dest, o){
+    var src = A.createBufferSource(), f = A.createBiquadFilter(), g = A.createGain();
+    src.buffer = sndKit(A).noise;
+    f.type = 'bandpass'; f.Q.value = o.q || 1; f.frequency.value = o.f;
+    src.connect(f); f.connect(g); g.connect(dest);
+    sndRamp(g.gain, o.t, o.attack || 0.002, o.vol, o.dur, o.ping !== false, o.release);
+    src.start(o.t, Math.random() * Math.max(0, 1.9 - o.dur)); src.stop(o.t + o.dur + 0.05);
+  }
+  function engage(ms){                       /* Target Lock */
     try{
-      var actx = window.__shzAudio && window.__shzAudio();
-      if(!actx) return;
-      var out = bus(actx, 1), t0 = actx.currentTime + 0.005, dur = Math.max(0.35, ms / 1000);
-      /* 1. glitch stutter: chopped high noise */
-      var buf = noiseBuf(actx);
-      for(var k = 0; k < 5; k++){
-        var tk = t0 + k * 0.016, src = actx.createBufferSource(), hp = actx.createBiquadFilter(), gg = actx.createGain();
-        src.buffer = buf; hp.type = 'highpass'; hp.frequency.value = 2500;
-        gg.gain.setValueAtTime(0.0001, tk);
-        gg.gain.exponentialRampToValueAtTime(k % 2 ? 0.025 : 0.05, tk + 0.002);
-        gg.gain.exponentialRampToValueAtTime(0.0001, tk + 0.01);
-        src.connect(hp); hp.connect(gg); gg.connect(out);
-        src.start(tk, Math.random() * 0.8, 0.02);
-      }
-      /* 2. machine hum: low square, pulsing, rising a touch */
-      var hum = actx.createOscillator(), hlp = actx.createBiquadFilter(), hg = actx.createGain();
-      var trem = actx.createOscillator(), tg = actx.createGain();
-      hum.type = 'square';
-      hum.frequency.setValueAtTime(98, t0 + 0.06);
-      hum.frequency.exponentialRampToValueAtTime(131, t0 + dur);
-      hlp.type = 'lowpass'; hlp.frequency.value = 700;
-      hg.gain.setValueAtTime(0.0001, t0 + 0.06);
-      hg.gain.exponentialRampToValueAtTime(0.03, t0 + 0.12);
-      hg.gain.setValueAtTime(0.03, t0 + dur - 0.12);
-      hg.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-      trem.frequency.value = 18; tg.gain.value = 0.014;
-      trem.connect(tg); tg.connect(hg.gain);
-      hum.connect(hlp); hlp.connect(hg); hg.connect(out);
-      hum.start(t0 + 0.06); trem.start(t0 + 0.06);
-      hum.stop(t0 + dur + 0.03); trem.stop(t0 + dur + 0.03);
-      /* 3. data chatter: random blips, speeding up */
-      var t = t0 + 0.08, gap = 0.048;
-      while(t < t0 + dur - 0.13){
-        blip(actx, out, 'square', DATA[(Math.random() * DATA.length) | 0], t, 0.022, 0.02);
-        t += gap; gap = Math.max(0.024, gap * 0.9);
-      }
-      /* 4. access granted */
-      blip(actx, out, 'square', 1760, t0 + dur - 0.11, 0.055, 0.032);
-      blip(actx, out, 'square', 2349.3, t0 + dur - 0.045, 0.11, 0.03);
+      var A = window.__shzAudio && window.__shzAudio();
+      if(!A) return;
+      var o = sndBus(A, 1.53), t = A.currentTime + 0.02, D = Math.max(0.45, ms / 1000);
+      sndNoise(A, o.dry, { t: t, dur: 0.01, vol: 0.4, f: 4200, q: 1.5 });              /* shutter */
+      sndNoise(A, o.dry, { t: t + 0.03, dur: 0.01, vol: 0.3, f: 3600, q: 1.5 });
+      sndTone(A, o.dry, { type: 'sawtooth', f: 1200, f2: 1900, t: t + 0.04, dur: 0.36, vol: 0.02, attack: 0.03, bp: [2000, 4], am: [40, 0.01] });  /* focus motor */
+      sndTone(A, o.room, { f: 1975.5, t: t + D - 0.27, dur: 0.05, vol: 0.06 });         /* beep */
+      sndTone(A, o.room, { f: 1975.5, t: t + D - 0.17, dur: 0.05, vol: 0.06 });         /* beep */
+      sndTone(A, o.room, { f: 2637, t: t + D - 0.07, dur: 0.2, vol: 0.065, release: 0.06 });  /* locked */
     }catch(e){}
   }
-  function scanHum(ms){
+  function scanHum(ms){                      /* Laser Barcode */
     try{
-      var actx = window.__shzAudio && window.__shzAudio();
-      if(!actx) return;
-      var out = bus(actx, 1), t0 = actx.currentTime + 0.005, dur = Math.max(0.6, ms / 1000);
-      var end = t0 + dur - 0.16;   /* the chirp lands as the line finishes */
-      /* 1. laser scanner: a sawtooth wobbled fast, sweeping down with the line */
-      var o = actx.createOscillator(), wob = actx.createOscillator(), wd = actx.createGain();
-      var bp = actx.createBiquadFilter(), g = actx.createGain();
-      o.type = 'sawtooth';
-      o.frequency.setValueAtTime(1300, t0);
-      o.frequency.exponentialRampToValueAtTime(420, end);
-      wob.type = 'square'; wob.frequency.value = 36; wd.gain.value = 140;
-      wob.connect(wd); wd.connect(o.frequency);
-      bp.type = 'bandpass'; bp.Q.value = 1.6;
-      bp.frequency.setValueAtTime(1800, t0);
-      bp.frequency.exponentialRampToValueAtTime(700, end);
-      g.gain.setValueAtTime(0.0001, t0);
-      g.gain.exponentialRampToValueAtTime(0.06, t0 + 0.06);
-      g.gain.setValueAtTime(0.06, end - 0.08);
-      g.gain.exponentialRampToValueAtTime(0.0001, end);
-      o.connect(bp); bp.connect(g); g.connect(out);
-      o.start(t0); wob.start(t0); o.stop(end + 0.03); wob.stop(end + 0.03);
-      /* 2. read ticks, steady like a scanner reading lines */
-      for(var t = t0 + 0.04; t < end - 0.02; t += 0.07) blip(actx, out, 'sine', 4200, t, 0.008, 0.03);
-      /* 3. scattered data blips */
-      for(var u = t0 + 0.09; u < end - 0.05; u += 0.09 + Math.random() * 0.05){
-        blip(actx, out, 'square', DATA[3 + ((Math.random() * 4) | 0)], u, 0.016, 0.011);
-      }
-      /* 4. scan complete */
-      blip(actx, out, 'square', 1568, end + 0.01, 0.05, 0.028);
-      blip(actx, out, 'square', 2093, end + 0.06, 0.05, 0.028);
-      blip(actx, out, 'square', 2637, end + 0.11, 0.12, 0.026);
+      var A = window.__shzAudio && window.__shzAudio();
+      if(!A) return;
+      var o = sndBus(A, 1.69), t = A.currentTime + 0.02, S = Math.max(0.5, ms / 1000);
+      sndTone(A, o.dry, { f: 2100, t: t, dur: S - 0.15, vol: 0.022, attack: 0.08, release: 0.1, vib: [9, 14] });   /* laser hum */
+      sndNoise(A, o.dry, { t: t, dur: S - 0.15, vol: 0.012, f: 5200, q: 2, attack: 0.08, ping: false, release: 0.1 });
+      sndTone(A, o.dry, { type: 'square', f: 2730, t: t + S - 0.15, dur: 0.13, vol: 0.03, lp: [5000, 0.7] });     /* the beep */
+      sndTone(A, o.dry, { f: 2730, t: t + S - 0.15, dur: 0.13, vol: 0.04 });
     }catch(e){}
   }
 
