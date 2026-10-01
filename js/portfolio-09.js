@@ -557,6 +557,8 @@
   function setVisitorType(t) {
     window._visitorTypeMem = t; /* in case storage is blocked */
     try { localStorage.setItem('shz_visitor_type', t); } catch (e) {}
+    /* the Suggestions order follows why they came */
+    try { if (chips) buildChips(); } catch (e) {}
   }
   window._getVisitorType = getVisitorType;
 
@@ -2190,69 +2192,121 @@
     else { window.addEventListener('load', go, { once: true }); setTimeout(go, 2500); }
   })();
 
-  /* Suggestions — all phrased to the assistant, ABOUT Sahnawaz, so the
-     voice matches the header ("Sahnawaz's Assistant"). The AI answers them. */
-  var CHIPS = [
-    /* ── 🎯 Top CTA questions — shown first ── */
-    "What services does Sahnawaz offer?",
-    "What's his pricing?",
-    "How can I hire Sahnawaz?",
-    "Is he available for work right now?",
+  /* Suggestions — questions for the assistant, grouped. The first group is
+     what a new or unsure visitor most needs: what the assistant and the
+     Help tools (project planner, website check, message, resume, callback)
+     actually do — so they can ask before they start one. The other groups
+     are ordered by why the visitor said they came ("What brings you here?").
+     Every question is answered by the AI (api/chat.js), which ends with the
+     button that starts the tool. */
+  var CHIP_GROUPS = {
+    start: { label: '✨ New here? Start with these', accent: true, chips: [
+      '🤖 What can you help me with?',
+      '📝 How does the AI project planner work?',
+      '🩺 What does the free website check test?',
+      '📧 How do I send Sahnawaz a message?',
+      '📄 How can I get his resume?',
+      '📅 How do I request a callback?',
+      '🔍 What can Quick Search do?'
+    ] },
+    hire: { label: '💼 Work with him', chips: [
+      'What services does Sahnawaz offer?',
+      "What's his pricing?",
+      'How can I hire Sahnawaz?',
+      'Is he available for work right now?',
+      'How long does a project take?',
+      'Can he build me a website like this?',
+      'Does he provide domain & hosting?',
+      'Does he offer post-delivery support?'
+    ] },
+    work: { label: '🚀 His work', chips: [
+      'What apps has Sahnawaz built?',
+      'What is StudyLens AI? 📚',
+      'Tell me about YojanaSahay 🇮🇳',
+      'What has he shipped recently?',
+      "What's his current GitHub streak? 🔥",
+      'What are his key achievements?'
+    ] },
+    about: { label: '👤 About him', chips: [
+      'Who is Sahnawaz?',
+      "What's his work experience?",
+      "What's his educational background?",
+      "What's his tech stack?",
+      'Has he worked with big brands?',
+      'What certifications does he have?',
+      'Where is he based?',
+      'What languages does he speak?',
+      'What makes him different?',
+      'Can I trust him?'
+    ] },
+    site: { label: '🖥️ This website', chips: [
+      'How was this website built?',
+      'How was this AI chatbot built?',
+      'What is Hacker Mode? 🖥️',
+      "What's special about this portfolio?",
+      'Is Sahnawaz recognized by AI?',
+      'Is this portfolio mobile friendly?'
+    ] },
+    person: { label: '💬 Get to know him', chips: [
+      "What's his dream?",
+      "What's his proudest moment?",
+      'When does he do his best work?',
+      'What does his work mean to him?'
+    ] }
+  };
+  /* after the Start group: what fits this visitor first */
+  var CHIP_ORDER = {
+    client:    ['hire', 'work', 'site', 'about', 'person'],
+    recruiter: ['about', 'work', 'hire', 'site', 'person'],
+    browsing:  ['work', 'site', 'about', 'hire', 'person']
+  };
+  var CHIP_ORDER_DEFAULT = ['hire', 'work', 'about', 'site', 'person'];
+  /* …and inside the Start group, the tool they most likely came for */
+  var START_FIRST = { client: '📝 How does the AI project planner work?', recruiter: '📄 How can I get his resume?' };
+  var usedChips = {};   /* asked this visit: dimmed, and moved to the end of their group */
 
-    /* ── 🚀 Live products & recent work ── */
-    "What apps has Sahnawaz built? 🚀",
-    "What is StudyLens AI? 📚",
-    "Tell me about Yojana Sahay 🇮🇳",
-    "What has Sahnawaz shipped recently? 🚀",
-    "Is he actively coding right now?",
-    "What's his current GitHub streak? 🔥",
-
-    /* ── 🤖 This site & chatbot ── */
-    "How was this AI chatbot built?",
-    "Is Sahnawaz recognized by AI?",
-    "How was this website built?",
-    "What's special about this portfolio?",
-    "What is the Hacker Mode? 🖥️",
-    "Is this portfolio mobile friendly?",
-    "Can Sahnawaz build me a website like this?",
-
-    /* ── 👤 About Sahnawaz ── */
-    "Who is Sahnawaz?",
-    "How old is he?",
-    "Where is he from?",
-    "What's his educational background?",
-    "What's his proudest moment?",
-    "What's his dream?",
-    "When does he do his best work?",
-    "What does his work mean to him?",
-    "What languages does he speak?",
-
-    /* ── 💼 Work & services ── */
-    "Has he worked with big brands?",
-    "What makes him different?",
-    "What's his tech stack?",
-    "How long does a project take?",
-    "Does he offer post-delivery support?",
-    "Can I trust him?"
-  ];
+  function chipGroups(){
+    var vt = getVisitorType();
+    var start = CHIP_GROUPS.start.chips.slice();
+    var first = START_FIRST[vt];
+    if (first) start = [first].concat(start.filter(function(c){ return c !== first; }));
+    var out = [{ key: 'start', label: CHIP_GROUPS.start.label, accent: true, chips: start }];
+    (CHIP_ORDER[vt] || CHIP_ORDER_DEFAULT).forEach(function(k){
+      out.push({ key: k, label: CHIP_GROUPS[k].label, chips: CHIP_GROUPS[k].chips.slice() });
+    });
+    out.forEach(function(g){
+      g.chips.sort(function(x, y){ return (usedChips[x] ? 1 : 0) - (usedChips[y] ? 1 : 0); });
+    });
+    return out;
+  }
 
   function buildChips(){
     chips.innerHTML = '';
-    CHIPS.forEach(function(item, idx){
-      var btn = document.createElement('button');
-      btn.className = 'chat-chip';
-      /* First 3 get CTA-style coloring */
-      if (idx === 0) btn.style.cssText = 'background:rgba(0,255,120,0.12);border-color:rgba(0,255,120,0.4);color:#00ff88;font-weight:700;';
-      if (idx === 1) btn.style.cssText = 'background:rgba(0,180,255,0.12);border-color:rgba(0,180,255,0.4);color:#00ccff;font-weight:700;';
-      if (idx === 2) btn.style.cssText = 'background:rgba(255,160,0,0.12);border-color:rgba(255,160,0,0.4);color:#ffaa00;font-weight:700;';
-      btn.textContent = item;
-      btn.addEventListener('click', function(){
-        btn.classList.add('used');
-        handleQ(item);
-        setChipsOpen(false);
+    var n = 0;
+    chipGroups().forEach(function(g){
+      var head = document.createElement('div');
+      head.className = 'chip-group-label' + (g.accent ? ' is-accent' : '');
+      head.textContent = g.label;
+      head.setAttribute('role', 'heading');
+      head.setAttribute('aria-level', '3');
+      chips.appendChild(head);
+      g.chips.forEach(function(item){
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'chat-chip' + (g.accent ? ' chip-start' : '') + (usedChips[item] ? ' used' : '');
+        btn.style.setProperty('--i', Math.min(n++, 14));   /* staggered entrance, capped */
+        btn.textContent = item;
+        btn.addEventListener('click', function(){
+          usedChips[item] = true;
+          btn.classList.add('used');
+          handleQ(item);
+          setChipsOpen(false);
+          setTimeout(buildChips, 450);   /* after the panel has closed */
+        });
+        chips.appendChild(btn);
       });
-      chips.appendChild(btn);
     });
+    chips.scrollTop = 0;
     /* re-check scroll hint after chips are built */
     setTimeout(updateChipsScrollHint, 20);
   }
