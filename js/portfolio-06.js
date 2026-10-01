@@ -1589,16 +1589,17 @@ window.__shzAudio = (function(){
     }catch(e){}
   }
 
-  /* ---- pill sounds: the same "machine" for every pill, then a scan ----
-     engage(ms): plays for exactly as long as the click effect — a soft
-       servo whirr winding up (filtered sawtooth, pitch and filter rising),
-       relay ticks that speed up, and two clean notes as it "locks" and the
-       pill acts.
-     scanHum(ms): runs with the scan line — a gentle tone gliding down with
-       the line, a light shimmer and an airy data hiss, then a small two-note
-       chime when the scan completes.
-     All synthesized on the page's one shared AudioContext; quiet, with
-     smooth fades so nothing clicks. */
+  /* ---- pill sounds: hacker-terminal style, the same for every pill ----
+     engage(ms) — "decrypting", exactly as long as the click effect:
+       a digital glitch stutter, then fast computer data-chatter (random
+       square-wave blips that speed up) over a low pulsing machine hum,
+       ending in an "access granted" double beep as the pill acts.
+     scanHum(ms) — runs with the scan line, as long as it does:
+       a laser-scanner buzz (a sawtooth wobbled fast so it "zzzrrr"s)
+       sweeping down with the line, steady read ticks, scattered data
+       blips, and a three-note "scan complete" chirp at the end.
+     Synthesized on the page's one shared AudioContext, through a soft
+     low-pass so the square waves never get harsh. */
   var _noise = null;
   function noiseBuf(actx){
     if(_noise && _noise.sampleRate === actx.sampleRate) return _noise;
@@ -1606,74 +1607,101 @@ window.__shzAudio = (function(){
     for(var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
     return (_noise = b);
   }
-  function env(g, t0, peak, attack, holdEnd, end){
-    g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(peak, t0 + attack);
-    g.gain.setValueAtTime(peak, holdEnd);
-    g.gain.exponentialRampToValueAtTime(0.0001, end);
+  function bus(actx, vol){
+    var lp = actx.createBiquadFilter(), g = actx.createGain();
+    lp.type = 'lowpass'; lp.frequency.value = 6500; lp.Q.value = 0.5;
+    g.gain.value = vol;
+    g.connect(lp); lp.connect(actx.destination);
+    return g;
   }
+  /* one short note: square/saw/sine blip with a quick attack and release */
+  function blip(actx, out, type, freq, t, len, vol){
+    var o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.003);
+    g.gain.setValueAtTime(vol, t + len * 0.6);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+    o.connect(g); g.connect(out);
+    o.start(t); o.stop(t + len + 0.02);
+  }
+  var DATA = [1046.5, 1318.5, 1568, 2093, 2637, 3136, 3520];   /* C6–A7, all in key */
   function engage(ms){
     try{
       var actx = window.__shzAudio && window.__shzAudio();
       if(!actx) return;
-      var t0 = actx.currentTime + 0.005, dur = Math.max(0.3, ms / 1000);
-      /* servo whirr */
-      var o = actx.createOscillator(), lp = actx.createBiquadFilter(), g = actx.createGain();
-      o.type = 'sawtooth';
-      o.frequency.setValueAtTime(70, t0);
-      o.frequency.exponentialRampToValueAtTime(185, t0 + dur * 0.85);
-      lp.type = 'lowpass'; lp.Q.value = 4;
-      lp.frequency.setValueAtTime(320, t0);
-      lp.frequency.exponentialRampToValueAtTime(1700, t0 + dur * 0.85);
-      env(g, t0, 0.05, 0.05, t0 + dur * 0.7, t0 + dur);
-      o.connect(lp); lp.connect(g); g.connect(actx.destination);
-      o.start(t0); o.stop(t0 + dur + 0.03);
-      /* relay ticks, speeding up */
-      var buf = noiseBuf(actx), t = t0 + 0.04, gap = 0.07;
-      while(t < t0 + dur * 0.8){
-        var src = actx.createBufferSource(), bp = actx.createBiquadFilter(), tg = actx.createGain();
-        src.buffer = buf;
-        bp.type = 'bandpass'; bp.Q.value = 6; bp.frequency.value = 3000 + Math.random() * 900;
-        tg.gain.setValueAtTime(0.0001, t);
-        tg.gain.exponentialRampToValueAtTime(0.06, t + 0.002);
-        tg.gain.exponentialRampToValueAtTime(0.0001, t + 0.02);
-        src.connect(bp); bp.connect(tg); tg.connect(actx.destination);
-        src.start(t, Math.random() * 0.8, 0.03);
-        t += gap; gap = Math.max(0.028, gap * 0.86);
+      var out = bus(actx, 1), t0 = actx.currentTime + 0.005, dur = Math.max(0.35, ms / 1000);
+      /* 1. glitch stutter: chopped high noise */
+      var buf = noiseBuf(actx);
+      for(var k = 0; k < 5; k++){
+        var tk = t0 + k * 0.016, src = actx.createBufferSource(), hp = actx.createBiquadFilter(), gg = actx.createGain();
+        src.buffer = buf; hp.type = 'highpass'; hp.frequency.value = 2500;
+        gg.gain.setValueAtTime(0.0001, tk);
+        gg.gain.exponentialRampToValueAtTime(k % 2 ? 0.025 : 0.05, tk + 0.002);
+        gg.gain.exponentialRampToValueAtTime(0.0001, tk + 0.01);
+        src.connect(hp); hp.connect(gg); gg.connect(out);
+        src.start(tk, Math.random() * 0.8, 0.02);
       }
-      /* locked: two clean notes as the pill acts */
-      tone(1318.5, 1318.5, 0.09, 0.045, dur - 0.1);
-      tone(1975.5, 1975.5, 0.14, 0.04, dur - 0.04);
+      /* 2. machine hum: low square, pulsing, rising a touch */
+      var hum = actx.createOscillator(), hlp = actx.createBiquadFilter(), hg = actx.createGain();
+      var trem = actx.createOscillator(), tg = actx.createGain();
+      hum.type = 'square';
+      hum.frequency.setValueAtTime(98, t0 + 0.06);
+      hum.frequency.exponentialRampToValueAtTime(131, t0 + dur);
+      hlp.type = 'lowpass'; hlp.frequency.value = 700;
+      hg.gain.setValueAtTime(0.0001, t0 + 0.06);
+      hg.gain.exponentialRampToValueAtTime(0.03, t0 + 0.12);
+      hg.gain.setValueAtTime(0.03, t0 + dur - 0.12);
+      hg.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      trem.frequency.value = 18; tg.gain.value = 0.014;
+      trem.connect(tg); tg.connect(hg.gain);
+      hum.connect(hlp); hlp.connect(hg); hg.connect(out);
+      hum.start(t0 + 0.06); trem.start(t0 + 0.06);
+      hum.stop(t0 + dur + 0.03); trem.stop(t0 + dur + 0.03);
+      /* 3. data chatter: random blips, speeding up */
+      var t = t0 + 0.08, gap = 0.048;
+      while(t < t0 + dur - 0.13){
+        blip(actx, out, 'square', DATA[(Math.random() * DATA.length) | 0], t, 0.022, 0.02);
+        t += gap; gap = Math.max(0.024, gap * 0.9);
+      }
+      /* 4. access granted */
+      blip(actx, out, 'square', 1760, t0 + dur - 0.11, 0.055, 0.032);
+      blip(actx, out, 'square', 2349.3, t0 + dur - 0.045, 0.11, 0.03);
     }catch(e){}
   }
   function scanHum(ms){
     try{
       var actx = window.__shzAudio && window.__shzAudio();
       if(!actx) return;
-      var t0 = actx.currentTime + 0.005, dur = Math.max(0.5, ms / 1000);
-      /* tone gliding down with the line, with a light shimmer */
-      var o = actx.createOscillator(), g = actx.createGain();
-      o.type = 'sine';
-      o.frequency.setValueAtTime(1050, t0);
-      o.frequency.exponentialRampToValueAtTime(520, t0 + dur);
-      env(g, t0, 0.028, 0.09, t0 + dur * 0.8, t0 + dur);
-      var lfo = actx.createOscillator(), depth = actx.createGain();
-      lfo.frequency.value = 22; depth.gain.value = 0.009;
-      lfo.connect(depth); depth.connect(g.gain);
-      o.connect(g); g.connect(actx.destination);
-      o.start(t0); lfo.start(t0); o.stop(t0 + dur + 0.03); lfo.stop(t0 + dur + 0.03);
-      /* airy data hiss, its band sliding down too */
-      var n = actx.createBufferSource(), bp = actx.createBiquadFilter(), ng = actx.createGain();
-      n.buffer = noiseBuf(actx); n.loop = true;
-      bp.type = 'bandpass'; bp.Q.value = 9;
-      bp.frequency.setValueAtTime(2600, t0);
-      bp.frequency.exponentialRampToValueAtTime(1100, t0 + dur);
-      env(ng, t0, 0.03, 0.12, t0 + dur * 0.75, t0 + dur);
-      n.connect(bp); bp.connect(ng); ng.connect(actx.destination);
-      n.start(t0); n.stop(t0 + dur + 0.03);
-      /* scan complete */
-      tone(1568, 1568, 0.12, 0.035, dur - 0.02);
-      tone(2093, 2093, 0.2, 0.03, dur + 0.07);
+      var out = bus(actx, 1), t0 = actx.currentTime + 0.005, dur = Math.max(0.6, ms / 1000);
+      var end = t0 + dur - 0.16;   /* the chirp lands as the line finishes */
+      /* 1. laser scanner: a sawtooth wobbled fast, sweeping down with the line */
+      var o = actx.createOscillator(), wob = actx.createOscillator(), wd = actx.createGain();
+      var bp = actx.createBiquadFilter(), g = actx.createGain();
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(1300, t0);
+      o.frequency.exponentialRampToValueAtTime(420, end);
+      wob.type = 'square'; wob.frequency.value = 36; wd.gain.value = 140;
+      wob.connect(wd); wd.connect(o.frequency);
+      bp.type = 'bandpass'; bp.Q.value = 1.6;
+      bp.frequency.setValueAtTime(1800, t0);
+      bp.frequency.exponentialRampToValueAtTime(700, end);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(0.06, t0 + 0.06);
+      g.gain.setValueAtTime(0.06, end - 0.08);
+      g.gain.exponentialRampToValueAtTime(0.0001, end);
+      o.connect(bp); bp.connect(g); g.connect(out);
+      o.start(t0); wob.start(t0); o.stop(end + 0.03); wob.stop(end + 0.03);
+      /* 2. read ticks, steady like a scanner reading lines */
+      for(var t = t0 + 0.04; t < end - 0.02; t += 0.07) blip(actx, out, 'sine', 4200, t, 0.008, 0.03);
+      /* 3. scattered data blips */
+      for(var u = t0 + 0.09; u < end - 0.05; u += 0.09 + Math.random() * 0.05){
+        blip(actx, out, 'square', DATA[3 + ((Math.random() * 4) | 0)], u, 0.016, 0.011);
+      }
+      /* 4. scan complete */
+      blip(actx, out, 'square', 1568, end + 0.01, 0.05, 0.028);
+      blip(actx, out, 'square', 2093, end + 0.06, 0.05, 0.028);
+      blip(actx, out, 'square', 2637, end + 0.11, 0.12, 0.026);
     }catch(e){}
   }
 
