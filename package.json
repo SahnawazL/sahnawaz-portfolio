@@ -2,7 +2,7 @@
   "name": "sahnawaz-portfolio",
   "version": "1.0.0",
   "scripts": {
-    "build": "echo 'No build needed'"
+    "build": "node scripts/minify-css.js"
   },
   "dependencies": {
     "nodemailer":     "^6.9.9",
