@@ -144,6 +144,9 @@ const handler = async (req, res) => {
 
 async function handleChat(req, res) {
   const { message, history = [], visitorName = null, visitorActivity = null, source = null, visitorType = null } = req.body || {};
+  // What the page knows right now: the website check shown in this chat,
+  // the visitor's project-brief draft, where they are on the page.
+  const ctx = readContext(req.body && req.body.context);
 
   if (!message || !message.trim()) {
     return res.status(400).json({ reply: 'No message received.' });
@@ -258,6 +261,7 @@ Rules:
 - 2-3 lines MAX. No long paragraphs.
 - Use their name naturally.
 - Reference their specific past activity (liked projects, resume, review, chat count) warmly and naturally.
+- Name liked items EXACTLY as listed below. Never rename them, never invent project names, and never call a job or a work-experience entry a "portal", "dashboard" or "project".
 - The current time of day is: ${timeOfDay}. You MUST use exactly this word — do NOT guess, override, or infer the time yourself under any circumstances.
 - Use 1-2 emojis naturally.
 - Every greeting must feel fresh — never repeat the same phrasing.
@@ -338,12 +342,14 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
   // ── UPGRADE 3: Intent detection ────────────────────────────────────────
   const msgLower = trimmed.toLowerCase();
 
+  // Whole words only: "which" used to count as "hi" (a greeting hint on
+  // ordinary questions) and "generate" as "rate" (a pricing hint).
   const intent =
-    /price|cost|rate|charge|fee|budget|how much|₹|rs\.|rupee|package|quote/i.test(msgLower)   ? 'pricing'   :
-    /hire|job|work with|collaboration|available|freelance|project|contract|recruit/i.test(msgLower) ? 'hiring'    :
-    /contact|email|whatsapp|phone|reach|connect|instagram|linkedin/i.test(msgLower)             ? 'contact'   :
-    /skill|tech|stack|language|framework|tools|experience|expert/i.test(msgLower)               ? 'skills'    :
-    /hi|hello|hey|sup|yo|good morning|good evening|good night|salaam|namaste/i.test(msgLower)   ? 'greeting'  :
+    /\b(price|prices|pricing|cost|costs|rates?|charges?|fees?|budget|how much|rupees?|packages?|quote|quotation)\b|₹|\brs\.?\s?\d/i.test(msgLower) ? 'pricing' :
+    /\b(hire|hiring|job|jobs|work with|collaborat\w*|available|availability|freelanc\w*|contract|recruit\w*)\b/i.test(msgLower) ? 'hiring' :
+    /\b(contact|email|e-mail|whatsapp|phone|reach|connect|instagram|linkedin)\b/i.test(msgLower)             ? 'contact'   :
+    /\b(skills?|tech|stack|languages?|frameworks?|tools|experience|expert\w*)\b/i.test(msgLower)               ? 'skills'    :
+    (trimmed.length <= 40 && /^(hi+|hello|hey+|hii+|sup|yo|good (morning|afternoon|evening|night)|salaam|assalamu?\s?alaikum|namaste|namaskar)\b/i.test(msgLower)) ? 'greeting' :
     'general';
 
   const intentHint =
@@ -495,6 +501,7 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
     ? history.slice(-4).map(m => String(m && m.content || '')).join(' ')
     : '';
 
+  const force = (ctx.report || ctx.brief) ? ['site-ai-tools'] : [];
   const retrieved = buildKnowledge(trimmed, recentTurns, {
     intentHint: [intentHint ? `INTENT HINT: ${intentHint}` : '', visitorTypeHint ? `VISITOR TYPE: ${visitorTypeHint}` : ''].filter(Boolean).join('\n'),
     langHint: langHint ? `LANGUAGE HINT: ${langHint}` : '',
@@ -502,17 +509,18 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
     visitorActivityHint: visitorActivityHint || '',
     yojanaSchemesLine: yojanaSchemesLine || '',
     recentShippedLine: recentShippedLine || ''
-  });
+  }, { force });
 
-  const KNOWLEDGE = retrieved.text;
+  const stateBlock = stateText(ctx);
+  const KNOWLEDGE = retrieved.text + (stateBlock ? '\n\n' + stateBlock : '');
   console.log('[chat] knowledge ' + retrieved.tokens + ' tokens \u00b7 ' + retrieved.used.join(', '));
 
   // ── UPGRADE 1: Conversation history ───────────────────────────────────
-  // Accept last 8 messages from frontend, trim to avoid token overflow
+  // Accept the last 10 messages from the frontend, trimmed to keep tokens in check
   const safeHistory = Array.isArray(history)
-    ? history.slice(-8).map(m => ({
+    ? history.slice(-10).filter(m => m && m.content).map(m => ({
         role: m.role === 'bot' ? 'assistant' : 'user',
-        content: String(m.content).slice(0, 500) // cap each message at 500 chars
+        content: String(m.content).slice(0, 700) // cap each message at 700 chars
       }))
     : [];
 
@@ -611,12 +619,13 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
     // The model is asked to add these chips itself; this makes sure a visitor
     // who says "I want to hire him" always gets a one-tap way to act on it.
     // The chip goes FIRST so the page's two-chip limit never drops it.
-    const flowChip = pickFlowChip(trimmed);
-    if (flowChip && !/\[\[go:(send-message|send-resume|callback|brief|website-check)\|/i.test(reply)) {
+    reply = guardReply(reply, trimmed, ctx);
+    const flowChip = pickFlowChip(trimmed, ctx);
+    if (flowChip && !/\[\[go:(send-message|send-resume|callback|brief|website-check|recheck|report|fix)\|/i.test(reply)) {
       reply = flowChip + '\n' + reply;
     }
     // Every chip must fit what was asked, and say where it goes
-    reply = tidyChips(reply, trimmed);
+    reply = tidyChips(reply, trimmed, ctx);
 
     // ── UPGRADE 6: Question logging ──────────────────────────────────────
     // Logs intent + question (no personal data) for knowledge base improvement
@@ -698,8 +707,17 @@ const ACTION_LABELS = {
   'send-resume': '📄 Email me his resume',
   'callback': '📅 Request a callback',
   'brief': '📝 Plan my project with AI',
-  'website-check': '🩺 Free website check'
+  'website-check': '🩺 Free website check',
+  'recheck': '🔄 Run a fresh check',
+  'report': '📄 Open the full report',
+  'fix': '📝 Fix it with Sahnawaz'
 };
+// the three report actions only make sense when a report is in the chat
+const REPORT_ACTIONS = ['recheck', 'report', 'fix'];
+function labelFor(k, ctx) {
+  if (k === 'brief' && ctx && ctx.brief && ctx.brief.draft && !ctx.brief.active) return '📝 Continue my brief';
+  return LINK_LABELS[k] || ACTION_LABELS[k];
+}
 const CHIP_TOPICS = [            // order = which one wins when several fit
   ['studylens',   /studylens|study lens|homework (helper|app)/i],
   ['yojanasahay', /yojana|welfare scheme|government scheme|sarkari yojana/i],
@@ -714,7 +732,8 @@ const CHIP_TOPICS = [            // order = which one wins when several fit
   ['contact',     /\bcontact\b|reach (him|sahnawaz)|get in touch|email (him|address)|phone number/i]
 ];
 function topicsOf(s) { return CHIP_TOPICS.filter(function (t) { return t[1].test(s); }).map(function (t) { return t[0]; }); }
-function tidyChips(reply, question) {
+function tidyChips(reply, question, ctx) {
+  ctx = ctx || {};
   const found = [];
   let text = String(reply).replace(/\[\[go:([a-z-]+)\|([^\]]{1,60})\]\]/gi, function (_, key) { found.push(String(key).toLowerCase()); return ''; });
   const q = String(question || '');
@@ -723,6 +742,7 @@ function tidyChips(reply, question) {
   const out = [];
   const add = function (k) { if (k && out.indexOf(k) < 0) out.push(k); };
   found.forEach(function (k) {
+    if (REPORT_ACTIONS.indexOf(k) > -1) return add(ctx.report ? k : 'website-check');
     if (ACTION_LABELS[k]) return add(k);
     if (!LINK_LABELS[k]) return;                     // not a real destination
     if (allTopics.indexOf(k) > -1) return add(k);    // fits the conversation
@@ -731,13 +751,22 @@ function tidyChips(reply, question) {
   /* the question clearly points at a part of the site: offer it */
   if (!out.some(function (k) { return LINK_LABELS[k]; }) && qTopics[0]) add(qTopics[0]);
   text = text.replace(/\n{3,}/g, '\n\n').trim();
-  const chips = out.slice(0, 2).map(function (k) { return '[[go:' + k + '|' + (LINK_LABELS[k] || ACTION_LABELS[k]) + ']]'; });
+  const chips = out.slice(0, 2).map(function (k) { return '[[go:' + k + '|' + labelFor(k, ctx) + ']]'; });
   return chips.length ? text + '\n' + chips.join('\n') : text;
 }
 
 // Strong, explicit wishes only — a passing "project" or "email" is not enough.
-function pickFlowChip(text) {
+function pickFlowChip(text, ctx) {
+  ctx = ctx || {};
   const t = String(text || '').toLowerCase();
+  // a report is in the chat and they want new results
+  if (ctx.report && /\b(fresh|again|re-?check|re-?run|re-?test|re-?scan|redo|latest|updated|new)\b/.test(t) && /\b(check|test|scan|audit|report|score|speed|run)\b/.test(t)) {
+    return '[[go:recheck|🔄 Run a fresh check]]';
+  }
+  // they have a saved brief and want to get back to it
+  if (ctx.brief && ctx.brief.draft && /\b(brief|planner)\b/.test(t) && /\b(continue|resume|finish|complete|back|open|where|status|my)\b/.test(t)) {
+    return '[[go:brief|📝 Continue my brief]]';
+  }
   if (/\b(resume|résumé|cv|curriculum vitae)\b/.test(t) && /\b(send|share|email|mail|get|need|want|download|see)\b/.test(t)) {
     return '[[go:send-resume|📄 Email me his resume]]';
   }
@@ -758,4 +787,111 @@ function pickFlowChip(text) {
   return null;
 }
 
+// ── Live page state from the browser ─────────────────────────────────────
+// Everything is re-validated: strings are trimmed and capped, numbers must be
+// numbers, unknown fields are dropped — this text goes into the AI's prompt.
+function str(v, n) { return typeof v === 'string' ? v.replace(/[\u0000-\u001f\s]+/g, ' ').trim().slice(0, n || 120) : ''; }
+function num(v) { return typeof v === 'number' && isFinite(v) ? Math.round(v) : null; }
+function list(v, n, len) { return Array.isArray(v) ? v.map(function (x) { return str(x, len || 120); }).filter(Boolean).slice(0, n) : []; }
+function readContext(c) {
+  const out = {};
+  if (!c || typeof c !== 'object') return out;
+  const r = c.report;
+  if (r && typeof r === 'object' && str(r.host, 80)) {
+    const sc = r.scores && typeof r.scores === 'object' ? r.scores : {};
+    out.report = {
+      host: str(r.host, 80), type: str(r.type, 20), verdict: str(r.verdict, 40), checkedAt: str(r.checkedAt, 40),
+      scores: { overall: num(sc.overall), speed: num(sc.speed), google: num(sc.google), easy: num(sc.easy), contact: num(sc.contact) },
+      lcp: num(r.lcp), speedUnavailable: r.speedUnavailable === true,
+      problems: list(r.problems, 6), slow: list(r.slow, 5), top3: list(r.top3, 3), headline: str(r.headline, 220)
+    };
+  }
+  const b = c.brief;
+  if (b && typeof b === 'object') {
+    const f = b.fields && typeof b.fields === 'object' ? b.fields : {};
+    const fields = {};
+    ['projectType', 'business', 'goal', 'features', 'budget', 'timeline', 'website'].forEach(function (k) { const v = str(f[k], 200); if (v) fields[k] = v; });
+    out.brief = {
+      active: b.active === true, draft: b.draft === true, ready: b.ready === true,
+      missing: list(b.missing, 8, 20), fields: fields, estimate: str(b.estimate, 60),
+      sent: b.sent && typeof b.sent === 'object' ? { type: str(b.sent.type, 60), ref: str(b.sent.ref, 30) } : null
+    };
+    if (!out.brief.active && !out.brief.draft && !out.brief.sent) delete out.brief;
+  }
+  const sec = c.section;
+  if (sec && typeof sec === 'object' && str(sec.title, 80)) out.section = { id: str(sec.id, 40), title: str(sec.title, 80) };
+  return out;
+}
+const SCORE_NAMES = [['overall', 'Overall'], ['speed', 'Speed on a phone'], ['google', 'Google basics'], ['easy', 'Easy to use'], ['contact', 'Contact & trust']];
+const FIELD_NAMES = { projectType: 'project type', business: 'business', goal: 'goal', features: 'features', budget: 'budget', timeline: 'timeline', website: 'current website' };
+function agoText(iso) {
+  const t = Date.parse(iso);
+  if (!isFinite(t)) return '';
+  const m = Math.max(0, Math.round((Date.now() - t) / 60000));
+  return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : Math.round(m / 1440) + ' day(s) ago';
+}
+function stateText(ctx) {
+  const lines = [];
+  if (ctx.report) {
+    const r = ctx.report, sc = r.scores;
+    lines.push('WEBSITE CHECK SHOWN IN THIS CHAT: ' + r.host + (r.type ? ' (' + r.type + ')' : '') + (r.checkedAt ? ', checked ' + agoText(r.checkedAt) : '') + '.');
+    lines.push(SCORE_NAMES.map(function (k) { return k[1] + ' ' + (sc[k[0]] == null ? (k[0] === 'speed' && r.speedUnavailable ? 'not measured (Google\'s test did not finish)' : 'n/a') : sc[k[0]] + '/100'); }).join(' · ') + (r.verdict ? ' — verdict: ' + r.verdict : '') + '.');
+    if (r.lcp) lines.push('Main content appears after ' + (Math.round(r.lcp / 100) / 10) + ' s on a phone.');
+    if (r.problems.length) lines.push('Problems found: ' + r.problems.join('; ') + '.');
+    if (r.slow.length) lines.push('Why it is slow: ' + r.slow.join('; ') + '.');
+    if (r.top3.length) lines.push('Top fixes: ' + r.top3.join('; ') + '.');
+    if (r.headline) lines.push('Summary: ' + r.headline);
+    lines.push('These are the ONLY real results. Quote them exactly and never change, round or invent numbers. If the visitor wants new results (a fresh check, check again, re-test), do not write any results — reply in one short line and add [[go:recheck|🔄 Run a fresh check]].');
+  }
+  if (ctx.brief) {
+    const b = ctx.brief;
+    const known = Object.keys(b.fields).map(function (k) { return FIELD_NAMES[k] + ': ' + b.fields[k]; });
+    if (b.active) lines.push('PROJECT PLANNER: open right now (the planner, not you, is collecting the details).');
+    else if (b.draft) lines.push('PROJECT BRIEF: a draft is saved on this device and NOT sent yet. To continue it the visitor taps [[go:brief|📝 Continue my brief]].');
+    if (known.length) lines.push('Brief so far — ' + known.join('; ') + '.');
+    if ((b.active || b.draft) && b.missing.length) lines.push('Still missing: ' + b.missing.map(function (k) { return FIELD_NAMES[k] || k; }).join(', ') + (b.ready ? '' : '') + '.');
+    if (b.estimate) lines.push('Typical range shown to the visitor: ' + b.estimate + '.');
+    if (b.sent) lines.push('A brief was SENT to Sahnawaz during this visit' + (b.sent.type ? ' (' + b.sent.type + ')' : '') + (b.sent.ref ? ', reference ' + b.sent.ref : '') + '. He usually replies within 24 hours.');
+  }
+  if (ctx.section) lines.push('PAGE: the visitor has the "' + ctx.section.title + '" section of the page on screen behind the chat.');
+  return lines.length ? '--- CURRENT STATE (live from this visitor\'s page — trust this over anything else) ---\n' + lines.join('\n') : '';
+}
+
+// ── Safety net for replies ─────────────────────────────────────────────────
+// The prompt already forbids these; this catches the rare reply that slips.
+// 1. Website-check numbers the page never measured ("Overall Score: 71/100"
+//    when the real report says 70, or a "fresh check" the AI imagined).
+// 2. A fill-in-the-blanks list of project questions instead of the planner.
+function guardReply(reply, question, ctx) {
+  const text = String(reply || '');
+  const q = String(question || '').toLowerCase();
+  const scoresInReply = (text.match(/\b(\d{1,3})\s*\/\s*100\b/g) || []).map(function (m) { return parseInt(m, 10); });
+  const asksForCheck = /\b(check|re-?check|audit|scan|test|analy[sz]e)\b/.test(q) && /\b(web ?site|site|again|fresh|my|it|re-?check)\b/.test(q);
+  const aboutReport = ctx.report && (/\b(check|re-?check|audit|scan|test|report|scores?|speed|results?|fix|slow|again|fresh)\b/.test(q) ||
+    /overall|speed on a phone|google basics|easy to use|contact (&|and) trust/i.test(text) || text.toLowerCase().indexOf(ctx.report.host) > -1);
+  if (scoresInReply.length && (asksForCheck || aboutReport)) {
+    const real = ctx.report ? Object.keys(ctx.report.scores).map(function (k) { return ctx.report.scores[k]; }).filter(function (v) { return v != null; }) : [];
+    const invented = scoresInReply.some(function (v) { return real.indexOf(v) < 0; });
+    if (invented) {
+      console.warn('[chat] replaced a reply with website-check numbers that were not measured');
+      if (ctx.report) {
+        const r = ctx.report, sc = r.scores;
+        return 'Here are the real results I have for **' + r.host + '**' + (r.checkedAt ? ' (checked ' + agoText(r.checkedAt) + ')' : '') + ':\n' +
+          SCORE_NAMES.filter(function (k) { return sc[k[0]] != null; }).map(function (k) { return '- ' + k[1] + ': **' + sc[k[0]] + '/100**'; }).join('\n') +
+          '\n\nFor brand-new results, tap below and I\'ll run a fresh check right here — Google\'s phone test takes about 30 seconds.\n[[go:recheck|🔄 Run a fresh check]]';
+      }
+      return 'I can run a real check for you right here — tap below, give me the address and I\'ll test it on a phone (about 30 seconds). 🩺\n[[go:website-check|🩺 Free website check]]';
+    }
+  }
+  const templateHits = (text.match(/(project type|primary goal|main goal|key features|design (vibe|preferences)|tech(nical)? preferences|timeline|budget( range)?)\**\s*:/gi) || []).length;
+  if (templateHits >= 3 && /\b(brief|planner|plan|project|quote|estimate)\b/.test(q)) {
+    console.warn('[chat] replaced a fill-in-the-blanks reply with the planner');
+    const draft = ctx.brief && ctx.brief.draft;
+    return (draft ? 'Your brief is saved — tap below and we\'ll carry on exactly where you left off. 📝 I\'ll only ask for what\'s still missing.\n[[go:brief|📝 Continue my brief]]'
+                  : 'Let\'s plan it together — tap below, describe your project in your own words, and I\'ll ask only for what\'s missing and show you a typical price range. 📝\n[[go:brief|📝 Plan my project with AI]]');
+  }
+  return text;
+}
+
 module.exports = handler;
+module.exports._test = { readContext, stateText, guardReply, pickFlowChip, tidyChips };

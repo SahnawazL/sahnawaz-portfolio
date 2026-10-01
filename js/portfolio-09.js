@@ -542,10 +542,10 @@
                 ['🤝 Hire Sahnawaz', 'How can I hire Sahnawaz?'], ['✅ Is he available?', 'Is he available for work right now?']],
     recruiter: [['🧑‍💼 His experience', 'Has he worked with big brands?'], ['🛠️ Tech stack', "What's his tech stack?"],
                 ['🚀 What he built', 'What apps has Sahnawaz built? 🚀']],
-    client:    [['📝 Plan my project', '__brief__'], ['💰 Pricing', "What's his pricing?"],
-                ['⏱️ Timelines', 'How long does a project take?'], ['✨ A site like this', 'Can Sahnawaz build me a website like this?']],
-    browsing:  [['🚀 His apps', 'What apps has Sahnawaz built? 🚀'], ['🖥️ Hacker Mode', 'What is the Hacker Mode? 🖥️'],
-                ['✨ This portfolio', "What's special about this portfolio?"]]
+    client:    [['📝 Plan my project', '__brief__'], ['🩺 Check my website', '__check__'],
+                ['💰 Pricing', "What's his pricing?"], ['✨ A site like this', 'Can Sahnawaz build me a website like this?']],
+    browsing:  [['🚀 His apps', 'What apps has Sahnawaz built? 🚀'], ['🆕 What\'s new', 'What new AI features did Sahnawaz add to this site?'],
+                ['🖥️ Hacker Mode', 'What is the Hacker Mode? 🖥️'], ['✨ This portfolio', "What's special about this portfolio?"]]
   };
 
   function getVisitorType() {
@@ -594,6 +594,7 @@
         quickReply.appendChild(qrButton(st[0], function () {
           quickReply.style.display = 'none';
           if (st[1] === '__brief__') { if (briefApi) briefApi.start(); }
+          else if (st[1] === '__check__') { checkChat.start(); }
           else handleQ(st[1]);
           resetIdleTimer();
         }));
@@ -1417,6 +1418,7 @@
     var sending = false;    /* the finished brief is being sent */
     var liveCard = null;    /* the review card that can still be sent */
     var barEl = null;
+    var sentThisVisit = null; /* a brief sent during this visit (for the assistant) */
 
     /* ── state ── */
     function fresh(){
@@ -1873,6 +1875,7 @@
 
       var email = st.brief.email || 'your inbox';
       var first = String(st.brief.name || '').split(' ')[0];
+      sentThisVisit = { type: st.brief.projectType || '', ref: ref || '' };
       st = fresh();
       drop();
       active = false;
@@ -1905,6 +1908,14 @@
       step: step,
       isActive: function(){ return active; },
       hasDraft: function(){ return !active && st.turns > 0; },
+      /* what the assistant may know about the brief (no contact details) */
+      summary: function(){
+        var b = st.brief || {}, f = {};
+        ['projectType', 'business', 'goal', 'budget', 'timeline', 'website'].forEach(function(k){ if (b[k]) f[k] = String(b[k]).slice(0, 140); });
+        if (Array.isArray(b.features) && b.features.length) f.features = b.features.slice(0, 8).join(', ').slice(0, 200);
+        return { active: active, draft: st.turns > 0, ready: !!st.ready, missing: (st.missing || []).slice(0, 6),
+                 fields: f, estimate: st.estimate && st.estimate.range ? st.estimate.range : '', sent: sentThisVisit };
+      },
       placeholder: placeholder,
       onClear: function(){ liveCard = null; pause(true); }
     };
@@ -1944,7 +1955,7 @@
      A summary goes into the chat's memory, so "why is it slow?" is answered
      with the report in mind. */
   var checkChat = (function(){
-    var step = null, url = '', reports = {};
+    var step = null, url = '', reports = {}, last = null;
     var TYPE_BTNS = [['clinic', '🏥 Clinic'], ['restaurant', '🍽️ Restaurant'], ['shop', '🛍️ Shop'], ['school', '🏫 School'], ['other', '💼 Other']];
     function api(){ return window.shzCheck; }
     function isActive(){ return step !== null; }
@@ -2028,29 +2039,57 @@
       }
       if (step === 'type') pick(typeFromText(val) || 'other');
     }
-    function run(u, type){
+    function run(u, type, opts){
+      opts = opts || {};
       restInput();
       var host = api().cleanHost(u), t0 = Date.now();
       var wrap = document.createElement('div');
       wrap.className = 'chat-msg-wrap bot';
       var b = document.createElement('div');
       b.className = 'chat-msg bot wc-chat-prog';
-      b.innerHTML = '<span class="wc-spin" aria-hidden="true"></span> Checking <b>' + escHtml(host) + '</b> <span class="wc-elapsed">0 s</span>' +
+      b.innerHTML = '<span class="wc-spin" aria-hidden="true"></span> ' + (opts.fresh ? 'Fresh check of' : 'Checking') + ' <b>' + escHtml(host) + '</b> <span class="wc-elapsed">0 s</span>' +
         '<ol class="wc-steps"><li class="is-active">Opening your website</li><li>Reading what customers see</li><li>Testing it on a phone <em>(15–40 s — keep chatting if you like)</em></li></ol>';
       wrap.appendChild(b);
       msgs.appendChild(wrap);
       scrollMsgs();
       var timer = setInterval(function(){ var e = b.querySelector('.wc-elapsed'); if (e) e.textContent = Math.round((Date.now() - t0) / 1000) + ' s'; }, 1000);
       var stepsTo = function(n){ Array.prototype.forEach.call(b.querySelectorAll('.wc-steps li'), function(li, i){ li.classList.toggle('is-done', i < n); li.classList.toggle('is-active', i === n); }); };
-      api().run(u, type, langOf(), {
+      api().run(u, type, opts.lang || langOf(), {
         onBasics: function(){ stepsTo(2); },
-        onFull: function(r){ clearInterval(timer); if (wrap.parentNode) wrap.parentNode.removeChild(wrap); present(r, false); },
+        onFull: function(r){ clearInterval(timer); if (wrap.parentNode) wrap.parentNode.removeChild(wrap); present(r, false, opts.prev); },
         onError: function(m){ clearInterval(timer); if (wrap.parentNode) wrap.parentNode.removeChild(wrap); addBotTyping('⚠️ ' + m, null); }
+      }, { fresh: !!opts.fresh });
+    }
+    /* "do a fresh check", "check it again": the last site, new results */
+    function recheck(){
+      if (!last) return start();
+      if (botBusy) { whenIdle(recheck); return true; }
+      if (window._cancelHelpFlow) window._cancelHelpFlow();
+      if (window._briefPause) window._briefPause();
+      if (quickReply) quickReply.style.display = 'none';
+      step = null;
+      var prev = last;
+      run(prev.url || prev.host, prev.type, { fresh: true, prev: prev, lang: prev.lang });
+      return true;
+    }
+    /* what changed since the earlier check of the same site */
+    function changes(prev, r){
+      if (!prev || prev.host !== r.host) return '';
+      if (prev.checkedAt && prev.checkedAt === r.checkedAt) return "That's still the latest result for " + r.host + " — it was checked moments ago, so nothing new to show yet.";
+      var P = prev.scores || {}, S = r.scores || {}, out = [];
+      [['overall', 'Overall'], ['speed', 'Speed on a phone'], ['google', 'Google basics'], ['easy', 'Easy to use'], ['contact', 'Contact & trust']].forEach(function(k){
+        var a = P[k[0]], b2 = S[k[0]];
+        if (a == null || b2 == null || a === b2) return;
+        out.push(k[1] + ' ' + a + ' → ' + b2 + (b2 > a ? ' ⬆️' : ' ⬇️'));
       });
+      if (!out.length) return 'Fresh results are in ✅ The scores are the same as the earlier check — nothing has changed on the site since then.';
+      return 'Fresh results are in ✅ Compared with the earlier check:\n- ' + out.join('\n- ') +
+        (P.speed != null && S.speed != null && Math.abs(S.speed - P.speed) <= 5 ? '\n\nSmall speed changes are normal: Google\'s phone test varies a little from run to run.' : '');
     }
     /* the compact card + a summary in the chat's memory */
-    function present(r, intro){
+    function present(r, intro, prev){
       reports[r.id] = r;
+      last = r;
       if (intro) addBotTyping("Here's the website check for " + r.host + " 🩺 Ask me anything about it — like “why is it slow?” — or tap 📝 to plan the fix with Sahnawaz.", null);
       var show = function(){
         var wrap = document.createElement('div');
@@ -2061,7 +2100,9 @@
         addToHistory('bot', api().summaryText(r));
         if (window._saveChatMessage) window._saveChatMessage('bot', '🩺 Website check for ' + r.host + ': ' + (r.scores.overall == null ? '?' : r.scores.overall) + '/100 (' + (r.verdict && r.verdict.label) + '). ' + ((r.text && r.text.headline) || ''));
         scrollMsgs();
-        if (!intro) addBotTyping("Ask me anything about this report — like “why is it slow?” or “what should I fix first?” 🙂", null);
+        var diff = changes(prev, r);
+        if (diff) addBotTyping(diff, null);
+        else if (!intro) addBotTyping("Ask me anything about this report — like “why is it slow?” or “what should I fix first?” 🙂", null);
       };
       if (intro) whenIdle(show); else show();
     }
@@ -2092,7 +2133,11 @@
       if (!isOpen) window.openChat();
       present(r, true);
     };
+    window._recheckWebsite = function(){ return recheck(); };
     return { start: start, isActive: isActive, placeholder: placeholder, reset: reset, stepInput: stepInput, detect: detect, present: present,
+             recheck: recheck, last: function(){ return last; },
+             openLast: function(){ if (!last) return false; closeChat(); setTimeout(function(){ api().showReport(last, true); }, 260); return true; },
+             fixLast: function(){ if (!last) return false; api().fix(last); return true; },
              runTyped: function(d){ if (d.type && d.type !== 'other') { url = d.url; step = null; run(d.url, d.type); } else start({ url: d.url }); } };
   })();
 
@@ -2334,7 +2379,11 @@
     'send-resume':  { url: '/#contact', inChat: true, run: function () { return callIf('_startHelpFlow', 'resume'); } },
     'callback':     { url: '/#contact', inChat: true, run: function () { return callIf('_startHelpFlow', 'callback'); } },
     'brief':        { url: '/#contact', inChat: true, run: function () { return callIf('_startBrief'); } },
-    'website-check': { url: '/#website-check', inChat: true, run: function () { return callIf('_startWebsiteCheck'); } }
+    'website-check': { url: '/#website-check', inChat: true, run: function () { return callIf('_startWebsiteCheck'); } },
+    /* the website check shown in this chat */
+    'recheck': { url: '/#website-check', inChat: true, run: function () { return callIf('_recheckWebsite'); } },
+    'report':  { url: '/#website-check', inChat: true, run: function () { return checkChat.openLast(); } },
+    'fix':     { url: '/?plan=redesign',  inChat: true, run: function () { return checkChat.fixLast(); } }
   };
 
   function callIf(name, arg) {
@@ -3172,6 +3221,95 @@
 
 
   /* ========== Send ========== */
+  /* ========== Requests the page can carry out ==========
+     The AI can only talk; a few things are real actions on this page. When a
+     message clearly asks for one, it is done here instead of being sent to
+     the AI (which could only describe it — or worse, invent a result):
+       "continue my brief", "plan my project"   → the project planner
+       "do a fresh check", "check it again"     → re-runs the last website check
+       "check my website" (no address given)    → starts the website check
+       "open the full report", "fix it"         → the report's own buttons
+     Questions about these features ("how does the check work?") still go to
+     the AI, which knows them and offers the right chip. */
+  var AGAIN_RE = /\b(fresh|again|re ?check|recheck|re ?run|rerun|re ?test|retest|re ?scan|rescan|redo|refresh|one more time|once more|new|latest|updated|repeat|phir se|fir se|phirse|firse|dobara|dubara|abar|aabar|arekbar|ekbar)\b/;
+  function routeIntent(val){
+    var raw = String(val || '').trim();
+    if (!raw || raw.length > 140) return null;
+    var t = raw.toLowerCase().replace(/[“”"'’!?.,:;()\[\]_-]/g, ' ').replace(/\s+/g, ' ').trim();
+    var asking = /^(how|what|whats|why|when|where|which|who|explain|tell me|does|do you|did|is it true|should)\b/.test(t);
+    if (asking) return null;
+    var last = checkChat.last();
+    var checkWord = /\b(check|checkup|test|scan|audit|report|score|scores|analysis|speed test)\b/;
+    /* the project planner */
+    if (/\b(continue|resume|finish|complete|carry on|pick up|go back to|back to|return to|get back to|reopen|open|show me)\b.{0,20}\b(brief|planner|project plan)\b/.test(t) ||
+        /\b(my |the )?(brief|planner)\b.{0,12}\b(continue|resume|finish|kholo|kholiye|chalu|shuru|karo|koro)\b/.test(t)) return 'brief';
+    if (/\b(start|begin|create|make|prepare|write|fill|do)\b.{0,15}\b(brief|planner)\b/.test(t) || /\bplan (my|our|a|the) (new )?(project|website|site|app|store|shop|business website)\b/.test(t) || /^(my |project |the )?(brief|planner)( please)?$/.test(t)) return 'brief';
+    /* the report shown in this chat */
+    if (last && /\b(open|show|see|view|expand)\b.{0,20}\breport\b/.test(t) && !AGAIN_RE.test(t)) return 'report';
+    if (last && /^(please |ok |okay |yes )?(fix (it|this|that|them|these|my (web ?site|site))|fix it with sahnawaz|let s fix (it|this))\b/.test(t)) return 'fix';
+    /* new results for the site already checked */
+    if (last && AGAIN_RE.test(t) && (checkWord.test(t) || /\b(check|run|test|scan|do) (it|this|that|my site|my website)\b/.test(t) || /^(re ?check|recheck|re ?test|retest|re ?run|rerun|refresh|again|check again|try again)\b/.test(t))) return 'recheck';
+    /* a website check, but no address yet */
+    if (/\b(check|audit|test|scan|analy[sz]e|review|inspect)\b.{0,25}\b(my|our|a|the|this|another|other|one more)\s+(business\s+)?(web ?site|site|webpage)\b/.test(t) || /^(free )?(web ?site|site) (check|audit|test)\b/.test(t)) return last && AGAIN_RE.test(t) && !/\b(another|other)\b/.test(t) ? 'recheck' : 'check';
+    /* "do a fresh check" with nothing checked yet: start one */
+    if (!last && AGAIN_RE.test(t) && /\b(check|audit|scan)\b/.test(t)) return 'check';
+    return null;
+  }
+  function runIntent(kind, val){
+    if (kind === 'report' || kind === 'fix') {
+      if (!checkChat.last()) return false;
+      playSend && playSend();
+      addMsg('user', val);
+      if (window._saveChatMessage) window._saveChatMessage('user', val);
+      if (kind === 'fix') { addBotTyping("Let's fix it 🛠️ I'm opening the planner with your site and its top fixes already filled in.", val); setTimeout(function(){ checkChat.fixLast(); }, 900); }
+      else checkChat.openLast();
+      return true;
+    }
+    playSend && playSend();
+    addMsg('user', val);
+    if (window._saveChatMessage) window._saveChatMessage('user', val);
+    setChipsOpen(false);
+    if (kind === 'brief') { briefApi.start({ from: 'chat' }); return true; }
+    if (kind === 'recheck') { checkChat.recheck(); return true; }
+    if (kind === 'check') { checkChat.start(); return true; }
+    return false;
+  }
+  /* What the AI should know about this visitor's page right now: the website
+     check shown in this chat, their brief (no contact details), and which
+     section is on screen. The server re-checks every field. */
+  function chatContext(){
+    var c = {};
+    try {
+      var r = checkChat.last();
+      if (r) {
+        var sc = r.scores || {}, sp = r.speed || {};
+        c.report = {
+          host: r.host, type: r.type, checkedAt: r.checkedAt, verdict: r.verdict && r.verdict.label,
+          scores: { overall: sc.overall, speed: sc.speed, google: sc.google, easy: sc.easy, contact: sc.contact },
+          lcp: sp.lcp ? sp.lcp.value : null, speedUnavailable: !!r.speedUnavailable,
+          problems: (r.findings || []).slice(0, 6).map(function(f){ return f.title; }),
+          slow: (sp.opportunities || []).slice(0, 5).map(function(o){ return o.label + (o.savingsMs >= 150 ? ' (about ' + Math.round(o.savingsMs / 100) / 10 + ' s)' : o.savingsKb ? ' (about ' + o.savingsKb + ' KB)' : ''); }),
+          top3: ((r.text && r.text.top3) || []).slice(0, 3).map(function(x){ return x.title; }),
+          headline: r.text && r.text.headline
+        };
+      }
+    } catch (e) {}
+    try { var b = briefApi.summary(); if (b.active || b.draft || b.sent) c.brief = b; } catch (e) {}
+    try {
+      var mid = innerHeight / 2, secs = document.querySelectorAll('main section[id], body > section[id], section[id]');
+      for (var i = 0; i < secs.length; i++) {
+        var rc = secs[i].getBoundingClientRect();
+        if (rc.top <= mid && rc.bottom >= mid && rc.height > 0) {
+          var h = secs[i].querySelector('h2, h1');
+          var title = (secs[i].getAttribute('aria-label') || (h && h.textContent) || '').replace(/\s+/g, ' ').trim();
+          if (title) c.section = { id: secs[i].id, title: title.slice(0, 80) };
+          break;
+        }
+      }
+    } catch (e) {}
+    return c;
+  }
+
   function sendMessage(){
     var bypassBrief = _briefBypassOnce;
     _briefBypassOnce = false;
@@ -3215,6 +3353,10 @@
       briefApi.step(val);
       return;
     }
+    /* ── Requests the page carries out itself ("continue my brief",
+       "do a fresh check"…): done directly, never described by the AI ── */
+    var act = routeIntent(val);
+    if (act && runIntent(act, val)) return;
     playSend();
     addMsg('user', val);
     /* Save user message to Firestore — must be here while val is still intact.
@@ -3239,8 +3381,9 @@
     /* Always use Vercel URL so API works from GitHub Pages AND Vercel */
     var apiUrl = 'https://sahnawaz-portfolio.vercel.app/api/chat';
 
-    /* Build history payload — last 8 messages for context */
-    var historyPayload = conversationHistory.slice(-8).map(function(m){
+    /* Build history payload — last 10 messages for context (the message
+       just typed is already in it, so leave that one out) */
+    var historyPayload = conversationHistory.slice(-11, -1).map(function(m){
       return { role: m.role, content: m.text };
     });
 
@@ -3312,7 +3455,8 @@
         history: historyPayload,
         visitorName: conversationHistory.length <= 1 ? namePayload : null,
         visitorActivity: freshActivity || window._visitorActivity || null,
-        visitorType: getVisitorType()
+        visitorType: getVisitorType(),
+        context: chatContext()
       });
 
       /* The server answers 429 with a friendly JSON { reply } when it is busy.

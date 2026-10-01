@@ -878,6 +878,16 @@
      as window._visitorActivity so the chatbot API call
      can include it as context in every message.
      ══════════════════════════════════════════════════════ */
+  function currentLikeName(pid) {
+    var btn = document.querySelector('.proj-like-btn[data-pid="' + String(pid).replace(/[^a-z0-9_]/gi, '') + '"]');
+    if (!btn) return null;
+    var work = btn.closest('.pwork-entry'), card = btn.closest('.mpj-card');
+    var el = work ? work.querySelector('.pwork-company') : card ? card.querySelector('.mpj-card-name') : null;
+    var name = el ? el.textContent.replace(/\s+/g, ' ').trim() : '';
+    if (!name) return null;
+    return work ? name + ' (work experience)' : name;
+  }
+
   function initVisitorActivity() {
     window._visitorActivity = null;
 
@@ -902,7 +912,11 @@
           snap.forEach(function(doc) {
             var d = doc.data();
             if (d.likedBy && d.likedBy.includes(uid)) {
-              activity.likedProjects.push(d.name || doc.id);
+              /* the name shown on the page today — a like on a card that has
+                 since been renamed or removed kept its old name in the
+                 database, and the assistant greeted people with it */
+              var nm = currentLikeName(doc.id);
+              if (nm) activity.likedProjects.push(nm);
             }
           });
         }).catch(function(){})

@@ -58,11 +58,13 @@
     }, function (e) { clearTimeout(t); throw e; });
   }
 
-  /* Run a check. cb: onBasics(report), onFull(report), onError(message). */
-  function run(url, type, lang, cb) {
+  /* Run a check. cb: onBasics(report), onFull(report), onError(message).
+     opts.fresh: test again from scratch instead of reusing today's report. */
+  function run(url, type, lang, cb, opts) {
     cb = cb || {};
     var done = false;
     var q = { mode: 'check', url: url, type: TYPES[type] ? type : 'other', lang: LANGS[lang] ? lang : 'en' };
+    if (opts && opts.fresh) q.fresh = true;
     function finish(r) { if (done) return; done = true; if (cb.onFull) cb.onFull(r); }
     function fail(m) { if (done) return; done = true; if (cb.onError) cb.onError(m || 'Something went wrong — please try again.'); }
     post(Object.assign({ part: 'basics' }, q), 25000).then(function (r) {
