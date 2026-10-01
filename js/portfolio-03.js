@@ -1437,43 +1437,70 @@
     });
   });
 
-  fetch('/api/github-activity')
-    .then(function (res) {
-      if (!res.ok) throw new Error('bad response');
-      return res.json();
-    })
-    .then(function (data) {
-      var items = data.activity || [];
-      lastActivityData = data;
-      render(items);
-      renderFreshness(items);
-      renderProjectStats(data.projectStats || null);
-      renderCIHealth(data.ci || null);
-      renderReleaseTimeline(data.activity || []);
-      renderRepoEcosystem(data.repos || null);
-      renderDepFreshness(data.depFreshness || null);
-      applyRange(90);
-      renderPunchcard(data.activity || [], data.pulse || null);
-      renderLanguagesAndHours(data.languages || null, data.codingHours || null, data.languageHistory || null);
+  /* The activity feed is fetched on the visitor's first tap, key, wheel or
+     touch, or when this section is about two screens away (or at once if
+     it's already close) — not in the middle of page load: the endpoint can
+     be slow and drawing the heatmap and charts is heavy work. Starting on
+     the first interaction means it has usually arrived before anyone jumps
+     past this section (Quick Search, menu links), so the jump doesn't have
+     to re-aim when the section changes height. */
+  var activityStarted = false;
+  function loadActivity() {
+    if (activityStarted) return;
+    activityStarted = true;
+    fetch('/api/github-activity')
+      .then(function (res) {
+        if (!res.ok) throw new Error('bad response');
+        return res.json();
+      })
+      .then(function (data) {
+        var items = data.activity || [];
+        lastActivityData = data;
+        render(items);
+        renderFreshness(items);
+        renderProjectStats(data.projectStats || null);
+        renderCIHealth(data.ci || null);
+        renderReleaseTimeline(data.activity || []);
+        renderRepoEcosystem(data.repos || null);
+        renderDepFreshness(data.depFreshness || null);
+        applyRange(90);
+        renderPunchcard(data.activity || [], data.pulse || null);
+        renderLanguagesAndHours(data.languages || null, data.codingHours || null, data.languageHistory || null);
 
-      var hasHeatmapData = !!(data.pulse && (data.pulse.heatmapFull || data.pulse.heatmap));
-      var toggleEl = document.getElementById('raRangeToggle');
-      if (!hasHeatmapData && toggleEl) toggleEl.style.display = 'none';
-    })
-    .catch(function () {
-      document.getElementById('raList').innerHTML = '<div class="ra-error">Couldn\u2019t load activity right now \u2014 <a href="https://github.com/SahnawazL" target="_blank" rel="noopener" style="color:rgba(0,255,180,0.7);">view on GitHub</a> instead.</div>';
-      document.getElementById('raProjectStats').innerHTML = '';
-      document.getElementById('raCIHealth').innerHTML = '';
-      document.getElementById('raReleaseTimeline').innerHTML = '';
-      document.getElementById('raRepoEcosystem').innerHTML = '';
-      document.getElementById('raDepFreshness').innerHTML = '';
-      document.getElementById('raPulse').innerHTML = '';
-      document.getElementById('raHeatmap').innerHTML = '';
-      document.getElementById('raPunchcard').innerHTML = '';
-      document.getElementById('raLangHours').innerHTML = '';
-      var toggleEl = document.getElementById('raRangeToggle');
-      if (toggleEl) toggleEl.style.display = 'none';
-    });
+        var hasHeatmapData = !!(data.pulse && (data.pulse.heatmapFull || data.pulse.heatmap));
+        var toggleEl = document.getElementById('raRangeToggle');
+        if (!hasHeatmapData && toggleEl) toggleEl.style.display = 'none';
+      })
+      .catch(function () {
+        document.getElementById('raList').innerHTML = '<div class="ra-error">Couldn\u2019t load activity right now \u2014 <a href="https://github.com/SahnawazL" target="_blank" rel="noopener" style="color:rgba(0,255,180,0.7);">view on GitHub</a> instead.</div>';
+        document.getElementById('raProjectStats').innerHTML = '';
+        document.getElementById('raCIHealth').innerHTML = '';
+        document.getElementById('raReleaseTimeline').innerHTML = '';
+        document.getElementById('raRepoEcosystem').innerHTML = '';
+        document.getElementById('raDepFreshness').innerHTML = '';
+        document.getElementById('raPulse').innerHTML = '';
+        document.getElementById('raHeatmap').innerHTML = '';
+        document.getElementById('raPunchcard').innerHTML = '';
+        document.getElementById('raLangHours').innerHTML = '';
+        var toggleEl = document.getElementById('raRangeToggle');
+        if (toggleEl) toggleEl.style.display = 'none';
+      });
+  }
+  (function whenNeeded() {
+    var sec = document.getElementById('recent-activity') || document.getElementById('raList');
+    if (!sec || !('IntersectionObserver' in window)) { loadActivity(); return; }
+    var evs = ['pointerdown', 'keydown', 'touchstart', 'wheel'], io;
+    var start = function () {
+      evs.forEach(function (n) { removeEventListener(n, start, true); });
+      if (io) io.disconnect();
+      loadActivity();
+    };
+    evs.forEach(function (n) { addEventListener(n, start, { capture: true, passive: true }); });
+    io = new IntersectionObserver(function (en) {
+      if (en[0].isIntersecting) start();
+    }, { rootMargin: '2000px 0px' });
+    io.observe(sec);
+  })();
 })();
 
 
@@ -1837,6 +1864,13 @@ function mpjFilter(cat, btn) {
     subEl.textContent = 'verified ' + relativeTime(lastVerifiedAt);
   }
 
+  /* live numbers for the YojanaSahay card: fetched once the page has
+     loaded, so it never competes with the page itself */
+  function afterLoad(fn) {
+    var go = function () { ('requestIdleCallback' in window) ? requestIdleCallback(fn, { timeout: 3000 }) : setTimeout(fn, 1500); };
+    if (document.readyState === 'complete') go(); else window.addEventListener('load', go, { once: true });
+  }
+  afterLoad(function () {
   fetch('https://yojanasahay.vercel.app/api/stats', { cache: 'no-store' })
     .then(function(r) { if (!r.ok) throw new Error('bad status'); return r.json(); })
     .then(function(data) {
@@ -1893,4 +1927,5 @@ function mpjFilter(cat, btn) {
       el.setAttribute('data-state', 'cached'); // fetch failed — static fallback numbers stay, badge signals it's not live
       if (subEl) subEl.textContent = 'showing cached data';
     });
+  });
 })();

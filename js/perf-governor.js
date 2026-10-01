@@ -26,8 +26,10 @@
    Visitors can see what it decided and why, and override it, from
    the panel in the "This Page, Right Now" card.
 
-   Load in <head>, right after web-vitals.js, so the tier is applied
-   before first paint and never flashes.
+   Loaded with defer, right after web-vitals.js. The part that must happen
+   before the first paint (frosted glass off on weak devices) is a tiny
+   inline script in index.html's <head> using the same rules; decide()
+   below confirms it, so the tier never flashes.
    ============================================================ */
 (function () {
   'use strict';
@@ -85,7 +87,7 @@
     root.classList.toggle('pg-lite', state.tier === 'lite');
     if (prev !== state.tier) renderSoon();
   }
-  decide();   /* synchronous, in <head>: no flash of the wrong tier */
+  decide();   /* confirms the tier the inline <head> script already applied */
 
   /* ---------- live evidence ------------------------------------ */
   var settled = false, SETTLE = 2000;

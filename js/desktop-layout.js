@@ -175,6 +175,7 @@
   }
   function goTo(sel) { settleTo(document.querySelector(sel)); }
   function fn(name) { return typeof window[name] === 'function' ? window[name] : null; }
+  function hasScript(file) { return !!document.querySelector('script[src$="' + file + '"]'); }
 
   /* ---------- header ---------- */
   function adoptExtras() {
@@ -448,9 +449,12 @@
         fn('openSharePopup') && item('Share This View', 'share'),
         item('Print / Save as PDF', 'print')
       ]) +
+      /* web-vitals.js and perf-governor.js load with `defer`, so they run
+         after this script. Check for their <script> tags as well as the
+         functions, so the two links are there from the first paint. */
       col('Under the hood', [
-        fn('openWebVitals') && item('Performance Report', 'vitals'),
-        window.perfGovernor && item('Performance Mode', 'mode'),
+        (fn('openWebVitals') || hasScript('web-vitals.js')) && item('Performance Report', 'vitals'),
+        (window.perfGovernor || hasScript('perf-governor.js')) && item('Performance Mode', 'mode'),
         fn('openCommandPalette') && item('Quick Search', 'search', '\u2318K'),
         item('Hacker Mode', 'hacker'),
         fn('_openCodePopup') && item('Code Editor', 'code')
@@ -463,8 +467,8 @@
       if (a === 'resume') window.openResumeEmailModal();
       if (a === 'share') window.openSharePopup();
       if (a === 'print') { if (typeof window.printCV === 'function') window.printCV(); else window.print(); }
-      if (a === 'vitals') window.openWebVitals();
-      if (a === 'mode') window.perfGovernor.openPopup();
+      if (a === 'vitals' && fn('openWebVitals')) window.openWebVitals();
+      if (a === 'mode' && window.perfGovernor) window.perfGovernor.openPopup();
       if (a === 'search') window.openCommandPalette();
       if (a === 'code') window._openCodePopup();
       if (a === 'hacker') {

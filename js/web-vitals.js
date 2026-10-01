@@ -11,8 +11,9 @@
      - a full report popup  (command palette, [data-web-vitals], or
        window.openWebVitals())
 
-   Load EARLY, in <head>. LCP, CLS and FCP cannot be observed
-   retroactively; an observer attached after first paint loses them.
+   Loaded with defer: every observer below uses buffered: true, so LCP,
+   CLS, FCP and input delays that happened before it ran are still
+   delivered to it (keeping it out of the way of the first paint).
    ============================================================ */
 (function () {
   'use strict';

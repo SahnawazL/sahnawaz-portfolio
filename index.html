@@ -541,15 +541,37 @@ img {
 <link rel="preload" as="image" type="image/webp" href="profile-hero-360.webp" imagesrcset="profile-hero-360.webp 360w, profile-hero-540.webp 540w" imagesizes="174px" fetchpriority="high"/>
 
 <!-- ── 12. FONTS ─────────────────────────────────────────────────── -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Syne:wght@600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet"/>
+<!-- loaded without holding up the first paint: the fonts already use
+     display=swap, so text shows at once in a fallback font either way -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Syne:wght@600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
+<noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Syne:wght@600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet"/></noscript>
 
 <!-- ── 13. AOS (deferred) ───────────────────────────────────────── -->
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
 <noscript><link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet"/></noscript>
 
-<!-- ─────────────────────────────────────────────────────────────── --><!-- must load before first paint: LCP/CLS/FCP cannot be observed retroactively -->
-<script src="js/web-vitals.js"></script>
-<script src="js/perf-governor.js"></script>
+<!-- ─────────────────────────────────────────────────────────────── -->
+<!-- The live performance card and the performance governor no longer hold up
+     the first paint (Google listed both as render-blocking, ~30 KB). They run
+     right after the page is parsed: the performance card reads every
+     measurement retroactively (buffered observers), and the only thing the
+     governor must do before the first paint — switching frosted glass off on
+     weak devices — is done by this small script, with the same rules. -->
+<script>
+(function () {
+  try {
+    var mode = null, n = navigator, c = n.connection || {}, lite;
+    try { mode = localStorage.getItem('shz-perf-mode'); } catch (e) {}
+    if (mode === 'lite') lite = true;
+    else if (mode === 'full') lite = false;
+    else lite = !!(c.saveData || (typeof n.deviceMemory === 'number' && n.deviceMemory <= 2) || (n.hardwareConcurrency && n.hardwareConcurrency <= 2));
+    if (lite) document.documentElement.classList.add('pg-lite');
+  } catch (e) {}
+})();
+</script>
+<style>html.pg-lite *,html.pg-lite *::before,html.pg-lite *::after{-webkit-backdrop-filter:none !important;backdrop-filter:none !important}</style>
+<script src="js/web-vitals.js" defer></script>
+<script src="js/perf-governor.js" defer></script>
 <link rel="stylesheet" href="css/portfolio-core.css">
 <!-- Open Graph consolidated in head -->
 

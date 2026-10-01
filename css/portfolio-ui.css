@@ -430,12 +430,15 @@ header::after {
 .pfp-stage.clicked .pfp-ring1 { animation-duration: 0.5s; }
 
 /* Entrance animation for whole stage — runs once, then .pop-in is removed by JS */
+/* like the name: there from the first frame, settling in without a wait
+   (it started invisible and waited 0.2 s, which Google counted against
+   the page's "largest paint") */
 .pfp-stage.pop-in {
-  opacity: 0;
-  animation: pfpStageIn 0.9s cubic-bezier(.2,.9,.2,1) 0.2s forwards;
+  opacity: 0.4;
+  animation: pfpStageIn 0.9s cubic-bezier(.2,.9,.2,1) forwards;
 }
 @keyframes pfpStageIn {
-  from { opacity: 0; transform: scale(0.88) translateY(12px); }
+  from { opacity: 0.4; transform: scale(0.88) translateY(12px); }
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
@@ -570,11 +573,16 @@ header::after {
 /* (The light sweep that crossed the name on load and on tap was removed in
    2026-10: on desktop the wide name block turned it into a large grey band
    that ran past the name and was cut off at the column edge.) */
+/* The words used to start with wide letter-spacing and tighten. Spacing is
+   layout, so the name was re-measured every frame and "Ahmed" jumped from
+   the second line to the first part-way through (Google's biggest layout
+   shift on the page). The same settle-in is now a horizontal scale, which
+   the graphics card animates without touching the layout. */
 .prem-word {
   display: inline-block;
   opacity: 0.35;
-  transform: translateY(16px);
-  letter-spacing: 0.14em;
+  transform: translateY(16px) scaleX(1.06);
+  letter-spacing: normal;
   transition: filter 0.35s ease;
 }
 /* First & middle name — solid gradient fill, the bold headline weight */
@@ -595,14 +603,14 @@ header::after {
   animation: premWordInOutline 0.8s cubic-bezier(.16,1,.3,1) forwards;
 }
 @keyframes premWordIn {
-  0%   { opacity: 0.35; transform: translateY(16px); letter-spacing: 0.14em; filter: blur(5px) drop-shadow(0 0 16px rgba(80,210,255,0.32)); }
+  0%   { opacity: 0.35; transform: translateY(16px) scaleX(1.06); filter: blur(5px) drop-shadow(0 0 16px rgba(80,210,255,0.32)); }
   65%  { filter: blur(0px) drop-shadow(0 0 16px rgba(80,210,255,0.32)); }
-  100% { opacity: 1; transform: translateY(0); letter-spacing: normal; filter: blur(0px) drop-shadow(0 0 16px rgba(80,210,255,0.32)); }
+  100% { opacity: 1; transform: translateY(0) scaleX(1); filter: blur(0px) drop-shadow(0 0 16px rgba(80,210,255,0.32)); }
 }
 @keyframes premWordInOutline {
-  0%   { opacity: 0.35; transform: translateY(16px); letter-spacing: 0.14em; filter: blur(5px) drop-shadow(0 0 14px rgba(80,210,255,0.4)); }
+  0%   { opacity: 0.35; transform: translateY(16px) scaleX(1.06); filter: blur(5px) drop-shadow(0 0 14px rgba(80,210,255,0.4)); }
   65%  { filter: blur(0px) drop-shadow(0 0 14px rgba(80,210,255,0.4)); }
-  100% { opacity: 1; transform: translateY(0); letter-spacing: normal; filter: blur(0px) drop-shadow(0 0 14px rgba(80,210,255,0.4)); }
+  100% { opacity: 1; transform: translateY(0) scaleX(1); filter: blur(0px) drop-shadow(0 0 14px rgba(80,210,255,0.4)); }
 }
 @keyframes premWordShimmer {
   0%, 100% { background-position: 0% center; }
@@ -657,6 +665,21 @@ header::after {
 .prem-role-tag:hover {
   box-shadow: 0 0 22px rgba(0,255,255,0.2);
   border-color: rgba(0,255,255,0.4);
+}
+/* The pill grows as each letter is typed. Centred the usual way, its left
+   edge moved with every letter, and Google counted each move as a layout
+   shift. Here it starts at the middle and grows to the right, and `translate`
+   pulls it back by half its width: it looks exactly the same, centred, but
+   its position on the page never changes. Browsers without `translate`
+   keep the old centring. */
+@supports (translate: -50% 0) {
+  .prem-role-tag {
+    align-self: flex-start;
+    margin-left: 50%;
+    translate: -50% 0;
+    width: max-content;
+    max-width: 100%;
+  }
 }
 .prem-role-dot {
   display: inline-block;
