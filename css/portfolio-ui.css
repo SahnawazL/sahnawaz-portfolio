@@ -1919,6 +1919,33 @@ header::after {
   .pblog-card + .pblog-card { border-left: none !important; border-top: 1px solid rgba(0,255,200,0.09) !important; }
   .pblog-card-title { font-size: 0.62rem; }
 }
+
+/* Blog grid, tablet & desktop: a tidy grid (4 across on desktop) instead of
+   every note squeezed into one row, where titles broke letter by letter. */
+@media (min-width: 501px) {
+  .blog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    max-width: 920px;
+    grid-auto-flow: dense;
+  }
+  .blog-grid .pblog-card {
+    min-width: 0;
+    padding: 1rem 0.8rem 0.9rem;
+    border-left: none !important;
+    box-shadow: 1px 0 0 rgba(0,255,200,0.09), 0 1px 0 rgba(0,255,200,0.09) !important;
+  }
+  .blog-grid .pblog-card-title { font-size: 0.74rem; line-height: 1.35; }
+}
+/* An open note spans the full row and is set in a readable size, so long
+   notes are never cut off mid-sentence. */
+.blog-grid .pblog-card.expanded { grid-column: 1 / -1; min-width: 100%; }
+.blog-grid .pblog-card.expanded .pblog-card-desc {
+  max-height: 520px;
+  font-size: 0.8rem; font-style: normal; line-height: 1.65;
+  color: rgba(205,232,250,0.86);
+  max-width: 640px; margin: 0 auto; padding: 0.55rem 0.4rem 0.1rem;
+}
 /* ═══════════════════════════════════════════ */
 
 
