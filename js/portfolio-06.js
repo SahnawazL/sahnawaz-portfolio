@@ -668,16 +668,26 @@ window.__shzAudio = (function(){
       const sub=(args[0]||'').toLowerCase();
       switch(sub){
         case 'status': printSeq(["On branch main","Your branch is up to date with 'origin/main'.",'','nothing to commit, working tree clean']); break;
-        case 'log':
-          printSeq([
-            'commit a1b2c3d4e5f (HEAD -> main, origin/main)',
-            'Author: Sahnawaz Ahmed Laskar <shz@bytewithsahnawaz.dev>',
-            'Date:   '+new Date().toDateString(),
-            '','    feat: retro hacker terminal v2.0 — real shell engine 🚀','',
-            'commit 9f8e7d6c5b4','Author: Sahnawaz Ahmed Laskar <shz@bytewithsahnawaz.dev>',
-            'Date:   Mon Sep 15 2026','','    fix: optimize particle canvas performance','',
-            'commit 3a2b1c0d9e8','','    feat: add YojanaSahay PWA v1.0',
-          ]); break;
+        case 'log': (function () {
+          /* Real history: the same public GitHub activity the "Recently Shipped"
+             section shows — loaded on demand if that section hasn't run yet. */
+          function show(data) {
+            var items = (data && data.activity) || [];
+            if (!items.length) { printSeq(['No public GitHub activity right now — see github.com/SahnawazL']); return; }
+            var out = ['Live from GitHub (public activity, newest first):',''];
+            items.slice(0, 8).forEach(function (it) {
+              var d = it.time ? new Date(it.time) : null;
+              out.push('* ' + (d && !isNaN(d) ? d.toDateString() : '') + '  ' + it.message);
+            });
+            out.push('', 'Full history: github.com/SahnawazL');
+            printSeq(out);
+          }
+          if (window.__ghActivity) { show(window.__ghActivity); return; }
+          fetch('/api/github-activity')
+            .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+            .then(function (d) { window.__ghActivity = d; show(d); })
+            .catch(function () { printSeq(['Couldn’t reach GitHub right now — try again in a moment.']); });
+        })(); break;
         case 'blame':
           printLine('git blame: '+(args[1]||'index.html'));
           printLine('a1b2c3d4 (Sahnawaz 2026-09-19) Every. Single. Line. Hand-coded. 💪'); break;

@@ -1456,6 +1456,7 @@
       .then(function (data) {
         var items = data.activity || [];
         lastActivityData = data;
+        window.__ghActivity = data; // shared with the hacker terminal's `git log`
         render(items);
         renderFreshness(items);
         renderProjectStats(data.projectStats || null);
