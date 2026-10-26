@@ -246,6 +246,14 @@ Parallel to every professional role above, built, shipped and iterated on real w
 <a href="https://yojanasahay.vercel.app" target="_blank">
   <img src="https://img.shields.io/badge/🏛️_Yojana_Sahay-yojanasahay.vercel.app-00cc88?style=for-the-badge" alt="Yojana Sahay"/>
 </a>
+&nbsp;
+<a href="https://t.me/YojanaSahayBot" target="_blank">
+  <img src="https://img.shields.io/badge/Telegram-@YojanaSahayBot-26A5E4?style=for-the-badge&logo=telegram&logoColor=white" alt="YojanaSahay on Telegram"/>
+</a>
+&nbsp;
+<a href="https://studylens-ai-gamma.vercel.app" target="_blank">
+  <img src="https://img.shields.io/badge/📚_StudyLens_AI-studylens--ai--gamma.vercel.app-a78bfa?style=for-the-badge" alt="StudyLens AI"/>
+</a>
 
 <br/><br/>
 
