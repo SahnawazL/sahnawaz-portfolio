@@ -3877,7 +3877,39 @@ window.addEventListener('resize', () => {
     </div>
     <div class="ct-title-rule"></div>
     <div class="ct-subtitle">Reach out via any channel below — I personally read every message and respond within a few hours.</div>
+    <div class="ct-localtime" id="ctLocalTime" aria-live="off" hidden>
+      <span class="ct-lt-dot"></span><span id="ctLocalTimeText"></span>
+    </div>
   </div>
+  <style>
+    .ct-localtime{display:flex;align-items:center;gap:8px;width:max-content;max-width:92%;margin:12px auto 0;padding:7px 14px;border-radius:999px;
+      font:500 12.5px/1.4 'DM Sans',system-ui,sans-serif;color:#cfefff;background:rgba(80,210,255,.07);border:1px solid rgba(80,210,255,.22);text-align:center}
+    .ct-localtime[hidden]{display:none}
+    .ct-lt-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--lt,#4ade80);box-shadow:0 0 0 0 var(--lt,#4ade80);animation:ctLtPulse 2.4s infinite}
+    @keyframes ctLtPulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--lt,#4ade80) 55%,transparent)}70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
+    @media (prefers-reduced-motion:reduce){.ct-lt-dot{animation:none}}
+  </style>
+  <script>
+  /* My local time (India, IST) so visitors abroad know when to expect a reply. */
+  (function(){
+    var box=document.getElementById('ctLocalTime'), txt=document.getElementById('ctLocalTimeText');
+    if(!box||!txt||!window.Intl) return;
+    function tick(){
+      try{
+        var now=new Date();
+        var time=new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',hour:'numeric',minute:'2-digit',hour12:true}).format(now).toUpperCase();
+        var h=parseInt(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kolkata',hour:'2-digit',hour12:false}).format(now),10)%24;
+        var night=h>=2&&h<8;
+        box.style.setProperty('--lt', night ? '#fbbf24' : '#4ade80');
+        txt.textContent = night
+          ? time + ' in India now \u00b7 I\u2019ll reply in the morning'
+          : time + ' in India now \u00b7 good time to reach me';
+        box.hidden=false;
+      }catch(e){}
+    }
+    tick(); setInterval(tick,30000);
+  })();
+  </script>
 
   <!-- Active Connect Cards (2×2 grid) -->
   <div class="ct-cards" style="grid-template-columns: repeat(2,1fr); max-width:500px; margin:0 auto 0.5rem;">
