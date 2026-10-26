@@ -4,6 +4,29 @@
 <script>/* The old GitHub Pages copy (sahnawazl.github.io/sahnawaz-portfolio/) is retired:
    send visitors to the official site, keeping the section (#…) and any ?plan / ?check. */
 (function(){if(/\.github\.io$/i.test(location.hostname)){location.replace("https://sahnawaz-portfolio.vercel.app/"+location.pathname.replace(/^\/sahnawaz-portfolio\/?/i,"").replace(/^index\.html$/i,"")+location.search+location.hash);}})();</script>
+<script>/* Clean URLs: /contact, /projects, /yojanasahay … open the right section or case study.
+   Any other unknown path lands on the homepage with a short "page not found" note
+   instead of silently showing the homepage at a wrong address. */
+(function(){
+  if(/\.github\.io$/i.test(location.hostname))return;
+  var p=location.pathname.replace(/\/+$/,"").toLowerCase();
+  if(!p||p==="/index.html")return;
+  var cases={"/yojanasahay":"yojanasahay","/yojana-sahay":"yojanasahay","/studylens":"studylens","/studylens-ai":"studylens","/case/yojanasahay":"yojanasahay","/case/studylens":"studylens","/case/portfolio":"portfolio"};
+  if(cases[p]){location.replace("/?case="+cases[p]);return;}
+  var map={"/projects":"my-projects","/work":"my-projects","/portfolio":"my-projects","/contact":"contact","/hire":"contact","/hire-me":"contact","/blog":"blog","/reviews":"testimonials","/testimonials":"testimonials","/achievements":"achievements","/services":"what-i-offer","/pricing":"what-i-offer","/website-check":"website-check","/check":"website-check","/activity":"recent-activity","/certificates":"certSection","/feedback":"site-feedback"};
+  var id=map[p];
+  try{history.replaceState(null,"","/"+location.search+(id?"#"+id:location.hash));}catch(e){}
+  if(id){
+    window.addEventListener("load",function(){setTimeout(function(){var el=document.getElementById(id);if(el)el.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});},450);},{once:true});
+    return;
+  }
+  document.addEventListener("DOMContentLoaded",function(){
+    var t=document.createElement("div");t.setAttribute("role","status");
+    t.style.cssText="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483000;max-width:min(92vw,420px);padding:12px 16px;border-radius:14px;background:rgba(6,20,28,.92);border:1px solid rgba(0,229,255,.35);color:#dff9ff;font:500 14px/1.45 'DM Sans',system-ui,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.45);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);text-align:center;transition:opacity .4s";
+    t.textContent="That page doesn't exist — here's the homepage instead.";
+    document.body.appendChild(t);setTimeout(function(){t.style.opacity="0";setTimeout(function(){t.remove();},450);},4200);
+  },{once:true});
+})();</script>
 <!--
   PERFORMANCE OPTIMIZATIONS APPLIED (v2.0):
   1. Removed 16x duplicate @keyframes glowSkill/arrowBlink/blog-card CSS blocks

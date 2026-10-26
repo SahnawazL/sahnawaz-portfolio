@@ -41,6 +41,7 @@
 - [Live coding activity](https://sahnawaz-portfolio.vercel.app/#recent-activity): real-time engineering telemetry
 - [Contact](https://sahnawaz-portfolio.vercel.app/#contact): email, WhatsApp and callback options
 - [Resume (PDF)](https://sahnawaz-portfolio.vercel.app/resume.pdf)
+- Short links: [/contact](https://sahnawaz-portfolio.vercel.app/contact), [/projects](https://sahnawaz-portfolio.vercel.app/projects), [/yojanasahay](https://sahnawaz-portfolio.vercel.app/yojanasahay) (case study), [/studylens](https://sahnawaz-portfolio.vercel.app/studylens) (case study)
 
 ---
 
