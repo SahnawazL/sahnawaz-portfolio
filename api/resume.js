@@ -320,7 +320,7 @@ function visitorResumeEmail({ name, refId, now, requestSource }) {
                 <td style="padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.04);">
                   <div style="font-size:0.85rem;color:#c8e8ff;font-weight:700;margin-bottom:4px;">Portfolio &amp; AI Assistant</div>
                   <div style="font-size:0.78rem;color:#7ea5b8;line-height:1.6;">
-                    This site itself &mdash; 22,000+ lines of hand-coded HTML/CSS/JS with an
+                    This site itself &mdash; 50,000+ lines of hand-coded HTML/CSS/JS with an
                     embedded, context-aware AI chat assistant.
                   </div>
                 </td>

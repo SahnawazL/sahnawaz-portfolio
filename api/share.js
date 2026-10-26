@@ -24,7 +24,7 @@ const LINKS = {
   portfolio: {
     to: '/?case=portfolio',
     title: 'This Portfolio — hand-coded, zero templates',
-    desc: '22,000+ lines of HTML, CSS and JavaScript with live engineering telemetry, an AI assistant and a hidden terminal. A case study of the site itself.',
+    desc: '50,000+ lines of HTML, CSS and JavaScript with live engineering telemetry, an AI assistant and a hidden terminal. A case study of the site itself.',
   },
   ui: {
     to: '/?projects=ui',

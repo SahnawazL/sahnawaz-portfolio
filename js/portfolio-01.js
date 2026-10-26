@@ -3,7 +3,7 @@
 (function() {
   var kta3DB = {
     kt1: { icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v4a4 4 0 0 1-8 0V4z"/><path d="M8 5H5a3 3 0 0 0 3 3"/><path d="M16 5h3a3 3 0 0 1-3 3"/><path d="M12 12v3"/><path d="M9 19h6"/><path d="M10 19v-2a2 2 0 0 1 4 0v2"/></svg>', title:'GitHub — 2,600+ Contributions (4 Repos)', group:'tech', accent:'#60a5fa',
-      desc:'Consistency is the rarest skill in development. Across all 4 of my repositories, I\'ve logged 2,600+ contributions over the past year — with a 44-day active streak and a 63-day longest streak on record (last updated 14 Sep 2026). Every push represents a deliberate, version-controlled improvement. This discipline shaped how I think: in iterations, not leaps.',
+      desc:'Consistency is the rarest skill in development. Across all 4 of my repositories, I\'ve logged 3,100+ contributions on GitHub — with an 87-day active streak, which is also my longest so far (as of 26 Oct 2026). Every push represents a deliberate, version-controlled improvement. This discipline shaped how I think: in iterations, not leaps.',
       tags:['Git','Version Control','Commit Streak','4 Repos','Consistency'] },
     kt2: { icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5c2.5 1.5 4 4.5 4 8 0 2-.5 3.8-1.3 5.2l-2.7 3-2.7-3C8.5 14.3 8 12.5 8 10.5c0-3.5 1.5-6.5 4-8z"/><circle cx="12" cy="9" r="1.6"/><path d="M8.3 13.5c-1.8.4-3 1.6-3.3 4.3 1.8-.6 3.1-1.4 3.9-2.4"/><path d="M15.7 13.5c1.8.4 3 1.6 3.3 4.3-1.8-.6-3.1-1.4-3.9-2.4"/><path d="M10.2 18.7c.5 1 1 1.8 1.8 2.3.8-.5 1.3-1.3 1.8-2.3"/></svg>', title:'Deployed 50+ Web Projects', group:'tech', accent:'#34d399',
       desc:'Building locally is one thing. Shipping to the real world — with real users, real traffic, and real consequences — is another. Beyond my 4 flagship products (this portfolio, StudyLens AI, YojanaSahay, and the SHG Directory), I\'ve deployed 50+ web projects overall — store management systems, e-commerce setups, personal portfolios, school websites, restaurant websites, and more — managing deployment pipelines, domain config, and post-launch iteration for each.',
@@ -36,8 +36,8 @@
       desc:'Numbers matter less than who\'s behind them. YojanaSahay helps everyday citizens discover and check eligibility for government welfare schemes. StudyLens AI answers real academic questions for Assam students. The SHG Directory turns Self Help Group data from Cachar district into something people can actually use. Three public, solo-built projects doing real work — not internal demos.',
       tags:['Civic Tech','Public Access','YojanaSahay','StudyLens AI','SHG Directory'] },
     ki4: { icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>', title:'Portfolio — Engineered from Scratch', group:'impact', accent:'#00d4ff',
-      desc:'This portfolio is not a template. Every line — from the particle canvas and matrix rain footer, to the AI-powered live chat, skill bars, hacker mode, animated profile ring, and this very achievement system — is hand-coded in pure HTML, CSS, and vanilla JavaScript. No frameworks, no page builders. 16,000+ lines of deliberate, performance-optimised code, built to showcase what a developer who truly understands the web can create solo.',
-      tags:['Vanilla JS','CSS Animations','AI Chatbot','Performance','16k+ Lines','Zero Templates'] },
+      desc:'This portfolio is not a template. Every line — from the particle canvas and matrix rain footer, to the AI-powered live chat, skill bars, hacker mode, animated profile ring, and this very achievement system — is hand-coded in pure HTML, CSS, and vanilla JavaScript. No frameworks, no page builders. 50,000+ lines of deliberate, performance-optimised code, built to showcase what a developer who truly understands the web can create solo.',
+      tags:['Vanilla JS','CSS Animations','AI Chatbot','Performance','50k+ Lines','Zero Templates'] },
     ki5: { icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg>', title:'Live System Health Dashboard', group:'impact', accent:'#2dd4bf',
       desc:'The "Recently Shipped" panel on this page runs its own independent health check — GitHub API, Firestore, and the push webhook — each shown with a live status dot and real latency in milliseconds, not a static "all systems operational" badge. It auto-rechecks every 30 seconds to match the endpoint\'s own cache window, and uses the Page Visibility API to pause polling the moment the tab goes hidden — so it never silently burns GitHub or Firestore quota in a forgotten background tab — then immediately re-checks the instant the tab comes back if enough time has passed. The same pattern real status dashboards use, built solo and self-contained.',
       tags:['System Status API','Firestore','Page Visibility API','Self-Healing Polling','Live Monitoring'] },
@@ -59,6 +59,38 @@
   };
 
   var activeCard = { tech: null, impact: null };
+  /* Live streak: the GitHub Action refreshes profile/streak.svg every day, so the
+     "Consistency" card reads its numbers from that file instead of going stale.
+     The three big (28px) values are, in order: total contributions, current
+     streak, longest streak. Any parse problem keeps the written fallback. */
+  (function () {
+    function run() {
+      if (!window.fetch) return;
+      fetch('profile/streak.svg', { cache: 'no-cache' })
+        .then(function (r) { return r.ok ? r.text() : Promise.reject(); })
+        .then(function (svg) {
+          var v = [];
+          svg.replace(/<text[^>]*font-size=["']28px["'][^>]*>([^<]+)<\/text>/g, function (_, x) { v.push(x.trim()); return _; });
+          if (v.length < 3) return;
+          var total = v[0], cur = parseInt(v[1].replace(/\D/g, ''), 10), best = parseInt(v[2].replace(/\D/g, ''), 10);
+          if (!/\d/.test(total) || isNaN(cur) || isNaN(best)) return;
+          var art = function (n) { var t = String(n); return /^8/.test(t) || /^1[18](\d{3})?$/.test(t) ? 'an' : 'a'; };
+          var streak = cur > 0
+            ? (cur >= best ? 'with ' + art(cur) + ' ' + cur + '-day active streak running right now — my longest yet'
+                           : 'with ' + art(cur) + ' ' + cur + '-day active streak right now and ' + art(best) + ' ' + best + '-day longest streak on record')
+            : 'with ' + art(best) + ' ' + best + '-day longest streak on record';
+          kta3DB.kt1.desc = 'Consistency is the rarest skill in development. Across my repositories, I\'ve logged ' + total
+            + ' contributions on GitHub — ' + streak + ' (live from my GitHub stats, refreshed daily). Every push represents a deliberate, version-controlled improvement. This discipline shaped how I think: in iterations, not leaps.';
+          if (activeCard.tech && activeCard.tech.getAttribute('data-id') === 'kt1') {
+            var el = document.getElementById('kta3-desc-tech'); if (el) el.textContent = kta3DB.kt1.desc;
+          }
+        })
+        .catch(function () {});
+    }
+    var go = function () { ('requestIdleCallback' in window) ? requestIdleCallback(run, { timeout: 4000 }) : setTimeout(run, 2000); };
+    if (document.readyState === 'complete') go(); else window.addEventListener('load', go, { once: true });
+  })();
+
 
   // Moves the shared drawer to sit directly after the LAST card in the
   // same visual row as the clicked card, instead of always trailing at
