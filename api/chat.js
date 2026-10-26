@@ -60,7 +60,7 @@ function getYojanaSahayLiveStats() {
     const res = await fetch('https://yojanasahay.vercel.app/api/stats', { signal: AbortSignal.timeout(4000) });
     if (!res.ok) throw new Error(`bad status ${res.status}`);
     const data = await res.json();
-    if (typeof data.schemeCount !== 'number' || typeof data.linkHealthPercent !== 'number') throw new Error('missing expected fields');
+    if (typeof data.schemeCount !== 'number') throw new Error('missing expected fields');
     return data;
   }, 1200, 'YojanaSahay stats');
 }
@@ -408,12 +408,21 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
   // ── Live values, only when a chosen section shows them ─────────────────
   const needs = placeholdersIn(plan.used);
   const [yojanaStats, githubSnapshot] = await Promise.all([
-    needs.includes('yojanaSchemesLine') ? getYojanaSahayLiveStats() : null,
+    (needs.includes('yojanaSchemesLine') || needs.includes('impactLine')) ? getYojanaSahayLiveStats() : null,
     needs.includes('recentShippedLine') ? getGithubActivitySnapshot() : null
   ]);
   const yojanaSchemesLine = yojanaStats
-    ? `Covers: ${yojanaStats.schemeCount.toLocaleString('en-IN')}+ Central and State government schemes tracked (${yojanaStats.linkHealthPercent}% of links currently verified live) across every state in India`
+    ? `Covers: ${yojanaStats.schemeCount.toLocaleString('en-IN')}+ Central and State government schemes tracked`
+      + (typeof yojanaStats.linkHealthPercent === 'number' ? ` (${yojanaStats.linkHealthPercent}% of links currently verified live)` : '')
+      + ' across all 34 states and UTs in India'
     : 'Covers: 1,200+ Central and State government schemes across all 34 states and UTs in India';
+  // Real usage only: the eligibility-check count YojanaSahay shows publicly on its
+  // own home page ("Indians helped"). No other user/visitor figure exists to quote.
+  const helped = yojanaStats && typeof yojanaStats.checkerTotal === 'number' && yojanaStats.checkerTotal > 0
+    ? Math.floor(yojanaStats.checkerTotal) : 0;
+  const impactLine = helped
+    ? `Real, verifiable usage (live): YojanaSahay's eligibility checker has been completed ${helped.toLocaleString('en-IN')}+ times — the same "Indians helped" number shown publicly on yojanasahay.vercel.app (web, app and Telegram bot combined).`
+    : 'Real usage: YojanaSahay shows its live "Indians helped" count publicly on yojanasahay.vercel.app — point visitors there instead of quoting a number.';
 
   let recentShippedLine;
   if (githubSnapshot) {
@@ -435,7 +444,7 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
     recentShippedLine = 'Live GitHub data is temporarily unavailable right now — Sahnawaz ships regularly across his portfolio, StudyLens AI, and YojanaSahay.';
   }
 
-  const retrieved = buildKnowledge(trimmed, recent, Object.assign({}, hints, { yojanaSchemesLine, recentShippedLine }), { force });
+  const retrieved = buildKnowledge(trimmed, recent, Object.assign({}, hints, { yojanaSchemesLine, recentShippedLine, impactLine }), { force });
 
   const stateBlock = stateText(ctx);
   // The question's topic goes last, where the model weighs it most.
