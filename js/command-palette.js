@@ -136,7 +136,11 @@
     { t:'Instagram', s:'@sahnawaz.ui.dev',          g:'Links', i:I.link, k:'instagram social ig',
       run:function(){ openExternal('https://www.instagram.com/sahnawaz.ui.dev'); return true; } },
     { t:'YojanaSahay (live)', s:'yojanasahay.vercel.app', g:'Links', i:I.link, k:'yojana live app open',
-      run:function(){ openExternal('https://yojanasahay.vercel.app'); return true; } }
+      run:function(){ openExternal('https://yojanasahay.vercel.app'); return true; } },
+    { t:'YojanaSahay on Telegram', s:'@YojanaSahayBot', g:'Links', i:I.link, k:'yojana telegram bot scheme check',
+      run:function(){ openExternal('https://t.me/YojanaSahayBot'); return true; } },
+    { t:'YojanaSahay source code', s:'GitHub · MIT licence', g:'Links', i:I.link, k:'yojana github source open code repo',
+      run:function(){ openExternal('https://github.com/SahnawazL/Yojana-Sahay'); return true; } }
   ];
 
   /* ---------- fuzzy matching -------------------------------

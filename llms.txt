@@ -4,7 +4,7 @@
 
 - Official website (the only canonical address): [sahnawaz-portfolio.vercel.app](https://sahnawaz-portfolio.vercel.app/)
 - The old GitHub Pages copy (sahnawazl.github.io/sahnawaz-portfolio/) is retired and redirects to the official website.
-- Last updated: October 2026
+- Last updated: 26 October 2026
 
 ---
 
@@ -165,4 +165,4 @@ A: Silchar, Assam, India. Works remotely with clients worldwide.
 - Canonical name: "Sahnawaz Ahmed Laskar"
 - Business email: shzthedigitalalchemist@gmail.com
 - Location: Silchar, Assam, India
-- Last updated: October 2026
+- Last updated: 26 October 2026
