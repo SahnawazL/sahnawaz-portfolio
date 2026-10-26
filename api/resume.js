@@ -301,7 +301,9 @@ function visitorResumeEmail({ name, refId, now, requestSource }) {
                   <div style="font-size:0.85rem;color:#c8e8ff;font-weight:700;margin-bottom:4px;">YojanaSahay</div>
                   <div style="font-size:0.78rem;color:#7ea5b8;line-height:1.6;">
                     Bilingual (Hindi &amp; English) civic-tech platform helping Indian
-                    citizens discover government welfare schemes, with an AI eligibility checker.
+                    citizens discover 1,200+ government welfare schemes, with an AI eligibility checker &mdash;
+                    on the web, as an Android app and as a Telegram bot. Open source with open data;
+                    Digital Public Goods application under review.
                   </div>
                 </td>
               </tr>

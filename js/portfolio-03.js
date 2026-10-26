@@ -1914,9 +1914,9 @@ function mpjFilter(cat, btn) {
              in the surrounding sentence (e.g. the separate "569 verifiable
              / 544 offline-only" breakdown, which isn't derived from this
              API and is left untouched). */
-          if (ys.lede) ys.lede = ys.lede.replace('1,116', liveCount);
-          if (ys.diagram) ys.diagram = ys.diagram.replace('1,116 schemes', liveCount + ' schemes');
-          if (ys.metrics && ys.metrics[0]) ys.metrics[0] = ys.metrics[0].replace('1,116', liveCount);
+          if (ys.lede) ys.lede = ys.lede.replace('1,201', liveCount);
+          if (ys.diagram) ys.diagram = ys.diagram.replace('1,201 schemes', liveCount + ' schemes');
+          if (ys.metrics && ys.metrics[0]) ys.metrics[0] = ys.metrics[0].replace('1,201', liveCount);
         }
       } else {
         el.setAttribute('data-state', 'cached'); // fields missing/null — badge goes quiet amber

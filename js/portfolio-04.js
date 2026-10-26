@@ -97,24 +97,27 @@
       icon: '🇮🇳',
       status: '● LIVE — yojanasahay.vercel.app',
       title: 'YojanaSahay — AI Government Scheme Finder',
-      lede: 'Millions of Indians qualify for welfare schemes they never find out about — the information is scattered across thousands of government pages, in English, written for officials rather than citizens. YojanaSahay is a bilingual AI layer over 1,116 Central and State schemes across 28 states, backed by a production-grade verification pipeline that keeps that data honest instead of going stale the way most scheme-listing sites do.',
+      lede: 'Millions of Indians qualify for welfare schemes they never find out about — the information is scattered across thousands of government pages, in English, written for officials rather than citizens. YojanaSahay is a bilingual AI layer over 1,201 Central and State schemes across all 34 states and UTs, backed by a production-grade verification pipeline that keeps that data honest instead of going stale the way most scheme-listing sites do. It now reaches people where they already are: as an installable web app, an Android app and a Telegram bot that runs the same checker and assistant — and the code and scheme data are open, with a Digital Public Goods application under review.',
       stack: [
         'React 18 (PWA, bilingual EN/HI)',
-        'Vercel Serverless Functions — 30+ endpoints',
+        'Android app — Trusted Web Activity, built in GitHub Actions',
+        'Vercel Serverless Functions — 12 (Hobby cap), routed endpoints',
         'Firebase / Firestore',
-        'Groq LLM — openai/gpt-oss-20b',
+        'Groq LLM — gpt-oss-120b agent with tools, gpt-oss-20b fallback',
+        'Telegram Bot API — webhook bot',
+        'Upstash KV — short-lived chat memory, rate limits',
         'Tavily Extract API',
         'Serper (Google Search) API',
         'GitHub Actions — cron workers',
         'KV-backed cross-instance key rotation'
       ],
       stats: [
-        { value: '1,116', label: 'schemes tracked, 28 states' },
+        { value: '1,201', label: 'schemes tracked, 34 states & UTs' },
         { value: '78%',   label: 'links verified live' },
-        { value: '569',   label: 'schemes in active verify queue' },
+        { value: '3',     label: 'channels — web, Android, Telegram' },
         { value: '6',     label: 'Groq keys — chat rotation pool' },
-        { value: '454',   label: 'combined API calls / 30 days' },
-        { value: '30+',   label: 'serverless functions in prod' }
+        { value: '2,000+', label: 'commits, built solo' },
+        { value: '12',    label: 'Vercel functions — bot shares one' }
       ],
       diagram: '<svg class="cs-diagram" viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg">'
         + '<defs><marker id="csArrow1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#22d3ee"/></marker></defs>'
@@ -124,7 +127,7 @@
         + '<line x1="166" y1="163" x2="194" y2="163" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#csArrow1)"/>'
         + '<rect x="196" y="135" width="170" height="56" rx="10" fill="rgba(34,211,238,0.08)" stroke="#22d3ee" stroke-width="1.5"/>'
         + '<text x="281" y="159" text-anchor="middle" fill="#eafffb" font-size="11.5" font-weight="700">Vercel Functions</text>'
-        + '<text x="281" y="175" text-anchor="middle" fill="rgba(220,240,245,0.65)" font-size="9">30+ serverless endpoints</text>'
+        + '<text x="281" y="175" text-anchor="middle" fill="rgba(220,240,245,0.65)" font-size="9">12 functions · routed endpoints</text>'
         + '<rect x="16" y="230" width="150" height="50" rx="10" fill="rgba(160,170,185,0.08)" stroke="#9aa5b1" stroke-width="1.5"/>'
         + '<text x="91" y="252" text-anchor="middle" fill="#eafffb" font-size="11" font-weight="700">GitHub Actions</text>'
         + '<text x="91" y="268" text-anchor="middle" fill="rgba(220,240,245,0.6)" font-size="8.7">Daily verify-schemes cron</text>'
@@ -148,7 +151,7 @@
         + '<text x="507" y="209" text-anchor="middle" fill="rgba(220,240,245,0.65)" font-size="8.3">Dead-link replacement finder</text>'
         + '<rect x="396" y="230" width="222" height="48" rx="9" fill="rgba(192,132,252,0.08)" stroke="#c084fc" stroke-width="1.4"/>'
         + '<text x="507" y="250" text-anchor="middle" fill="#eafffb" font-size="10.5" font-weight="700">Firestore</text>'
-        + '<text x="507" y="265" text-anchor="middle" fill="rgba(220,240,245,0.65)" font-size="8.3">1,116 schemes · Admin Control Centre</text>'
+        + '<text x="507" y="265" text-anchor="middle" fill="rgba(220,240,245,0.65)" font-size="8.3">1,201 schemes · Admin Control Centre</text>'
         + '</svg>',
       embed: {
         title: 'Scheme Eligibility Checker — Live Module',
@@ -164,7 +167,7 @@
         {
           title: 'A two-tier system for "is this link actually dead?"',
           problem: 'A simple ping-and-flag approach for scheme URLs produced false positives — pages that moved, not pages that died \u2014 and admins had no way to tell the difference without opening every link by hand.',
-          fix: 'Tier 1 is a fast <code>HEAD</code>-with-<code>GET</code>-fallback ping across every scheme (mirrored in <code>ping-url.js</code> and reused inline in <code>find-new-url.js</code>). Anything that fails Tier 1 gets queued for Tier 2: <code>verify-scheme.js</code> pulls the page through Tavily Extract, strips it down to 4,000 clean characters, and sends it to Groq (<code>openai/gpt-oss-20b</code>, migrated off <code>llama-3.1-8b-instant</code> after Groq deprecated it) with a JSON-only prompt asking for exactly three fields: <code>lastDate</code>, <code>isActive</code>, <code>confidence</code>. 569 of the 1,116 schemes are currently "verifiable" (online + real URL) \u2014 the other 544 are offline-only (bank/CSC/in-person) and correctly excluded from the queue entirely rather than reported as false failures.'
+          fix: 'Tier 1 is a fast <code>HEAD</code>-with-<code>GET</code>-fallback ping across every scheme (mirrored in <code>ping-url.js</code> and reused inline in <code>find-new-url.js</code>). Anything that fails Tier 1 gets queued for Tier 2: <code>verify-scheme.js</code> pulls the page through Tavily Extract, strips it down to 4,000 clean characters, and sends it to Groq (<code>openai/gpt-oss-20b</code>, migrated off <code>llama-3.1-8b-instant</code> after Groq deprecated it) with a JSON-only prompt asking for exactly three fields: <code>lastDate</code>, <code>isActive</code>, <code>confidence</code>. At the time, 569 of the 1,116 schemes were "verifiable" (online + real URL) \u2014 the other 544 are offline-only (bank/CSC/in-person) and correctly excluded from the queue entirely rather than reported as false failures.'
         },
         {
           title: 'Making the model admit when it doesn\u2019t know',
@@ -180,10 +183,23 @@
           title: 'A failed tool call isn\u2019t the same as a failed key',
           problem: 'Groq\u2019s function-calling occasionally returned <code>tool_use_failed</code> \u2014 the model couldn\u2019t format a valid <code>web_search</code> call for a specific prompt. The app was treating this like a dead key and rotating to the next one, which just produced the exact same failure again, since the problem was the prompt shape, not the key.',
           fix: 'Split the two failure classes explicitly in <code>chat.js</code>: true key-level failures (<code>401</code>, <code>organization_restricted</code>, <code>invalid_api_key</code>, <code>429</code>) rotate to the next key in the pool; <code>tool_use_failed</code> instead retries once on the *same* key with the <code>web_search</code> tool simply omitted \u2014 so the user still gets a normal, non-search answer instead of a raw error bubbling up from a retry loop that could never have succeeded.'
+        },
+        {
+          title: 'A Telegram bot with no server left to put it on',
+          problem: 'The Vercel Hobby plan allows 12 serverless functions and every one was already in use \u2014 so a Telegram bot couldn\u2019t get its own endpoint.',
+          fix: 'Routed the webhook into an existing function instead: a rewrite sends <code>/api/telegram</code> to the stats function with a flag, which hands the request to the bot module before doing anything else. The webhook secret is derived from the bot token rather than stored separately, and the bot reuses the app\u2019s own eligibility rules and AI tools, so the web app and the bot can never disagree about who qualifies.'
+        },
+        {
+          title: 'An eligibility quiz that stores nothing',
+          problem: 'A step-by-step quiz in a chat app normally means saving each person\u2019s answers on a server between messages \u2014 personal data I didn\u2019t want to hold.',
+          fix: 'Encoded the whole quiz state into the buttons themselves: each answer is one character (the state is two), packed into Telegram\u2019s 64-byte <code>callback_data</code>. Every tap carries everything answered so far, so no quiz database is needed \u2014 the only server-side copy is a one-hour, auto-deleting chat memory for follow-up questions, unless the person opts in to alerts \u2014 and the same short code opens the web app with those answers pre-filled.'
         }
       ],
       metrics: [
-        '1,116 schemes across 28 states',
+        '1,201 schemes across 34 states & UTs',
+        'Telegram bot — same eligibility checker and AI assistant, no account, auto-deleting memory',
+        'Open source (MIT) + open scheme data in JSON & CSV — Digital Public Goods application under review',
+        'Android app built automatically in CI — in review on Indus Appstore',
         'Two-tier verification — dead-link ping + AI content extraction',
         'Independent Groq key-rotation pools for chat vs. verification',
         'Confidence thresholds enforced in code, not just in the prompt',

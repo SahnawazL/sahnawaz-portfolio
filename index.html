@@ -3444,8 +3444,9 @@ window.addEventListener('resize', () => {
         <span class="mpj-card-status mpj-status-live">● LIVE</span>
       </div>
       <div class="mpj-card-name">Yojana Sahay — AI Government Scheme Finder</div>
-      <div class="mpj-card-tagline">India's free AI-powered platform to discover Central and State government welfare schemes. Bilingual (Hindi &amp; English) with an AI eligibility checker — built for every Indian citizen who deserves to know their benefits.</div>
+      <div class="mpj-card-tagline">India's free platform to find the Central and State government welfare schemes you qualify for — 1,200+ schemes across all 34 states &amp; UTs, in Hindi &amp; English. Runs on the web, as an Android app and as a Telegram bot, with an AI assistant and a 2-minute eligibility check.</div>
       <div class="mpj-problem">Problem → Millions of Indians miss welfare schemes they qualify for due to lack of awareness and complex eligibility rules. Built a single AI-powered discovery engine covering the entire scheme database.</div>
+      <div class="mpj-metric"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg> Telegram bot live · Open data · DPG application in review · Android app in review</div>
       <div class="ys-console" id="yojanasahay-live-metric" data-state="connecting" tabindex="0">
         <div class="ys-console-badge" aria-hidden="true"><span class="ys-console-rec"></span>LIVE</div>
         <div class="ys-ring-wrap">
@@ -3457,7 +3458,7 @@ window.addEventListener('resize', () => {
         </div>
         <div class="ys-console-main">
           <div class="ys-console-count">
-            <span id="ys-live-count">1,116</span><span class="ys-console-plus">+</span>
+            <span id="ys-live-count">1,201</span><span class="ys-console-plus">+</span>
             <span class="ys-console-label">schemes tracked</span>
           </div>
           <div class="ys-console-sub" id="ys-console-sub">connecting to live data<span class="ys-ellipsis"><span>.</span><span>.</span><span>.</span></span></div>
@@ -3467,14 +3468,15 @@ window.addEventListener('resize', () => {
         </div>
       </div>
       <div class="mpj-stack">
-        <span class="mpj-pill">JavaScript</span>
-        <span class="mpj-pill">AI Integration</span>
-        <span class="mpj-pill">Vercel</span>
-        <span class="mpj-pill">Hindi / English</span>
-        <span class="mpj-pill">REST API</span>
+        <span class="mpj-pill">React</span>
+        <span class="mpj-pill">Firebase</span>
+        <span class="mpj-pill">Groq AI Agents</span>
+        <span class="mpj-pill">PWA + Android</span>
+        <span class="mpj-pill">Telegram Bot API</span>
+        <span class="mpj-pill">Open Data</span>
         <span class="mpj-pill">SEO</span>
       </div>
-      <div class="mpj-hindsight"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.5.4.8.9.8 1.5v.1h5.4v-.1c0-.6.3-1.1.8-1.5A6 6 0 0 0 12 3z"/></svg> Would add state-level filtering and WhatsApp bot integration so citizens can check eligibility without even opening a browser.</div>
+      <div class="mpj-hindsight"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.5.4.8.9.8 1.5v.1h5.4v-.1c0-.6.3-1.1.8-1.5A6 6 0 0 0 12 3z"/></svg> The Telegram bot now lets people check eligibility without opening a browser — next is the same check on WhatsApp, and more Indian languages beyond Hindi and English.</div>
       <div class="mpj-demo-hint">// <b>Scheme Eligibility Checker</b> — a live module of this app, embedded in the Case Study below. Open it to test the actual checker.</div>
       <div class="mpj-card-meta">
         <span class="mpj-role-tag">Solo Built · Civic Tech + AI</span>
@@ -5358,10 +5360,12 @@ document.addEventListener('DOMContentLoaded', function(){
 
         <article class="cv-proj">
           <h3>YojanaSahay <span class="cv-link">yojanasahay.vercel.app</span></h3>
-          <p>A React and Firebase welfare-scheme eligibility and discovery app for Indian citizens, with a
-             Groq-powered assistant that matches people to schemes they qualify for. Bilingual, installable
-             as a PWA, <b>1,900+ commits</b>, designed, built and maintained solo.</p>
-          <p class="cv-stack"><b>Stack</b> React &middot; Vite &middot; Firebase &middot; Groq API &middot; PWA / service worker &middot; Vercel</p>
+          <p>A React and Firebase welfare-scheme eligibility and discovery app for Indian citizens, covering
+             <b>1,200+</b> Central and State schemes, with a Groq-powered assistant that matches people to schemes
+             they qualify for. Bilingual, installable as a PWA and an Android app, with a Telegram bot
+             (@YojanaSahayBot) running the same checker and assistant. Open source (MIT) with open scheme data;
+             Digital Public Goods application under review. <b>2,000+ commits</b>, designed, built and maintained solo.</p>
+          <p class="cv-stack"><b>Stack</b> React &middot; Vite &middot; Firebase &middot; Groq API &middot; PWA / Android TWA &middot; Telegram Bot API &middot; Vercel</p>
         </article>
 
         <article class="cv-proj">
@@ -5374,7 +5378,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
         <article class="cv-proj">
           <h3>Personal Portfolio &amp; Engineering Platform <span class="cv-link">sahnawaz-portfolio.vercel.app</span></h3>
-          <p><b>22,000+ lines</b> of hand-written HTML, CSS and JavaScript across <b>950+ commits</b> &mdash; zero frameworks, zero templates, zero UI libraries. Built as a working engineering platform rather
+          <p><b>22,000+ lines</b> of hand-written HTML, CSS and JavaScript across <b>1,000+ commits</b> &mdash; zero frameworks, zero templates, zero UI libraries. Built as a working engineering platform rather
              than a brochure: it measures itself, adapts to the visitor&rsquo;s device and exposes its own
              infrastructure in public &mdash; detailed below.</p>
           <p class="cv-stack"><b>Stack</b> Vanilla JS modules &middot; CSS custom properties &middot; Firebase Auth &amp; Firestore &middot;

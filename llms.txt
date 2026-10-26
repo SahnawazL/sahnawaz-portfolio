@@ -44,6 +44,14 @@
 
 ---
 
+## Projects
+
+- **YojanaSahay** — [yojanasahay.vercel.app](https://yojanasahay.vercel.app): a free, independent (not government) app that helps people in India find the Central and State welfare schemes they qualify for. 1,200+ schemes across all 34 states and UTs, Hindi and English, with an AI assistant and a 2-minute eligibility check. Also available as a Telegram bot ([@YojanaSahayBot](https://t.me/YojanaSahayBot)) and as an Android app (in review on Indus Appstore, October 2026). Open source under the MIT licence ([GitHub](https://github.com/SahnawazL/Yojana-Sahay)) with open scheme data in JSON and CSV. Applied to the Digital Public Goods Registry in October 2026 — the application is under review. Built solo, 2,000+ commits.
+- **StudyLens AI** — [studylens-ai-gamma.vercel.app](https://studylens-ai-gamma.vercel.app): an AI homework helper for Class KG–12 students on SEBA, AHSEC, CBSE and ICSE boards, in English, Bengali, Hindi and Assamese.
+- **This portfolio** — hand-coded with no frameworks or templates, with its own AI assistant, live GitHub activity and performance telemetry.
+
+---
+
 ## Professional Summary
 
 Sahnawaz Ahmed Laskar is a Full Stack Developer and UI/UX Designer from Silchar, Assam, India.

@@ -413,7 +413,7 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
   ]);
   const yojanaSchemesLine = yojanaStats
     ? `Covers: ${yojanaStats.schemeCount.toLocaleString('en-IN')}+ Central and State government schemes tracked (${yojanaStats.linkHealthPercent}% of links currently verified live) across every state in India`
-    : 'Covers: 1,116+ Central and State government schemes across every state in India';
+    : 'Covers: 1,200+ Central and State government schemes across all 34 states and UTs in India';
 
   let recentShippedLine;
   if (githubSnapshot) {
