@@ -61,7 +61,9 @@
     }).join('') + '</ul>';
   }
 
-  function render(r) {
+  var sharedId = null;
+  function render(r, opts) {
+    opts = opts || {};
     var col = COLORS[r.fit] || '#38bdf8';
     var C = 2 * Math.PI * 38;
     out.style.setProperty('--jf', col);
@@ -85,8 +87,14 @@
       +   '<button type="button" class="jf-act" data-jf="contact">✉️ Contact me</button>'
       +   '<button type="button" class="jf-act" data-jf="ask">💬 Ask my assistant</button>'
       +   '<button type="button" class="jf-act" data-jf="copy">📋 Copy report</button>'
+      +   (sharedId ? '<button type="button" class="jf-act" data-jf="share">🔗 Share report</button>' : '')
       + '</div>'
       + '<p class="jf-disclaimer">AI-generated from the facts on this website only — nothing is added or guessed. Please confirm anything important in a conversation with me.</p>';
+    if (opts.shared) {
+      var when = opts.createdAt ? new Date(opts.createdAt) : null;
+      out.insertAdjacentHTML('afterbegin', '<div class="jf-shared">Shared report' + (when && !isNaN(when) ? ' · created ' + esc(when.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })) : '')
+        + ' · paste your own job post above to run a new check</div>');
+    }
     out.classList.add('on');
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
@@ -130,7 +138,7 @@
       .then(function (r) { return r.json().catch(function () { return { ok: false, reason: r.status === 429 ? 'busy' : 'ai' }; }); })
       .then(function (d) {
         stopLoading();
-        if (d && d.ok && d.result) { last = d.result; render(d.result); try { if (window.gtag) gtag('event', 'job_fit_check', { fit: d.result.fit }); } catch (e) {} return; }
+        if (d && d.ok && d.result) { last = d.result; sharedId = d.id || null; render(d.result); try { if (window.gtag) gtag('event', 'job_fit_check', { fit: d.result.fit }); } catch (e) {} return; }
         var reason = d && (d.busy ? 'busy' : d.reason);
         fail(reason === 'short'
           ? 'That looks too short to judge — paste the full job description, including the requirements.'
@@ -160,12 +168,38 @@
       if (c) c.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else if (what === 'ask') {
       if (typeof window.openChat === 'function') window.openChat();
+    } else if (what === 'share') {
+      if (!sharedId) return;
+      var link = 'https://sahnawaz-portfolio.vercel.app/?fit=' + sharedId;
+      var flash = function () { b.textContent = '✓ Link copied'; setTimeout(function () { b.textContent = '🔗 Share report'; }, 1800); };
+      if (navigator.share) {
+        navigator.share({ title: 'Job fit — Sahnawaz Ahmed Laskar', text: last.role + ': ' + (LABELS[last.fit] || last.fit) + ' (' + last.score + '/100)', url: link }).catch(function () {});
+      } else if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(link).then(flash, function () {});
+      else window.prompt('Copy this link:', link);
     } else if (what === 'copy') {
       var t = plain(last), done = function () { b.textContent = '✓ Copied'; setTimeout(function () { b.textContent = '📋 Copy report'; }, 1800); };
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, function () {});
       else { var ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); done(); } catch (x) {} ta.remove(); }
     }
   });
+
+  /* ?fit=<id> opens a saved report (shared by a recruiter), kept for 30 days */
+  (function openShared() {
+    var id = null;
+    try { id = new URLSearchParams(location.search).get('fit'); } catch (e) {}
+    if (!id || !/^[a-z0-9]{10}$/.test(id)) return;
+    setTimeout(function () { root.scrollIntoView({ behavior: 'auto', block: 'start' }); }, 300);
+    loadMsg.textContent = 'Opening the shared report…';
+    loading.classList.add('on');
+    fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ source: 'fit-get', message: 'get', id: id, history: [] }) })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        stopLoading();
+        if (d && d.ok && d.result) { last = d.result; sharedId = id; render(d.result, { shared: true, createdAt: d.createdAt }); }
+        else fail('This shared report has expired or doesn’t exist. Reports are kept for 30 days — paste the job post to run a new check.');
+      })
+      .catch(function () { fail('Couldn’t open the shared report right now. Please try again.'); });
+  })();
 
   updateCount();
 })();

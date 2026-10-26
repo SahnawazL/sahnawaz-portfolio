@@ -164,9 +164,19 @@ async function handleChat(req, res) {
   // ── JOB FIT CHECK ───────────────────────────────────────────────────────
   // A recruiter pastes a job description; lib/job-fit.js returns an honest,
   // evidence-based fit report built only from the site's own facts.
+  if (source === 'fit-get') {
+    try {
+      const rep = await jobFit.load(req.body && req.body.id);
+      return res.status(200).json(rep ? Object.assign({ ok: true }, rep) : { ok: false, reason: 'gone' });
+    } catch (e) {
+      console.error('[fit] load failed:', e && e.message);
+      return res.status(200).json({ ok: false, reason: 'gone' });
+    }
+  }
   if (source === 'fit') {
     try {
       const out = await jobFit.assess(apiKey, trimmed);
+      if (out.ok) out.id = await jobFit.afterCheck(out.result);
       return res.status(200).json(out);
     } catch (e) {
       console.error('[fit] failed:', e && e.message);

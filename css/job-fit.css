@@ -110,6 +110,8 @@
 .jf-act:hover { background: rgba(56,189,248,.15); }
 .jf-act:focus-visible { outline: 2px solid #7dd3fc; outline-offset: 2px; }
 .jf-act.primary { color: #021018; background: linear-gradient(90deg,#38bdf8,#00ffd0); border-color: transparent; }
+.jf-shared { margin: 0 0 .7rem; padding: .55rem .8rem; border-radius: 10px; font: 600 .76rem/1.4 'DM Sans', sans-serif; color: #bae6fd;
+  background: rgba(56,189,248,.08); border: 1px solid rgba(56,189,248,.22); }
 .jf-disclaimer { margin: .8rem .2rem 0; font: 400 .7rem/1.5 'DM Sans', sans-serif; color: rgba(160,200,220,.5); }
 
 @media (max-width: 640px) {
