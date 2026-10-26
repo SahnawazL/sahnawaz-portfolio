@@ -3714,39 +3714,106 @@ window.addEventListener('resize', () => {
     <div id="pgPanel"><div class="pg-row"><span class="pg-h">Performance mode</span><span class="pg-seg" role="group" aria-label="Performance mode"><button type="button" data-pg-mode="auto" aria-pressed="true" class="is-on">Auto</button><button type="button" data-pg-mode="full" aria-pressed="false">Full</button><button type="button" data-pg-mode="lite" aria-pressed="false">Lite</button></span></div><div class="pg-st"><i class="pg-dot is-full"></i><div><b>Full effects</b><span>decided automatically · checking this device…</span></div></div><div class="pg-meta">Scanning looping animations…</div></div>
   </div>
 
-  <!-- How I ship: the real path from a change to production -->
+  <!-- How I ship: the real path from a change to production.
+       A "liquid" pulse flows through the pipeline and lights each stage as it
+       passes. Starts when the card is on screen; still in reduced motion / Lite. -->
   <div class="hs-card" id="how-i-ship">
-    <div class="hs-head"><span class="hs-title">How I ship</span><span class="hs-tag">code → GitHub → live</span></div>
-    <ol class="hs-flow">
-      <li class="hs-step"><span class="hs-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/></svg></span>
-        <span class="hs-n">01</span><b>Plan &amp; build</b><span class="hs-d">Small, focused changes — one problem at a time.</span></li>
-      <li class="hs-step"><span class="hs-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v6M12 15v6"/></svg></span>
-        <span class="hs-n">02</span><b>Commit &amp; push</b><span class="hs-d">Every change is a Git commit on GitHub — 2,000+ on YojanaSahay alone.</span></li>
-      <li class="hs-step"><span class="hs-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg></span>
-        <span class="hs-n">03</span><b>Build check</b><span class="hs-d">Vercel builds every push. A build that fails never goes live.</span></li>
-      <li class="hs-step"><span class="hs-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg></span>
-        <span class="hs-n">04</span><b>Auto-deploy</b><span class="hs-d">Live in about a minute, with one-click rollback if anything is off.</span></li>
-      <li class="hs-step"><span class="hs-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg></span>
-        <span class="hs-n">05</span><b>Automate &amp; watch</b><span class="hs-d">GitHub Actions builds the Android app and runs daily jobs; live health checks and real-visitor speed data flag problems early.</span></li>
-    </ol>
+    <div class="hs-liquid" aria-hidden="true"><span class="hs-blob b1"></span><span class="hs-blob b2"></span><span class="hs-blob b3"></span></div>
+    <div class="hs-head"><span class="hs-title"><span class="hs-live" aria-hidden="true"></span>How I ship</span><span class="hs-tag">code → GitHub → live</span></div>
+    <div class="hs-body">
+      <div class="hs-pipe" aria-hidden="true"><span class="hs-flowline"></span><span class="hs-drop"></span></div>
+      <ol class="hs-flow">
+        <li class="hs-step" style="--i:0"><span class="hs-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/></svg></span>
+          <span class="hs-n">01</span><b>Plan &amp; build</b><span class="hs-d">Small, focused changes — one problem at a time.</span></li>
+        <li class="hs-step" style="--i:1"><span class="hs-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v6M12 15v6"/></svg></span>
+          <span class="hs-n">02</span><b>Commit &amp; push</b><span class="hs-d">Every change is a Git commit on GitHub — 2,000+ on YojanaSahay alone.</span></li>
+        <li class="hs-step" style="--i:2"><span class="hs-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg></span>
+          <span class="hs-n">03</span><b>Build check</b><span class="hs-d">Vercel builds every push. A build that fails never goes live.</span></li>
+        <li class="hs-step" style="--i:3"><span class="hs-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg></span>
+          <span class="hs-n">04</span><b>Auto-deploy</b><span class="hs-d">Live in about a minute, with one-click rollback if anything is off.</span></li>
+        <li class="hs-step" style="--i:4"><span class="hs-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg></span>
+          <span class="hs-n">05</span><b>Automate &amp; watch</b><span class="hs-d">GitHub Actions builds the Android app and runs daily jobs; live health checks and real-visitor speed data flag problems early.</span></li>
+      </ol>
+    </div>
   </div>
   <style>
-    .hs-card{max-width:900px;margin:0 auto 1.6rem;padding:1rem 1rem 1.05rem;border-radius:18px;background:rgba(6,20,30,.62);border:1px solid rgba(0,255,200,.13);
-      box-shadow:0 10px 30px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.04);text-align:left}
-    .hs-head{display:flex;justify-content:space-between;align-items:baseline;gap:.6rem;margin:0 .2rem .8rem}
-    .hs-title{font:800 .95rem/1.2 'Syne','DM Sans',sans-serif;color:#eafffb}
-    .hs-tag{font:500 .68rem/1 'Courier New',monospace;color:rgba(0,255,200,.6);letter-spacing:.04em}
-    .hs-flow{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,1fr);gap:.55rem;counter-reset:none}
-    .hs-step{position:relative;display:flex;flex-direction:column;gap:.3rem;padding:.75rem .7rem .8rem;border-radius:13px;background:rgba(2,12,20,.5);border:1px solid rgba(255,255,255,.06)}
-    .hs-step:not(:last-child)::after{content:'';position:absolute;top:1.5rem;right:-.5rem;width:.45rem;height:1px;background:rgba(0,255,200,.45)}
-    .hs-ic{width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;color:#00ffd0;background:rgba(0,255,208,.08);border:1px solid rgba(0,255,208,.2)}
+    .hs-card{--hs-t:6s;position:relative;isolation:isolate;overflow:hidden;max-width:900px;margin:0 auto 1.6rem;padding:1.05rem 1rem 1.1rem;border-radius:20px;
+      background:linear-gradient(160deg,rgba(6,24,34,.78),rgba(4,14,24,.86));border:1px solid rgba(0,255,200,.14);
+      box-shadow:0 14px 40px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.05);text-align:left}
+    /* liquid background: slow, morphing blurred blobs */
+    .hs-liquid{position:absolute;inset:-30%;z-index:-1;filter:blur(38px) saturate(1.2);opacity:.55;pointer-events:none}
+    .hs-blob{position:absolute;width:42%;height:60%;border-radius:42% 58% 63% 37%/45% 41% 59% 55%;mix-blend-mode:screen;animation:hsMorph 16s ease-in-out infinite alternate}
+    .hs-blob.b1{left:8%;top:18%;background:radial-gradient(circle at 40% 40%,rgba(0,255,208,.45),transparent 65%)}
+    .hs-blob.b2{left:44%;top:30%;background:radial-gradient(circle at 50% 50%,rgba(56,189,248,.42),transparent 65%);animation-duration:19s;animation-delay:-6s}
+    .hs-blob.b3{left:66%;top:6%;background:radial-gradient(circle at 50% 50%,rgba(139,92,246,.32),transparent 65%);animation-duration:22s;animation-delay:-11s}
+    @keyframes hsMorph{0%{transform:translate(0,0) rotate(0) scale(1);border-radius:42% 58% 63% 37%/45% 41% 59% 55%}
+      50%{transform:translate(6%,8%) rotate(40deg) scale(1.12);border-radius:61% 39% 44% 56%/58% 62% 38% 42%}
+      100%{transform:translate(-5%,-4%) rotate(-25deg) scale(.95);border-radius:37% 63% 56% 44%/40% 55% 45% 60%}}
+    .hs-head{display:flex;justify-content:space-between;align-items:baseline;gap:.6rem;margin:0 .2rem .85rem}
+    .hs-title{display:inline-flex;align-items:center;gap:.5rem;font:800 .98rem/1.2 'Syne','DM Sans',sans-serif;color:#eafffb}
+    .hs-live{width:7px;height:7px;border-radius:50%;background:#00ffd0;box-shadow:0 0 0 0 rgba(0,255,208,.6);animation:hsPing 2.4s infinite}
+    @keyframes hsPing{70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
+    .hs-tag{font:500 .68rem/1 'Courier New',monospace;color:rgba(0,255,200,.62);letter-spacing:.04em}
+    .hs-body{position:relative}
+    .hs-flow{position:relative;z-index:1;list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,1fr);gap:.6rem}
+    .hs-step{position:relative;display:flex;flex-direction:column;gap:.3rem;padding:.8rem .72rem .85rem;border-radius:14px;
+      background:rgba(3,14,23,.72);border:1px solid rgba(255,255,255,.07);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+      transition:border-color .4s,box-shadow .4s,transform .4s}
+    .hs-ic{width:32px;height:32px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;color:#00ffd0;
+      background:rgba(0,255,208,.08);border:1px solid rgba(0,255,208,.22);transition:background .4s,color .4s,box-shadow .4s}
     .hs-ic svg{width:16px;height:16px}
-    .hs-n{position:absolute;top:.7rem;right:.7rem;font:700 .62rem/1 'Courier New',monospace;color:rgba(160,220,230,.4)}
+    .hs-n{position:absolute;bottom:.62rem;right:.72rem;font:700 .62rem/1 'Courier New',monospace;color:rgba(160,220,230,.4)}
     .hs-step b{font:700 .82rem/1.25 'DM Sans',sans-serif;color:#eafcff;margin-top:.2rem}
-    .hs-d{font:400 .74rem/1.5 'DM Sans',sans-serif;color:rgba(195,225,240,.68)}
-    @media (max-width:820px){.hs-flow{grid-template-columns:1fr}.hs-step{display:grid;grid-template-columns:30px 1fr;column-gap:.7rem;row-gap:.15rem;align-items:start}
-      .hs-ic{grid-row:1/3}.hs-step b{margin-top:0}.hs-step:not(:last-child)::after{top:auto;bottom:-.5rem;right:auto;left:1.6rem;width:1px;height:.45rem}}
+    .hs-d{font:400 .74rem/1.5 'DM Sans',sans-serif;color:rgba(195,225,240,.7)}
+
+    /* the pipe: a glass tube at icon height with liquid flowing through it */
+    .hs-pipe{position:absolute;z-index:0;left:6%;right:6%;top:1.75rem;height:6px;border-radius:6px;
+      background:rgba(0,255,208,.06);box-shadow:inset 0 0 0 1px rgba(0,255,208,.14)}
+    .hs-flowline{position:absolute;inset:0;border-radius:inherit;opacity:.75;
+      background:linear-gradient(90deg,transparent 0,rgba(0,255,208,.0) 8%,rgba(0,255,208,.55) 30%,rgba(56,189,248,.7) 50%,rgba(139,92,246,.55) 70%,transparent 92%);
+      background-size:220% 100%;animation:hsFlow 3.2s linear infinite paused}
+    @keyframes hsFlow{from{background-position:120% 0}to{background-position:-100% 0}}
+    .hs-drop{position:absolute;top:50%;left:0;width:46px;height:12px;margin:-6px 0 0 -23px;border-radius:50%;
+      background:radial-gradient(ellipse at 70% 50%,#eafffb 0,#7ff7e6 18%,rgba(0,255,208,.85) 38%,rgba(56,189,248,.35) 62%,transparent 72%);
+      filter:drop-shadow(0 0 8px rgba(0,255,208,.75)) drop-shadow(0 0 18px rgba(56,189,248,.45));
+      opacity:0;animation:hsDrop var(--hs-t) linear infinite paused}
+    @keyframes hsDrop{0%{left:0;opacity:0;transform:scaleX(.6)}6%{opacity:1}50%{transform:scaleX(1.25)}94%{opacity:1}100%{left:100%;opacity:0;transform:scaleX(.7)}}
+    /* each stage lights up as the liquid reaches it */
+    .hs-step{animation:hsLit var(--hs-t) ease-in-out infinite paused;animation-delay:calc(var(--i) * var(--hs-t) * .227 - var(--hs-t) * .045)}
+    .hs-step .hs-ic{animation:hsLitIc var(--hs-t) ease-in-out infinite paused;animation-delay:calc(var(--i) * var(--hs-t) * .227 - var(--hs-t) * .045)}
+    @keyframes hsLit{0%,100%{border-color:rgba(255,255,255,.07);box-shadow:none;transform:none}
+      9%,20%{border-color:rgba(0,255,208,.42);box-shadow:0 0 0 1px rgba(0,255,208,.12),0 10px 28px rgba(0,255,208,.14);transform:translateY(-2px)}
+      34%{border-color:rgba(255,255,255,.07);box-shadow:none;transform:none}}
+    @keyframes hsLitIc{0%,34%,100%{background:rgba(0,255,208,.08);color:#00ffd0;box-shadow:none}
+      9%,20%{background:linear-gradient(135deg,#00ffd0,#38bdf8);color:#021018;box-shadow:0 0 18px rgba(0,255,208,.55)}}
+    .hs-card.hs-run .hs-flowline,.hs-card.hs-run .hs-drop,.hs-card.hs-run .hs-step,.hs-card.hs-run .hs-ic{animation-play-state:running}
+
+    @media (max-width:820px){
+      .hs-flow{grid-template-columns:1fr;gap:.55rem}
+      .hs-step{display:grid;grid-template-columns:32px 1fr;column-gap:.75rem;row-gap:.15rem;align-items:start}
+      .hs-ic{grid-row:1/3} .hs-step b{margin-top:0}
+      .hs-pipe{left:calc(.72rem + 13px);right:auto;top:1.2rem;bottom:1.2rem;width:6px;height:auto}
+      .hs-flowline{background:linear-gradient(180deg,transparent 0,rgba(0,255,208,.55) 30%,rgba(56,189,248,.7) 50%,rgba(139,92,246,.55) 70%,transparent 92%);
+        background-size:100% 220%;animation-name:hsFlowV}
+      @keyframes hsFlowV{from{background-position:0 120%}to{background-position:0 -100%}}
+      .hs-drop{left:50%;top:0;width:12px;height:46px;margin:-23px 0 0 -6px;animation-name:hsDropV;
+        background:radial-gradient(ellipse at 50% 70%,#eafffb 0,#7ff7e6 18%,rgba(0,255,208,.85) 38%,rgba(56,189,248,.35) 62%,transparent 72%)}
+      @keyframes hsDropV{0%{top:0;opacity:0;transform:scaleY(.6)}6%{opacity:1}50%{transform:scaleY(1.25)}94%{opacity:1}100%{top:100%;opacity:0;transform:scaleY(.7)}}
+    }
+    .pg-lite .hs-liquid{display:none}
+    .pg-lite .hs-step{backdrop-filter:none;-webkit-backdrop-filter:none}
+    @media (prefers-reduced-motion:reduce){
+      .hs-card *{animation:none!important}
+      .hs-flowline{opacity:.5;background-position:50% 50%}
+    }
   </style>
+  <script>
+  (function(){
+    var c=document.getElementById('how-i-ship'); if(!c) return;
+    if(!('IntersectionObserver' in window)){ c.classList.add('hs-run'); return; }
+    new IntersectionObserver(function(es){ es.forEach(function(e){ c.classList.toggle('hs-run', e.isIntersecting); }); },{threshold:.25}).observe(c);
+  })();
+  </script>
 
   <div class="ra-header">
     <h2 class="ra-title"><span class="ra-live-dot" aria-hidden="true"></span><span class="ra-title-shimmer">Recently Shipped</span></h2>
