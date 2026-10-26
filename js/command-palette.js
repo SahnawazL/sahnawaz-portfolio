@@ -57,6 +57,7 @@
     { t:'Blog',                 s:'Writing',                    g:'Go to', i:I.section, k:'articles posts writing', run:function(){ return go('#blog'); } },
     { t:'Live Telemetry',       s:'Recent build activity',      g:'Go to', i:I.section, k:'telemetry activity commits stats', run:function(){ return go('#recent-activity'); } },
     { t:'Why You Need a Website', s:'',                         g:'Go to', i:I.section, k:'why website business', run:function(){ return go('#why-website'); } },
+    { t:'Job Fit Check',        s:'Paste a job description — honest AI fit report', g:'Go to', i:I.section, k:'job fit hire hiring recruiter role match jd description vacancy', run:function(){ var r=go('#job-fit'); setTimeout(function(){ var t=document.getElementById('jfText'); if(t) t.focus({preventScroll:true}); }, 600); return r; } },
     { t:'Contact',              s:'Start a conversation',       g:'Go to', i:I.section, k:'contact email hire reach', run:function(){ return go('#contact'); } },
     { t:'Leave Feedback',       s:'Site feedback',              g:'Go to', i:I.section, k:'feedback suggestion', run:function(){ return go('#site-feedback'); } },
     { t:'Back to Top',          s:'',                           g:'Go to', i:I.top,     k:'top home hero start', run:function(){ window.scrollTo({top:0,behavior:'smooth'}); return true; } },

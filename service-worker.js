@@ -30,7 +30,7 @@
    effect on the very next load, with no second refresh needed.
    ============================================================ */
 
-const VERSION     = 'v34';
+const VERSION     = 'v35';
 const PRECACHE    = 'shz-precache-' + VERSION;
 const RUNTIME     = 'shz-runtime-' + VERSION;
 const OFFLINE_URL = './offline.html';
@@ -47,6 +47,7 @@ const PRECACHE_URLS = [
   './css/portfolio-ui.css',
   './css/desktop.css',
   './css/website-check.css',
+  './css/job-fit.css',
   './css/print.css',
 
   './js/web-vitals.js',
@@ -71,6 +72,7 @@ const PRECACHE_URLS = [
   './js/security-audit.js',
   './js/desktop-layout.js',
   './js/website-check.js',
+  './js/job-fit.js',
 
   './profile-hero-360.webp',   /* light hero photo (profile.jpg is only for link previews) */
   './profile-hero-540.webp',

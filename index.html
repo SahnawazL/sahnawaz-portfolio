@@ -13,7 +13,7 @@
   if(!p||p==="/index.html")return;
   var cases={"/yojanasahay":"yojanasahay","/yojana-sahay":"yojanasahay","/studylens":"studylens","/studylens-ai":"studylens","/case/yojanasahay":"yojanasahay","/case/studylens":"studylens","/case/portfolio":"portfolio"};
   if(cases[p]){location.replace("/?case="+cases[p]);return;}
-  var map={"/projects":"my-projects","/work":"my-projects","/portfolio":"my-projects","/contact":"contact","/hire":"contact","/hire-me":"contact","/blog":"blog","/reviews":"testimonials","/testimonials":"testimonials","/achievements":"achievements","/services":"what-i-offer","/pricing":"what-i-offer","/website-check":"website-check","/check":"website-check","/activity":"recent-activity","/certificates":"certSection","/feedback":"site-feedback"};
+  var map={"/projects":"my-projects","/work":"my-projects","/portfolio":"my-projects","/contact":"contact","/hire":"contact","/hire-me":"contact","/blog":"blog","/reviews":"testimonials","/testimonials":"testimonials","/achievements":"achievements","/services":"what-i-offer","/pricing":"what-i-offer","/website-check":"website-check","/check":"website-check","/activity":"recent-activity","/certificates":"certSection","/feedback":"site-feedback","/fit":"job-fit","/job-fit":"job-fit","/recruiters":"job-fit"};
   var id=map[p];
   try{history.replaceState(null,"","/"+location.search+(id?"#"+id:location.hash));}catch(e){}
   if(id){
@@ -858,6 +858,8 @@ section.hero-enter.sec-wipe { opacity: 1; transform: none; clip-path: none; tran
 <link rel="stylesheet" href="css/desktop.css">
 <link rel="preload" href="css/website-check.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="css/website-check.css"></noscript>
+<link rel="preload" href="css/job-fit.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="css/job-fit.css"></noscript>
 <link rel="stylesheet" href="css/print.css" media="print">
 
 <!-- DOM elements -->
@@ -3159,6 +3161,7 @@ window.addEventListener('resize', () => {
   <div class="wc-out" id="wcOut" aria-live="polite" hidden></div>
 </section>
 <script src="js/website-check.js" defer></script>
+<script src="js/job-fit.js" defer></script>
 <!-- ══ END FREE WEBSITE CHECK ══ -->
 
 
@@ -3883,6 +3886,29 @@ window.addEventListener('resize', () => {
      📬 CONTACT SECTION — PREMIUM REBUILD
      ══════════════════════════════════════════════════ -->
 
+
+<!-- ═══ JOB FIT CHECK (js/job-fit.js · css/job-fit.css) ═══ -->
+<section id="job-fit" aria-labelledby="jfTitle">
+  <div class="jf-wrap">
+    <div class="jf-head">
+      <span class="jf-eyebrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>For recruiters &amp; hiring managers</span>
+      <h2 class="jf-title" id="jfTitle">Does my profile <em>fit your role?</em></h2>
+      <p class="jf-sub">Paste a job description. An AI reads it against my real experience and projects on this site, and tells you honestly where I match, where I don't, and what to ask me.</p>
+    </div>
+    <div class="jf-card">
+      <label class="jf-label" for="jfText"><span>Job description</span><span class="jf-count" id="jfCount" aria-live="off">0 / 6,000</span></label>
+      <textarea class="jf-text" id="jfText" maxlength="6000" spellcheck="true" placeholder="Paste the full job post here: title, responsibilities and requirements…"></textarea>
+      <div class="jf-row">
+        <button type="button" class="jf-go" id="jfGo" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.8L20 10l-5 3.8L16.6 20 12 16.6 7.4 20 9 13.8 4 10l6.1-1.2z"/></svg>Check my fit</button>
+        <button type="button" class="jf-ghost" id="jfSample">Try a sample role</button>
+        <span class="jf-note">Takes about 10 seconds. The job post is only used for this check and isn't stored.</span>
+      </div>
+      <div class="jf-loading" id="jfLoading" role="status"><span class="jf-spin" aria-hidden="true"></span><span id="jfLoadMsg">Reading the job description…</span></div>
+      <div class="jf-error" id="jfError" role="alert"></div>
+      <div class="jf-result" id="jfResult" aria-live="polite"></div>
+    </div>
+  </div>
+</section>
 
 <section id="contact" data-aos="fade-up" data-aos-duration="1200">
 

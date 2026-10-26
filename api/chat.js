@@ -73,6 +73,7 @@ function getYojanaSahayLiveStats() {
 // limit — it is bundled into this function.
 const { buildKnowledge, placeholdersIn } = require('../lib/site-knowledge');
 const projectBrief = require('../lib/project-brief');
+const jobFit = require('../lib/job-fit');
 const PRICING = require('../js/pricing.js');
 
 let githubActivityCache = { data: null, fetchedAt: 0, pending: null };
@@ -158,6 +159,19 @@ async function handleChat(req, res) {
   if (source === 'wizard') {
     const advice = await estimateAdvice(apiKey, req.body && req.body.estimate);
     return res.status(200).json({ advice: advice || null });
+  }
+
+  // ── JOB FIT CHECK ───────────────────────────────────────────────────────
+  // A recruiter pastes a job description; lib/job-fit.js returns an honest,
+  // evidence-based fit report built only from the site's own facts.
+  if (source === 'fit') {
+    try {
+      const out = await jobFit.assess(apiKey, trimmed);
+      return res.status(200).json(out);
+    } catch (e) {
+      console.error('[fit] failed:', e && e.message);
+      return res.status(200).json({ ok: false, reason: 'ai' });
+    }
   }
 
   // ── SMART GREETING HANDLER ──────────────────────────────────────────────
