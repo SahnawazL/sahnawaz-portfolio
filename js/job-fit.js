@@ -81,7 +81,7 @@
       +   (r.interview && r.interview.length ? '<div class="jf-col ask"><h4>? Worth asking in an interview</h4>' + list(r.interview, 'ask') + '</div>' : '')
       + '</div>'
       + '<div class="jf-actions">'
-      +   '<a class="jf-act primary" href="resume.pdf" target="_blank" rel="noopener">📄 Get my resume</a>'
+      +   '<button type="button" class="jf-act primary" data-jf="resume">📄 Get my resume</button>'
       +   '<button type="button" class="jf-act" data-jf="contact">✉️ Contact me</button>'
       +   '<button type="button" class="jf-act" data-jf="ask">💬 Ask my assistant</button>'
       +   '<button type="button" class="jf-act" data-jf="copy">📋 Copy report</button>'
@@ -151,7 +151,11 @@
     var b = e.target.closest('[data-jf]');
     if (!b || !last) return;
     var what = b.getAttribute('data-jf');
-    if (what === 'contact') {
+    if (what === 'resume') {
+      /* the same "Get Resume" pop-up as the bio card (emails the resume) */
+      if (typeof window.openResumeEmailModal === 'function') window.openResumeEmailModal();
+      else { var rb = document.querySelector('[onclick*="openResumeEmailModal"]'); if (rb) rb.click(); }
+    } else if (what === 'contact') {
       var c = document.getElementById('contact');
       if (c) c.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else if (what === 'ask') {
