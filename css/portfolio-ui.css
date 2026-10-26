@@ -4732,12 +4732,18 @@ header::after {
   border-top: 1px solid rgba(255,255,255,0.05);
   gap: 0.5rem;
 }
+.mpj-card-meta { flex-wrap: wrap; }
 .mpj-role-tag {
   font-size: 0.65rem;
   color: rgba(150,200,220,0.6);
   font-family: 'Courier New', monospace;
   letter-spacing: 0.5px;
+  /* keep "Solo Built · Full Stack" on one line; when the buttons need the
+     room it moves above them instead of stacking word by word */
+  white-space: nowrap;
+  flex: 1 1 auto;
 }
+.mpj-card-links { flex-wrap: wrap; justify-content: center; margin: 0 auto; }
 .mpj-card-links {
   display: flex;
   gap: 0.5rem;
@@ -4936,7 +4942,7 @@ header::after {
   font-variant-numeric: tabular-nums;
 }
 
-.ys-console-main { min-width: 0; }
+.ys-console-main { min-width: 0; padding-right: 4.6rem; } /* room for the corner LIVE badge */
 .ys-console-count {
   font-family: 'Courier New', monospace; font-size: 0.78rem; font-weight: 700;
   color: #6dffd6; line-height: 1.2; white-space: nowrap;
