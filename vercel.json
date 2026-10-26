@@ -8,6 +8,8 @@
     { "source": "/api/resume",  "destination": "/api/resume.js" },
     { "source": "/share/:key",  "destination": "/api/share?key=:key" },
     { "source": "/share",       "destination": "/api/share" },
+    { "source": "/yojanasahay", "destination": "/api/share?key=yojanasahay" },
+    { "source": "/studylens",   "destination": "/api/share?key=studylens" },
     { "source": "/((?!\\.well-known/).*)", "destination": "/index.html" }
   ],
   "headers": [

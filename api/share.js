@@ -14,7 +14,7 @@ const LINKS = {
   yojanasahay: {
     to: '/?case=yojanasahay',
     title: 'YojanaSahay — AI Government Scheme Finder',
-    desc: 'A case study by Sahnawaz Ahmed Laskar: discover Central & State welfare schemes, bilingual, with an AI eligibility checker. Built with React, Vite and Firebase.',
+    desc: 'A case study by Sahnawaz Ahmed Laskar: find the welfare schemes you qualify for — 1,200+ Central & State schemes, in Hindi & English, on the web, Android and Telegram. Built with React, Firebase and Groq AI.',
   },
   studylens: {
     to: '/?case=studylens',
