@@ -47,6 +47,8 @@
 .tour-ic:focus-visible, .tour-btn:focus-visible, .tour-dot:focus-visible { outline: 2px solid #7dd3fc; outline-offset: 2px; }
 .tour-title { margin: .55rem 0 .35rem; font: 800 1.05rem/1.25 'Syne', 'DM Sans', sans-serif; color: #f0fdff; }
 .tour-text { margin: 0; font: 400 .88rem/1.6 'DM Sans', system-ui, sans-serif; color: rgba(210,236,250,.86); }
+.tour-voice { margin: .45rem 0 0; font: 500 .74rem/1.4 'DM Sans', sans-serif; color: #fcd34d; }
+.tour-voice[hidden] { display: none; }
 .tour-bar { height: 3px; margin: .8rem 0 .75rem; border-radius: 3px; background: rgba(255,255,255,.08); overflow: hidden; }
 .tour-bar span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #00ffd0, #38bdf8); border-radius: inherit; }
 .tour-nav { display: flex; align-items: center; gap: .6rem; }

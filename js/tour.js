@@ -31,6 +31,21 @@
   try { muted = localStorage.getItem('shz_tour_muted') === '1'; } catch (e) {}
 
   var ui = null, idx = -1, active = false, audio = null, timer = null, raf = 0, cache = {}, token = 0;
+  /* One audio element, unlocked inside the tap that starts the tour: phones
+     (iOS Safari, Android Chrome) only allow sound that starts from a tap, so
+     every later stop reuses this already-unlocked element. */
+  var player = null, unlocked = false;
+  var SILENT = 'data:audio/wav;base64,UklGRogAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YWQAAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA';
+  function unlock() {
+    if (!player) { player = new Audio(); player.preload = 'auto'; player.setAttribute('playsinline', ''); }
+    if (unlocked) return;
+    try {
+      player.src = SILENT; player.volume = 1;
+      var p = player.play();
+      if (p && p.then) p.then(function () { unlocked = true; }).catch(function () {});
+      else unlocked = true;
+    } catch (e) {}
+  }
 
   function build() {
     if (ui) return ui;
@@ -47,6 +62,7 @@
       +     '<button type="button" class="tour-ic tour-close" aria-label="Close tour">×</button></div>'
       +   '<h3 class="tour-title"></h3>'
       +   '<p class="tour-text" aria-live="polite"></p>'
+      +   '<p class="tour-voice" hidden></p>'
       +   '<div class="tour-bar"><span></span></div>'
       +   '<div class="tour-nav"><button type="button" class="tour-btn tour-prev">‹ Back</button>'
       +     '<span class="tour-dots"></span>'
@@ -57,6 +73,7 @@
       root: root, spot: root.querySelector('.tour-spot'), card: root.querySelector('.tour-card'),
       step: root.querySelector('.tour-step'), title: root.querySelector('.tour-title'), text: root.querySelector('.tour-text'),
       bar: root.querySelector('.tour-bar span'), dots: root.querySelector('.tour-dots'), wave: root.querySelector('.tour-wave'),
+      voice: root.querySelector('.tour-voice'),
       prev: root.querySelector('.tour-prev'), next: root.querySelector('.tour-next'), mute: root.querySelector('.tour-mute'), close: root.querySelector('.tour-close')
     };
     STEPS.forEach(function (_, i) {
@@ -70,7 +87,7 @@
       muted = !muted;
       try { localStorage.setItem('shz_tour_muted', muted ? '1' : '0'); } catch (e) {}
       paintMute();
-      if (muted) { stopAudio(); autoAdvance(STEPS[idx].say); } else { show(idx); }
+      if (muted) { stopAudio(); voiceNote(''); autoAdvance(STEPS[idx].say); } else { unlock(); show(idx); }
     });
     paintMute();
     return ui;
@@ -109,9 +126,10 @@
     window.scrollTo({ top: Math.max(0, y), behavior: reduce ? 'auto' : 'smooth' });
   }
 
+  function voiceNote(t) { if (!ui) return; ui.voice.textContent = t || ''; ui.voice.hidden = !t; }
   function stopAudio() {
     clearTimeout(timer);
-    if (audio) { try { audio.pause(); } catch (e) {} audio.onended = null; audio = null; }
+    if (audio) { try { audio.pause(); } catch (e) {} audio.onended = null; audio.onloadedmetadata = null; audio = null; }
     if (ui) ui.wave.classList.remove('on');
   }
   function progress(ms) {
@@ -135,27 +153,50 @@
      stop is fetched while this one plays */
   function fetchVoice(i) {
     if (cache[i]) return cache[i];
-    cache[i] = fetch(SPEAK, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: STEPS[i].say }) })
-      .then(function (r) { if (!r.ok) throw new Error('voice ' + r.status); return r.json(); })
-      .then(function (d) { if (!d || !d.audio) throw new Error('no audio'); return 'data:audio/mpeg;base64,' + d.audio; })
-      .catch(function (e) { delete cache[i]; throw e; });
+    var attempt = function (n) {
+      return fetch(SPEAK, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: STEPS[i].say }) })
+        .then(function (r) {
+          /* the voice server makes one clip at a time: wait and retry when busy */
+          if (r.status === 429 && n < 4) return new Promise(function (ok) { setTimeout(ok, 900); }).then(function () { return attempt(n + 1); });
+          if (!r.ok) throw new Error('voice ' + r.status);
+          return r.json().then(function (d) {
+            if (!d || !d.audio) throw new Error('no audio');
+            var bin = atob(d.audio), bytes = new Uint8Array(bin.length);
+            for (var k = 0; k < bin.length; k++) bytes[k] = bin.charCodeAt(k);
+            return URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' }));
+          });
+        });
+    };
+    cache[i] = attempt(0).catch(function (e) { delete cache[i]; throw e; });
     return cache[i];
   }
   function speak(i) {
     var my = ++token;
     if (muted) { autoAdvance(STEPS[i].say); return; }
     ui.wave.classList.add('on');
+    voiceNote('Loading voice…');
     fetchVoice(i).then(function (src) {
       if (my !== token || !active || muted) return;
-      audio = new Audio(src);
-      audio.onloadedmetadata = function () { if (isFinite(audio.duration)) progress(audio.duration * 1000); };
+      if (!player) unlock();
+      audio = player;
+      audio.onloadedmetadata = function () { if (my === token && isFinite(audio.duration)) progress(audio.duration * 1000); };
       audio.onended = function () { if (my === token) { ui.wave.classList.remove('on'); timer = setTimeout(next, 650); } };
+      audio.src = src;
       var p = audio.play();
-      if (p && p.catch) p.catch(function () { if (my === token) { ui.wave.classList.remove('on'); autoAdvance(STEPS[i].say); } });
+      voiceNote('');
+      if (p && p.catch) p.catch(function (err) {
+        if (my !== token) return;
+        ui.wave.classList.remove('on');
+        /* the browser blocked sound: say how to turn it on, keep the captions moving */
+        voiceNote(err && err.name === 'NotAllowedError' ? 'Your browser blocked the sound — tap 🔊 to hear the voice.' : 'Voice unavailable right now — showing captions.');
+        if (err && err.name === 'NotAllowedError') { muted = true; paintMute(); }
+        autoAdvance(STEPS[i].say);
+      });
       if (i + 1 < STEPS.length) setTimeout(function () { fetchVoice(i + 1).catch(function () {}); }, 400);
     }).catch(function () {
       if (my !== token || !active) return;
       ui.wave.classList.remove('on');
+      voiceNote('Voice unavailable right now — showing captions.');
       autoAdvance(STEPS[i].say);
     });
   }
@@ -188,6 +229,7 @@
   function start() {
     if (active) return;
     build();
+    if (!muted) unlock();   // must run inside the tap
     if (typeof window.closeChat === 'function') { try { window.closeChat(); } catch (e) {} }
     if (typeof window.closeCaseStudy === 'function') { try { window.closeCaseStudy(); } catch (e) {} }
     active = true;
@@ -203,6 +245,8 @@
     if (!active) return;
     active = false; token++;
     stopAudio();
+    Object.keys(cache).forEach(function (k) { cache[k].then(function (u) { try { URL.revokeObjectURL(u); } catch (e) {} }, function () {}); });
+    cache = {};
     cancelAnimationFrame(raf);
     ui.root.classList.remove('open');
     document.documentElement.classList.remove('tour-on');
