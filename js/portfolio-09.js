@@ -2442,6 +2442,10 @@
     contact:     { url: '/#contact',          run: function () { return scrollTo_('#contact'); } },
     resume:      { url: '/#contact',          run: function () { return callIf('openResumeEmailModal'); } },
     performance: { url: '/?report=performance', run: function () { return callIf('openWebVitals'); } },
+    'job-fit':   { url: '/#job-fit',          run: function () { var ok = scrollTo_('#job-fit'); setTimeout(function () { var f = document.getElementById('jfName'); if (f && f.offsetParent === null) f = document.getElementById('jfText'); if (f) try { f.focus({ preventScroll: true }); } catch (e) {} }, 900); return ok; } },
+    'how-i-ship': { url: '/#how-i-ship',      run: function () { return scrollTo_('#how-i-ship'); } },
+    blog:        { url: '/#blog',             run: function () { return scrollTo_('#blog'); } },
+    testimonials: { url: '/#testimonials',    run: function () { return scrollTo_('#testimonials'); } },
     /* In-chat actions: start the Help menu flows right here, chat stays open */
     'send-message': { url: '/#contact', inChat: true, run: function () { return callIf('_startHelpFlow', 'quickmail'); } },
     'send-resume':  { url: '/#contact', inChat: true, run: function () { return callIf('_startHelpFlow', 'resume'); } },

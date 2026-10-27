@@ -117,6 +117,20 @@ const handler = async (req, res) => {
   }
 };
 
+// ── Groq key pool ───────────────────────────────────────────────────────────
+// GROQ_API_KEY plus optional GROQ_API_KEY_2 … _4 (each from its own Groq
+// account, so each has its own free-tier limit). A rate-limited key hands the
+// request to the next one; the start point rotates so load spreads evenly.
+let keyTurn = 0;
+function groqKeys() {
+  const all = [process.env.GROQ_API_KEY, process.env.GROQ_API_KEY_2, process.env.GROQ_API_KEY_3, process.env.GROQ_API_KEY_4]
+    .map(k => (k || '').trim()).filter(Boolean);
+  const keys = [...new Set(all)];
+  if (keys.length < 2) return keys;
+  const start = keyTurn++ % keys.length;
+  return keys.slice(start).concat(keys.slice(0, start));
+}
+
 async function handleChat(req, res) {
   const { message, history = [], visitorName = null, visitorActivity = null, source = null, visitorType = null } = req.body || {};
   // What the page knows right now: the website check shown in this chat,
@@ -127,7 +141,8 @@ async function handleChat(req, res) {
     return res.status(400).json({ reply: 'No message received.' });
   }
 
-  const apiKey = process.env.GROQ_API_KEY;
+  const keys = groqKeys();
+  const apiKey = keys[0];
   if (!apiKey) {
     return res.status(500).json({ reply: 'API key not configured.' });
   }
@@ -139,7 +154,7 @@ async function handleChat(req, res) {
   // what's missing; lib/project-brief.js decides completeness and validity.
   if (source === 'brief') {
     try {
-      const out = await projectBrief.runTurn(apiKey, {
+      const out = await projectBrief.runTurn(keys, {
         message: trimmed,
         brief: req.body.brief,
         known: req.body.known,
@@ -168,7 +183,7 @@ async function handleChat(req, res) {
   // ── ASK THIS PROJECT (case-study Q&A) ───────────────────────────────────
   if (source === 'case-ask') {
     try {
-      const out = await caseAsk.ask(apiKey, String((req.body && req.body.caseKey) || ''), trimmed, req.body && req.body.caseHistory);
+      const out = await caseAsk.ask(keys, String((req.body && req.body.caseKey) || ''), trimmed, req.body && req.body.caseHistory);
       return res.status(200).json(out);
     } catch (e) {
       console.error('[case-ask] failed:', e && e.message);
@@ -189,7 +204,7 @@ async function handleChat(req, res) {
     try {
       const who = jobFit.cleanWho(req.body && req.body.who);
       if (!who.name || who.name.length < 2) return res.status(200).json({ ok: false, reason: 'name' });
-      const out = await jobFit.assess(apiKey, trimmed);
+      const out = await jobFit.assess(keys, trimmed);
       if (out.ok) out.id = await jobFit.afterCheck(out.result, who);
       return res.status(200).json(out);
     } catch (e) {
@@ -526,12 +541,16 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
     model.startsWith('qwen/')          ? { reasoning_effort: 'none' } :
     {};
 
-  const callGroq = async (model) => {
+  // One overall deadline, and a per-call timeout, so a slow provider can
+  // never leave the visitor watching the typing dots for a minute.
+  const deadline = Date.now() + 26000;
+  const callGroq = async (model, key) => {
     return await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
+      signal: AbortSignal.timeout(Math.max(2000, Math.min(15000, deadline - Date.now()))),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        'Authorization': `Bearer ${key}`
       },
       body: JSON.stringify({
         model,
@@ -554,29 +573,35 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
     // limited (429), the provider has a server error (5xx), or the model
     // returned an empty reply. Other 4xx errors are request problems that the
     // next model would hit too, so stop there.
+    modelLoop:
     for (const model of MODELS) {
-      let groqRes;
-      try {
-        groqRes = await callGroq(model);
-      } catch (netErr) {
-        lastError = { network: netErr && netErr.message };
-        console.warn(`Model ${model} network error:`, netErr && netErr.message);
-        continue;
-      }
+      for (let ki = 0; ki < keys.length; ki++) {
+        if (deadline - Date.now() < 2500) break modelLoop;
+        let groqRes;
+        try {
+          groqRes = await callGroq(model, keys[ki]);
+        } catch (netErr) {
+          lastError = { network: netErr && netErr.message };
+          console.warn(`Model ${model} network/timeout error:`, netErr && netErr.message);
+          continue modelLoop;
+        }
 
-      if (groqRes.ok) {
-        const data = await groqRes.json().catch(() => null);
-        const content = cleanContent(data?.choices?.[0]?.message?.content);
-        if (content) { reply = content; break; }
-        lastError = { empty: true, finish: data?.choices?.[0]?.finish_reason };
-        console.warn(`Model ${model} returned an empty reply (finish_reason: ${lastError.finish})`);
-        continue;
-      }
+        if (groqRes.ok) {
+          const data = await groqRes.json().catch(() => null);
+          const content = cleanContent(data?.choices?.[0]?.message?.content);
+          if (content) { reply = content; break modelLoop; }
+          lastError = { empty: true, finish: data?.choices?.[0]?.finish_reason };
+          console.warn(`Model ${model} returned an empty reply (finish_reason: ${lastError.finish})`);
+          continue modelLoop;
+        }
 
-      const errData = await groqRes.json().catch(() => ({}));
-      lastError = errData;
-      console.warn(`Model ${model} failed (${groqRes.status}):`, errData?.error?.code);
-      if (groqRes.status !== 429 && groqRes.status < 500) break;
+        const errData = await groqRes.json().catch(() => ({}));
+        lastError = errData;
+        console.warn(`Model ${model} key ${ki + 1}/${keys.length} failed (${groqRes.status}):`, errData?.error?.code);
+        if (groqRes.status === 429) continue;            // same model, next key
+        if (groqRes.status >= 500) continue modelLoop;   // provider trouble → next model
+        break modelLoop;                                 // request problem: every model would fail
+      }
     }
 
     if (!reply) {
@@ -676,7 +701,11 @@ const LINK_LABELS = {
   telemetry: '📡 Live coding activity',
   contact: '📬 Go to contact',
   resume: '📄 Get his resume',
-  performance: '⚡ Live performance report'
+  performance: '⚡ Live performance report',
+  'job-fit': '🎯 Check his fit for your role',
+  'how-i-ship': '🚀 How he ships code',
+  blog: '📝 Read his blog notes',
+  testimonials: '⭐ What clients say'
 };
 const ACTION_LABELS = {
   'send-message': '📧 Message Sahnawaz',
@@ -700,6 +729,10 @@ const CHIP_TOPICS = [            // order = which one wins when several fit
   ['portfolio',   /\bthis (ai )?(chat ?bot|bot|assistant|website|site|portfolio)\b|\b(the|your) (chat ?bot|assistant)\b|how (was|is|did) (this|the|your) (site|website|portfolio|chat|chat ?bot|bot|assistant)|hacker mode|built (this|the) (site|website|chat ?bot)|chat ?bot (was )?built/i],
   ['performance', /performance report|core web vitals|lighthouse|how fast is (this|his) (site|website|portfolio)/i],
   ['services',    /pric|\bcost|charge|\bfees?\b|rate card|package|how much|₹|\brs\.?\s?\d|budget|quote|services? (does|do) (he|you) offer|what (services|does he offer)/i],
+  ['job-fit',     /\b(recruit(er|ing)?|hiring manager|job (description|post|posting|role|opening|offer)|vacanc|\bjd\b|fit (for|our|my|the) (role|job|position|team)|right (candidate|fit)|suitable for (a|the|our)|good fit)\b/i],
+  ['how-i-ship',  /ci ?\/ ?cd|\bdeploy(s|ed|ment)?\b|how (does|do) (he|you) (ship|work|publish|release|deploy)|work ?flow|pipeline|git(hub)? actions|version control|code review/i],
+  ['testimonials', /testimonial|reviews?\b|what (do )?(clients|people|colleagues) say|feedback (from|about) (him|clients)|recommendation/i],
+  ['blog',        /\bblog\b|articles?|what (does )?he write|his (notes|posts|writing)/i],
   ['experience',  /experience|worked (at|with|for)|flipkart|xiaomi|rapido|career|previous (jobs?|compan)|big brands/i],
   ['stack',       /tech ?stack|technolog|tools (does|do) he|languages (does|do) he|frameworks?|which stack|what does he (code|build) with/i],
   ['telemetry',   /github|streak|\bcommits?\b|shipped recently|coding right now|telemetry|recent activity/i],
