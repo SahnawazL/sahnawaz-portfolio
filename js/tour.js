@@ -60,9 +60,9 @@
       +     '<span class="tour-wave" aria-hidden="true"><i></i><i></i><i></i><i></i></span>'
       +     '<button type="button" class="tour-ic tour-mute" aria-label="Mute voice"></button>'
       +     '<button type="button" class="tour-ic tour-close" aria-label="Close tour">×</button></div>'
-      +   '<h3 class="tour-title"></h3>'
+      +   '<div class="tour-body"><h3 class="tour-title"></h3>'
       +   '<p class="tour-text" aria-live="polite"></p>'
-      +   '<p class="tour-voice" hidden></p>'
+      +   '<p class="tour-voice" hidden></p></div>'
       +   '<div class="tour-bar"><span></span></div>'
       +   '<div class="tour-nav"><button type="button" class="tour-btn tour-prev">‹ Back</button>'
       +     '<span class="tour-dots"></span>'
@@ -73,7 +73,7 @@
       root: root, spot: root.querySelector('.tour-spot'), card: root.querySelector('.tour-card'),
       step: root.querySelector('.tour-step'), title: root.querySelector('.tour-title'), text: root.querySelector('.tour-text'),
       bar: root.querySelector('.tour-bar span'), dots: root.querySelector('.tour-dots'), wave: root.querySelector('.tour-wave'),
-      voice: root.querySelector('.tour-voice'),
+      voice: root.querySelector('.tour-voice'), body: root.querySelector('.tour-body'),
       prev: root.querySelector('.tour-prev'), next: root.querySelector('.tour-next'), mute: root.querySelector('.tour-mute'), close: root.querySelector('.tour-close')
     };
     STEPS.forEach(function (_, i) {
@@ -109,7 +109,9 @@
         var r = el.getBoundingClientRect(), pad = 10, vh = window.innerHeight, vw = window.innerWidth;
         var top = Math.max(8, r.top - pad), bottom = Math.min(vh - 8, r.bottom + pad);
         var left = Math.max(6, r.left - pad), right = Math.min(vw - 6, r.right + pad);
-        if (bottom - top < 60) { top = Math.max(8, r.top - pad); bottom = top + 60; }
+        var visible = bottom - top > 30 && r.bottom > 0 && r.top < vh;
+        ui.spot.classList.toggle('away', !visible);       // off-screen mid-scroll: just dim
+        if (!visible) { top = vh * 0.3; bottom = top + 60; }
         var st = ui.spot.style;
         st.transform = 'translate(' + left + 'px,' + top + 'px)';
         st.width = Math.max(40, right - left) + 'px';
@@ -120,10 +122,44 @@
     raf = requestAnimationFrame(loop);
   }
 
-  function land(el) {
-    if (typeof window.shzLandOn === 'function') { try { window.shzLandOn(el); return; } catch (e) {} }
-    var y = el.getBoundingClientRect().top + window.pageYOffset - Math.round(window.innerHeight * 0.18);
-    window.scrollTo({ top: Math.max(0, y), behavior: reduce ? 'auto' : 'smooth' });
+  /* Scroll to the stop and call done() once the page has really stopped.
+     Own scroller (not the site's section lander) so a quick Next/Back can
+     cancel the previous scroll cleanly; re-aims up to twice if sections
+     above finish rendering and shift the page. */
+  function headerH() {
+    var h = document.querySelector('header'); if (!h) return 0;
+    var pos = getComputedStyle(h).position;
+    return (pos === 'fixed' || pos === 'sticky') ? h.getBoundingClientRect().height : 0;
+  }
+  function docTop(el) { var y = 0; for (var n = el; n; n = n.offsetParent) y += n.offsetTop; return y; }
+  function land(el, done, my) {
+    var fired = false, fin = function () { if (fired) return; fired = true; clearTimeout(safety); if (my === token) done && done(); };
+    var safety = setTimeout(fin, 2200);
+    var aim = function () {
+      var room = window.innerHeight - headerH();
+      var top = docTop(el) - headerH() - 14;
+      var h = el.offsetHeight;
+      /* short sections: centre them a little in the space above the caption card */
+      if (h < room * 0.55) top -= Math.round((room * 0.55 - h) / 3);
+      return Math.max(0, Math.min(top, document.documentElement.scrollHeight - window.innerHeight));
+    };
+    var target = aim();
+    if (Math.abs(window.pageYOffset - target) < 24) { fin(); return; }
+    var root = document.documentElement, prevAnchor = root.style.overflowAnchor;
+    root.style.overflowAnchor = 'none';
+    window.scrollTo({ top: target, behavior: reduce ? 'auto' : 'smooth' });
+    var last = -1, still = 0, fixes = 0;
+    (function watch() {
+      if (fired || my !== token) { root.style.overflowAnchor = prevAnchor; return; }
+      var y = Math.round(window.pageYOffset);
+      still = y === last ? still + 1 : 0; last = y;
+      if (still >= 5) {
+        var t2 = aim();
+        if (Math.abs(y - t2) > 24 && fixes < 2) { fixes++; still = 0; window.scrollTo({ top: t2, behavior: reduce ? 'auto' : 'smooth' }); }
+        else { root.style.overflowAnchor = prevAnchor; fin(); return; }
+      }
+      requestAnimationFrame(watch);
+    })();
   }
 
   function voiceNote(t) { if (!ui) return; ui.voice.textContent = t || ''; ui.voice.hidden = !t; }
@@ -132,6 +168,7 @@
     if (audio) { try { audio.pause(); } catch (e) {} audio.onended = null; audio.onloadedmetadata = null; audio = null; }
     if (ui) ui.wave.classList.remove('on');
   }
+  function resetBar() { ui.bar.style.transition = 'none'; ui.bar.style.width = '0%'; }
   function progress(ms) {
     ui.bar.style.transition = 'none'; ui.bar.style.width = '0%';
     void ui.bar.offsetWidth;
@@ -170,8 +207,8 @@
     cache[i] = attempt(0).catch(function (e) { delete cache[i]; throw e; });
     return cache[i];
   }
-  function speak(i) {
-    var my = ++token;
+  function speak(i, my) {
+    if (my !== token) return;
     if (muted) { autoAdvance(STEPS[i].say); return; }
     ui.wave.classList.add('on');
     voiceNote('Loading voice…');
@@ -201,21 +238,41 @@
     });
   }
 
+  /* Changing stop: the controls update at once; the caption fades out while
+     the page scrolls, and the new caption fades in — and the voice starts —
+     only when the page has arrived, so words, spotlight and scroll match. */
   function show(i) {
     if (i < 0 || i >= STEPS.length) return;
+    var my = ++token;
     stopAudio();
+    resetBar();
+    voiceNote('');
+    var first = idx < 0;
     idx = i;
     var s = STEPS[i], el = target(s);
     ui.step.textContent = (i + 1) + ' / ' + STEPS.length;
-    ui.title.textContent = s.title;
-    ui.text.textContent = s.say;
     ui.prev.disabled = i === 0;
     ui.next.textContent = i === STEPS.length - 1 ? 'Finish' : 'Next ›';
     Array.prototype.forEach.call(ui.dots.children, function (d, k) { d.classList.toggle('on', k === i); d.setAttribute('aria-current', k === i ? 'step' : 'false'); });
-    ui.card.classList.remove('tour-in'); void ui.card.offsetWidth; ui.card.classList.add('tour-in');
-    if (el) land(el);
-    progress(0);
-    speak(i);
+    if (!muted) fetchVoice(i).catch(function () {});   // fetch the voice while the page scrolls
+    if (first) { ui.title.textContent = s.title; ui.text.textContent = s.say; }
+    var swapped = false, landed = false, faded = reduce || first;
+    var reveal = function () {
+      if (my !== token || !active || swapped || !landed || !faded) return;
+      swapped = true;
+      ui.title.textContent = s.title;
+      ui.text.textContent = s.say;
+      ui.body.classList.remove('out');
+      ui.body.classList.add('in');
+      setTimeout(function () { ui.body.classList.remove('in'); }, 420);
+      speak(i, my);
+    };
+    if (!faded) {
+      ui.body.classList.add('out');
+      setTimeout(function () { faded = true; reveal(); }, 200);
+    }
+    if (el) land(el, function () { landed = true; reveal(); }, my);
+    else { landed = true; reveal(); }
     try { if (window.gtag) gtag('event', 'tour_step', { step: i + 1 }); } catch (e) {}
   }
 
@@ -237,6 +294,7 @@
     ui.root.classList.add('open');
     document.addEventListener('keydown', onKey, true);
     track();
+    idx = -1;
     show(0);
     setTimeout(function () { try { ui.next.focus({ preventScroll: true }); } catch (e) {} }, 50);
     try { if (window.gtag) gtag('event', 'tour_start'); } catch (e) {}
