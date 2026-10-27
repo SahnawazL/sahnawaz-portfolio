@@ -1,40 +1,93 @@
 {
   "outputDirectory": ".",
   "functions": {
-    "api/vitals.js": { "maxDuration": 150 }
+    "api/vitals.js": {
+      "maxDuration": 150
+    },
+    "api/chat.js": {
+      "includeFiles": "js/portfolio-04.js"
+    }
   },
   "rewrites": [
-    { "source": "/api/chat",    "destination": "/api/chat.js" },
-    { "source": "/api/resume",  "destination": "/api/resume.js" },
-    { "source": "/share/:key",  "destination": "/api/share?key=:key" },
-    { "source": "/share",       "destination": "/api/share" },
-    { "source": "/yojanasahay", "destination": "/api/share?key=yojanasahay" },
-    { "source": "/studylens",   "destination": "/api/share?key=studylens" },
-    { "source": "/((?!\\.well-known/).*)", "destination": "/index.html" }
+    {
+      "source": "/api/chat",
+      "destination": "/api/chat.js"
+    },
+    {
+      "source": "/api/resume",
+      "destination": "/api/resume.js"
+    },
+    {
+      "source": "/share/:key",
+      "destination": "/api/share?key=:key"
+    },
+    {
+      "source": "/share",
+      "destination": "/api/share"
+    },
+    {
+      "source": "/yojanasahay",
+      "destination": "/api/share?key=yojanasahay"
+    },
+    {
+      "source": "/studylens",
+      "destination": "/api/share?key=studylens"
+    },
+    {
+      "source": "/((?!\\.well-known/).*)",
+      "destination": "/index.html"
+    }
   ],
   "headers": [
     {
       "source": "/(.*)\\.(png|jpg|jpeg|webp|avif|gif|svg|ico|woff2)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, stale-while-revalidate=604800"
+        }
       ]
     },
     {
       "source": "/og/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=86400, s-maxage=604800" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, s-maxage=604800"
+        }
       ]
     },
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
-        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin-allow-popups" },
-        { "key": "Permissions-Policy", "value": "camera=(), geolocation=(), payment=(), usb=(), magnetometer=(), microphone=(self)" },
-        { "key": "Content-Security-Policy-Report-Only", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://www.googletagmanager.com https://va.vercel-scripts.com https://www.gstatic.com https://accounts.google.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com https://accounts.google.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' https://api.quotable.io https://api.github.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://accounts.google.com https://ipwho.is https://yojanasahay.vercel.app; frame-src 'self' https://yojanasahay.vercel.app https://studylens-ai-gamma.vercel.app https://www.youtube.com https://accounts.google.com https://sahnawaz-portfolio.firebaseapp.com; base-uri 'self'; form-action 'self'; object-src 'none'; frame-ancestors 'self'" }
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin-allow-popups"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), geolocation=(), payment=(), usb=(), magnetometer=(), microphone=(self)"
+        },
+        {
+          "key": "Content-Security-Policy-Report-Only",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://www.googletagmanager.com https://va.vercel-scripts.com https://www.gstatic.com https://accounts.google.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com https://accounts.google.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' https://api.quotable.io https://api.github.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://accounts.google.com https://ipwho.is https://yojanasahay.vercel.app; frame-src 'self' https://yojanasahay.vercel.app https://studylens-ai-gamma.vercel.app https://www.youtube.com https://accounts.google.com https://sahnawaz-portfolio.firebaseapp.com; base-uri 'self'; form-action 'self'; object-src 'none'; frame-ancestors 'self'"
+        }
       ]
     }
   ]

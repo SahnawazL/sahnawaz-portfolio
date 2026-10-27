@@ -253,6 +253,23 @@
     }
   };
 
+  /* "Ask this project" — js/case-ask.js handles the questions */
+  var ASK_STARTERS = {
+    yojanasahay: ['How does it keep scheme links accurate?', 'How does the Telegram bot protect privacy?', 'Why only 12 serverless functions?'],
+    studylens: ['How does it handle four school boards?', 'What happens with a blurry photo?', 'How do family profiles work?'],
+    portfolio: ['How does the AI assistant stay fast?', 'How does the site measure its own speed?', 'How is the project planner different from a form?']
+  };
+  function askHtml(key, d) {
+    var chips = (ASK_STARTERS[key] || []).map(function (q) { return '<button type="button" class="ca-chip" data-ca-q="' + q.replace(/"/g, '&quot;') + '">' + q + '</button>'; }).join('');
+    return '<div class="ca-box" data-ca-key="' + key + '" style="--ca:' + d.accent + '">'
+      + '<div class="ca-head"><span class="ca-dot" aria-hidden="true"></span>Ask this project<span class="ca-sub">answers come only from this case study</span></div>'
+      + '<form class="ca-form" autocomplete="off"><input class="ca-input" type="text" maxlength="300" enterkeyhint="send" aria-label="Ask a question about this project" placeholder="e.g. How was this built?">'
+      + '<button type="submit" class="ca-send" aria-label="Ask"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></button></form>'
+      + '<div class="ca-chips">' + chips + '</div>'
+      + '<div class="ca-thread" aria-live="polite"></div>'
+      + '</div>';
+  }
+
   function renderCaseStudy(key) {
     var d = CASE_STUDIES[key];
     if (!d) return '';
@@ -302,6 +319,7 @@
       + '<h2 id="csTitle" class="cs-title">' + d.title + '</h2>'
       + '<div class="cs-status" style="color:' + d.accent + '">' + d.status + '</div>'
       + '<p class="cs-lede">' + d.lede + '</p>'
+      + askHtml(key, d)
       + stackHtml
       + statsHtml
       + embedHtml

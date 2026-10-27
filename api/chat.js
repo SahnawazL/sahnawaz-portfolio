@@ -74,6 +74,7 @@ function getYojanaSahayLiveStats() {
 const { buildKnowledge, placeholdersIn } = require('../lib/site-knowledge');
 const projectBrief = require('../lib/project-brief');
 const jobFit = require('../lib/job-fit');
+const caseAsk = require('../lib/case-ask');
 const PRICING = require('../js/pricing.js');
 
 let githubActivityCache = { data: null, fetchedAt: 0, pending: null };
@@ -164,6 +165,17 @@ async function handleChat(req, res) {
   // ── JOB FIT CHECK ───────────────────────────────────────────────────────
   // A recruiter pastes a job description; lib/job-fit.js returns an honest,
   // evidence-based fit report built only from the site's own facts.
+  // ── ASK THIS PROJECT (case-study Q&A) ───────────────────────────────────
+  if (source === 'case-ask') {
+    try {
+      const out = await caseAsk.ask(apiKey, String((req.body && req.body.caseKey) || ''), trimmed, req.body && req.body.caseHistory);
+      return res.status(200).json(out);
+    } catch (e) {
+      console.error('[case-ask] failed:', e && e.message);
+      return res.status(200).json({ ok: false, reason: 'ai' });
+    }
+  }
+
   if (source === 'fit-get') {
     try {
       const rep = await jobFit.load(req.body && req.body.id);
