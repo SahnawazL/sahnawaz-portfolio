@@ -705,7 +705,8 @@ const LINK_LABELS = {
   'job-fit': '🎯 Check his fit for your role',
   'how-i-ship': '🚀 How he ships code',
   blog: '📝 Read his blog notes',
-  testimonials: '⭐ What clients say'
+  testimonials: '⭐ What clients say',
+  tour: '▶ Take the 60-second tour'
 };
 const ACTION_LABELS = {
   'send-message': '📧 Message Sahnawaz',
@@ -729,6 +730,7 @@ const CHIP_TOPICS = [            // order = which one wins when several fit
   ['portfolio',   /\bthis (ai )?(chat ?bot|bot|assistant|website|site|portfolio)\b|\b(the|your) (chat ?bot|assistant)\b|how (was|is|did) (this|the|your) (site|website|portfolio|chat|chat ?bot|bot|assistant)|hacker mode|built (this|the) (site|website|chat ?bot)|chat ?bot (was )?built/i],
   ['performance', /performance report|core web vitals|lighthouse|how fast is (this|his) (site|website|portfolio)/i],
   ['services',    /pric|\bcost|charge|\bfees?\b|rate card|package|how much|₹|\brs\.?\s?\d|budget|quote|services? (does|do) (he|you) offer|what (services|does he offer)/i],
+  ['tour',        /\b(tour|walk ?through|show me around|guide me|overview of (the|this) (site|website|portfolio)|where (do|should) i start|what('s| is) on this (site|website))\b/i],
   ['job-fit',     /\b(recruit(er|ing)?|hiring manager|job (description|post|posting|role|opening|offer)|vacanc|\bjd\b|fit (for|our|my|the) (role|job|position|team)|right (candidate|fit)|suitable for (a|the|our)|good fit)\b/i],
   ['how-i-ship',  /ci ?\/ ?cd|\bdeploy(s|ed|ment)?\b|how (does|do) (he|you) (ship|work|publish|release|deploy)|work ?flow|pipeline|git(hub)? actions|version control|code review/i],
   ['testimonials', /testimonial|reviews?\b|what (do )?(clients|people|colleagues) say|feedback (from|about) (him|clients)|recommendation/i],

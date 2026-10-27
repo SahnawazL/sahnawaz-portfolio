@@ -13,8 +13,9 @@
   if(!p||p==="/index.html")return;
   var cases={"/yojanasahay":"yojanasahay","/yojana-sahay":"yojanasahay","/studylens":"studylens","/studylens-ai":"studylens","/case/yojanasahay":"yojanasahay","/case/studylens":"studylens","/case/portfolio":"portfolio"};
   if(cases[p]){location.replace("/?case="+cases[p]);return;}
-  var map={"/projects":"my-projects","/work":"my-projects","/portfolio":"my-projects","/contact":"contact","/hire":"contact","/hire-me":"contact","/blog":"blog","/reviews":"testimonials","/testimonials":"testimonials","/achievements":"achievements","/services":"what-i-offer","/pricing":"what-i-offer","/website-check":"website-check","/check":"website-check","/activity":"recent-activity","/certificates":"certSection","/feedback":"site-feedback","/fit":"job-fit","/job-fit":"job-fit","/recruiters":"job-fit"};
+  var map={"/projects":"my-projects","/work":"my-projects","/portfolio":"my-projects","/contact":"contact","/hire":"contact","/hire-me":"contact","/blog":"blog","/reviews":"testimonials","/testimonials":"testimonials","/achievements":"achievements","/services":"what-i-offer","/pricing":"what-i-offer","/website-check":"website-check","/check":"website-check","/activity":"recent-activity","/certificates":"certSection","/feedback":"site-feedback","/tour":"__tour","/fit":"job-fit","/job-fit":"job-fit","/recruiters":"job-fit"};
   var id=map[p];
+  if(id==="__tour"){location.replace("/?tour");return;}
   try{history.replaceState(null,"","/"+location.search+(id?"#"+id:location.hash));}catch(e){}
   if(id){
     window.addEventListener("load",function(){setTimeout(function(){var el=document.getElementById(id);if(el)el.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});},450);},{once:true});
@@ -862,6 +863,8 @@ section.hero-enter.sec-wipe { opacity: 1; transform: none; clip-path: none; tran
 <noscript><link rel="stylesheet" href="css/job-fit.css"></noscript>
 <link rel="preload" href="css/case-ask.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="css/case-ask.css"></noscript>
+<link rel="preload" href="css/tour.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="css/tour.css"></noscript>
 <link rel="stylesheet" href="css/print.css" media="print">
 
 <!-- DOM elements -->
@@ -1104,6 +1107,8 @@ section.hero-enter.sec-wipe { opacity: 1; transform: none; clip-path: none; tran
     <span class="hsb-label">Client Satisfaction</span>
   </div>
 </div>
+
+<div class="tour-pill-wrap"><button type="button" class="tour-pill" data-tour><span class="tour-pill-play" aria-hidden="true">▶</span>Take the 60-second tour <small>with voice</small></button></div>
 
 <!-- ══ SMART WELCOME: one next step that fits where the visitor came from ══ -->
 <div class="sw-bar" id="smartWelcome" role="region" aria-label="Suggested next step" hidden>
@@ -3250,6 +3255,7 @@ window.addEventListener('resize', () => {
 <script src="js/website-check.js" defer></script>
 <script src="js/job-fit.js" defer></script>
 <script src="js/case-ask.js" defer></script>
+<script src="js/tour.js" defer></script>
 <!-- ══ END FREE WEBSITE CHECK ══ -->
 
 
