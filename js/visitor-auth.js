@@ -82,6 +82,8 @@ function applyVisitorSession(visitor, showBanner) {
   }
   window._pendingVisitorName = visitor.firstName;
   window._chatVisitorName    = visitor.firstName;
+  window._visitorProfile     = { name: visitor.fullName || visitor.firstName || '', email: visitor.email || '' };
+  try { document.dispatchEvent(new CustomEvent('shz:visitor', { detail: window._visitorProfile })); } catch (e) {}
   if (window.setVisitorName) window.setVisitorName(visitor.firstName);
   if (showBanner) showWelcomeBanner(visitor);
 }
@@ -120,6 +122,8 @@ function signOut() {
   if (dd) dd.classList.remove('open');
   window._pendingVisitorName = null;
   window._chatVisitorName    = null;
+  window._visitorProfile     = null;
+  try { document.dispatchEvent(new CustomEvent('shz:visitor', { detail: null })); } catch (e) {}
   if (window.setVisitorName) window.setVisitorName(null);
 }
 

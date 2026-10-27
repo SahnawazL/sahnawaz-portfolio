@@ -19,6 +19,27 @@
   var text = $('jfText'), count = $('jfCount'), go = $('jfGo'), sample = $('jfSample'),
       loading = $('jfLoading'), loadMsg = $('jfLoadMsg'), err = $('jfError'), out = $('jfResult');
   if (!text || !go) return;
+  var nameEl = $('jfName'), compEl = $('jfCompany'), whoBox = $('jfWho'), signedBox = $('jfSigned');
+
+  /* Who is checking: a signed-in visitor's Google name and e-mail, otherwise the
+     name typed here (required) and an optional company. Sent to Sahnawaz with
+     the report only — never shown on a shared report. */
+  function profile() { var v = window._visitorProfile; return v && v.name ? v : null; }
+  function syncWho() {
+    var v = profile();
+    if (v) {
+      whoBox.hidden = true;
+      signedBox.hidden = false;
+      signedBox.innerHTML = '✓ Checking as <b>' + esc(v.name) + '</b>' + (v.email ? ' (' + esc(v.email) + ')' : '');
+    } else { whoBox.hidden = false; signedBox.hidden = true; }
+    updateCount();
+  }
+  function who() {
+    var v = profile();
+    if (v) return { name: v.name, email: v.email || '', company: '', signedIn: true };
+    return { name: (nameEl.value || '').trim(), email: '', company: (compEl.value || '').trim(), signedIn: false };
+  }
+  function nameOk() { return !!profile() || (nameEl.value || '').trim().length >= 2; }
 
   var COLORS = { strong: '#4ade80', good: '#38bdf8', partial: '#fbbf24', low: '#f87171' };
   var LABELS = { strong: 'Strong fit', good: 'Good fit', partial: 'Partial fit', low: 'Low fit' };
@@ -37,6 +58,7 @@
     var n = text.value.length;
     count.textContent = n.toLocaleString('en-IN') + ' / ' + MAX.toLocaleString('en-IN');
     go.disabled = n < MIN || busy;
+    go.title = nameOk() ? '' : 'Please enter your name first';
   }
   var busy = false, last = null, msgTimer = null;
 
@@ -125,6 +147,12 @@
   function run() {
     var jd = text.value.trim();
     if (busy || jd.length < MIN) return;
+    if (!nameOk()) {
+      nameEl.classList.add('jf-bad'); nameEl.focus();
+      err.textContent = 'Please enter your name so I know who ran the check.';
+      err.classList.add('on');
+      return;
+    }
     busy = true; updateCount();
     err.classList.remove('on'); out.classList.remove('on');
     startLoading();
@@ -132,7 +160,7 @@
     var timer = setTimeout(function () { if (ctl) ctl.abort(); }, 40000);
     fetch(API, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ source: 'fit', message: jd.slice(0, MAX), history: [] }),
+      body: JSON.stringify({ source: 'fit', message: jd.slice(0, MAX), who: who(), history: [] }),
       signal: ctl ? ctl.signal : undefined
     })
       .then(function (r) { return r.json().catch(function () { return { ok: false, reason: r.status === 429 ? 'busy' : 'ai' }; }); })
@@ -140,7 +168,7 @@
         stopLoading();
         if (d && d.ok && d.result) { last = d.result; sharedId = d.id || null; render(d.result); try { if (window.gtag) gtag('event', 'job_fit_check', { fit: d.result.fit }); } catch (e) {} return; }
         var reason = d && (d.busy ? 'busy' : d.reason);
-        fail(reason === 'short'
+        fail(reason === 'name' ? 'Please enter your name so I know who ran the check.' : reason === 'short'
           ? 'That looks too short to judge — paste the full job description, including the requirements.'
           : reason === 'busy'
             ? 'The AI is busy right now. Please try again in a minute.'
@@ -151,6 +179,8 @@
   }
 
   text.addEventListener('input', function () { err.classList.remove('on'); updateCount(); });
+  nameEl.addEventListener('input', function () { nameEl.classList.remove('jf-bad'); err.classList.remove('on'); updateCount(); });
+  document.addEventListener('shz:visitor', syncWho);
   text.addEventListener('keydown', function (e) { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); run(); } });
   go.addEventListener('click', run);
   if (sample) sample.addEventListener('click', function () { text.value = SAMPLE; updateCount(); text.focus(); });
@@ -201,5 +231,5 @@
       .catch(function () { fail('Couldn’t open the shared report right now. Please try again.'); });
   })();
 
-  updateCount();
+  syncWho();
 })();

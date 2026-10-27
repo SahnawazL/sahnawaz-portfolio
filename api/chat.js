@@ -175,8 +175,10 @@ async function handleChat(req, res) {
   }
   if (source === 'fit') {
     try {
+      const who = jobFit.cleanWho(req.body && req.body.who);
+      if (!who.name || who.name.length < 2) return res.status(200).json({ ok: false, reason: 'name' });
       const out = await jobFit.assess(apiKey, trimmed);
-      if (out.ok) out.id = await jobFit.afterCheck(out.result);
+      if (out.ok) out.id = await jobFit.afterCheck(out.result, who);
       return res.status(200).json(out);
     } catch (e) {
       console.error('[fit] failed:', e && e.message);

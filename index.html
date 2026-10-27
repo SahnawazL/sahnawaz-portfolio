@@ -3997,12 +3997,19 @@ window.addEventListener('resize', () => {
       <p class="jf-sub">Paste a job description. An AI reads it against my real experience and projects on this site, and tells you honestly where I match, where I don't, and what to ask me.</p>
     </div>
     <div class="jf-card">
+      <div class="jf-who" id="jfWho">
+        <div class="jf-field"><label for="jfName">Your name <span class="jf-req" aria-hidden="true">*</span></label>
+          <input id="jfName" type="text" maxlength="60" autocomplete="name" required placeholder="e.g. Priya Sharma"></div>
+        <div class="jf-field"><label for="jfCompany">Company <span class="jf-opt">(optional)</span></label>
+          <input id="jfCompany" type="text" maxlength="80" autocomplete="organization" placeholder="e.g. Acme Technologies"></div>
+      </div>
+      <div class="jf-signed" id="jfSigned" hidden></div>
       <label class="jf-label" for="jfText"><span>Job description</span><span class="jf-count" id="jfCount" aria-live="off">0 / 6,000</span></label>
       <textarea class="jf-text" id="jfText" maxlength="6000" spellcheck="true" placeholder="Paste the full job post here: title, responsibilities and requirements…"></textarea>
       <div class="jf-row">
         <button type="button" class="jf-go" id="jfGo" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.8L20 10l-5 3.8L16.6 20 12 16.6 7.4 20 9 13.8 4 10l6.1-1.2z"/></svg>Check my fit</button>
         <button type="button" class="jf-ghost" id="jfSample">Try a sample role</button>
-        <span class="jf-note">Takes about 10 seconds. The job post itself isn't stored — only the report is kept for 30 days so you can share it, and I get a copy.</span>
+        <span class="jf-note">Takes about 10 seconds. I get a copy of the report with your name. The job post itself isn't stored — only the report, for 30 days, so you can share it.</span>
       </div>
       <div class="jf-loading" id="jfLoading" role="status"><span class="jf-spin" aria-hidden="true"></span><span id="jfLoadMsg">Reading the job description…</span></div>
       <div class="jf-error" id="jfError" role="alert"></div>
