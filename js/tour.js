@@ -179,7 +179,7 @@
       try { if (window.gtag) gtag('event', 'tour_replay'); } catch (e) {}
       show(0);
     });
-    ui.spot.addEventListener('animationend', function () { ui.spot.classList.remove('sweep'); });
+    ui.spot.addEventListener('animationend', function (e) { if (/tourSweep/.test(e.animationName)) ui.spot.classList.remove('sweep', 'sweep2'); });
     ui.dockGo.addEventListener('click', resume);
     root.querySelector('.tour-dock-x').addEventListener('click', function () { dockAway(); });
     ui.dock.addEventListener('mouseenter', function () { holdDock('hover', true); });
@@ -193,7 +193,7 @@
       if (fin) return;
       if (muted) { stopAudio(); ui.card.classList.remove('has-env'); voiceNote(''); autoAdvance(STEPS[idx].say); } else { unlock(); show(idx); }
     });
-    window.addEventListener('resize', function () { if (active && !fin && hlAt >= 0) pill(hlAt, true); });
+    window.addEventListener('resize', function () { wpos = null; if (active && !fin && hlAt >= 0) pill(hlAt, true); });
     paintMute();
     return ui;
   }
@@ -212,9 +212,10 @@
   }
   function sweep() {
     if (reduce) return;
-    ui.spot.classList.remove('sweep');
-    void ui.spot.offsetWidth;
-    ui.spot.classList.add('sweep');
+    /* two identical animations, alternated, restart the light without forcing a re-layout */
+    var a = ui.spot.classList.contains('sweep');
+    ui.spot.classList.remove('sweep', 'sweep2');
+    ui.spot.classList.add(a ? 'sweep2' : 'sweep');
   }
 
   /* Quick actions: the card tucks itself into a small "Resume tour" pill at
@@ -313,8 +314,8 @@
     if (ui.card.animate && !reduce) {
       var dx = (P.left + P.width / 2) - (C.left + C.width / 2), dy = (P.top + P.height / 2) - (C.top + C.height / 2);
       var a = ui.card.animate([
-        { transform: base || 'none', opacity: 1, filter: 'blur(0px)' },
-        { transform: 'translate(' + dx + 'px,' + dy + 'px)' + base + ' scale(' + (P.width / C.width) + ',' + (P.height / C.height) + ')', opacity: 0, filter: 'blur(6px)' }
+        { transform: base || 'none', opacity: 1 },
+        { transform: 'translate(' + dx + 'px,' + dy + 'px)' + base + ' scale(' + (P.width / C.width) + ',' + (P.height / C.height) + ')', opacity: 0 }
       ], { duration: 440, easing: 'cubic-bezier(.32,.72,.24,1)', fill: 'forwards' });
       dockAnims.push(a);
       a.onfinish = function () { if (parked) ui.card.style.visibility = 'hidden'; };
@@ -390,8 +391,8 @@
       var base = getComputedStyle(ui.card).transform; base = base && base !== 'none' ? ' ' + base : '';
       var dx = (P.left + P.width / 2) - (C.left + C.width / 2), dy = (P.top + P.height / 2) - (C.top + C.height / 2);
       var a = ui.card.animate([
-        { transform: 'translate(' + dx + 'px,' + dy + 'px)' + base + ' scale(' + (P.width / C.width) + ',' + (P.height / C.height) + ')', opacity: 0, filter: 'blur(6px)' },
-        { transform: base || 'none', opacity: 1, filter: 'blur(0px)' }
+        { transform: 'translate(' + dx + 'px,' + dy + 'px)' + base + ' scale(' + (P.width / C.width) + ',' + (P.height / C.height) + ')', opacity: 0 },
+        { transform: base || 'none', opacity: 1 }
       ], { duration: 480, easing: 'cubic-bezier(.32,.72,.24,1)' });
       dockAnims.push(a);
     }
@@ -403,28 +404,44 @@
   function target(s) { return document.querySelector(s.sel) || (s.fallback && document.querySelector(s.fallback)); }
 
   /* keep the spotlight glued to the element while the page settles/scrolls */
+  /* The element is measured only when something can have moved it (a scroll,
+     a resize, a new stop) plus a light check four times a second for content
+     that shifts by itself, and the spotlight is written only when its box
+     really changed. Measuring every frame forced the whole page to re-layout
+     60 times a second, which is what makes phones stutter. */
+  var spotDirty = true, spotSeen = 0, spotKey = '', spotAway = null;
+  function spotMoved() { spotDirty = true; }
   function track() {
     cancelAnimationFrame(raf);
-    var loop = function () {
+    spotDirty = true; spotKey = ''; spotAway = null;
+    var loop = function (now) {
       if (!active) return;
-      if (fin) { ui.spot.classList.add('away'); raf = requestAnimationFrame(loop); return; }
-      var el = target(STEPS[idx]);
-      if (el) {
-        var r = el.getBoundingClientRect(), pad = 10, vh = window.innerHeight, vw = window.innerWidth;
-        var top = Math.max(8, r.top - pad), bottom = Math.min(vh - 8, r.bottom + pad);
-        var left = Math.max(6, r.left - pad), right = Math.min(vw - 6, r.right + pad);
-        var visible = bottom - top > 30 && r.bottom > 0 && r.top < vh;
-        ui.spot.classList.toggle('away', !visible);       // off-screen mid-scroll: just dim
-        if (!visible) { top = vh * 0.3; bottom = top + 60; }
-        var st = ui.spot.style;
-        st.transform = 'translate(' + left + 'px,' + top + 'px)';
-        st.width = Math.max(40, right - left) + 'px';
-        st.height = Math.max(40, bottom - top) + 'px';
-      }
       raf = requestAnimationFrame(loop);
+      if (fin) { if (spotAway !== true) { spotAway = true; ui.spot.classList.add('away'); } return; }
+      if (!spotDirty && now - spotSeen < 250) return;
+      spotDirty = false; spotSeen = now;
+      var el = target(STEPS[idx]);
+      if (!el) return;
+      var r = el.getBoundingClientRect(), pad = 10, vh = window.innerHeight, vw = window.innerWidth;
+      var top = Math.max(8, r.top - pad), bottom = Math.min(vh - 8, r.bottom + pad);
+      var left = Math.max(6, r.left - pad), right = Math.min(vw - 6, r.right + pad);
+      var visible = bottom - top > 30 && r.bottom > 0 && r.top < vh;
+      if (spotAway !== !visible) { spotAway = !visible; ui.spot.classList.toggle('away', !visible); }   // off-screen mid-scroll: just dim
+      if (!visible) { top = vh * 0.3; bottom = top + 60; }
+      var w = Math.round(Math.max(40, right - left)), h = Math.round(Math.max(40, bottom - top));
+      left = Math.round(left); top = Math.round(top);
+      var key = left + ',' + top + ',' + w + ',' + h;
+      if (key === spotKey) return;
+      spotKey = key;
+      var st = ui.spot.style;
+      st.transform = 'translate(' + left + 'px,' + top + 'px)';
+      st.width = w + 'px';
+      st.height = h + 'px';
     };
     raf = requestAnimationFrame(loop);
   }
+  window.addEventListener('scroll', spotMoved, { passive: true });
+  window.addEventListener('resize', spotMoved, { passive: true });
 
   /* Scroll to the stop and call done() once the page has really stopped.
      Own scroller (not the site's section lander) so a quick Next/Back can
@@ -469,14 +486,14 @@
   /* Caption as words, so each one can light up the moment it is spoken
      (times come with the clip: audio/tour/manifest.json → words). A soft
      pill (with a slower glow trailing it) glides from word to word. */
-  var words = [], syncRaf = 0, hl = null, hlTrail = null, hlAt = -1, hlTop = null;
+  var wpos = null, words = [], syncRaf = 0, hl = null, hlTrail = null, hlAt = -1, hlTop = null;
   function renderWords(text) {
     ui.text.textContent = '';
     ui.text.classList.remove('live');
     hlTrail = document.createElement('span'); hlTrail.className = 'tour-hl trail'; hlTrail.setAttribute('aria-hidden', 'true');
     hl = document.createElement('span'); hl.className = 'tour-hl'; hl.setAttribute('aria-hidden', 'true');
     ui.text.appendChild(hlTrail); ui.text.appendChild(hl);
-    hlAt = -1; hlTop = null;
+    hlAt = -1; hlTop = null; wpos = null;
     var list = text.split(' ');
     words = list.map(function (w, k) {
       var sp = document.createElement('span');
@@ -489,8 +506,10 @@
   function pill(k, snap) {
     if (!hl) return;
     if (k < 0 || !words[k]) { hl.classList.remove('on'); hlTrail.classList.remove('on'); hlAt = -1; hlTop = null; return; }
-    var w = words[k];
-    var x = w.offsetLeft - 4, y = w.offsetTop - 1, ww = w.offsetWidth + 8, hh = w.offsetHeight + 2;
+    /* every word's box is measured once, together, then reused: one layout per stop instead of one per word */
+    if (!wpos) wpos = words.map(function (w) { return [w.offsetLeft, w.offsetTop, w.offsetWidth, w.offsetHeight]; });
+    var b = wpos[k];
+    var x = b[0] - 4, y = b[1] - 1, ww = b[2] + 8, hh = b[3] + 2;
     var jump = snap || hlTop === null || Math.abs(y - hlTop) > 2;   // first word or a new line: no diagonal glide
     [hl, hlTrail].forEach(function (p) {
       if (jump) p.classList.add('jump');
@@ -498,18 +517,19 @@
       p.style.width = ww + 'px'; p.style.height = hh + 'px';
       p.classList.add('on');
     });
-    if (jump) { void hl.offsetWidth; hl.classList.remove('jump'); hlTrail.classList.remove('jump'); }
+    if (jump) { var a = hl, t = hlTrail; requestAnimationFrame(function () { a.classList.remove('jump'); t.classList.remove('jump'); }); }
     hlAt = k; hlTop = y;
   }
   function markAll() { pill(-1); words.forEach(function (w) { w.classList.remove('now'); w.classList.add('said'); }); }
 
   /* the voice orb: loudness at this moment, eased so it swells and settles */
-  var amp = 0;
+  var amp = 0, ampAt = '';
   function setAmp(v, hard) {
     if (reduce) v = v > 0 ? 0.45 : 0;
     amp = hard ? v : amp + (v - amp) * (v > amp ? 0.5 : 0.16);
     if (amp < 0.004) amp = 0;
-    ui.orb.style.setProperty('--amp', amp.toFixed(3));
+    var s = amp.toFixed(2);
+    if (s !== ampAt) { ampAt = s; ui.orb.style.setProperty('--amp', s); }
   }
   function digit(env, i) { var c = env.charCodeAt(i) - 48; return c >= 0 && c <= 9 ? c : 0; }
   function loud(env, fps, t) {
@@ -518,18 +538,26 @@
   }
 
   /* the waveform: the whole clip as bars, lit up to where the voice is */
-  var scope = { env: null, w: 0, bars: null };
+  /* drawn only when another bar lights up (a few times a second, not every
+     frame), and its size is measured once per stop or resize, not per frame */
+  var scope = { env: null, w: 0, bars: null, cw: 0, ch: 0, lit: -1 };
   function clearScope() {
     var c = ui.scope, g = c.getContext && c.getContext('2d');
     if (g) { g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height); }
-    scope.env = null;
+    scope.env = null; scope.lit = -1;           // the size stays: the card's width only changes on resize
   }
+  window.addEventListener('resize', function () { scope.cw = 0; scope.lit = -1; }, { passive: true });
+  try { if (document.fonts) document.fonts.addEventListener('loadingdone', function () { wpos = null; scope.cw = 0; scope.lit = -1; }); } catch (e) {}
   function drawScope(env, fps, t, d) {
-    var c = ui.scope, w = c.clientWidth, h = c.clientHeight;
-    if (!w || !h || !c.getContext) return;
+    var c = ui.scope;
+    if (!c.getContext) return;
+    if (!scope.cw) { scope.cw = c.clientWidth; scope.ch = c.clientHeight; scope.lit = -1; }
+    var w = scope.cw, h = scope.ch;
+    if (!w || !h) { scope.cw = 0; return; }
     var dpr = Math.min(2, window.devicePixelRatio || 1), W = Math.round(w * dpr), H = Math.round(h * dpr);
     if (c.width !== W || c.height !== H) { c.width = W; c.height = H; }
     if (scope.env !== env || scope.w !== w) {
+      scope.lit = -1;
       var n = Math.max(24, Math.min(140, Math.floor(w / 4))), bars = [];
       for (var k = 0; k < n; k++) {
         var from = Math.floor(k * env.length / n), to = Math.max(from + 1, Math.floor((k + 1) * env.length / n)), m = 0;
@@ -540,6 +568,9 @@
     }
     var total = isFinite(d) && d > 0 ? d : env.length / fps;
     var p = Math.min(1, Math.max(0, t / total));
+    var lit = Math.floor(p * scope.bars.length + 0.5);
+    if (lit === scope.lit) return;
+    scope.lit = lit;
     var g = c.getContext('2d');
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     g.clearRect(0, 0, w, h);
@@ -547,7 +578,7 @@
     for (var pass = 0; pass < 2; pass++) {
       g.beginPath();
       for (var q = 0; q < N; q++) {
-        var played = (q + 0.5) / N <= p;
+        var played = q < lit;
         if (played !== (pass === 1)) continue;
         var bh = Math.max(2, B[q] * (h - 2)), x = q * stepW + (stepW - bw) / 2, y = (h - bh) / 2;
         if (round) g.roundRect(x, y, bw, bh, bw / 2); else g.rect(x, y, bw, bh);
@@ -614,7 +645,10 @@
           else if (ms - r.tryAt > 2000) toClock(r, t);
         }
       }
-      if (isFinite(d) && d > 0) ui.bar.style.width = Math.min(100, (t / d) * 100) + '%';
+      if (!env && isFinite(d) && d > 0) {             // the waveform shows progress itself when there is one
+        var bx = Math.min(1, t / d).toFixed(3);
+        if (bx !== barAt) { barAt = bx; ui.bar.style.transform = 'scaleX(' + bx + ')'; }
+      }
       if (times) {
         var cur = -1;
         for (var k = 0; k < times.length; k++) { if (times[k][0] <= t + 0.04) cur = k; else break; }
@@ -642,11 +676,13 @@
     if (audio) { try { audio.pause(); } catch (e) {} audio.onended = null; audio.onerror = null; audio.onloadedmetadata = null; audio = null; }
     if (ui) ui.orb.classList.remove('on');
   }
-  function resetBar() { ui.bar.style.transition = 'none'; ui.bar.style.width = '0%'; }
+  var barAt = '';
+  function resetBar() { barAt = ''; ui.bar.style.transition = 'none'; ui.bar.style.transform = 'scaleX(0)'; }
   function progress(ms) {
-    ui.bar.style.transition = 'none'; ui.bar.style.width = '0%';
+    barAt = '';
+    ui.bar.style.transition = 'none'; ui.bar.style.transform = 'scaleX(0)';
     void ui.bar.offsetWidth;
-    ui.bar.style.transition = 'width ' + ms + 'ms linear'; ui.bar.style.width = '100%';
+    ui.bar.style.transition = 'transform ' + ms + 'ms linear'; ui.bar.style.transform = 'scaleX(1)';
   }
   function autoAdvance(text) {
     clearTimeout(timer);
