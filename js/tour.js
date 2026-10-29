@@ -145,6 +145,13 @@
       +     '<div class="tour-fin-foot"><button type="button" class="tour-link tour-replay">' + icon('replay') + '<span>Replay tour</span></button>'
       +       '<button type="button" class="tour-link tour-done">Close</button></div>'
       +   '</div>'
+      + '</div>'
+      + '<div class="tour-dock" role="group" aria-label="Tour paused">'
+      +   '<button type="button" class="tour-dock-go"><span class="tour-orb" aria-hidden="true"><i></i></span>'
+      +     '<span class="tour-dock-txt"><b>Resume tour</b><small></small></span>'
+      +     '<span class="tour-dock-play" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.6-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg></span></button>'
+      +   '<button type="button" class="tour-dock-x" aria-label="End tour">×</button>'
+      +   '<span class="tour-dock-time" aria-hidden="true"><i></i></span>'
       + '</div>';
     document.body.appendChild(root);
     ui = {
@@ -154,7 +161,9 @@
       scope: root.querySelector('.tour-scope'), acts: root.querySelector('.tour-acts'),
       voice: root.querySelector('.tour-voice'), body: root.querySelector('.tour-body'),
       prev: root.querySelector('.tour-prev'), next: root.querySelector('.tour-next'), mute: root.querySelector('.tour-mute'), close: root.querySelector('.tour-close'),
-      fin: root.querySelector('.tour-fin'), finActs: root.querySelector('.tour-fin-acts')
+      fin: root.querySelector('.tour-fin'), finActs: root.querySelector('.tour-fin-acts'),
+      dock: root.querySelector('.tour-dock'), dockGo: root.querySelector('.tour-dock-go'), dockSub: root.querySelector('.tour-dock-txt small'),
+      dockTime: root.querySelector('.tour-dock-time i')
     };
     STEPS.forEach(function (_, i) {
       var d = document.createElement('button'); d.type = 'button'; d.className = 'tour-dot'; d.setAttribute('aria-label', 'Go to stop ' + (i + 1));
@@ -171,6 +180,12 @@
       show(0);
     });
     ui.spot.addEventListener('animationend', function () { ui.spot.classList.remove('sweep'); });
+    ui.dockGo.addEventListener('click', resume);
+    root.querySelector('.tour-dock-x').addEventListener('click', function () { dockAway(); });
+    ui.dock.addEventListener('mouseenter', function () { holdDock('hover', true); });
+    ui.dock.addEventListener('mouseleave', function () { holdDock('hover', false); });
+    ui.dock.addEventListener('focusin', function () { holdDock('focus', true); });
+    ui.dock.addEventListener('focusout', function () { holdDock('focus', false); });
     ui.mute.addEventListener('click', function () {
       muted = !muted;
       try { localStorage.setItem('shz_tour_muted', muted ? '1' : '0'); } catch (e) {}
@@ -202,7 +217,10 @@
     ui.spot.classList.add('sweep');
   }
 
-  /* Quick actions: each one ends the tour, then goes where it says. */
+  /* Quick actions: the card tucks itself into a small "Resume tour" pill at
+     the top while the page goes where the action says; tapping the pill
+     brings the card back to the same stop and the voice carries on from the
+     word it paused on. Left alone, the pill fades away after a while. */
   function renderActs(box, list) {
     box.textContent = '';
     (list || []).forEach(function (a) {
@@ -217,7 +235,7 @@
   function act(a, e) {
     try { if (window.gtag) gtag('event', 'tour_action', { action: a.id }); } catch (x) {}
     if (!a.href && e) e.preventDefault();
-    stop();
+    park();
     if (a.href) return;                                // the link opens in a new tab by itself
     var go = a.go;
     if (go === 'cv') {
@@ -232,6 +250,155 @@
     }
     window.scrollTo({ top: Math.max(0, docTop(el) - headerH() - 14), behavior: reduce ? 'auto' : 'smooth' });
   }
+
+  var parked = null, DOCK_MS = 15000, dockLeft = 0, dockStart = 0, dockTimer = 0, dockHolds = {}, dockAnims = [];
+  /* where the voice should pick up: the start of the word it was on */
+  function resumePoint() {
+    if (!run) return 0;
+    var t = run.clock ? run.clock.t0 + (performance.now() - run.clock.c0) / 1000 : (run.a && run.a.currentTime) || 0;
+    var w = run.clip && run.clip.words, at = Math.max(0, t - 0.4);
+    if (w && w.length) { for (var k = w.length - 1; k >= 0; k--) if (w[k][0] <= t + 0.04) { at = Math.max(0, w[k][0] - 0.12); break; } }
+    return at;
+  }
+  /* the pill sits just under the site header while it shows, at the very top when it hides */
+  var dockY = -1, dockRaf = 0;
+  function dockTop() {
+    var hd = document.querySelector('header'), b = 0;
+    if (hd) { var pos = getComputedStyle(hd).position; if (pos === 'fixed' || pos === 'sticky') b = Math.max(0, hd.getBoundingClientRect().bottom); }
+    var y = b > 0 && b < window.innerHeight / 3 ? Math.round(b) + 10 : 12;
+    if (y !== dockY) { dockY = y; ui.dock.style.setProperty('--dock-top', y + 'px'); }
+  }
+  function onDockScroll() {
+    if (!parked || dockRaf) return;
+    dockRaf = requestAnimationFrame(function () { dockRaf = 0; if (parked) dockTop(); });
+    clearTimeout(onDockScroll.t);
+    onDockScroll.t = setTimeout(function () { if (parked) dockTop(); }, 420);   // after the header finishes sliding
+  }
+  function endAnims() { dockAnims.forEach(function (a) { try { a.cancel(); } catch (e) {} }); dockAnims = []; }
+  /* move one box onto another's place (card ⇄ pill), as a transform */
+  function morph(el, from, to, opa, ms, cb) {
+    var base = getComputedStyle(el).transform; base = base && base !== 'none' ? ' ' + base : '';
+    var off = function (r) {
+      return 'translate(' + ((r.left + r.width / 2) - (to.left + to.width / 2)) + 'px,' + ((r.top + r.height / 2) - (to.top + to.height / 2)) + 'px)'
+        + base + ' scale(' + (r.width / to.width) + ',' + (r.height / to.height) + ')';
+    };
+    if (!el.animate || reduce) { if (cb) cb(); return; }
+    var a = el.animate([
+      { transform: from === to ? base || 'none' : off(from), opacity: opa[0] },
+      { transform: base || 'none', opacity: opa[1] }
+    ], { duration: ms, easing: 'cubic-bezier(.32,.72,.24,1)', fill: 'both' });
+    dockAnims.push(a);
+    a.onfinish = function () { if (cb) cb(); };
+  }
+  function park() {
+    if (!active || !ui) return;
+    var at = fin ? 0 : resumePoint();
+    parked = { i: idx, fin: fin, at: at };
+    token++;
+    stopAudio();
+    cancelAnimationFrame(raf);
+    active = false;
+    document.removeEventListener('keydown', onKey, true);
+    document.documentElement.classList.remove('tour-on');
+    document.documentElement.classList.add('tour-docked');
+    ui.dockSub.textContent = fin ? 'Back to the summary' : (idx + 1) + ' / ' + STEPS.length + ' · ' + STEPS[idx].title;
+    endAnims();
+    dockTop();
+    var C = ui.card.getBoundingClientRect();
+    ui.card.style.pointerEvents = 'none';
+    ui.root.classList.add('docked');
+    var P = ui.dock.getBoundingClientRect();
+    /* the card shrinks into the pill while the pill grows out of the card */
+    var base = getComputedStyle(ui.card).transform; base = base && base !== 'none' ? ' ' + base : '';
+    if (ui.card.animate && !reduce) {
+      var dx = (P.left + P.width / 2) - (C.left + C.width / 2), dy = (P.top + P.height / 2) - (C.top + C.height / 2);
+      var a = ui.card.animate([
+        { transform: base || 'none', opacity: 1, filter: 'blur(0px)' },
+        { transform: 'translate(' + dx + 'px,' + dy + 'px)' + base + ' scale(' + (P.width / C.width) + ',' + (P.height / C.height) + ')', opacity: 0, filter: 'blur(6px)' }
+      ], { duration: 440, easing: 'cubic-bezier(.32,.72,.24,1)', fill: 'forwards' });
+      dockAnims.push(a);
+      a.onfinish = function () { if (parked) ui.card.style.visibility = 'hidden'; };
+      morph(ui.dock, C, P, [0, 1], 480);
+    } else ui.card.style.visibility = 'hidden';
+    window.addEventListener('scroll', onDockScroll, { passive: true });
+    dockHolds = {}; if (document.hidden) dockHolds.hidden = true;
+    dockLeft = DOCK_MS;
+    ui.dockTime.style.animation = 'none'; void ui.dockTime.offsetWidth;
+    ui.dockTime.style.animation = 'tourDockTime ' + DOCK_MS + 'ms linear forwards';
+    runDock();
+  }
+  function held() { for (var k in dockHolds) if (dockHolds[k]) return true; return false; }
+  function runDock() {
+    clearTimeout(dockTimer);
+    if (!parked) return;
+    if (held()) { ui.dockTime.style.animationPlayState = 'paused'; return; }
+    ui.dockTime.style.animationPlayState = 'running';
+    dockStart = performance.now();
+    dockTimer = setTimeout(function () { dockAway(); }, Math.max(0, dockLeft));
+  }
+  function holdDock(why, on) {
+    if (!parked) return;
+    var was = held();
+    dockHolds[why] = on;
+    if (!was && held()) { clearTimeout(dockTimer); dockLeft -= performance.now() - dockStart; ui.dockTime.style.animationPlayState = 'paused'; }
+    else if (was && !held()) runDock();
+  }
+  /* the pill was left alone (or closed): it fades, and the tour ends */
+  function dockAway() {
+    if (!parked) return;
+    parked = null;
+    clearTimeout(dockTimer);
+    window.removeEventListener('scroll', onDockScroll);
+    endAnims();
+    document.documentElement.classList.remove('tour-docked');
+    var done = function () {
+      endAnims();
+      ui.root.classList.remove('docked', 'open');
+      ui.card.style.visibility = ''; ui.card.style.pointerEvents = '';
+      cleanup();
+      try { if (window.gtag) gtag('event', 'tour_end', { step: 'paused' }); } catch (e) {}
+    };
+    if (ui.dock.animate && !reduce) {
+      var base = getComputedStyle(ui.dock).transform; base = base && base !== 'none' ? base : '';
+      var a = ui.dock.animate([{ opacity: 1, transform: base || 'none' }, { opacity: 0, transform: 'translateY(-10px) ' + base + ' scale(.94)' }],
+        { duration: 420, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' });
+      dockAnims.push(a); a.onfinish = done;
+    } else done();
+  }
+  /* back to the exact stop: the pill grows back into the card, the page
+     returns to the stop, and the voice picks up from the word it paused on */
+  function resume() {
+    if (!parked || !ui) return;
+    var pk = parked; parked = null;
+    clearTimeout(dockTimer);
+    window.removeEventListener('scroll', onDockScroll);
+    endAnims();
+    document.documentElement.classList.remove('tour-docked');
+    if (!muted) unlock();
+    /* a dialog the action opened (the CV form) gives way to the tour */
+    try { Array.prototype.forEach.call(document.querySelectorAll('#resumeGateModal.rg-open'), function (m) { m.classList.remove('rg-open'); }); } catch (e) {}
+    var P = ui.dock.getBoundingClientRect();
+    ui.card.style.visibility = ''; ui.card.style.pointerEvents = '';
+    active = true;
+    document.documentElement.classList.add('tour-on');
+    document.addEventListener('keydown', onKey, true);
+    track();
+    if (pk.fin) { ui.root.classList.remove('docked'); } else show(pk.i, pk.at);
+    ui.root.classList.remove('docked');
+    var C = ui.card.getBoundingClientRect();
+    if (ui.card.animate && !reduce) {
+      var base = getComputedStyle(ui.card).transform; base = base && base !== 'none' ? ' ' + base : '';
+      var dx = (P.left + P.width / 2) - (C.left + C.width / 2), dy = (P.top + P.height / 2) - (C.top + C.height / 2);
+      var a = ui.card.animate([
+        { transform: 'translate(' + dx + 'px,' + dy + 'px)' + base + ' scale(' + (P.width / C.width) + ',' + (P.height / C.height) + ')', opacity: 0, filter: 'blur(6px)' },
+        { transform: base || 'none', opacity: 1, filter: 'blur(0px)' }
+      ], { duration: 480, easing: 'cubic-bezier(.32,.72,.24,1)' });
+      dockAnims.push(a);
+    }
+    try { if (window.gtag) gtag('event', 'tour_resume'); } catch (e) {}
+    setTimeout(function () { try { (pk.fin ? ui.finActs.querySelector('.tour-act.main') : ui.next).focus({ preventScroll: true }); } catch (e) {} }, 60);
+  }
+  document.addEventListener('visibilitychange', function () { if (parked) holdDock('hidden', document.hidden); });
 
   function target(s) { return document.querySelector(s.sel) || (s.fallback && document.querySelector(s.fallback)); }
 
@@ -554,7 +721,7 @@
       .catch(function (e) { delete cache[i]; throw e; });
     return cache[i];
   }
-  function speak(i, my) {
+  function speak(i, my, at) {
     if (my !== token) return;
     if (muted) { ui.card.classList.remove('has-env'); autoAdvance(STEPS[i].say); return; }
     ui.orb.classList.add('on');
@@ -588,7 +755,12 @@
       };
       audio.onended = end;
       audio.onerror = function () { if (my === token) rescue(run); };
-      audio.src = clip.url;
+      if (at > 0) {
+        /* coming back from the pill: carry on from the word it paused on */
+        if (!(audio.src === clip.url && audio.readyState >= 1)) audio.src = clip.url + (/^blob:/.test(clip.url) ? '' : '#t=' + at.toFixed(2));
+        try { audio.currentTime = at; } catch (e) {}
+        audio.onloadedmetadata = function () { try { if (audio && audio.currentTime < at - 0.3) audio.currentTime = at; } catch (e) {} };
+      } else audio.src = clip.url;
       follow(clip, my, end);
       var p = audio.play();
       voiceNote('');
@@ -620,14 +792,14 @@
   /* Changing stop: the controls update at once; the caption fades out while
      the page scrolls, and the new caption fades in — and the voice starts —
      only when the page has arrived, so words, spotlight and scroll match. */
-  function show(i) {
+  function show(i, at) {
     if (i < 0 || i >= STEPS.length) return;
     var my = ++token;
     stopAudio();
     resetBar();
     clearScope();
     voiceNote('');
-    var first = leaveFin() || idx < 0;
+    var first = leaveFin() || idx < 0 || at != null;
     idx = i;
     var s = STEPS[i], el = target(s);
     setAccent(s.acc);
@@ -648,7 +820,7 @@
       ui.body.classList.add('in');
       setTimeout(function () { ui.body.classList.remove('in'); }, 420);
       sweep();
-      speak(i, my);
+      speak(i, my, at);
     };
     if (!faded) {
       ui.body.classList.add('out');
@@ -667,6 +839,9 @@
   }
 
   function start() {
+    if (parked) { parked = null; clearTimeout(dockTimer); window.removeEventListener('scroll', onDockScroll); endAnims();
+      ui.root.classList.remove('docked'); ui.card.style.visibility = ''; ui.card.style.pointerEvents = '';
+      document.documentElement.classList.remove('tour-docked'); }
     if (active) return;
     build();
     if (!muted) unlock();   // must run inside the tap
@@ -684,12 +859,16 @@
     setTimeout(function () { try { ui.next.focus({ preventScroll: true }); } catch (e) {} }, 50);
     try { if (window.gtag) gtag('event', 'tour_start'); } catch (e) {}
   }
+  function cleanup() {
+    Object.keys(cache).forEach(function (k) { cache[k].then(function (c) { try { if (c && /^blob:/.test(c.url)) URL.revokeObjectURL(c.url); } catch (e) {} }, function () {}); });
+    cache = {};
+  }
   function stop() {
+    if (parked) { dockAway(); return; }
     if (!active) return;
     active = false; token++;
     stopAudio();
-    Object.keys(cache).forEach(function (k) { cache[k].then(function (c) { try { if (c && /^blob:/.test(c.url)) URL.revokeObjectURL(c.url); } catch (e) {} }, function () {}); });
-    cache = {};
+    cleanup();
     cancelAnimationFrame(raf);
     ui.root.classList.remove('open');
     document.documentElement.classList.remove('tour-on');
