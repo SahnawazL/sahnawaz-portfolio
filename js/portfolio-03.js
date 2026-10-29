@@ -1201,17 +1201,16 @@
   }
 
   // ══ Release Timeline ══
-  // Built entirely from `activity` entries already fetched for the main
-  // feed above (ReleaseEvent → type 'release') — no separate API call.
-  // Since the public events feed only covers ~90 days, this reads as
-  // "recent releases," not full version history.
-  function renderReleaseTimeline(activity) {
+  // From `releases` (each repo's own GitHub Releases, newest first — see
+  // fetchReleases in api/github-activity.js). The activity feed is only a
+  // fallback: it holds just the latest events, so releases fall out of it.
+  function renderReleaseTimeline(list, activity) {
     var el = document.getElementById('raReleaseTimeline');
     if (!el) return;
-    var releases = (activity || []).filter(function (a) { return a.type === 'release'; });
+    var releases = (list && list.length) ? list : (activity || []).filter(function (a) { return a.type === 'release'; });
     if (!releases.length) {
       el.innerHTML = '<div class="ra-label-row"><span class="ra-label">Release Timeline</span><span class="ra-label-sub">// tagged versions, most recent first</span></div>'
-        + '<div class="rt-empty">No tagged releases in the last 90 days of public activity.</div>';
+        + '<div class="rt-empty">No tagged releases yet.</div>';
       return;
     }
     var chips = releases.map(function (r) {
@@ -1226,7 +1225,7 @@
             + '<span class="rt-chip-tag">' + escapeHtml(tag) + '</span>'
           + '</span>'
           + '<span class="rt-chip-repo">' + escapeHtml(r.repo) + '</span>'
-          + '<span class="rt-chip-time">' + timeAgo(r.time) + '</span>'
+          + '<span class="rt-chip-time">' + (r.prerelease ? 'Pre-release \u00b7 ' : '') + timeAgo(r.time) + '</span>'
           + '<span class="rt-chip-cta">View notes <svg width="8" height="8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 17L17 7M17 7H9M17 7V15" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'
         + '</a>'
       + '</div>';
@@ -1461,7 +1460,7 @@
         renderFreshness(items);
         renderProjectStats(data.projectStats || null);
         renderCIHealth(data.ci || null);
-        renderReleaseTimeline(data.activity || []);
+        renderReleaseTimeline(data.releases || [], data.activity || []);
         renderRepoEcosystem(data.repos || null);
         renderDepFreshness(data.depFreshness || null);
         applyRange(90);

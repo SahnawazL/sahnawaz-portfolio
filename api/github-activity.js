@@ -395,6 +395,43 @@ async function fetchContributedRepos(token) {
   }
 }
 
+// ── Release Timeline ──
+// Read from each repo's own Releases list, not the public events feed:
+// that feed only keeps the latest ~100 events, and with many pushes a day
+// a release drops out of it within a day or two (which is why the
+// timeline went empty). Drafts are skipped, and so are the storage
+// "releases" CI jobs keep (e.g. app-live, test-reports): only real
+// version tags (v3.0.0, 2.1.74 …) count as releases.
+const VERSION_TAG = /^v?\d+(\.\d+)+/i;
+async function fetchRepoReleases(repo, headers) {
+  try {
+    const res = await fetch(`https://api.github.com/repos/${repo.nameWithOwner}/releases?per_page=10`, { headers });
+    if (!res.ok) return [];
+    const list = await res.json();
+    if (!Array.isArray(list)) return [];
+    return list
+      .filter((r) => r && !r.draft && r.tag_name && VERSION_TAG.test(r.tag_name))
+      .map((r) => ({
+        type: 'release',
+        repo: repo.name,
+        tag: r.tag_name,
+        title: r.name || r.tag_name,
+        prerelease: !!r.prerelease,
+        message: `Released ${r.tag_name} of ${repo.name}`,
+        url: r.html_url || repo.url,
+        time: r.published_at || r.created_at
+      }));
+  } catch (err) {
+    return [];
+  }
+}
+async function fetchReleases(headers, repos) {
+  if (!repos || !repos.length) return null;
+  const all = (await Promise.all(repos.slice(0, 10).map((r) => fetchRepoReleases(r, headers)))).flat();
+  all.sort((a, b) => new Date(b.time) - new Date(a.time));
+  return all.slice(0, 10);
+}
+
 // True all-time authored-commit count + first-commit date for one repo,
 // via the Search Commits API (repo:owner/name author:user) — this is
 // not limited to a rolling window the way contributionsCollection is,
@@ -872,10 +909,11 @@ module.exports = async (req, res) => {
     // here rather than each re-fetching it via their own
     // fetchContributedRepos call — cuts down the GraphQL/REST round trips
     // this endpoint makes.
-    const [projectStats, ci, depFreshness] = await Promise.all([
+    const [projectStats, ci, depFreshness, releases] = await Promise.all([
       fetchProjectStats(headers, contributedRepos),
       fetchCIHealth(headers, contributedRepos),
-      fetchDependencyFreshness(headers, contributedRepos)
+      fetchDependencyFreshness(headers, contributedRepos),
+      fetchReleases(headers, contributedRepos)
     ]);
 
     // Trimmed repo list for the Repo Ecosystem view — just enough to
@@ -909,6 +947,7 @@ module.exports = async (req, res) => {
       codingHours: describePeakWindow(activityResult.hourHistogram),
       ci: ci,
       depFreshness: depFreshness,
+      releases: releases,
       fetchedAt: new Date().toISOString()
     });
   } catch (err) {
