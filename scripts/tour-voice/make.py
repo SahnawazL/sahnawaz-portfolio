@@ -35,6 +35,19 @@ def spoken(t):
 def letters(s):
     return re.sub(r"[^a-z0-9]", "", s.lower().replace("’", "'"))
 
+def envelope(path, fps=25):
+    """voice loudness, 25 times a second, as digits 0-9 (drives the orb and waveform)"""
+    raw = subprocess.check_output(["ffmpeg", "-v", "error", "-i", path, "-f", "s16le", "-ac", "1", "-ar", "8000", "-"])
+    a = np.frombuffer(raw, dtype=np.int16).astype(np.float32) / 32768.0
+    n = 8000 // fps
+    out = []
+    for k in range(len(a) // n):
+        seg = a[k * n:(k + 1) * n]
+        db = 20 * np.log10(np.sqrt(np.mean(seg * seg)) + 1e-6)
+        v = min(1.0, max(0.0, (db + 40.0) / 26.0))       # about -40 dB (background) .. -14 dB (voice)
+        out.append(str(int(round(v * 9))))
+    return "".join(out)
+
 def dur(path):
     return float(subprocess.check_output(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", path]).strip())
 
@@ -101,7 +114,9 @@ for s in steps:
     keep.add(name)
     final = os.path.join(OUT, name)
     if os.path.exists(final) and name in old and old[name].get("words"):
-        manifest.append(old[name]); continue
+        c = old[name]
+        if not c.get("env"): c["env"], c["fps"] = envelope(final), 25
+        manifest.append(c); continue
     audio, toks, d = synth(text)
     raw = f"/tmp/voice-{i}.wav"
     sf.write(raw, audio, SR)
@@ -115,7 +130,7 @@ for s in steps:
         f"[v][b]amix=inputs=2:duration=longest:normalize=0,loudnorm=I=-17:TP=-1.5:LRA=9,aresample={SR}",
         "-ac", "1", "-ar", str(SR), "-c:a", "libmp3lame", "-b:a", "40k", final])
     words = word_times(text, toks, d)
-    manifest.append({"i": i, "text": text, "file": name, "seconds": round(dur(final), 2), "bytes": os.path.getsize(final), "words": words})
+    manifest.append({"i": i, "text": text, "file": name, "seconds": round(dur(final), 2), "bytes": os.path.getsize(final), "words": words, "env": envelope(final), "fps": 25})
     print(f"made {name}  {d:.1f}s  {len(words)} words")
 
 for f in os.listdir(OUT):
