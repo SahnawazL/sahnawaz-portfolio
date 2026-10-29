@@ -26,7 +26,7 @@
   }
   function clipFor(i) {
     return clips().then(function (list) {
-      for (var k = 0; k < list.length; k++) if (list[k].i === i && list[k].text === STEPS[i].say) return CLIPS + list[k].file;
+      for (var k = 0; k < list.length; k++) if (list[k].i === i && list[k].text === STEPS[i].say) return { url: CLIPS + list[k].file, words: list[k].words || null };
       return null;
     });
   }
@@ -76,7 +76,8 @@
       '<div class="tour-spot" aria-hidden="true"></div>'
       + '<div class="tour-card">'
       +   '<div class="tour-top"><span class="tour-step"></span>'
-      +     '<span class="tour-wave" aria-hidden="true"><i></i><i></i><i></i><i></i></span>'
+      +     '<span class="tour-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>'
+      +     '<span class="tour-voice-tag" aria-hidden="true">AI narrator</span>'
       +     '<button type="button" class="tour-ic tour-mute" aria-label="Mute voice"></button>'
       +     '<button type="button" class="tour-ic tour-close" aria-label="Close tour">×</button></div>'
       +   '<div class="tour-body"><h3 class="tour-title"></h3>'
@@ -112,7 +113,9 @@
     return ui;
   }
   function paintMute() {
-    ui.mute.textContent = muted ? '🔇' : '🔊';
+    ui.mute.innerHTML = muted
+      ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="m22 9-6 6M16 9l6 6"/></svg>'
+      : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
     ui.mute.setAttribute('aria-label', muted ? 'Turn voice on' : 'Mute voice');
   }
 
@@ -181,9 +184,52 @@
     })();
   }
 
+  /* Caption as words, so each one can light up the moment it is spoken
+     (times come with the clip: audio/tour/manifest.json → words). */
+  var words = [], syncRaf = 0;
+  function renderWords(text) {
+    ui.text.textContent = '';
+    ui.text.classList.remove('live');
+    words = text.split(' ').map(function (w, k) {
+      var sp = document.createElement('span');
+      sp.className = 'tw'; sp.textContent = w;
+      ui.text.appendChild(sp);
+      if (k < text.split(' ').length - 1) ui.text.appendChild(document.createTextNode(' '));
+      return sp;
+    });
+  }
+  function markAll() { words.forEach(function (w) { w.classList.remove('now'); w.classList.add('said'); }); }
+  function follow(times, my) {
+    cancelAnimationFrame(syncRaf);
+    if (!times || !ui || !audio) { if (ui) ui.text.classList.remove('live'); return; }
+    if (times.length !== words.length || reduce) { ui.text.classList.remove('live'); times = null; }
+    else ui.text.classList.add('live');
+    var a = audio, at = -1;
+    words.forEach(function (w) { w.classList.remove('now', 'said'); });
+    ui.bar.style.transition = 'none';
+    (function tick() {
+      if (my !== token || audio !== a) return;
+      var t = a.currentTime || 0, d = a.duration;
+      if (isFinite(d) && d > 0) ui.bar.style.width = Math.min(100, (t / d) * 100) + '%';
+      if (times) {
+        var cur = -1;
+        for (var k = 0; k < times.length; k++) { if (times[k][0] <= t + 0.04) cur = k; else break; }
+        if (cur !== at) {
+          for (var j = 0; j < words.length; j++) {
+            words[j].classList.toggle('said', j < cur);
+            words[j].classList.toggle('now', j === cur);
+          }
+          at = cur;
+        }
+      }
+      syncRaf = requestAnimationFrame(tick);
+    })();
+  }
+
   function voiceNote(t) { if (!ui) return; ui.voice.textContent = t || ''; ui.voice.hidden = !t; }
   function stopAudio() {
     clearTimeout(timer);
+    follow(null);
     if (audio) { try { audio.pause(); } catch (e) {} audio.onended = null; audio.onloadedmetadata = null; audio = null; }
     if (ui) ui.wave.classList.remove('on');
   }
@@ -219,16 +265,16 @@
             if (!d || !d.audio) throw new Error('no audio');
             var bin = atob(d.audio), bytes = new Uint8Array(bin.length);
             for (var k = 0; k < bin.length; k++) bytes[k] = bin.charCodeAt(k);
-            return URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' }));
+            return { url: URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' })), words: null };
           });
         });
     };
     cache[i] = clipFor(i)
-      .then(function (url) {
-        if (!url) return attempt(0);
-        /* warm the next clip so it starts instantly */
-        try { var pre = new Audio(); pre.preload = 'auto'; pre.src = url; } catch (e) {}
-        return url;
+      .then(function (clip) {
+        if (!clip) return attempt(0);
+        /* warm the clip so it starts instantly */
+        try { var pre = new Audio(); pre.preload = 'auto'; pre.src = clip.url; } catch (e) {}
+        return clip;
       })
       .catch(function (e) { delete cache[i]; throw e; });
     return cache[i];
@@ -238,18 +284,20 @@
     if (muted) { autoAdvance(STEPS[i].say); return; }
     ui.wave.classList.add('on');
     voiceNote('Loading voice…');
-    fetchVoice(i).then(function (src) {
+    fetchVoice(i).then(function (clip) {
       if (my !== token || !active || muted) return;
       if (!player) unlock();
       audio = player;
-      audio.onloadedmetadata = function () { if (my === token && isFinite(audio.duration)) progress(audio.duration * 1000); };
-      audio.onended = function () { if (my === token) { ui.wave.classList.remove('on'); timer = setTimeout(next, 650); } };
-      audio.src = src;
+      audio.onloadedmetadata = null;
+      audio.onended = function () { if (my === token) { ui.wave.classList.remove('on'); follow(null); markAll(); timer = setTimeout(next, 700); } };
+      audio.src = clip.url;
+      follow(clip.words, my);
       var p = audio.play();
       voiceNote('');
       if (p && p.catch) p.catch(function (err) {
         if (my !== token) return;
         ui.wave.classList.remove('on');
+        follow(null);
         /* the browser blocked sound: say how to turn it on, keep the captions moving */
         voiceNote(err && err.name === 'NotAllowedError' ? 'Your browser blocked the sound — tap 🔊 to hear the voice.' : 'Voice unavailable right now — showing captions.');
         if (err && err.name === 'NotAllowedError') { muted = true; paintMute(); }
@@ -281,13 +329,13 @@
     ui.next.textContent = i === STEPS.length - 1 ? 'Finish' : 'Next ›';
     Array.prototype.forEach.call(ui.dots.children, function (d, k) { d.classList.toggle('on', k === i); d.setAttribute('aria-current', k === i ? 'step' : 'false'); });
     if (!muted) fetchVoice(i).catch(function () {});   // fetch the voice while the page scrolls
-    if (first) { ui.title.textContent = s.title; ui.text.textContent = s.say; }
+    if (first) { ui.title.textContent = s.title; renderWords(s.say); }
     var swapped = false, landed = false, faded = reduce || first;
     var reveal = function () {
       if (my !== token || !active || swapped || !landed || !faded) return;
       swapped = true;
       ui.title.textContent = s.title;
-      ui.text.textContent = s.say;
+      renderWords(s.say);
       ui.body.classList.remove('out');
       ui.body.classList.add('in');
       setTimeout(function () { ui.body.classList.remove('in'); }, 420);
@@ -330,7 +378,7 @@
     if (!active) return;
     active = false; token++;
     stopAudio();
-    Object.keys(cache).forEach(function (k) { cache[k].then(function (u) { try { URL.revokeObjectURL(u); } catch (e) {} }, function () {}); });
+    Object.keys(cache).forEach(function (k) { cache[k].then(function (c) { try { if (c && /^blob:/.test(c.url)) URL.revokeObjectURL(c.url); } catch (e) {} }, function () {}); });
     cache = {};
     cancelAnimationFrame(raf);
     ui.root.classList.remove('open');
