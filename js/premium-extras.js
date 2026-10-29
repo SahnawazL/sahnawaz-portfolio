@@ -369,7 +369,7 @@
       [['t', '  <'], ['k', 'Button'], ['t', '>'], ['x', 'Open app →'], ['t', '</'], ['k', 'Button'], ['t', '>']],
       [['t', '</'], ['k', 'Card'], ['t', '>']]
     ];
-    var playing = false, timer = 0, count = 1261;
+    var playing = false, timer = 0, count = 1202;
     liveYS().then(function (d) { if (typeof d.schemeCount === 'number') count = d.schemeCount; }).catch(function () {});
 
     function renderAll() {

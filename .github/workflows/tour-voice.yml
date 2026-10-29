@@ -41,7 +41,15 @@ jobs:
           grep -E "^made|^total|timing by length" "$RUNNER_TEMP/make.log" | while read -r l; do echo "::notice title=Tour voice::$l"; done
       - name: Commit the clips
         run: |
+          # identity for the commit AND for the rebase below (a rebase re-creates
+          # the commit when something else was pushed while the clips were made)
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A audio/tour
           if git diff --cached --quiet; then echo "clips already up to date"; exit 0; fi
-          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "Tour voice: narration clips for the current captions"
-          git pull --rebase -q origin main && git push -q origin HEAD:main
+          git commit -m "Tour voice: narration clips for the current captions"
+          for n in 1 2 3; do
+            git pull --rebase -q origin main && git push -q origin HEAD:main && exit 0
+            echo "push attempt $n did not go through, retrying"; sleep 5
+          done
+          exit 1

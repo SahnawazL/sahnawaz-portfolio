@@ -97,7 +97,7 @@
       icon: '🇮🇳',
       status: '● LIVE — yojanasahay.vercel.app',
       title: 'YojanaSahay — AI Government Scheme Finder',
-      lede: 'Millions of Indians qualify for welfare schemes they never find out about — the information is scattered across thousands of government pages, in English, written for officials rather than citizens. YojanaSahay is a bilingual AI layer over 1,201 Central and State schemes across all 34 states and UTs, backed by a production-grade verification pipeline that keeps that data honest instead of going stale the way most scheme-listing sites do. It now reaches people where they already are: as an installable web app, an Android app and a Telegram bot that runs the same checker and assistant — and the code and scheme data are open, with a Digital Public Goods application under review.',
+      lede: 'Millions of Indians qualify for welfare schemes they never find out about — the information is scattered across thousands of government pages, in English, written for officials rather than citizens. YojanaSahay is a bilingual AI layer over 1,202 Central and State schemes across all 34 states and UTs, backed by a production-grade verification pipeline that keeps that data honest instead of going stale the way most scheme-listing sites do. It now reaches people where they already are: as an installable web app, an Android app and a Telegram bot that runs the same checker and assistant — and the code and scheme data are open, with a Digital Public Goods application under review.',
       stack: [
         'React 18 (PWA, bilingual EN/HI)',
         'Android app — Trusted Web Activity, built in GitHub Actions',
@@ -112,7 +112,7 @@
         'KV-backed cross-instance key rotation'
       ],
       stats: [
-        { value: '1,201', label: 'schemes tracked, 34 states & UTs' },
+        { value: '1,202', label: 'schemes tracked, 34 states & UTs' },
         { value: '78%',   label: 'links verified live' },
         { value: '3',     label: 'channels — web, Android, Telegram' },
         { value: '6',     label: 'Groq keys — chat rotation pool' },
@@ -151,7 +151,7 @@
         + '<text x="507" y="209" text-anchor="middle" fill="rgba(220,240,245,0.65)" font-size="8.3">Dead-link replacement finder</text>'
         + '<rect x="396" y="230" width="222" height="48" rx="9" fill="rgba(192,132,252,0.08)" stroke="#c084fc" stroke-width="1.4"/>'
         + '<text x="507" y="250" text-anchor="middle" fill="#eafffb" font-size="10.5" font-weight="700">Firestore</text>'
-        + '<text x="507" y="265" text-anchor="middle" fill="rgba(220,240,245,0.65)" font-size="8.3">1,201 schemes · Admin Control Centre</text>'
+        + '<text x="507" y="265" text-anchor="middle" fill="rgba(220,240,245,0.65)" font-size="8.3">1,202 schemes · Admin Control Centre</text>'
         + '</svg>',
       embed: {
         title: 'Scheme Eligibility Checker — Live Module',
@@ -196,7 +196,7 @@
         }
       ],
       metrics: [
-        '1,201 schemes across 34 states & UTs',
+        '1,202 schemes across 34 states & UTs',
         'Telegram bot — same eligibility checker and AI assistant, no account, auto-deleting memory',
         'Open source (MIT) + open scheme data in JSON & CSV — Digital Public Goods application under review',
         'Android app built automatically in CI — in review on Indus Appstore',
