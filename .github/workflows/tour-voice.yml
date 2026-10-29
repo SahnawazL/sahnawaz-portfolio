@@ -31,7 +31,7 @@ jobs:
       - name: Tools
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg espeak-ng > /dev/null
-          pip install -q --extra-index-url https://download.pytorch.org/whl/cpu "torch==2.5.1" "kokoro>=0.9.4,<1" soundfile numpy
+          pip install -q --extra-index-url https://download.pytorch.org/whl/cpu "torch>=2.6,<2.9" "kokoro>=0.9.4,<1" soundfile numpy
           python -m spacy download en_core_web_sm -q || true
       - name: Make the clips
         run: |
