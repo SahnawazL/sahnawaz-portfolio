@@ -34,7 +34,11 @@ jobs:
           pip install -q --extra-index-url https://download.pytorch.org/whl/cpu "torch==2.5.1" "kokoro>=0.9.4,<1" soundfile numpy
           python -m spacy download en_core_web_sm -q || true
       - name: Make the clips
-        run: python scripts/tour-voice/make.py
+        run: |
+          set -o pipefail
+          python scripts/tour-voice/make.py 2>&1 | tee "$RUNNER_TEMP/make.log" || {
+            echo "::error title=Tour voice failed::$(tail -c 3500 "$RUNNER_TEMP/make.log" | tr '\n' ' ' | sed 's/%/%25/g')"; exit 1; }
+          grep -E "^made|^total|timing by length" "$RUNNER_TEMP/make.log" | while read -r l; do echo "::notice title=Tour voice::$l"; done
       - name: Commit the clips
         run: |
           git add -A audio/tour
