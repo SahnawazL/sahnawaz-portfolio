@@ -86,20 +86,20 @@
      ============================================================ */
   var SECTIONS = [
     ['section:has(> #pfpStage)', 'Home'],
-    ['section.ts-section', 'Tech Stack'],
-    ['#blog', 'Blog'],
-    ['#testimonials', 'Testimonials'],
-    ['#certSection', 'Certifications'],
+    ['#my-projects', 'Projects'],
+    ['#live-products', 'Live Products'],
     ['#projects', 'Experience'],
     ['#achievements', 'Achievements'],
+    ['section.ts-section', 'Tech Stack'],
+    ['#certSection', 'Certifications'],
+    ['#recent-activity', 'Telemetry'],
+    ['#job-fit', 'Hiring? Check my fit'],
     ['#what-i-offer', 'Services'],
     ['#why-website', 'Why a Website'],
     ['#website-check', 'Website Check'],
     ['#tools-services', 'Book a Service'],
-    ['#my-projects', 'Projects'],
-    ['#live-products', 'Live Products'],
-    ['#recent-activity', 'Telemetry'],
-    ['#job-fit', 'Hiring? Check my fit'],
+    ['#testimonials', 'Testimonials'],
+    ['#blog', 'Blog'],
     ['#contact', 'Contact']
   ];
   window.SHZ_SECTIONS = SECTIONS;
@@ -351,21 +351,6 @@
           metric(sl, 'ms', ms, { suffix: ' ms' });
         })
         .catch(function () { if (done) return; done = true; clearTimeout(tm); setStatus(sl, false, "Couldn't reach it right now"); });
-
-      /* This website — real-visitor speed (Core Web Vitals, 75th percentile) */
-      var me = $('[data-p="me"]', sec);
-      setStatus(me, true, "Online · you're on it");
-      fetch('/api/vitals', { cache: 'no-store' })
-        .then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (d) {
-          if (!d || !d.p75 || !d.samples) { metric(me, 'lcp', '—'); metric(me, 'visits', '—'); return; }
-          if (typeof d.p75.lcp === 'number') metric(me, 'lcp', d.p75.lcp / 1000, { decimals: 1, suffix: ' s' });
-          metric(me, 'visits', d.samples);
-          var good = d.p75.lcp != null && d.p75.lcp <= 2500 && (d.p75.cls == null || d.p75.cls <= 0.1);
-          metric(me, 'grade', good ? 'Good' : 'Needs work');
-          var g = $('[data-m="grade"]', me); if (g) g.classList.toggle('is-good', good);
-        })
-        .catch(function () { metric(me, 'lcp', '—'); });
     }
     onView(sec, run, '200px 0px 0px 0px');
   });

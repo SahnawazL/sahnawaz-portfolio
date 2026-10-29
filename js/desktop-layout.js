@@ -14,19 +14,19 @@
   var WIDE = '(min-width: 1280px)';
   var SECTIONS = [
     ['section:has(> #pfpStage)', 'Home'],
-    ['section.ts-section',  'Tech Stack'],
-    ['#blog',               'Blog'],
-    ['#testimonials',       'Testimonials'],
-    ['#certSection',        'Certifications'],
+    ['#my-projects',        'Projects'],
+    ['#live-products',      'Live Products'],
     ['#projects',           'Experience'],
     ['#achievements',       'Achievements'],
+    ['section.ts-section',  'Tech Stack'],
+    ['#certSection',        'Certifications'],
+    ['#recent-activity',    'Telemetry'],
+    ['#job-fit',            'Hiring? Check Fit'],
     ['#what-i-offer',       'Services'],
     ['#why-website',        'Why a Website'],
     ['#tools-services',     'Book a Service'],
-    ['#my-projects',        'Projects'],
-    ['#live-products',      'Live Products'],
-    ['#recent-activity',    'Telemetry'],
-    ['#job-fit',            'Hiring? Check Fit'],
+    ['#testimonials',       'Testimonials'],
+    ['#blog',               'Blog'],
     ['#contact',            'Contact']
   ];
 
@@ -160,11 +160,11 @@
   var CHROME = '(min-width: 960px)';
   /* in page order, so the highlight moves left to right as you scroll */
   var NAV = [
-    ['section.ts-section', 'Stack', false],
-    ['#blog', 'Blog', true],
-    ['#what-i-offer', 'Services', false],
     ['#my-projects', 'Projects', false],
+    ['section.ts-section', 'Stack', false],
     ['#recent-activity', 'Telemetry', true],
+    ['#what-i-offer', 'Services', false],
+    ['#blog', 'Blog', true],
     ['#contact', 'Contact', false]
   ];
   var KNOWN = ['hdr-logo-row', 'hdr-tagline', 'hdr-badge-row'];
