@@ -864,6 +864,8 @@ section.hero-enter.sec-wipe { opacity: 1; transform: none; clip-path: none; tran
 <link rel="preload" href="css/case-ask.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="css/case-ask.css"></noscript>
 <link rel="preload" href="css/tour.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<link rel="preload" href="css/premium-extras.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="css/premium-extras.css"></noscript>
 <noscript><link rel="stylesheet" href="css/tour.css"></noscript>
 <link rel="stylesheet" href="css/print.css" media="print">
 
@@ -1301,6 +1303,32 @@ section.hero-enter.sec-wipe { opacity: 1; transform: none; clip-path: none; tran
 
 
 
+
+<!-- ══ CODE → DESIGN: a few lines of code type out and become the real card
+     they describe (js/premium-extras.js). Plays once when seen. ══ -->
+<div class="c2d" id="c2d" aria-label="From code to interface">
+  <div class="c2d-bar">
+    <span class="c2d-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+    <span class="c2d-tabs" role="tablist" aria-label="View">
+      <button type="button" class="c2d-tab c2d-tab-code" role="tab">Card.jsx</button>
+      <button type="button" class="c2d-tab c2d-tab-ui" role="tab">Preview</button>
+    </span>
+    <button type="button" class="c2d-replay" hidden aria-label="Replay"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/></svg></button>
+  </div>
+  <div class="c2d-body">
+    <div class="c2d-code"><pre aria-hidden="true"></pre></div>
+    <div class="c2d-ui" aria-hidden="true">
+      <div class="c2d-card">
+        <div class="c2d-card-top"><span class="c2d-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/><path d="M8.5 11.2l1.8 1.8 3.3-3.6"/></svg></span>
+          <span class="c2d-live"><i></i>Live</span></div>
+        <div class="c2d-card-title">Yojana Sahay</div>
+        <div class="c2d-stat"><span class="c2d-stat-v">0</span><span class="c2d-stat-l">schemes</span></div>
+        <a class="c2d-btn" href="https://yojanasahay.vercel.app" target="_blank" rel="noopener" tabindex="-1">Open app →</a>
+      </div>
+    </div>
+  </div>
+  <p class="c2d-cap">A few lines of code become the real interface — this is how I work.</p>
+</div>
 <div style="margin-top:1.5rem;text-align:center;">
 <div class="premium-bio-card">
 
@@ -3256,6 +3284,7 @@ window.addEventListener('resize', () => {
 <script src="js/job-fit.js" defer></script>
 <script src="js/case-ask.js" defer></script>
 <script src="js/tour.js" defer></script>
+<script src="js/premium-extras.js" defer></script>
 <!-- ══ END FREE WEBSITE CHECK ══ -->
 
 
@@ -3766,6 +3795,69 @@ window.addEventListener('resize', () => {
   </div>
 
 </section>
+
+<!-- ══ LIVE FROM MY PRODUCTS — real numbers fetched now (js/premium-extras.js,
+     css/premium-extras.css). Each value is labelled LIVE only once it has
+     actually arrived; if a product can't be reached, the card says so. ══ -->
+<section id="live-products" class="lp-section" aria-labelledby="lpTitle">
+  <h2 class="lp-title" id="lpTitle">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#50d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
+    Live from my products
+  </h2>
+  <p class="lp-sub">Real numbers, fetched from each product right now — not screenshots.</p>
+  <div class="lp-meta"><span class="lp-live"><i aria-hidden="true"></i>Live</span><span id="lpUpdated" aria-live="polite">connecting…</span></div>
+
+  <div class="lp-grid">
+    <article class="lp-card" data-p="ys">
+      <div class="lp-head">
+        <span class="lp-ic lp-ic-ys" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/><path d="M8.5 11.2l1.8 1.8 3.3-3.6"/></svg></span>
+        <div class="lp-name-wrap"><h3 class="lp-name">Yojana Sahay</h3><p class="lp-kind">Government scheme finder · Web + Android</p></div>
+      </div>
+      <p class="lp-status"><i aria-hidden="true"></i><span class="lp-status-t">Checking…</span></p>
+      <div class="lp-metrics">
+        <div class="lp-m" data-m="schemes"><span class="lp-v">—</span><span class="lp-l">schemes tracked</span></div>
+        <div class="lp-m" data-m="checks"><span class="lp-v">—</span><span class="lp-l">eligibility checks run</span></div>
+        <div class="lp-m lp-m-ring" data-m="links">
+          <svg class="lp-ring" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="15.5" class="lp-ring-bg"/><circle cx="18" cy="18" r="15.5" class="lp-ring-fg" pathLength="100"/></svg>
+          <span class="lp-v">—</span><span class="lp-l">official links live</span>
+        </div>
+      </div>
+      <div class="lp-foot"><span class="lp-foot-t">Links are re-checked automatically every day</span>
+        <a class="lp-open" href="https://yojanasahay.vercel.app" target="_blank" rel="noopener">Open <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></a></div>
+    </article>
+
+    <article class="lp-card" data-p="sl">
+      <div class="lp-head">
+        <span class="lp-ic lp-ic-sl" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5c2 0 5 .4 6.5 2v12c-1.5-1.6-4.5-2-6.5-2z"/><path d="M20 5.5c-2 0-5 .4-6.5 2v12c1.5-1.6 4.5-2 6.5-2z"/></svg></span>
+        <div class="lp-name-wrap"><h3 class="lp-name">StudyLens AI</h3><p class="lp-kind">AI homework helper · Class KG–12</p></div>
+      </div>
+      <p class="lp-status"><i aria-hidden="true"></i><span class="lp-status-t">Checking…</span></p>
+      <div class="lp-metrics">
+        <div class="lp-m" data-m="ms"><span class="lp-v">—</span><span class="lp-l">answered your browser in</span></div>
+        <div class="lp-m lp-m-fact"><span class="lp-v">KG–12</span><span class="lp-l">every class covered</span></div>
+        <div class="lp-m lp-m-fact"><span class="lp-v">2 AIs</span><span class="lp-l">Groq + Gemini behind it</span></div>
+      </div>
+      <div class="lp-foot"><span class="lp-foot-t">Checked live from your browser just now</span>
+        <a class="lp-open" href="https://studylens-ai-gamma.vercel.app" target="_blank" rel="noopener">Open <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></a></div>
+    </article>
+
+    <article class="lp-card" data-p="me">
+      <div class="lp-head">
+        <span class="lp-ic lp-ic-me" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="13" rx="2.5"/><path d="M8 20.5h8M12 17.5v3"/><path d="m9 9.5-2 1.5 2 1.5M15 9.5l2 1.5-2 1.5"/></svg></span>
+        <div class="lp-name-wrap"><h3 class="lp-name">This website</h3><p class="lp-kind">Hand-coded portfolio · no templates</p></div>
+      </div>
+      <p class="lp-status"><i aria-hidden="true"></i><span class="lp-status-t">Checking…</span></p>
+      <div class="lp-metrics">
+        <div class="lp-m" data-m="lcp"><span class="lp-v">—</span><span class="lp-l">real visitors see it load in</span></div>
+        <div class="lp-m" data-m="visits"><span class="lp-v">—</span><span class="lp-l">real visits measured</span></div>
+        <div class="lp-m" data-m="grade"><span class="lp-v">—</span><span class="lp-l">Google's speed rating</span></div>
+      </div>
+      <div class="lp-foot"><span class="lp-foot-t">75th percentile of real visits, the way Google measures</span></div>
+    </article>
+  </div>
+  <p class="lp-note">Numbers refresh every time this page opens. If a product can't be reached, its card says so — nothing here is typed in by hand.</p>
+</section>
+
 
 <!-- ══ Recently Shipped — live GitHub activity feed. Self-contained
      style block so it doesn't depend on hunting through the main

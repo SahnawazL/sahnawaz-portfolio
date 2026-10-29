@@ -34,7 +34,7 @@
     { sel: '#heroStatsBar', title: 'Hi, I’m Sahnawaz',
       say: 'Hi, I’m Sahnawaz — a full-stack developer and UI designer from Assam. Everything on this site is hand-coded, with no templates. Let me show you around in about a minute.' },
     { sel: '#my-projects', title: 'Live products',
-      say: 'These are my live products: YojanaSahay, a free government-scheme finder used across India, StudyLens AI for students, and this website. Open any case study and you can ask it questions.' },
+      say: 'These are my live products: YojanaSahay, a free government-scheme finder used across India, StudyLens AI for students, and this website. Just below, live numbers come straight from each one.' },
     { sel: '#job-fit', title: 'Hiring? Check my fit',
       say: 'Hiring? Paste your job post here. An AI compares it with my real work and tells you honestly where I match, and where I don’t.' },
     { sel: '#how-i-ship', title: 'How I ship',

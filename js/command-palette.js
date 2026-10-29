@@ -55,6 +55,7 @@
     { t:'Testimonials',         s:'What clients say',           g:'Go to', i:I.section, k:'clients reviews feedback', run:function(){ return go('#testimonials'); } },
     { t:'Certifications',       s:'Credentials',                g:'Go to', i:I.section, k:'certificates courses', run:function(){ return go('#certSection'); } },
     { t:'Blog',                 s:'Writing',                    g:'Go to', i:I.section, k:'articles posts writing', run:function(){ return go('#blog'); } },
+    { t:'Live from my Products', s:'Real numbers from YojanaSahay, StudyLens and this site', g:'Go to', i:I.section, k:'live products stats numbers yojana sahay studylens speed uptime', run:function(){ return go('#live-products'); } },
     { t:'Live Telemetry',       s:'Recent build activity',      g:'Go to', i:I.section, k:'telemetry activity commits stats', run:function(){ return go('#recent-activity'); } },
     { t:'Why You Need a Website', s:'',                         g:'Go to', i:I.section, k:'why website business', run:function(){ return go('#why-website'); } },
     { t:'Take the 60-second tour', s:'Guided, narrated walk through the site', g:'Go to', i:I.section, k:'tour guide walkthrough intro overview demo show me around', when:function(){ return !!window.shzTour; }, run:function(){ setTimeout(function(){ window.shzTour.start(); }, 150); return true; } },

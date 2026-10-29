@@ -24,7 +24,9 @@
     ['#why-website',        'Why a Website'],
     ['#tools-services',     'Book a Service'],
     ['#my-projects',        'Projects'],
+    ['#live-products',      'Live Products'],
     ['#recent-activity',    'Telemetry'],
+    ['#job-fit',            'Hiring? Check Fit'],
     ['#contact',            'Contact']
   ];
 
