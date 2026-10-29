@@ -595,8 +595,8 @@ img {
 <!-- ── 12. FONTS ─────────────────────────────────────────────────── -->
 <!-- loaded without holding up the first paint: the fonts already use
      display=swap, so text shows at once in a fallback font either way -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Syne:wght@600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
-<noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Syne:wght@600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet"/></noscript>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Space+Grotesk:wght@500;600;700&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
+<noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Space+Grotesk:wght@500;600;700&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet"/></noscript>
 
 <!-- ── 13. AOS (deferred) ───────────────────────────────────────── -->
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
@@ -3844,7 +3844,7 @@ window.addEventListener('resize', () => {
       50%{transform:translate(6%,8%) rotate(40deg) scale(1.12);border-radius:61% 39% 44% 56%/58% 62% 38% 42%}
       100%{transform:translate(-5%,-4%) rotate(-25deg) scale(.95);border-radius:37% 63% 56% 44%/40% 55% 45% 60%}}
     .hs-head{display:flex;justify-content:space-between;align-items:baseline;gap:.6rem;margin:0 .2rem .85rem}
-    .hs-title{display:inline-flex;align-items:center;gap:.5rem;font:800 .98rem/1.2 'Syne','DM Sans',sans-serif;color:#eafffb}
+    .hs-title{display:inline-flex;align-items:center;gap:.5rem;font:700 1.02rem/1.2 'Space Grotesk','DM Sans',sans-serif;letter-spacing:-.01em;color:#eafffb}
     .hs-live{width:7px;height:7px;border-radius:50%;background:#00ffd0;box-shadow:0 0 0 0 rgba(0,255,208,.6);animation:hsPing 2.4s infinite}
     @keyframes hsPing{70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
     .hs-tag{font:500 .68rem/1 'Courier New',monospace;color:rgba(0,255,200,.62);letter-spacing:.04em}

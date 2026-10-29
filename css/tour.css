@@ -57,7 +57,7 @@
 .tour-ic:hover { color: #fff; background: rgba(255,255,255,.08); }
 .tour-close { font-size: 1.25rem; }
 .tour-ic:focus-visible, .tour-btn:focus-visible, .tour-dot:focus-visible { outline: 2px solid #7dd3fc; outline-offset: 2px; }
-.tour-title { margin: .6rem 0 .4rem; font: 800 1.1rem/1.25 'Syne', 'DM Sans', sans-serif; color: #f0fdff; letter-spacing: -.01em; }
+.tour-title { margin: .6rem 0 .4rem; font: 800 1.1rem/1.25 'Space Grotesk', 'DM Sans', sans-serif; color: #f0fdff; letter-spacing: -.01em; }
 .tour-text { margin: 0; font: 450 .93rem/1.65 'DM Sans', system-ui, sans-serif; color: rgba(214,238,250,.9); min-height: 4.95em; }
 /* live captions: each word lights up as it is spoken */
 .tour-text .tw { border-radius: 5px; padding: 0 1px; margin: 0 -1px;

@@ -12,7 +12,7 @@
 }
 .jf-eyebrow svg { width: 13px; height: 13px; }
 .jf-title {
-  margin: .85rem 0 .45rem; font: 800 clamp(1.45rem, 4.2vw, 2.1rem)/1.15 'Syne', 'DM Sans', sans-serif;
+  margin: .85rem 0 .45rem; font: 800 clamp(1.45rem, 4.2vw, 2.1rem)/1.15 'Space Grotesk', 'DM Sans', sans-serif;
   color: #eafcff; letter-spacing: -.01em;
 }
 .jf-title em { font-style: normal; background: linear-gradient(90deg,#38bdf8,#00ffd0); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
@@ -96,7 +96,7 @@
 .jf-ring-track { fill: none; stroke: rgba(255,255,255,.07); stroke-width: 8; }
 .jf-ring-fill { fill: none; stroke: var(--jf, #38bdf8); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1.1s cubic-bezier(.2,.8,.2,1); }
 .jf-ring-num { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  font: 800 1.45rem/1 'Syne', 'DM Sans', sans-serif; color: #f0fbff; }
+  font: 800 1.45rem/1 'Space Grotesk', 'DM Sans', sans-serif; color: #f0fbff; }
 .jf-ring-num small { font: 600 .55rem/1 'DM Sans', sans-serif; letter-spacing: .12em; color: rgba(190,225,240,.6); margin-top: .25rem; text-transform: uppercase; }
 .jf-level { display: inline-block; padding: .3rem .6rem; border-radius: 999px; font: 800 .66rem/1 'DM Sans', sans-serif; letter-spacing: .14em; text-transform: uppercase;
   color: var(--jf, #38bdf8); background: color-mix(in srgb, var(--jf, #38bdf8) 12%, transparent); border: 1px solid color-mix(in srgb, var(--jf, #38bdf8) 35%, transparent); }
