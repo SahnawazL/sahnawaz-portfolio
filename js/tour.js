@@ -2,8 +2,9 @@
    60-SECOND TOUR — a guided, narrated walk through the site.
    Any element with [data-tour] starts it (hero pill, Ctrl+K, chat chip,
    /tour short link). Each stop scrolls into view, gets a spotlight, a
-   caption, and is read aloud by the same voice as the chat's Read Aloud
-   (/api/speak). Muted or if the voice fails, captions advance on a timer.
+   caption, and is read aloud from small pre-made clips (audio/tour/, made by
+   .github/workflows/tour-voice.yml from these captions); the live voice
+   (/api/speak) is a fallback. Muted or without sound, captions advance on a timer.
    Keys: → / Space next, ← back, Esc close.
    ============================================================ */
 (function () {
@@ -11,6 +12,24 @@
   if (window.shzTour) return;
 
   var SPEAK = 'https://sahnawaz-portfolio.vercel.app/api/speak';
+  /* Narration made in advance (one small MP3 per stop, scripts/tour-voice):
+     a clip is used only when its text matches the caption exactly; otherwise
+     the live voice above, and failing that, captions on a timer. */
+  var CLIPS = '/audio/tour/';
+  var clipList = null;
+  function clips() {
+    if (!clipList) clipList = fetch(CLIPS + 'manifest.json', { cache: 'no-cache' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (m) { return (m && m.clips) || []; })
+      .catch(function () { clipList = null; return []; });
+    return clipList;
+  }
+  function clipFor(i) {
+    return clips().then(function (list) {
+      for (var k = 0; k < list.length; k++) if (list[k].i === i && list[k].text === STEPS[i].say) return CLIPS + list[k].file;
+      return null;
+    });
+  }
   var STEPS = [
     { sel: '#heroStatsBar', title: 'Hi, I’m Sahnawaz',
       say: 'Hi, I’m Sahnawaz — a full-stack developer and UI designer from Assam. Everything on this site is hand-coded, with no templates. Let me show you around in about a minute.' },
@@ -204,7 +223,14 @@
           });
         });
     };
-    cache[i] = attempt(0).catch(function (e) { delete cache[i]; throw e; });
+    cache[i] = clipFor(i)
+      .then(function (url) {
+        if (!url) return attempt(0);
+        /* warm the next clip so it starts instantly */
+        try { var pre = new Audio(); pre.preload = 'auto'; pre.src = url; } catch (e) {}
+        return url;
+      })
+      .catch(function (e) { delete cache[i]; throw e; });
     return cache[i];
   }
   function speak(i, my) {
@@ -287,6 +313,7 @@
     if (active) return;
     build();
     if (!muted) unlock();   // must run inside the tap
+    clips();                 // fetch the narration list now, so the first stop speaks at once
     if (typeof window.closeChat === 'function') { try { window.closeChat(); } catch (e) {} }
     if (typeof window.closeCaseStudy === 'function') { try { window.closeCaseStudy(); } catch (e) {} }
     active = true;

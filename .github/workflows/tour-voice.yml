@@ -1,0 +1,42 @@
+name: Tour voice
+
+# Makes the 60-second tour's narration (one small MP3 per stop) whenever the
+# tour's captions change, and commits the clips to audio/tour/.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "js/tour.js"
+      - "scripts/tour-voice/**"
+      - ".github/workflows/tour-voice.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tour-voice
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Tools
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
+          pip install -q "edge-tts>=7,<8"
+      - name: Make the clips
+        run: python scripts/tour-voice/make.py
+      - name: Commit the clips
+        run: |
+          git add -A audio/tour
+          if git diff --cached --quiet; then echo "clips already up to date"; exit 0; fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "Tour voice: narration clips for the current captions"
+          git pull --rebase -q origin main && git push -q origin HEAD:main
