@@ -299,7 +299,7 @@
         ui.wave.classList.remove('on');
         follow(null);
         /* the browser blocked sound: say how to turn it on, keep the captions moving */
-        voiceNote(err && err.name === 'NotAllowedError' ? 'Your browser blocked the sound — tap 🔊 to hear the voice.' : 'Voice unavailable right now — showing captions.');
+        voiceNote(err && err.name === 'NotAllowedError' ? 'Your browser blocked the sound — tap the speaker button to hear the voice.' : 'Voice unavailable right now — showing captions.');
         if (err && err.name === 'NotAllowedError') { muted = true; paintMute(); }
         autoAdvance(STEPS[i].say);
       });

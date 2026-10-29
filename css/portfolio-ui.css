@@ -10078,6 +10078,9 @@ body.hacker-mode #footer-console {
   box-shadow: 0 0 12px rgba(0,200,255,0.25);
 }
 #chatMic:active { transform: scale(0.88); }
+#chatMic { color: #9fe9ff; }
+#chatMic svg { display: block; pointer-events: none; }
+#chatMic.mic-listening { color: #ff6b6b; }
 #chatMic.mic-listening {
   background: rgba(255,60,60,0.18) !important;
   border-color: rgba(255,80,80,0.6) !important;
