@@ -11,7 +11,7 @@ import asyncio, hashlib, json, os, subprocess, sys
 import edge_tts
 
 VOICE = os.environ.get("TOUR_VOICE", "en-IN-NeerjaNeural")
-RATE, PITCH = "-2%", "+0Hz"
+RATE, PITCH = "+6%", "+0Hz"
 OUT = "audio/tour"
 # spoken form only (the caption on screen stays exactly as written)
 SAY_AS = {"YojanaSahay": "Yojana Sahay", "StudyLens AI": "Study Lens A.I.", " AI ": " A.I. "}
@@ -41,7 +41,7 @@ async def main():
     keep = set()
     for s in steps:
         i, text = s["i"], s["say"]
-        h = hashlib.sha1((VOICE + "|v2|" + text).encode()).hexdigest()[:8]
+        h = hashlib.sha1((VOICE + "|v3|" + text).encode()).hexdigest()[:8]
         name = f"step-{i + 1}-{h}.mp3"
         keep.add(name)
         final = os.path.join(OUT, name)
@@ -49,7 +49,7 @@ async def main():
             raw = f"/tmp/voice-{i}.mp3"
             await edge_tts.Communicate(spoken(text), VOICE, rate=RATE, pitch=PITCH).save(raw)
             d = dur(raw)
-            lead, tail = 0.35, 0.9
+            lead, tail = 0.3, 0.75
             total = lead + d + tail
             subprocess.check_call([
                 "ffmpeg", "-y", "-v", "error",
@@ -58,7 +58,7 @@ async def main():
                 "-filter_complex",
                 # voice: gentle clean-up and presence; bed: soft, spacious, ducked well under the voice
                 f"[0:a]aresample=24000,highpass=f=80,acompressor=threshold=-20dB:ratio=2.5:attack=8:release=120,adelay={int(lead*1000)},apad=pad_dur={tail}[v];"
-                f"[1:a]lowpass=f=2600,aecho=0.8:0.6:120:0.25,volume=-27dB,afade=t=in:d=0.5,afade=t=out:st={total-0.9:.2f}:d=0.9[b];"
+                f"[1:a]lowpass=f=2600,aecho=0.8:0.6:120:0.25,volume=-19dB,afade=t=in:d=0.5,afade=t=out:st={total-0.9:.2f}:d=0.9[b];"
                 "[v][b]amix=inputs=2:duration=longest:normalize=0,loudnorm=I=-17:TP=-1.5:LRA=9,aresample=24000",
                 "-ac", "1", "-ar", "24000", "-c:a", "libmp3lame", "-b:a", "32k", final])
             print(f"made {name}  {d:.1f}s voice")
