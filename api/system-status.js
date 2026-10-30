@@ -99,7 +99,107 @@ async function checkWebhook(db) {
   }
 }
 
+/* ══ Owner-only data for admin.html (?admin=1) ══════════════════════════
+   Lives in this file because the Hobby plan allows 12 functions and all 12
+   are in use. Everything here needs the owner's Firebase ID token (the
+   admin page sends it): records the browser can't read directly — job-fit
+   reports, every page view (not only signed-in visitors), website checks —
+   plus the "done" marks for leads, kept in adminState/handled. */
+const OWNER_EMAIL = (process.env.ADMIN_EMAIL || 'balveerdj@gmail.com').toLowerCase();
+let trafficCache = null;                      // { at, days, data } — page views cost one read each
+const DAY = 864e5;
+
+async function owner(req) {
+  const m = /^Bearer\s+(.+)$/i.exec(req.headers.authorization || '');
+  if (!m) return null;
+  try {
+    const t = await admin.auth().verifyIdToken(m[1]);
+    return t && t.email_verified && String(t.email || '').toLowerCase() === OWNER_EMAIL ? t : null;
+  } catch (e) { return null; }
+}
+const iso = v => { try { const d = v && v.toDate ? v.toDate() : (v && v._seconds ? new Date(v._seconds * 1000) : new Date(v)); return isNaN(d) ? null : d.toISOString(); } catch (e) { return null; } };
+const bump = (o, k) => { k = String(k || '').trim() || 'unknown'; o[k] = (o[k] || 0) + 1; };
+const top = (o, n) => Object.keys(o).map(k => [k, o[k]]).sort((a, b) => b[1] - a[1]).slice(0, n);
+function refHost(r) {
+  if (!r || r === 'direct') return 'Direct / typed';
+  try { const h = new URL(r).hostname.replace(/^www\./, ''); return /sahnawaz-portfolio/.test(h) ? 'Direct / typed' : h; } catch (e) { return 'Other'; }
+}
+
+async function traffic(db, days) {
+  if (trafficCache && trafficCache.days === days && Date.now() - trafficCache.at < 5 * 60e3) return trafficCache.data;
+  const since = new Date(Date.now() - days * DAY);
+  const snap = await db.collection('analytics').where('ts', '>=', since).orderBy('ts', 'desc').limit(5000).get();
+  const byDay = {}, countries = {}, cities = {}, refs = {}, devices = {}, hours = new Array(24).fill(0);
+  let views = 0;
+  snap.forEach(d => {
+    const x = d.data() || {}; if ((x.event || 'pageview') !== 'pageview') return;
+    const when = x.ts && x.ts.toDate ? x.ts.toDate() : new Date(x.time || 0);
+    if (isNaN(when)) return;
+    views++;
+    const ist = new Date(when.getTime() + 330 * 60e3);                 // owner's clock
+    bump(byDay, ist.toISOString().slice(0, 10));
+    hours[ist.getUTCHours()]++;
+    bump(countries, x.country); bump(devices, x.device); bump(refs, refHost(x.referrer));
+    if (x.city && x.city !== 'unknown') bump(cities, decodeURIComponent(String(x.city)) + (x.country && x.country !== 'unknown' ? ', ' + x.country : ''));
+  });
+  const series = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const k = new Date(Date.now() + 330 * 60e3 - i * DAY).toISOString().slice(0, 10);
+    series.push([k, byDay[k] || 0]);
+  }
+  const data = { days, views, capped: snap.size >= 5000, series, hours, countries: top(countries, 8), cities: top(cities, 8), referrers: top(refs, 8), devices: top(devices, 4) };
+  trafficCache = { at: Date.now(), days, data };
+  return data;
+}
+
+async function adminData(req, res) {
+  res.setHeader('Cache-Control', 'no-store');
+  const db = getDb();
+  if (!db) return res.status(503).json({ error: 'Database not configured' });
+  if (!(await owner(req))) return res.status(401).json({ error: 'Owner sign-in required' });
+  const state = db.collection('adminState').doc('handled');
+
+  if (req.method === 'POST') {
+    const b = req.body || {};
+    const key = String(b.key || '');
+    if (!/^[a-z]{2,12}:[A-Za-z0-9_.:@-]{1,160}$/.test(key)) return res.status(400).json({ error: 'Bad key' });
+    const field = key.replace(/[.]/g, '_');
+    await state.set({ [field]: b.done ? new Date().toISOString() : admin.firestore.FieldValue.delete() }, { merge: true });
+    return res.status(200).json({ ok: true });
+  }
+
+  const days = Math.max(7, Math.min(90, parseInt(req.query.days, 10) || 30));
+  const safe = p => p.catch(e => ({ __error: (e && e.message) || 'failed' }));
+  const [fitSnap, checkSnap, handledSnap, traf] = await Promise.all([
+    safe(db.collection('jobFitReports').orderBy('createdAt', 'desc').limit(60).get()),
+    safe(db.collection('websiteChecks').orderBy('checkedAt', 'desc').limit(40).get()),
+    safe(state.get()),
+    safe(traffic(db, days))
+  ]);
+  const fit = fitSnap.__error ? null : fitSnap.docs.map(d => {
+    const x = d.data() || {}, r = x.result || {};
+    return { id: d.id, at: iso(x.createdAt), role: r.role || '', fit: r.fit || '', score: typeof r.score === 'number' ? r.score : null,
+      matches: (r.matches || []).length, gaps: (r.gaps || []).length, summary: String(r.summary || '').slice(0, 240), who: x.who || null };
+  });
+  const checks = checkSnap.__error ? null : checkSnap.docs.filter(d => d.id !== '_self').map(d => {
+    const x = d.data() || {}, rep = x.report || {};
+    return { id: d.id, at: x.checkedAt || null, host: x.host || '', score: x.score == null ? null : x.score, type: (rep.typeLabel || x.type || ''),
+      city: x.city || '', country: x.country || '', key: rep.key || '' };
+  });
+  res.status(200).json({
+    fetchedAt: new Date().toISOString(),
+    fit, checks,
+    handled: handledSnap.__error ? {} : (handledSnap.exists ? handledSnap.data() : {}),
+    traffic: traf.__error ? null : traf,
+    errors: [fitSnap, checkSnap, traf].filter(x => x && x.__error).map(x => x.__error)
+  });
+}
+
 module.exports = async (req, res) => {
+  if (req.query && req.query.admin) {
+    try { return await adminData(req, res); }
+    catch (err) { return res.status(500).json({ error: 'Admin data failed' }); }
+  }
   res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
   try {
     const db = getDb();

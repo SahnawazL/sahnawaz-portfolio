@@ -1170,6 +1170,81 @@
     /* let long device names wrap instead of being cut off with an ellipsis */
     .aud-fact { white-space: normal; overflow-wrap: anywhere; }
   }
+
+  /* ── SVG icons (replace the old emoji) ── */
+  .ico { width: 1em; height: 1em; display: inline-block; vertical-align: -0.14em; flex: none; }
+  .nav-item .nav-icon { display: inline-flex; align-items: center; justify-content: center; }
+  .nav-item .nav-icon .ico { width: 16px; height: 16px; }
+  .stat-icon .ico { width: 18px; height: 18px; color: var(--cyan); }
+  .nav-count-hot { background: rgba(248,113,113,.16) !important; color: #fca5a5 !important; border-color: rgba(248,113,113,.3) !important; }
+  .nav-count-hot.zero { background: rgba(52,211,153,.12) !important; color: #6ee7b7 !important; border-color: rgba(52,211,153,.25) !important; }
+  .panel-note { margin: -4px 0 14px; font-size: .8rem; line-height: 1.55; color: var(--text-dim); max-width: 760px; }
+
+  .insight-chip .ic-emoji .ico { width: 16px; height: 16px; color: var(--cyan); }
+  /* ── overview: what's waiting ── */
+  .attn { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 14px 16px; margin: 0 0 16px; border-radius: 14px;
+    background: linear-gradient(135deg, rgba(56,189,248,.10), rgba(56,189,248,.03)); border: 1px solid rgba(56,189,248,.24); }
+  .attn.late { background: linear-gradient(135deg, rgba(248,113,113,.12), rgba(248,113,113,.03)); border-color: rgba(248,113,113,.3); }
+  .attn.ok { color: #a7f3d0; background: rgba(52,211,153,.07); border-color: rgba(52,211,153,.22); font-size: .85rem; }
+  .attn.ok .ico { width: 18px; height: 18px; color: #34d399; }
+  .attn-main { display: flex; align-items: center; gap: 12px; flex: 1 1 260px; }
+  .attn-main > .ico { width: 26px; height: 26px; color: var(--cyan); }
+  .attn.late .attn-main > .ico { color: #f87171; }
+  .attn-main b { display: block; font-size: .98rem; color: #fff; }
+  .attn-main span { font-size: .78rem; color: var(--text-dim); }
+  .attn-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .attn-chips span { font-size: .72rem; padding: 4px 9px; border-radius: 999px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); color: var(--text); }
+  .attn-chips b { margin-left: 3px; color: #fff; }
+  .attn-go { all: unset; cursor: pointer; font-size: .8rem; font-weight: 700; padding: 8px 14px; border-radius: 10px; color: #04121c; background: var(--cyan); }
+  .attn-go:hover { filter: brightness(1.08); }
+
+  /* ── leads ── */
+  .lead-filters { gap: 10px; }
+  .lead-types { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 14px; }
+  .lt-chip { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: .76rem; padding: 6px 11px; border-radius: 999px;
+    color: var(--text-dim); background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); }
+  .lt-chip b { font-weight: 700; color: var(--text); }
+  .lt-chip.active { color: #fff; background: var(--cyan-dim); border-color: var(--cyan-border); }
+  .lead-list { display: grid; gap: 10px; }
+  .lead { display: flex; gap: 12px; padding: 14px; border-radius: 14px; background: var(--card-bg); border: 1px solid rgba(255,255,255,.07);
+    transition: opacity .22s ease, transform .22s ease; }
+  .lead.leaving { opacity: 0; transform: translateX(14px); }
+  .lead.is-done { opacity: .62; }
+  .lead-ic { flex: none; width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); }
+  .lead-ic .ico { width: 17px; height: 17px; }
+  .lead-ic.t-msg { color: #38bdf8; } .lead-ic.t-brief { color: #a78bfa; } .lead-ic.t-call { color: #34d399; }
+  .lead-ic.t-fit { color: #fbbf24; } .lead-ic.t-check { color: #f472b6; } .lead-ic.t-cv { color: #94a3b8; }
+  .lead-main { flex: 1; min-width: 0; }
+  .lead-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 3px; }
+  .lead-type { font-size: .66rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text-dim); }
+  .lead-when { font-size: .72rem; color: var(--text-dim); }
+  .lead-when.late { color: #fca5a5; font-weight: 600; }
+  .lead-score { margin-left: auto; font-size: .72rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+  .lead-score.hi { color: #6ee7b7; background: rgba(52,211,153,.12); } .lead-score.mid { color: #fcd34d; background: rgba(251,191,36,.12); } .lead-score.lo { color: #fca5a5; background: rgba(248,113,113,.12); }
+  .lead-title { font-size: .95rem; font-weight: 700; color: #fff; line-height: 1.35; overflow-wrap: anywhere; }
+  .lead-who { font-size: .83rem; color: var(--text); margin-top: 2px; }
+  .lead-contact { font-size: .78rem; color: #7dd3fc; margin-top: 2px; overflow-wrap: anywhere; }
+  .lead-contact.muted { color: var(--text-dim); font-style: italic; }
+  .lead-detail { font-size: .8rem; line-height: 1.5; color: var(--text-dim); margin-top: 6px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .lead-place { font-size: .74rem; color: var(--text-dim); margin-top: 5px; display: flex; align-items: center; gap: 5px; }
+  .lead-acts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .lead-act, .lead-done { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: .76rem; font-weight: 600; padding: 6px 11px; border-radius: 9px;
+    color: var(--text); background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); }
+  .lead-act:hover { background: rgba(56,189,248,.1); border-color: var(--cyan-border); color: #fff; }
+  .lead-done { margin-left: auto; color: #6ee7b7; border-color: rgba(52,211,153,.28); background: rgba(52,211,153,.07); }
+  .lead-done:hover { background: rgba(52,211,153,.14); }
+  .lead.is-done .lead-done { color: var(--text-dim); border-color: rgba(255,255,255,.1); background: transparent; }
+  .lead-done-at { font-size: .7rem; color: var(--text-dim); margin-top: 6px; text-align: right; }
+  .lead-warn { font-size: .78rem; color: #fcd34d; background: rgba(251,191,36,.08); border: 1px solid rgba(251,191,36,.22); padding: 9px 12px; border-radius: 10px; }
+
+  /* ── traffic ── */
+  .traffic-stats .stat-card { min-height: 0; }
+  .stat-trend.down { color: #fca5a5 !important; }
+  .hours-bars { display: flex; align-items: flex-end; gap: 3px; height: 110px; padding-top: 6px; }
+  .hours-bars i { flex: 1; min-width: 4px; border-radius: 3px 3px 0 0; background: rgba(56,189,248,.35); }
+  .hours-bars i.peak { background: var(--cyan); }
+  .hours-axis { display: flex; justify-content: space-between; font-size: .62rem; color: var(--text-dim); margin: 6px 0 10px; }
+  @media (max-width: 640px) { .lead-done { margin-left: 0; } .attn-go { width: 100%; text-align: center; } }
 </style>
 </head>
 <body>
@@ -1250,15 +1325,17 @@
   <div class="app-shell">
   <nav class="sidebar">
     <div class="sidebar-label">Dashboard</div>
-    <button class="nav-item active" data-panel="overview" onclick="showPanel('overview')"><span class="nav-icon">📊</span>Overview</button>
-    <button class="nav-item" data-panel="visitors" onclick="showPanel('visitors')"><span class="nav-icon">👥</span>Visitors<span class="nav-count" id="navCountVisitors">–</span></button>
-    <button class="nav-item" data-panel="audience" onclick="showPanel('audience')"><span class="nav-icon">🌐</span>Audience<span class="nav-count" id="navCountAudience">–</span></button>
-    <button class="nav-item" data-panel="reviews" onclick="showPanel('reviews')"><span class="nav-icon">⭐</span>Reviews<span class="nav-count" id="navCountReviews">–</span></button>
-    <button class="nav-item" data-panel="likes" onclick="showPanel('likes')"><span class="nav-icon">❤️</span>Project Likes<span class="nav-count" id="navCountLikes">–</span></button>
-    <button class="nav-item" data-panel="resume" onclick="showPanel('resume')"><span class="nav-icon">📄</span>Resume Downloads<span class="nav-count" id="navCountResume">–</span></button>
-    <button class="nav-item" data-panel="chats" onclick="showPanel('chats')"><span class="nav-icon">💬</span>Chat Messages<span class="nav-count" id="navCountChats">–</span></button>
-    <button class="nav-item" data-panel="callbacks" onclick="showPanel('callbacks')"><span class="nav-icon">📞</span>Callbacks<span class="nav-count" id="navCountCallbacks">–</span></button>
-    <button class="nav-item" data-panel="inbox" onclick="showPanel('inbox')"><span class="nav-icon">📨</span>Messages<span class="nav-count" id="navCountInbox">–</span></button>
+    <button class="nav-item active" data-panel="overview" onclick="showPanel('overview')"><span class="nav-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>Overview</button>
+    <button class="nav-item" data-panel="leads" onclick="showPanel('leads')"><span class="nav-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/></svg></span>Leads to follow up<span class="nav-count nav-count-hot" id="navCountLeads">–</span></button>
+    <button class="nav-item" data-panel="traffic" onclick="showPanel('traffic')"><span class="nav-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></span>Site traffic<span class="nav-count" id="navCountTraffic">–</span></button>
+    <button class="nav-item" data-panel="visitors" onclick="showPanel('visitors')"><span class="nav-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 18.5V20"/><circle cx="10" cy="8" r="3.5"/><path d="M20 20v-1.5a3.5 3.5 0 0 0-2.5-3.35M15.5 4.65a3.5 3.5 0 0 1 0 6.7"/></svg></span>Visitors<span class="nav-count" id="navCountVisitors">–</span></button>
+    <button class="nav-item" data-panel="audience" onclick="showPanel('audience')"><span class="nav-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span>Audience<span class="nav-count" id="navCountAudience">–</span></button>
+    <button class="nav-item" data-panel="reviews" onclick="showPanel('reviews')"><span class="nav-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg></span>Reviews<span class="nav-count" id="navCountReviews">–</span></button>
+    <button class="nav-item" data-panel="likes" onclick="showPanel('likes')"><span class="nav-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-9-9a4.8 4.8 0 0 1 9-3 4.8 4.8 0 0 1 9 3c-2 4.6-9 9-9 9z"/></svg></span>Project Likes<span class="nav-count" id="navCountLikes">–</span></button>
+    <button class="nav-item" data-panel="resume" onclick="showPanel('resume')"><span class="nav-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></span>Resume Downloads<span class="nav-count" id="navCountResume">–</span></button>
+    <button class="nav-item" data-panel="chats" onclick="showPanel('chats')"><span class="nav-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.5 8.5 0 1 1 21 11.5z"/></svg></span>Chat Messages<span class="nav-count" id="navCountChats">–</span></button>
+    <button class="nav-item" data-panel="callbacks" onclick="showPanel('callbacks')"><span class="nav-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h3l2 5-2.5 1.5a11 11 0 0 0 6 6L15 14l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg></span>Callbacks<span class="nav-count" id="navCountCallbacks">–</span></button>
+    <button class="nav-item" data-panel="inbox" onclick="showPanel('inbox')"><span class="nav-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>Messages<span class="nav-count" id="navCountInbox">–</span></button>
   </nav>
   <div class="main-area">
   <div class="content">
@@ -1266,54 +1343,57 @@
     <!-- OVERVIEW PANEL -->
     <div class="panel active" id="panel-overview">
 
+    <!-- What needs a reply: built from every lead source (js below: buildLeads) -->
+    <div class="attn" id="attnStrip" hidden></div>
+
     <!-- Stat Cards -->
     <div class="stats-row" id="statsRow">
       <div class="stat-card stat-accent-cyan fade-in">
-        <div class="stat-icon">👥</div>
+        <div class="stat-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 18.5V20"/><circle cx="10" cy="8" r="3.5"/><path d="M20 20v-1.5a3.5 3.5 0 0 0-2.5-3.35M15.5 4.65a3.5 3.5 0 0 1 0 6.7"/></svg></div>
         <div class="stat-num" id="statVisitors">—</div>
         <div class="stat-label">Total Visitors</div>
       </div>
       <div class="stat-card stat-accent-yellow fade-in">
-        <div class="stat-icon">⭐</div>
+        <div class="stat-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg></div>
         <div class="stat-num" id="statReviews">—</div>
         <div class="stat-trend" id="statReviewsTrend"></div>
         <div class="stat-label">Reviews</div>
       </div>
       <div class="stat-card stat-accent-red fade-in">
-        <div class="stat-icon">❤️</div>
+        <div class="stat-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-9-9a4.8 4.8 0 0 1 9-3 4.8 4.8 0 0 1 9 3c-2 4.6-9 9-9 9z"/></svg></div>
         <div class="stat-num" id="statLikes">—</div>
         <div class="stat-trend" id="statLikesTrend"></div>
         <div class="stat-label">Total Likes</div>
       </div>
       <div class="stat-card stat-accent-green fade-in">
-        <div class="stat-icon">📄</div>
+        <div class="stat-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></div>
         <div class="stat-num" id="statResume">—</div>
         <div class="stat-trend" id="statResumeTrend"></div>
         <div class="stat-label">Resume Downloads</div>
       </div>
       <div class="stat-card fade-in" onclick="showPanel('chats')" style="cursor:pointer" title="View chat messages">
-        <div class="stat-icon">💬</div>
+        <div class="stat-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.5 8.5 0 1 1 21 11.5z"/></svg></div>
         <div class="stat-num" id="statChats">—</div>
         <div class="stat-trend" id="statChatsTrend"></div>
         <div class="stat-label">Chat Messages</div>
       </div>
       <div class="stat-card fade-in">
-        <div class="stat-icon">🌟</div>
+        <div class="stat-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="m8.5 14-1.5 7 5-3 5 3-1.5-7"/></svg></div>
         <div class="stat-num" id="statAvgRating">—</div>
         <div class="stat-label">Avg Rating</div>
       </div>
       <div class="stat-card stat-accent-green fade-in">
-        <div class="stat-icon">⚡</div>
+        <div class="stat-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></div>
         <div class="stat-num" id="statActiveToday">—</div>
         <div class="stat-label">Active Today</div>
       </div>
       <div class="stat-card fade-in" onclick="showPanel('audience')" style="cursor:pointer" title="View audience">
-        <div class="stat-icon">🌐</div>
+        <div class="stat-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></div>
         <div class="stat-num" id="statAudience">—</div>
         <div class="stat-label">Total Audience</div>
       </div>
       <div class="stat-card fade-in" onclick="showPanel('callbacks')" style="cursor:pointer" title="View callback requests">
-        <div class="stat-icon">📞</div>
+        <div class="stat-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h3l2 5-2.5 1.5a11 11 0 0 0 6 6L15 14l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg></div>
         <div class="stat-num" id="statCallbacks">—</div>
         <div class="stat-label">Callback Requests</div>
       </div>
@@ -1321,12 +1401,12 @@
 
     <!-- Smart Insights -->
     <div class="insights-row" id="insightsRow">
-      <div class="insight-chip"><span class="ic-emoji">👋</span> Insights will appear once visitor data comes in.</div>
+      <div class="insight-chip"><span class="ic-emoji"></span> Insights will appear once visitor data comes in.</div>
     </div>
 
     <!-- Growth & Engagement Trend -->
     <div class="chart-card analytics-block">
-      <div class="chart-title">📈 Growth &amp; Engagement Trend — Last 14 Days</div>
+      <div class="chart-title">Growth &amp; Engagement Trend — Last 14 Days</div>
       <div class="chart-subtitle">New visitors vs. returning activity vs. conversions (reviews + downloads + callbacks)</div>
       <div class="chart-wrap">
         <canvas id="growthChart"></canvas>
@@ -1336,13 +1416,13 @@
     <!-- Funnel + Peak Hours -->
     <div class="charts-row">
       <div class="chart-card">
-        <div class="chart-title">🎯 Conversion Funnel</div>
+        <div class="chart-title">Conversion Funnel</div>
         <div class="funnel-wrap" id="funnelWrap">
           <div class="empty-state">Loading…</div>
         </div>
       </div>
       <div class="chart-card">
-        <div class="chart-title">🕐 Peak Activity Hours</div>
+        <div class="chart-title">Peak Activity Hours</div>
         <div class="chart-wrap">
           <canvas id="hoursChart"></canvas>
         </div>
@@ -1352,13 +1432,13 @@
     <!-- Device breakdown + Top Locations -->
     <div class="charts-row">
       <div class="chart-card">
-        <div class="chart-title">📱 Device Breakdown</div>
+        <div class="chart-title">Device Breakdown</div>
         <div class="chart-wrap">
           <canvas id="deviceChart"></canvas>
         </div>
       </div>
       <div class="chart-card">
-        <div class="chart-title">🌍 Top Locations</div>
+        <div class="chart-title">Top Locations</div>
         <div class="rank-list" id="locationsList">
           <div class="empty-state">Loading…</div>
         </div>
@@ -1368,13 +1448,13 @@
     <!-- Charts -->
     <div class="charts-row">
       <div class="chart-card">
-        <div class="chart-title">📊 Activity Breakdown</div>
+        <div class="chart-title">Activity Breakdown</div>
         <div class="chart-wrap">
           <canvas id="activityChart"></canvas>
         </div>
       </div>
       <div class="chart-card">
-        <div class="chart-title">⭐ Rating Distribution</div>
+        <div class="chart-title">Rating Distribution</div>
         <div class="chart-wrap">
           <canvas id="ratingChart"></canvas>
         </div>
@@ -1384,13 +1464,13 @@
     <!-- Top Engaged Visitors + Top Referrers -->
     <div class="charts-row">
       <div class="chart-card">
-        <div class="chart-title">🔥 Most Engaged Visitors</div>
+        <div class="chart-title">Most Engaged Visitors</div>
         <div class="rank-list" id="leaderboardList">
           <div class="empty-state">Loading…</div>
         </div>
       </div>
       <div class="chart-card">
-        <div class="chart-title">↪ Top Referrers</div>
+        <div class="chart-title">Top Referrers</div>
         <div class="rank-list" id="referrersList">
           <div class="empty-state">Loading…</div>
         </div>
@@ -1401,6 +1481,59 @@
     <!-- /OVERVIEW PANEL -->
 
     <!-- VISITORS PANEL -->
+    <!-- LEADS PANEL: every enquiry in one list, with a done mark -->
+    <div class="panel" id="panel-leads">
+    <div class="section-head">
+      <span class="section-head-title">Leads to follow up</span>
+      <div class="section-head-line"></div>
+      <span class="section-count" id="leadsCount">loading…</span>
+      <button class="export-btn" onclick="exportLeads()" title="Download this view as CSV">Export</button>
+    </div>
+    <p class="panel-note">Every enquiry in one place: messages, AI project briefs, callback requests, recruiters' job-fit checks, free website checks and resume requests. Mark each one done once you've replied; the mark is saved for you on any device.</p>
+    <div class="filter-bar lead-filters">
+      <input type="text" class="search-input" id="leadsSearch" placeholder="Search name, email, company, role, website…" oninput="renderLeads()">
+      <div class="resume-timefilter" id="leadsState">
+        <button type="button" class="rtf-btn active" data-state="new" onclick="setLeadState(this)">To do</button>
+        <button type="button" class="rtf-btn" data-state="done" onclick="setLeadState(this)">Done</button>
+        <button type="button" class="rtf-btn" data-state="all" onclick="setLeadState(this)">All</button>
+      </div>
+    </div>
+    <div class="lead-types" id="leadTypes"></div>
+    <div class="lead-list" id="leadsList">
+      <div class="loading-state"><div class="loading-spinner"></div>Loading leads…</div>
+    </div>
+    <div class="load-more-wrap" id="leadsMore"></div>
+    </div>
+
+    <!-- TRAFFIC PANEL: every page view (not only signed-in visitors) -->
+    <div class="panel" id="panel-traffic">
+    <div class="section-head">
+      <span class="section-head-title">Site traffic</span>
+      <div class="section-head-line"></div>
+      <span class="section-count" id="trafficCount">loading…</span>
+      <div class="resume-timefilter" id="trafficRange">
+        <button type="button" class="rtf-btn" data-days="7" onclick="setTrafficRange(this)">7 days</button>
+        <button type="button" class="rtf-btn active" data-days="30" onclick="setTrafficRange(this)">30 days</button>
+        <button type="button" class="rtf-btn" data-days="90" onclick="setTrafficRange(this)">90 days</button>
+      </div>
+    </div>
+    <p class="panel-note">Every visit to the site, signed in or not, counted on the server, so ad-blockers don't hide it. Times are India time.</p>
+    <div class="stats-row traffic-stats" id="trafficStats"></div>
+    <div class="chart-card analytics-block">
+      <div class="chart-title">Page views per day</div>
+      <div class="chart-subtitle" id="trafficSub">&nbsp;</div>
+      <div class="chart-wrap"><canvas id="trafficChart"></canvas></div>
+    </div>
+    <div class="charts-row">
+      <div class="chart-card"><div class="chart-title">Where visits come from</div><div id="trafficRefs"><div class="empty-state">Loading…</div></div></div>
+      <div class="chart-card"><div class="chart-title">Countries</div><div id="trafficCountries"><div class="empty-state">Loading…</div></div></div>
+    </div>
+    <div class="charts-row">
+      <div class="chart-card"><div class="chart-title">Cities</div><div id="trafficCities"><div class="empty-state">Loading…</div></div></div>
+      <div class="chart-card"><div class="chart-title">Busiest hours (India time)</div><div class="hours-bars" id="trafficHours"></div><div class="hours-axis"><span>12 am</span><span>6 am</span><span>12 pm</span><span>6 pm</span><span>11 pm</span></div><div class="chart-subtitle" id="trafficDevices"></div></div>
+    </div>
+    </div>
+
     <div class="panel" id="panel-visitors">
     <div class="section-head">
       <span class="section-head-title">Signed-In Visitors</span>
@@ -1410,7 +1543,7 @@
 
     <!-- Search & Filter -->
     <div class="filter-bar">
-      <input type="text" class="search-input" id="visitorSearch" placeholder="🔍  Search by name or email…" oninput="filterVisitors()">
+      <input type="text" class="search-input" id="visitorSearch" placeholder="Search by name or email…" oninput="filterVisitors()">
       <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">All</button>
       <button class="filter-btn" data-filter="chat" onclick="setFilter('chat')">💬 Chat</button>
       <button class="filter-btn" data-filter="review" onclick="setFilter('review')">⭐ Review</button>
@@ -1442,7 +1575,7 @@
       <span class="section-count" id="reviewCount">loading…</span>
     </div>
     <div class="filter-bar">
-      <input type="text" class="search-input" id="reviewSearch" placeholder="🔍  Search by name or review text…" oninput="filterReviews()">
+      <input type="text" class="search-input" id="reviewSearch" placeholder="Search by name or review text…" oninput="filterReviews()">
       <button class="filter-btn active" data-rating="all" onclick="setRatingFilter('all')">All</button>
       <button class="filter-btn" data-rating="5" onclick="setRatingFilter('5')">⭐5</button>
       <button class="filter-btn" data-rating="4" onclick="setRatingFilter('4')">⭐4</button>
@@ -1480,7 +1613,7 @@
       <button class="export-btn" onclick="exportResume()" title="Download this view as CSV">⬇ Export</button>
     </div>
     <div class="filter-bar">
-      <input type="text" class="search-input" id="resumeSearch" placeholder="🔍  Search by name or email…" oninput="filterResume()">
+      <input type="text" class="search-input" id="resumeSearch" placeholder="Search by name or email…" oninput="filterResume()">
       <div class="resume-timefilter" id="resumeTimeFilter">
         <button type="button" class="rtf-btn active" data-days="0"  onclick="setResumeRange(this)">All time</button>
         <button type="button" class="rtf-btn"        data-days="7"  onclick="setResumeRange(this)">7 days</button>
@@ -1499,12 +1632,12 @@
     <!-- CHATS PANEL -->
     <div class="panel" id="panel-chats">
     <div class="section-head" id="chatSection">
-      <span class="section-head-title">💬 Chat Messages</span>
+      <span class="section-head-title">Chat Messages</span>
       <div class="section-head-line"></div>
       <span class="section-count" id="chatConvCount">loading…</span>
     </div>
     <div class="chat-search-bar">
-      <input type="text" class="search-input" id="chatSearch" placeholder="🔍  Search by visitor name or email…" oninput="filterChatVisitors()">
+      <input type="text" class="search-input" id="chatSearch" placeholder="Search by visitor name or email…" oninput="filterChatVisitors()">
     </div>
     <div class="chat-visitor-list" id="chatVisitorList">
       <div class="loading-state"><div class="loading-spinner"></div>Loading conversations…</div>
@@ -1516,13 +1649,13 @@
     <!-- CALLBACKS PANEL -->
     <div class="panel" id="panel-callbacks">
     <div class="section-head">
-      <span class="section-head-title">📞 Callback Requests</span>
+      <span class="section-head-title">Callback Requests</span>
       <div class="section-head-line"></div>
       <span class="section-count" id="callbacksCount">loading…</span>
       <button class="export-btn" onclick="exportCallbacks()" title="Download this view as CSV">⬇ Export</button>
     </div>
     <div class="filter-bar">
-      <input type="text" class="search-input" id="callbacksSearch" placeholder="🔍  Search by name, email or phone…" oninput="filterCallbacks()">
+      <input type="text" class="search-input" id="callbacksSearch" placeholder="Search by name, email or phone…" oninput="filterCallbacks()">
       <div class="resume-timefilter" id="callbacksTimeFilter">
         <button type="button" class="rtf-btn active" data-days="0"   onclick="setCallbacksRange(this)">All time</button>
         <button type="button" class="rtf-btn"        data-days="7"   onclick="setCallbacksRange(this)">7 days</button>
@@ -1541,13 +1674,13 @@
     <!-- INBOX / MESSAGES PANEL -->
     <div class="panel" id="panel-inbox">
     <div class="section-head">
-      <span class="section-head-title">📨 Contact Messages</span>
+      <span class="section-head-title">Contact Messages</span>
       <div class="section-head-line"></div>
       <span class="section-count" id="inboxCount">loading…</span>
       <button class="export-btn" onclick="exportInbox()" title="Download this view as CSV">⬇ Export</button>
     </div>
     <div class="filter-bar">
-      <input type="text" class="search-input" id="inboxSearch" placeholder="🔍  Search by name, email or text…" oninput="filterInbox()">
+      <input type="text" class="search-input" id="inboxSearch" placeholder="Search by name, email or text…" oninput="filterInbox()">
       <div class="resume-timefilter" id="inboxTimeFilter">
         <button type="button" class="rtf-btn active" data-days="0"   onclick="setInboxRange(this)">All time</button>
         <button type="button" class="rtf-btn"        data-days="7"   onclick="setInboxRange(this)">7 days</button>
@@ -1566,14 +1699,14 @@
     <!-- AUDIENCE PANEL (visitors collection: device / location / referrer) -->
     <div class="panel" id="panel-audience">
     <div class="section-head">
-      <span class="section-head-title">🌐 Audience</span>
+      <span class="section-head-title">Audience</span>
       <div class="section-head-line"></div>
       <span class="section-count" id="audienceCount">loading…</span>
       <button class="export-btn" onclick="exportAudience()" title="Download this view as CSV">⬇ Export</button>
     </div>
     <div class="aud-summary" id="audSummary"></div>
     <div class="filter-bar">
-      <input type="text" class="search-input" id="audienceSearch" placeholder="🔍  Search name, email, city, country, device…" oninput="filterAudience()">
+      <input type="text" class="search-input" id="audienceSearch" placeholder="Search name, email, city, country, device…" oninput="filterAudience()">
       <div class="resume-timefilter" id="audienceTypeFilter">
         <button type="button" class="rtf-btn active" data-type="all"    onclick="setAudienceType(this)">All</button>
         <button type="button" class="rtf-btn"        data-type="google" onclick="setAudienceType(this)">Signed-in</button>
@@ -1817,9 +1950,11 @@
   /* ── Load everything ── */
   function loadAll() {
     return loadVisitors().then(function() {
-      return Promise.all([loadReviews(), loadLikes(), loadResume(), loadChats(), loadCallbacks(), loadInbox(), loadAudience()]);
+      return Promise.all([loadReviews(), loadLikes(), loadResume(), loadChats(), loadCallbacks(), loadInbox(), loadAudience(), loadAdminData()]);
     }).then(function() {
       renderOverviewAnalytics();
+      afterAdminLoad();
+      lastLoadAt = Date.now();
       updateRefreshTime();
     })
       .catch(function(err) {
@@ -2689,12 +2824,12 @@
     });
     if (thisWeek || lastWeek) {
       if (lastWeek === 0 && thisWeek > 0) {
-        chips.push({ icon: '📈', html: '<b>' + thisWeek + '</b> active visitor' + (thisWeek !== 1 ? 's' : '') + ' this week' });
+        chips.push({ icon: 'up', html: '<b>' + thisWeek + '</b> active visitor' + (thisWeek !== 1 ? 's' : '') + ' this week' });
       } else {
         var delta = lastWeek ? Math.round(((thisWeek - lastWeek) / lastWeek) * 100) : 0;
-        if (delta > 0) chips.push({ icon: '📈', html: 'Activity <b>up ' + delta + '%</b> vs last week' });
-        else if (delta < 0) chips.push({ icon: '📉', html: 'Activity <b>down ' + Math.abs(delta) + '%</b> vs last week' });
-        else chips.push({ icon: '➖', html: 'Activity <b>steady</b> vs last week' });
+        if (delta > 0) chips.push({ icon: 'up', html: 'Activity <b>up ' + delta + '%</b> vs last week' });
+        else if (delta < 0) chips.push({ icon: 'down', html: 'Activity <b>down ' + Math.abs(delta) + '%</b> vs last week' });
+        else chips.push({ icon: 'pulse', html: 'Activity <b>steady</b> vs last week' });
       }
     }
 
@@ -2705,7 +2840,7 @@
     if (devKeys.length) {
       var topDev = devKeys.sort(function(a, b) { return devCounts[b] - devCounts[a]; })[0];
       var devPct = Math.round((devCounts[topDev] / audience.length) * 100);
-      chips.push({ icon: topDev === 'mobile' ? '📱' : (topDev === 'tablet' ? '📟' : '💻'), html: '<b>' + devPct + '%</b> browsing on ' + topDev });
+      chips.push({ icon: topDev === 'desktop' ? 'monitor' : 'mobile', html: '<b>' + devPct + '%</b> browsing on ' + topDev });
     }
 
     /* 3. top country */
@@ -2714,7 +2849,7 @@
     var locKeys = Object.keys(locCounts);
     if (locKeys.length) {
       var topLoc = locKeys.sort(function(a, b) { return locCounts[b] - locCounts[a]; })[0];
-      chips.push({ icon: '🌍', html: 'Most visitors from <b>' + sanitize(topLoc) + '</b>' });
+      chips.push({ icon: 'globe', html: 'Most visitors from <b>' + sanitize(topLoc) + '</b>' });
     }
 
     /* 4. peak hour */
@@ -2724,28 +2859,28 @@
     if (maxH > 0) {
       var hIdx = hours.indexOf(maxH);
       var label = hIdx === 0 ? '12 AM' : hIdx < 12 ? hIdx + ' AM' : hIdx === 12 ? '12 PM' : (hIdx - 12) + ' PM';
-      chips.push({ icon: '🕐', html: 'Peak activity around <b>' + label + '</b>' });
+      chips.push({ icon: 'clock', html: 'Peak activity around <b>' + label + '</b>' });
     }
 
     /* 5. guest vs signed-in mix */
     if (audience.length) {
       var google = audience.filter(function(a) { return (a.type || 'guest') === 'google'; }).length;
       var pctG = Math.round((google / audience.length) * 100);
-      chips.push({ icon: '🔐', html: '<b>' + pctG + '%</b> signed in with Google' });
+      chips.push({ icon: 'lock', html: '<b>' + pctG + '%</b> signed in with Google' });
     }
 
     /* 6. chat conversion rate */
     if (audience.length && (allChatVisitors || []).length) {
       var convPct = Math.round((allChatVisitors.length / audience.length) * 100);
-      chips.push({ icon: '💬', html: '<b>' + convPct + '%</b> of visitors chatted with the bot' });
+      chips.push({ icon: 'chat', html: '<b>' + convPct + '%</b> of visitors chatted with the bot' });
     }
 
     if (!chips.length) {
-      el.innerHTML = '<div class="insight-chip"><span class="ic-emoji">👋</span> Insights will appear once visitor data comes in.</div>';
+      el.innerHTML = '<div class="insight-chip"><span class="ic-emoji">' + ico('pulse') + '</span> Insights will appear once visitor data comes in.</div>';
       return;
     }
     el.innerHTML = chips.slice(0, 4).map(function(c) {
-      return '<div class="insight-chip"><span class="ic-emoji">' + c.icon + '</span><span>' + c.html + '</span></div>';
+      return '<div class="insight-chip"><span class="ic-emoji">' + ico(c.icon) + '</span><span>' + c.html + '</span></div>';
     }).join('');
   }
 
@@ -2930,7 +3065,7 @@
   function loadResume() {
     return db.collection('resumeDownloads').get().then(function(snap) {
       var downloads = [];
-      snap.forEach(function(doc) { downloads.push(doc.data()); });
+      snap.forEach(function(doc) { downloads.push(withId(doc)); });
       downloads.sort(function(a, b) {
         var da = a.downloadedAt || a.accessedAt || a.timestamp || a.createdAt || a.time || a.date;
         var db_ = b.downloadedAt || b.accessedAt || b.timestamp || b.createdAt || b.time || b.date;
@@ -3084,7 +3219,7 @@
   function loadCallbacks() {
     return db.collection('callbacks').get().then(function(snap) {
       var rows = [];
-      snap.forEach(function(doc) { rows.push(doc.data()); });
+      snap.forEach(function(doc) { rows.push(withId(doc)); });
       allCallbacks = rows;
       var el = document.getElementById('callbacksCount');
       if (el) el.textContent = rows.length + (rows.length === 1 ? ' request' : ' requests');
@@ -3489,7 +3624,7 @@
   function loadInbox() {
     return db.collection('messages').get().then(function(snap) {
       var rows = [];
-      snap.forEach(function(doc) { rows.push(doc.data()); });
+      snap.forEach(function(doc) { rows.push(withId(doc)); });
       allInbox = rows;
       var el = document.getElementById('inboxCount');
       if (el) el.textContent = rows.length + (rows.length === 1 ? ' message' : ' messages');
@@ -3876,6 +4011,305 @@
   /* boot */
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startAdminAuth);
   else startAdminAuth();
+
+  /* ══ LEADS + TRAFFIC ═══════════════════════════════════════════════════
+     Owner-only records come from /api/system-status?admin=1 (needs the
+     signed-in owner's ID token): job-fit reports, website checks, every
+     page view, and the "done" marks for leads. Everything else reuses what
+     loadAll() already read from Firestore. */
+  var adminData = null, adminErr = '', allLeads = [], leadState = 'new', leadType = 'all', leadsVisible = 30;
+  var trafficDays = 30, trafficChartInstance = null;
+  var SITE = 'https://sahnawaz-portfolio.vercel.app';
+  var LEAD_TYPES = {
+    msg:   { label: 'Message',        icon: 'mail' },
+    brief: { label: 'Project brief',  icon: 'file' },
+    call:  { label: 'Callback',       icon: 'phone' },
+    fit:   { label: 'Job-fit check',  icon: 'target' },
+    check: { label: 'Website check',  icon: 'globe' },
+    cv:    { label: 'Resume',         icon: 'award' }
+  };
+  var ICON = {"grid": "<rect x=\"3\" y=\"3\" width=\"7\" height=\"7\" rx=\"1.5\"/><rect x=\"14\" y=\"3\" width=\"7\" height=\"7\" rx=\"1.5\"/><rect x=\"3\" y=\"14\" width=\"7\" height=\"7\" rx=\"1.5\"/><rect x=\"14\" y=\"14\" width=\"7\" height=\"7\" rx=\"1.5\"/>", "target": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"5\"/><circle cx=\"12\" cy=\"12\" r=\"1.2\"/>", "pulse": "<path d=\"M3 12h4l3-8 4 16 3-8h4\"/>", "users": "<path d=\"M16 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 18.5V20\"/><circle cx=\"10\" cy=\"8\" r=\"3.5\"/><path d=\"M20 20v-1.5a3.5 3.5 0 0 0-2.5-3.35M15.5 4.65a3.5 3.5 0 0 1 0 6.7\"/>", "globe": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18\"/>", "star": "<path d=\"m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z\"/>", "heart": "<path d=\"M12 20s-7-4.4-9-9a4.8 4.8 0 0 1 9-3 4.8 4.8 0 0 1 9 3c-2 4.6-9 9-9 9z\"/>", "file": "<path d=\"M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z\"/><path d=\"M14 3v5h5M9 13h6M9 17h4\"/>", "chat": "<path d=\"M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.5 8.5 0 1 1 21 11.5z\"/>", "phone": "<path d=\"M5 4h3l2 5-2.5 1.5a11 11 0 0 0 6 6L15 14l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2\"/>", "mail": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"2\"/><path d=\"m3 7 9 6 9-6\"/>", "bolt": "<path d=\"M13 2 4 14h7l-1 8 9-12h-7z\"/>", "award": "<circle cx=\"12\" cy=\"9\" r=\"6\"/><path d=\"m8.5 14-1.5 7 5-3 5 3-1.5-7\"/>", "check": "<path d=\"M20 6 9 17l-5-5\"/>", "clock": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/>", "lock": "<rect x=\"5\" y=\"11\" width=\"14\" height=\"9\" rx=\"2\"/><path d=\"M8 11V7a4 4 0 0 1 8 0v4\"/>", "monitor": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"12\" rx=\"2\"/><path d=\"M8 20h8M12 16v4\"/>", "mobile": "<rect x=\"7\" y=\"2.5\" width=\"10\" height=\"19\" rx=\"2\"/><path d=\"M11 18h2\"/>", "up": "<path d=\"m3 17 6-6 4 4 8-8\"/><path d=\"M15 7h6v6\"/>", "down": "<path d=\"m3 7 6 6 4-4 8 8\"/><path d=\"M15 17h6v-6\"/>"};
+  function ico(n) { return '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICON[n] || '') + '</svg>'; }
+  function withId(doc) { var d = doc.data() || {}; try { Object.defineProperty(d, '_id', { value: doc.id, enumerable: false }); } catch (e) {} return d; }
+
+  function adminApi(method, query, body) {
+    var u = firebase.auth().currentUser;
+    if (!u) return Promise.reject(new Error('Not signed in'));
+    return u.getIdToken().then(function (t) {
+      return fetch('/api/system-status?admin=1' + (query || ''), {
+        method: method, cache: 'no-store',
+        headers: { 'Authorization': 'Bearer ' + t, 'Content-Type': 'application/json' },
+        body: body ? JSON.stringify(body) : undefined
+      });
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (j) { if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status)); return j; });
+    });
+  }
+  function loadAdminData() {
+    return adminApi('GET', '&days=' + trafficDays).then(function (d) { adminData = d; adminErr = ''; })
+      .catch(function (e) { adminErr = (e && e.message) || 'unavailable'; if (!adminData) adminData = null; });
+  }
+
+  /* ── one list of everything that needs a reply ── */
+  function handledAt(key) { var h = (adminData && adminData.handled) || {}; return h[key.replace(/\./g, '_')] || null; }
+  function clipWords(t, n) { t = String(t || '').replace(/\s+/g, ' ').trim(); if (t.length <= n) return t; var c = t.slice(0, n); return c.slice(0, c.lastIndexOf(' ') > 30 ? c.lastIndexOf(' ') : n) + '…'; }
+  function firstName(n) { return String(n || '').trim().split(/\s+/)[0] || ''; }
+  function buildLeads() {
+    var L = [];
+    var checksFromApi = adminData && adminData.checks;
+    (allInbox || []).forEach(function (d) {
+      if (!d._id) return;
+      var isCheck = /website checks/i.test(d.name || '');
+      if (isCheck && checksFromApi) return;                     // shown below with its score and link
+      var brief = d.source === 'ai-brief';
+      var b = d.brief || {};
+      L.push({
+        key: (brief ? 'brief:' : isCheck ? 'check:' : 'msg:') + d._id,
+        type: brief ? 'brief' : isCheck ? 'check' : 'msg',
+        title: brief ? (b.business || b.project || 'Project brief') : isCheck ? String(d.message || '').split(/[\n—]/)[0] : (d.subject || clipWords(d.message, 70) || 'Message'),
+        name: isCheck ? '' : (d.name || b.name || ''), email: d.email || b.email || '', phone: b.phone || d.phone || '',
+        detail: (!brief && !isCheck && !d.subject && String(d.message || '').replace(/\s+/g, ' ').trim().length <= 70) ? '' : String(d.message || '').replace(/\s+/g, ' ').slice(0, 260),
+        place: [d.city, d.country].filter(function (x) { return x && x !== 'unknown'; }).join(', '),
+        at: millisSafe(inboxDate(d)), ref: d.refId || ''
+      });
+    });
+    (allCallbacks || []).forEach(function (d) {
+      if (!d._id) return;
+      L.push({ key: 'call:' + d._id, type: 'call', title: d.purpose ? 'Callback · ' + d.purpose : 'Callback request',
+        name: d.name || '', email: d.email || '', phone: d.phone || '',
+        detail: d.time ? 'Best time: ' + d.time : '', place: [d.city, d.country].filter(function (x) { return x && x !== 'unknown'; }).join(', '),
+        at: millisSafe(d.requestedAt || d.createdAt) });
+    });
+    ((adminData && adminData.fit) || []).forEach(function (r) {
+      var w = r.who || {};
+      L.push({ key: 'fit:' + r.id, type: 'fit', title: r.role || 'Job-fit check',
+        name: w.name || '', email: w.email || '', phone: '', company: w.company || '',
+        detail: (r.score != null ? r.score + '/100 · ' : '') + (r.fit ? r.fit + ' fit · ' : '') + r.matches + ' matches, ' + r.gaps + ' gaps' + (r.summary ? ' — ' + r.summary : ''),
+        place: '', at: Date.parse(r.at) || 0, link: SITE + '/?fit=' + encodeURIComponent(r.id), linkLabel: 'Open report', score: r.score });
+    });
+    (checksFromApi || []).forEach(function (c) {
+      L.push({ key: 'check:' + c.id, type: 'check', title: c.host || 'Website check', name: '', email: '', phone: '',
+        detail: (c.score != null ? c.score + '/100' : 'No score') + (c.type ? ' · ' + c.type : ''),
+        place: [c.city, c.country].filter(Boolean).join(', '), at: Date.parse(c.at) || 0,
+        link: c.key ? SITE + '/?check=' + encodeURIComponent(c.key) : (c.host ? 'https://' + c.host : ''), linkLabel: c.key ? 'Open report' : 'Open site', score: c.score });
+    });
+    (allResume || []).forEach(function (d) {
+      if (!d._id || !d.email) return;
+      L.push({ key: 'cv:' + d._id, type: 'cv', title: d.visitorType || d.role ? 'Resume · ' + (d.visitorType || d.role) : 'Resume download',
+        name: d.name || '', email: d.email || '', phone: d.phone || '', company: d.company || '', detail: '', place: '',
+        at: millisSafe(d.downloadedAt || d.accessedAt || d.timestamp || d.createdAt || d.time) });
+    });
+    L.forEach(function (l) { l.done = handledAt(l.key); });
+    L.sort(function (a, b) { return b.at - a.at; });
+    allLeads = L;
+  }
+
+  function waitLabel(ms) {
+    var h = (Date.now() - ms) / 36e5;
+    if (h < 1) return 'just now';
+    if (h < 24) return Math.floor(h) + 'h ago';
+    var d = Math.floor(h / 24); return d + (d === 1 ? ' day' : ' days') + ' ago';
+  }
+  function leadMatches(l) {
+    if (leadState === 'new' && l.done) return false;
+    if (leadState === 'done' && !l.done) return false;
+    if (leadType !== 'all' && l.type !== leadType) return false;
+    var q = (document.getElementById('leadsSearch').value || '').trim().toLowerCase();
+    if (!q) return true;
+    return [l.title, l.name, l.email, l.phone, l.company, l.detail, l.place].join(' ').toLowerCase().indexOf(q) > -1;
+  }
+  function waNumber(p) {
+    var d = String(p || '').replace(/\D/g, '');
+    if (d.length === 10) d = '91' + d;
+    return d.length >= 11 && d.length <= 15 ? d : '';
+  }
+  function leadCard(l) {
+    var t = LEAD_TYPES[l.type] || LEAD_TYPES.msg;
+    var hello = 'Hi ' + (firstName(l.name) || 'there') + ',\n\n';
+    var acts = [];
+    if (l.email) acts.push('<a class="lead-act" href="mailto:' + encodeURIComponent(l.email) + '?subject=' + encodeURIComponent('Re: ' + l.title) + '&body=' + encodeURIComponent(hello) + '">' + ico('mail') + 'Reply</a>');
+    var wa = waNumber(l.phone);
+    if (wa) acts.push('<a class="lead-act" target="_blank" rel="noopener" href="https://wa.me/' + wa + '?text=' + encodeURIComponent('Hi ' + (firstName(l.name) || '') + ', this is Sahnawaz. ') + '">' + ico('chat') + 'WhatsApp</a>');
+    if (l.phone) acts.push('<a class="lead-act" href="tel:' + sanitize(String(l.phone).replace(/[^\d+]/g, '')) + '">' + ico('phone') + 'Call</a>');
+    if (l.link) acts.push('<a class="lead-act" target="_blank" rel="noopener" href="' + sanitize(l.link) + '">' + ico('pulse') + sanitize(l.linkLabel || 'Open') + '</a>');
+    var overdue = !l.done && Date.now() - l.at > 864e5 && l.type !== 'check' && l.type !== 'cv';
+    var who = [l.name, l.company].filter(Boolean).join(' · ');
+    var contact = [l.email, l.phone].filter(Boolean).join(' · ');
+    var scoreChip = l.score != null ? '<span class="lead-score ' + (l.score >= 62 ? 'hi' : l.score >= 40 ? 'mid' : 'lo') + '">' + l.score + '</span>' : '';
+    return '<div class="lead' + (l.done ? ' is-done' : '') + '" data-key="' + sanitize(l.key) + '">'
+      + '<div class="lead-ic t-' + l.type + '">' + ico(t.icon) + '</div>'
+      + '<div class="lead-main">'
+      +   '<div class="lead-top"><span class="lead-type">' + t.label + '</span>'
+      +     '<span class="lead-when' + (overdue ? ' late' : '') + '" title="' + sanitize(l.at ? new Date(l.at).toLocaleString('en-IN') : '') + '">' + (l.at ? (overdue ? 'Waiting ' : '') + waitLabel(l.at) : '') + '</span>' + scoreChip + '</div>'
+      +   '<div class="lead-title">' + sanitize(l.title) + '</div>'
+      +   (who ? '<div class="lead-who">' + sanitize(who) + '</div>' : '')
+      +   (contact ? '<div class="lead-contact">' + sanitize(contact) + '</div>' : (l.type === 'fit' ? '<div class="lead-contact muted">Recruiter didn’t leave contact details</div>' : ''))
+      +   (l.detail ? '<div class="lead-detail">' + sanitize(l.detail) + '</div>' : '')
+      +   (l.place ? '<div class="lead-place">' + ico('globe') + sanitize(l.place) + '</div>' : '')
+      +   '<div class="lead-acts">' + acts.join('')
+      +     '<button type="button" class="lead-done" onclick="toggleLead(this)">' + (l.done ? 'Move back to to-do' : ico('check') + 'Mark done') + '</button></div>'
+      +   (l.done ? '<div class="lead-done-at">Done ' + waitLabel(Date.parse(l.done)) + '</div>' : '')
+      + '</div></div>';
+  }
+  function renderLeadTypes() {
+    var box = document.getElementById('leadTypes'); if (!box) return;
+    var counts = { all: 0 };
+    allLeads.forEach(function (l) { if (leadState === 'all' || (leadState === 'new') === !l.done) { counts.all++; counts[l.type] = (counts[l.type] || 0) + 1; } });
+    var order = ['all', 'msg', 'brief', 'call', 'fit', 'check', 'cv'];
+    box.innerHTML = order.filter(function (k) { return k === 'all' || counts[k]; }).map(function (k) {
+      return '<button type="button" class="lt-chip' + (leadType === k ? ' active' : '') + '" onclick="setLeadType(\'' + k + '\')">'
+        + (k === 'all' ? 'All' : LEAD_TYPES[k].label) + '<b>' + (counts[k] || 0) + '</b></button>';
+    }).join('');
+  }
+  window.renderLeads = function () {
+    var list = document.getElementById('leadsList'); if (!list) return;
+    renderLeadTypes();
+    var rows = allLeads.filter(leadMatches);
+    var todo = allLeads.filter(function (l) { return !l.done; }).length;
+    document.getElementById('leadsCount').textContent = todo + ' to do · ' + allLeads.length + ' total';
+    if (!rows.length) {
+      list.innerHTML = '<div class="empty-state">' + (leadState === 'new' && !(document.getElementById('leadsSearch').value || '').trim() ? 'All caught up — nothing waiting for a reply.' : 'Nothing matches this view.') + '</div>';
+    } else list.innerHTML = rows.slice(0, leadsVisible).map(leadCard).join('');
+    var more = document.getElementById('leadsMore');
+    more.innerHTML = rows.length > leadsVisible ? '<button class="load-more-btn" onclick="leadsVisible+=30;renderLeads()">Show more (' + (rows.length - leadsVisible) + ')</button>' : '';
+    if (adminErr) list.insertAdjacentHTML('afterbegin', '<div class="lead-warn">Job-fit checks, website checks and done marks couldn’t load (' + sanitize(adminErr) + '). The rest is shown.</div>');
+  };
+  window.setLeadState = function (btn) {
+    [].forEach.call(document.querySelectorAll('#leadsState .rtf-btn'), function (b) { b.classList.remove('active'); });
+    btn.classList.add('active'); leadState = btn.getAttribute('data-state'); leadsVisible = 30; renderLeads();
+  };
+  window.setLeadType = function (k) { leadType = k; leadsVisible = 30; renderLeads(); };
+  window.toggleLead = function (btn) {
+    var card = btn.closest('.lead'); var key = card && card.getAttribute('data-key');
+    var l = allLeads.filter(function (x) { return x.key === key; })[0]; if (!l) return;
+    var was = l.done, now = was ? null : new Date().toISOString();
+    l.done = now;
+    if (!adminData) adminData = { handled: {} };
+    adminData.handled = adminData.handled || {};
+    if (now) adminData.handled[key.replace(/\./g, '_')] = now; else delete adminData.handled[key.replace(/\./g, '_')];
+    card.classList.add('leaving');
+    setTimeout(function () { renderLeads(); renderAttention(); }, leadState === 'all' ? 0 : 220);
+    adminApi('POST', '', { key: key, done: !!now }).catch(function (e) {
+      l.done = was;
+      if (was) adminData.handled[key.replace(/\./g, '_')] = was; else delete adminData.handled[key.replace(/\./g, '_')];
+      renderLeads(); renderAttention();
+      alert('Couldn’t save that (' + ((e && e.message) || 'network') + '). Try again.');
+    });
+  };
+  window.exportLeads = function () {
+    exportCSV('leads', allLeads.filter(leadMatches), [
+      { label: 'Type', get: function (l) { return (LEAD_TYPES[l.type] || {}).label; } },
+      { label: 'Title', get: function (l) { return l.title; } },
+      { label: 'Name', get: function (l) { return l.name; } },
+      { label: 'Company', get: function (l) { return l.company || ''; } },
+      { label: 'Email', get: function (l) { return l.email; } },
+      { label: 'Phone', get: function (l) { return l.phone; } },
+      { label: 'Details', get: function (l) { return l.detail; } },
+      { label: 'Place', get: function (l) { return l.place; } },
+      { label: 'When', get: function (l) { return l.at ? new Date(l.at).toISOString() : ''; } },
+      { label: 'Done', get: function (l) { return l.done || ''; } }
+    ]);
+  };
+
+  /* overview: what's waiting, at a glance */
+  function renderAttention() {
+    var box = document.getElementById('attnStrip'); if (!box) return;
+    var todo = allLeads.filter(function (l) { return !l.done; });
+    var nav = document.getElementById('navCountLeads');
+    if (nav) { nav.textContent = todo.length; nav.classList.toggle('zero', !todo.length); }
+    document.title = (todo.length ? '(' + todo.length + ') ' : '') + 'SHZ Admin';
+    box.hidden = false;
+    if (!todo.length) { box.className = 'attn ok'; box.innerHTML = ico('check') + '<span><b>All caught up.</b> No message, brief, callback or job-fit check is waiting for a reply.</span>'; return; }
+    var by = {}; todo.forEach(function (l) { by[l.type] = (by[l.type] || 0) + 1; });
+    var oldest = todo.reduce(function (m, l) { return l.at && l.at < m ? l.at : m; }, Date.now());
+    var late = todo.filter(function (l) { return Date.now() - l.at > 864e5 && l.type !== 'check' && l.type !== 'cv'; }).length;
+    box.className = 'attn' + (late ? ' late' : '');
+    box.innerHTML = '<div class="attn-main">' + ico('target') + '<div><b>' + todo.length + (todo.length === 1 ? ' lead' : ' leads') + ' waiting for you</b>'
+      + '<span>' + (late ? late + ' waiting over a day · ' : '') + 'oldest ' + waitLabel(oldest) + '</span></div></div>'
+      + '<div class="attn-chips">' + Object.keys(by).map(function (k) { return '<span>' + LEAD_TYPES[k].label + ' <b>' + by[k] + '</b></span>'; }).join('') + '</div>'
+      + '<button type="button" class="attn-go" onclick="showPanel(\'leads\')">Open leads →</button>';
+  }
+
+  /* ── traffic ── */
+  function rankPairs(elId, pairs, emptyMsg) {
+    var el = document.getElementById(elId); if (!el) return;
+    if (!pairs || !pairs.length) { el.innerHTML = '<div class="empty-state">' + emptyMsg + '</div>'; return; }
+    var max = pairs[0][1] || 1;
+    el.innerHTML = pairs.map(function (r, i) {
+      return '<div class="rank-row"><div class="rank-idx">' + (i + 1) + '</div><div class="rank-name">' + sanitize(r[0]) + '</div>'
+        + '<div class="rank-bar-track"><div class="rank-bar-fill" style="width:' + Math.round(r[1] / max * 100) + '%"></div></div><div class="rank-count">' + r[1] + '</div></div>';
+    }).join('');
+  }
+  function renderTraffic() {
+    var t = adminData && adminData.traffic;
+    var nav = document.getElementById('navCountTraffic');
+    var count = document.getElementById('trafficCount');
+    if (!t) {
+      if (nav) nav.textContent = '–';
+      if (count) count.textContent = adminErr ? 'unavailable' : 'no data';
+      document.getElementById('trafficStats').innerHTML = '<div class="empty-state">Traffic couldn’t load' + (adminErr ? ' (' + sanitize(adminErr) + ')' : '') + '.</div>';
+      return;
+    }
+    var today = t.series.length ? t.series[t.series.length - 1][1] : 0;
+    var best = t.series.reduce(function (m, d) { return d[1] > m[1] ? d : m; }, ['', 0]);
+    var half = Math.floor(t.series.length / 2);
+    var prev = t.series.slice(0, half).reduce(function (a, d) { return a + d[1]; }, 0);
+    var last = t.series.slice(-half).reduce(function (a, d) { return a + d[1]; }, 0);
+    var change = prev ? Math.round((last - prev) / prev * 100) : null;
+    if (nav) nav.textContent = today;
+    count.textContent = t.views + ' views · last ' + t.days + ' days' + (t.capped ? ' (latest 5,000)' : '');
+    var fmtDay = function (k) { return k ? new Date(k + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—'; };
+    var stat = function (n, label, sub, cls) { return '<div class="stat-card ' + (cls || 'stat-accent-cyan') + '"><div class="stat-num">' + n + '</div>' + (sub ? '<div class="stat-trend' + (/^-/.test(sub) ? ' down' : '') + '">' + sub + '</div>' : '') + '<div class="stat-label">' + label + '</div></div>'; };
+    document.getElementById('trafficStats').innerHTML =
+      stat(t.views, 'Page views', change == null ? '' : (change >= 0 ? '+' : '') + change + '% vs previous ' + half + ' days') +
+      stat(Math.round(t.views / t.days * 10) / 10, 'Per day (average)') +
+      stat(today, 'Today', '', 'stat-accent-green') +
+      stat(best[1], 'Busiest day', fmtDay(best[0]), 'stat-accent-yellow');
+    document.getElementById('trafficSub').textContent = 'Each visit to any page of the site · India time';
+    rankPairs('trafficRefs', t.referrers, 'No visits yet.');
+    var names = null; try { names = new Intl.DisplayNames(['en'], { type: 'region' }); } catch (e) {}
+    var cname = function (c) { try { return c && c.length === 2 && names ? names.of(c) : (c === 'unknown' ? 'Unknown' : c); } catch (e) { return c; } };
+    rankPairs('trafficCountries', (t.countries || []).map(function (r) { return [cname(r[0]), r[1]]; }), 'No visits yet.');
+    rankPairs('trafficCities', t.cities, 'No city data yet.');
+    var hmax = Math.max.apply(null, t.hours.concat([1]));
+    var peak = t.hours.indexOf(hmax);
+    document.getElementById('trafficHours').innerHTML = t.hours.map(function (v, h) {
+      return '<i title="' + h + ':00 · ' + v + ' views" style="height:' + Math.max(4, Math.round(v / hmax * 100)) + '%"' + (h === peak ? ' class="peak"' : '') + '></i>';
+    }).join('');
+    var dev = (t.devices || []).map(function (d) { return d[0] + ' ' + Math.round(d[1] / (t.views || 1) * 100) + '%'; }).join(' · ');
+    document.getElementById('trafficDevices').textContent = (t.views ? 'Busiest around ' + (peak % 12 || 12) + (peak < 12 ? ' am' : ' pm') + ' · ' : '') + dev;
+    var ctx = document.getElementById('trafficChart');
+    if (ctx && window.Chart) {
+      if (trafficChartInstance) trafficChartInstance.destroy();
+      trafficChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: { labels: t.series.map(function (d) { return fmtDay(d[0]); }),
+          datasets: [{ data: t.series.map(function (d) { return d[1]; }), borderColor: '#38bdf8', backgroundColor: 'rgba(56,189,248,.12)', fill: true, tension: .35, pointRadius: 0, pointHoverRadius: 4, borderWidth: 2 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+          scales: { x: { ticks: { color: 'rgba(224,240,255,.45)', maxTicksLimit: 8 }, grid: { display: false } },
+                    y: { beginAtZero: true, ticks: { color: 'rgba(224,240,255,.45)', precision: 0 }, grid: { color: 'rgba(255,255,255,.05)' } } } }
+      });
+    }
+  }
+  window.setTrafficRange = function (btn) {
+    [].forEach.call(document.querySelectorAll('#trafficRange .rtf-btn'), function (b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    trafficDays = parseInt(btn.getAttribute('data-days'), 10) || 30;
+    document.getElementById('trafficCount').textContent = 'loading…';
+    adminApi('GET', '&days=' + trafficDays).then(function (d) { adminData.traffic = d.traffic; renderTraffic(); })
+      .catch(function (e) { adminErr = e.message; renderTraffic(); });
+  };
+
+  function afterAdminLoad() { buildLeads(); renderLeads(); renderAttention(); renderTraffic(); }
+
+  /* coming back to the tab after a while: fresh numbers, no button press */
+  var lastLoadAt = 0;
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState !== 'visible') return;
+    if (document.getElementById('dashboard').style.display === 'none') return;
+    if (Date.now() - lastLoadAt > 5 * 60e3) doRefresh();
+  });
+
 </script>
 </body>
 </html>
