@@ -1237,6 +1237,10 @@
   .lead-done-at { font-size: .7rem; color: var(--text-dim); margin-top: 6px; text-align: right; }
   .lead-warn { font-size: .78rem; color: #fcd34d; background: rgba(251,191,36,.08); border: 1px solid rgba(251,191,36,.22); padding: 9px 12px; border-radius: 10px; }
 
+  .lead-bulk { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: -4px 0 12px; padding: 9px 12px; border-radius: 10px;
+    font-size: .78rem; color: var(--text-dim); background: rgba(255,255,255,.03); border: 1px dashed rgba(255,255,255,.12); }
+  .lead-bulk[hidden] { display: none; }
+  .lead-bulk button { all: unset; cursor: pointer; font-weight: 700; color: #6ee7b7; }
   /* ── traffic ── */
   .traffic-stats .stat-card { min-height: 0; }
   .stat-trend.down { color: #fca5a5 !important; }
@@ -1499,6 +1503,7 @@
       </div>
     </div>
     <div class="lead-types" id="leadTypes"></div>
+    <div class="lead-bulk" id="leadBulk" hidden></div>
     <div class="lead-list" id="leadsList">
       <div class="loading-state"><div class="loading-spinner"></div>Loading leads…</div>
     </div>
@@ -4172,6 +4177,12 @@
     } else list.innerHTML = rows.slice(0, leadsVisible).map(leadCard).join('');
     var more = document.getElementById('leadsMore');
     more.innerHTML = rows.length > leadsVisible ? '<button class="load-more-btn" onclick="leadsVisible+=30;renderLeads()">Show more (' + (rows.length - leadsVisible) + ')</button>' : '';
+    var old = allLeads.filter(function (l) { return !l.done && l.at && Date.now() - l.at > 7 * 864e5; });
+    var bulk = document.getElementById('leadBulk');
+    if (bulk) {
+      bulk.hidden = !(old.length && leadState !== 'done') || !!adminErr;
+      bulk.innerHTML = '<span>' + old.length + ' older than a week — already handled?</span><button type="button" onclick="markOldDone()">Mark those done</button>';
+    }
     if (adminErr) list.insertAdjacentHTML('afterbegin', '<div class="lead-warn">Job-fit checks, website checks and done marks couldn’t load (' + sanitize(adminErr) + '). The rest is shown.</div>');
   };
   window.setLeadState = function (btn) {
@@ -4195,6 +4206,16 @@
       renderLeads(); renderAttention();
       alert('Couldn’t save that (' + ((e && e.message) || 'network') + '). Try again.');
     });
+  };
+  window.markOldDone = function () {
+    var old = allLeads.filter(function (l) { return !l.done && l.at && Date.now() - l.at > 7 * 864e5; });
+    if (!old.length || !confirm('Mark ' + old.length + ' leads older than a week as done? You can move any back later from the Done tab.')) return;
+    var keys = old.map(function (l) { return l.key; }), when = new Date().toISOString();
+    adminApi('POST', '', { keys: keys, done: true }).then(function () {
+      adminData = adminData || {}; adminData.handled = adminData.handled || {};
+      old.forEach(function (l) { l.done = when; adminData.handled[l.key.replace(/\./g, '_')] = when; });
+      renderLeads(); renderAttention();
+    }).catch(function (e) { alert('Couldn\u2019t save that (' + ((e && e.message) || 'network') + '). Try again.'); });
   };
   window.exportLeads = function () {
     exportCSV('leads', allLeads.filter(leadMatches), [

@@ -161,11 +161,13 @@ async function adminData(req, res) {
 
   if (req.method === 'POST') {
     const b = req.body || {};
-    const key = String(b.key || '');
-    if (!/^[a-z]{2,12}:[A-Za-z0-9_.:@-]{1,160}$/.test(key)) return res.status(400).json({ error: 'Bad key' });
-    const field = key.replace(/[.]/g, '_');
-    await state.set({ [field]: b.done ? new Date().toISOString() : admin.firestore.FieldValue.delete() }, { merge: true });
-    return res.status(200).json({ ok: true });
+    const keys = Array.isArray(b.keys) ? b.keys.slice(0, 400) : [b.key];
+    const KEY = /^[a-z]{2,12}:[A-Za-z0-9_.:@-]{1,160}$/;
+    if (!keys.length || !keys.every(k => KEY.test(String(k || '')))) return res.status(400).json({ error: 'Bad key' });
+    const when = new Date().toISOString(), patch = {};
+    keys.forEach(k => { patch[String(k).replace(/[.]/g, '_')] = b.done ? when : admin.firestore.FieldValue.delete(); });
+    await state.set(patch, { merge: true });
+    return res.status(200).json({ ok: true, count: keys.length });
   }
 
   const days = Math.max(7, Math.min(90, parseInt(req.query.days, 10) || 30));
