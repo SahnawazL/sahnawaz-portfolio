@@ -30,10 +30,14 @@
   padding: .55rem .9rem calc(1rem + env(safe-area-inset-bottom)); border-radius: 22px 22px 0 0;
   background: radial-gradient(120% 60% at 0% 0%, rgba(0, 255, 208, .08), transparent 55%), linear-gradient(170deg, #0b2133, #06131f);
   border: 1px solid rgba(120, 240, 225, .16); border-bottom: 0; box-shadow: 0 -20px 60px rgba(0, 0, 0, .5);
-  transform: translateY(100%); transition: transform .36s cubic-bezier(.2,.9,.25,1); }
+  /* Parked below the screen while closed, and hidden too: phone browsers resize the
+     viewport as the address bar slides, which would otherwise expose the top of it.
+     The hide waits for the slide-out to finish. */
+  transform: translateY(100%); visibility: hidden;
+  transition: transform .36s cubic-bezier(.2,.9,.25,1), visibility 0s linear .36s; }
 .sg-sheet.open { pointer-events: auto; }
 .sg-sheet.open .sg-backdrop { opacity: 1; }
-.sg-sheet.open .sg-panel { transform: none; }
+.sg-sheet.open .sg-panel { transform: none; visibility: visible; transition: transform .36s cubic-bezier(.2,.9,.25,1), visibility 0s; }
 .sg-grab { width: 38px; height: 4px; border-radius: 4px; background: rgba(255, 255, 255, .18); margin: .1rem auto .6rem; }
 .sg-head { display: flex; align-items: center; justify-content: space-between; padding: 0 .2rem .55rem; }
 .sg-title { font: 700 1.02rem/1.2 'Space Grotesk', 'DM Sans', sans-serif; color: #f0fdff; letter-spacing: -.01em; }
