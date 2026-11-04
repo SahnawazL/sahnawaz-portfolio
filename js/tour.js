@@ -59,8 +59,10 @@
   /* acc: the stop's colour (spotlight, card tint, highlight, waveform)
      acts: quick actions; tapping one ends the tour and goes there */
   /* e: the music's energy here (1 calm, 2 full, 3 peak); key: its shift in semitones
-     beats: at the word that starts with `at`, the page glides to the card
-     (`find`) containing the text `has`, and the spotlight moves onto it */
+     beats: at the word that starts with `at`, the page glides to `sel`, or to
+     the card (`find`) containing the text `has`, and the spotlight moves onto it.
+     tap: then the tour uses that card the way a visitor would (see DEMO); all
+     of it is put back when the stop ends. stay: leave the page and spotlight put. */
   var STEPS = [
     { sel: '#heroStatsBar', e: 1, key: 0, title: 'Hi, I’m Sahnawaz', acc: [0, 255, 208],
       say: 'Hi, I’m Sahnawaz — a full-stack developer and UI designer from Assam. Everything on this site is hand-coded, with no templates. Let me show you around in under three minutes.',
@@ -72,27 +74,37 @@
     { sel: '#live-products', e: 2, key: 0, title: 'Live numbers', acc: [34, 211, 238],
       say: 'These numbers aren’t screenshots. They’re fetched from each product right now, while you watch.' },
     { sel: '#projects', e: 1, key: -2, title: 'Where I started', acc: [129, 140, 248],
-      say: 'I started in customer support for Xiaomi and Flipkart, then moved into an IT and developer role at Rapido. Support taught me to find what’s really going wrong.' },
+      say: 'I started in customer support for Xiaomi and Flipkart, then moved into an IT and developer role at Rapido. Support taught me to find what’s really going wrong.',
+      beats: [{ at: 'Xiaomi', find: '.pwork-entry', has: 'Xiaomi India', tap: 'pwork' }, { at: 'Rapido', find: '.pwork-entry', has: 'Rapido — Ienergizer', tap: 'pwork' }] },
     { sel: '#achievements', e: 3, key: 0, title: 'Milestones', acc: [192, 132, 252],
-      say: 'Here are the milestones I’m proudest of, from multi-agent AI and a live system health dashboard to my signature Hacker Mode. Every card opens the full story.' },
+      say: 'Here are the milestones I’m proudest of. Tap any card and the full story opens, like my GitHub contributions here, or my signature Hacker Mode.',
+      beats: [{ at: 'GitHub', find: '.kta3-card', has: 'GitHub Contributions', tap: 'story' }, { at: 'Hacker', find: '.kta3-card', has: 'Hacker Mode', tap: 'story' }] },
     { sel: 'section.ts-section', e: 2, key: 0, title: 'My toolkit', acc: [45, 212, 191],
-      say: 'This is my everyday toolkit: React and JavaScript up front, Node and Firebase behind, and Figma for design. One person, from first sketch to production.' },
-    { sel: '#recent-activity .ra-header', e: 2, key: 2, fallback: '#recent-activity', title: 'Live engineering telemetry', acc: [52, 211, 153],
-      say: 'This is live telemetry, pulled straight from GitHub: what I shipped recently, my commit streak, and how healthy my projects are.',
-      acts: [{ id: 'github', label: 'Open my GitHub', icon: 'github', href: GH }] },
+      say: 'This is my everyday toolkit: React and JavaScript up front, Node and Firebase behind, and Figma for design. One person, from first sketch to production.',
+      beats: [{ at: 'React', sel: '.ts-tab[data-cat="frontend"]', tap: 'tab', stay: true }, { at: 'Node', sel: '.ts-tab[data-cat="backend"]', tap: 'tab', stay: true }, { at: 'Figma', sel: '.ts-tab[data-cat="design"]', tap: 'tab', stay: true }] },
     { sel: '#how-i-ship', e: 3, key: 2, title: 'How I ship', acc: [167, 139, 250],
-      say: 'And this is how I ship. Every change goes through GitHub, is built automatically, and goes live in about a minute, with one-click rollback.',
+      say: 'This is how I ship. Every change goes through GitHub, is built automatically, and goes live in about a minute, with one-click rollback.',
+      beats: [{ at: 'GitHub', find: '.hs-step', has: 'Commit' }, { at: 'built', find: '.hs-step', has: 'Build check' }, { at: 'live', find: '.hs-step', has: 'Auto-deploy' }],
       acts: [{ id: 'code', label: 'See this site’s code', icon: 'code', href: GH + '/sahnawaz-portfolio' }] },
+    { sel: '#recent-activity .ra-header', fallback: '#recent-activity', e: 2, key: 2, title: 'Live engineering telemetry', acc: [52, 211, 153],
+      say: 'And this is live telemetry, pulled straight from GitHub. My contribution map, project stats, build health and release timeline, then dependency freshness, what I shipped recently, system status, and a live security check.',
+      beats: [{ at: 'contribution', sel: '#raHeatmap' }, { at: 'project', sel: '#raProjectStats' }, { at: 'build', sel: '#raCIHealth' }, { at: 'release', sel: '#raReleaseTimeline' },
+        { at: 'dependency', sel: '#raDepFreshness' }, { at: 'shipped', sel: '#raList' }, { at: 'system', sel: '#raSysStatus' }, { at: 'security', sel: '#secCard' }],
+      acts: [{ id: 'github', label: 'Open my GitHub', icon: 'github', href: GH }] },
     { sel: '#job-fit', e: 1, key: 0, title: 'Hiring? Check my fit', acc: [251, 191, 36],
       say: 'Hiring? Paste your job post here. An AI compares it with my real work and tells you honestly where I match, and where I don’t.',
+      beats: [{ at: 'Paste', sel: '#jfText', tap: 'type', text: 'Frontend developer. React, Firebase, strong UI skills.' }],
       acts: [{ id: 'jobfit', label: 'Try it with a job post', icon: 'pen', go: 'jobfit' }] },
     { sel: '#what-i-offer', e: 2, key: 0, title: 'What I offer', acc: [251, 146, 60],
-      say: 'Need something built? Every service here shows a clear starting price and exactly what’s included. Tap a card, or plan your project with AI.' },
+      say: 'Need something built? Every service flips open to show a clear starting price and exactly what’s included. Here’s website design, and here’s a portfolio site.',
+      beats: [{ at: 'website', find: '.wio-card', has: 'Website Design', tap: 'price' }, { at: 'portfolio', find: '.wio-card', has: 'Portfolio Website', tap: 'price' }] },
     { sel: '#website-check', e: 2, key: 3, title: 'Free website check', acc: [74, 222, 128],
       say: 'Already have a website? Run this free check. In about thirty seconds it shows your speed on a phone, your Google basics, and how your link looks on WhatsApp.',
+      beats: [{ at: 'Run', sel: '#wcUrl', tap: 'type', text: 'yourbusiness.com' }],
       acts: [{ id: 'webcheck', label: 'Check my website', icon: 'pen', go: 'webcheck' }] },
     { sel: '#testimonials', e: 1, key: 0, title: 'In their words', acc: [250, 204, 21],
-      say: 'But don’t just take my word for it. These are real words from the managers and team leads I’ve worked with.' },
+      say: 'But don’t just take my word for it. These are real words from the managers and team leads I’ve worked with.',
+      beats: [{ at: 'managers', find: '.ptesti-card', has: 'Project Manager', tap: 'quote' }, { at: 'team', find: '.ptesti-card', has: 'Adiba Kirmani', tap: 'quote' }] },
     { sel: '#contact', e: 3, key: 2, title: 'Let’s talk', acc: [244, 114, 182],
       say: 'Ready to talk? Message me, WhatsApp me, or request a call. I personally read every message. Thanks for taking the tour!',
       acts: [{ id: 'whatsapp', label: 'Message me on WhatsApp', icon: 'chat', href: WA }] }
@@ -406,6 +418,7 @@
     root.setAttribute('aria-label', 'Guided tour');
     root.innerHTML =
       '<div class="tour-spot" aria-hidden="true"></div>'
+      + '<div class="tour-tap" aria-hidden="true"></div>'
       + '<div class="tour-card">'
       +   '<div class="tour-top"><span class="tour-orb" aria-hidden="true"><i></i></span><span class="tour-step"></span>'
       +     '<span class="tour-voice-tag" aria-hidden="true">AI narrator</span>'
@@ -438,7 +451,7 @@
       + '</div>';
     document.body.appendChild(root);
     ui = {
-      root: root, spot: root.querySelector('.tour-spot'), card: root.querySelector('.tour-card'),
+      root: root, spot: root.querySelector('.tour-spot'), tap: root.querySelector('.tour-tap'), card: root.querySelector('.tour-card'),
       step: root.querySelector('.tour-step'), title: root.querySelector('.tour-title'), text: root.querySelector('.tour-text'),
       bar: root.querySelector('.tour-bar span'), dots: root.querySelector('.tour-dots'), orb: root.querySelector('.tour-orb'),
       scope: root.querySelector('.tour-scope'), acts: root.querySelector('.tour-acts'),
@@ -601,6 +614,7 @@
     token++;
     stopAudio();
     stopMotion();
+    demoEnd();
     bedOff(.5);
     cancelAnimationFrame(raf);
     active = false;
@@ -728,9 +742,11 @@
       if (!spotDirty && now - spotSeen < 250) return;
       if (cam && now - spotSeen < 120) return;          // the page is gliding: the spotlight's own easing fills the gaps
       spotDirty = false; spotSeen = now;
-      var el = spotEl || target(STEPS[idx]);
-      if (!el) return;
-      var r = el.getBoundingClientRect(), pad = 10, vh = window.innerHeight, vw = window.innerWidth;
+      var list = spotEl || [target(STEPS[idx])];
+      if (!list[0]) return;
+      var r = list[0].getBoundingClientRect();
+      if (list[1]) { var r2 = list[1].getBoundingClientRect(); r = { top: Math.min(r.top, r2.top), left: Math.min(r.left, r2.left), right: Math.max(r.right, r2.right), bottom: Math.max(r.bottom, r2.bottom) }; }
+      var pad = 10, vh = window.innerHeight, vw = window.innerWidth;
       var top = Math.max(8, r.top - pad), bottom = Math.min(vh - 8, r.bottom + pad);
       var left = Math.max(6, r.left - pad), right = Math.min(vw - 6, r.right + pad);
       var visible = bottom - top > 30 && r.bottom > 0 && r.top < vh;
@@ -830,6 +846,81 @@
     rid = requestAnimationFrame(frame);
   }
 
+  /* several boxes as one: the top of the first to the bottom of the last */
+  function aimAll(list) {
+    var R = roomNow(), top = Infinity, bottom = 0;
+    list.forEach(function (el) { var t = docTop(el); top = Math.min(top, t); bottom = Math.max(bottom, t + el.offsetHeight); });
+    var h = bottom - top, y = top - R.top;
+    if (h < R.h) y -= Math.round((R.h - h) / 2);
+    return Math.max(0, Math.min(y, maxY()));
+  }
+  /* The tour using the site by itself: each kind clicks the real control, so
+     what opens is exactly what a visitor would get, and knows how to put it
+     back. Nothing here sends anything anywhere: fields are only typed into. */
+  var DEMO = {
+    pwork: { on: function (el) { if (!el.classList.contains('pwork-open')) el.click(); },
+      off: function (el) { if (el.classList.contains('pwork-open')) el.click(); } },
+    story: { on: function (el) { if (!el.classList.contains('kta3-on')) el.click(); },
+      also: function (el) { return document.getElementById('kta3-drawer-' + el.getAttribute('data-group')); },
+      off: function (el) { if (window.kta3Close) window.kta3Close(el.getAttribute('data-group')); } },
+    price: { on: function (el) { if (!el.classList.contains('wio-flipped')) el.click(); },
+      off: function (el) { el.classList.remove('wio-flipped'); } },
+    quote: { on: function (el) { if (!el.classList.contains('pt-open')) el.click(); },
+      off: function (el) { if (el.classList.contains('pt-open')) el.click(); } },
+    tab: { keep: true, on: function (el) { el.click(); },
+      off: function () { var all = document.querySelector('.ts-tab[data-cat="all"]'); if (all && !all.classList.contains('active')) all.click(); } },
+    type: { on: function (el, b, my) {
+        if (el.value) return false;                       // never over what a visitor has written
+        var n = 0, tick = function () {
+          if (my !== token || handsOff || el.value !== b.text.slice(0, n)) return;
+          el.value = b.text.slice(0, ++n);
+          if (n < b.text.length) later(38, tick);
+        };
+        tick();
+      },
+      off: function (el, b) { if (b.text.indexOf(el.value) === 0) el.value = ''; } }
+  };
+  var demoTimers = [], demoUndo = [], holdUntil = 0;
+  function later(ms, fn) { demoTimers.push(setTimeout(fn, ms)); }
+  function demoPutBack() {
+    demoUndo.splice(0).reverse().forEach(function (f) { try { f(); } catch (e) {} });
+  }
+  function demoEnd() {
+    demoTimers.splice(0).forEach(clearTimeout);
+    demoPutBack();
+    spotEl = null;
+  }
+  /* a soft ring pressing on the card, so the eye knows what just happened */
+  function tapMark(el) {
+    if (!ui.tap.animate) return;
+    var r = el.getBoundingClientRect(), T = 'translate(' + Math.round(r.left + r.width / 2) + 'px,' + Math.round(r.top + r.height / 2) + 'px)';
+    ui.tap.animate([
+      { transform: T + ' scale(1.5)', opacity: 0 },
+      { transform: T + ' scale(.72)', opacity: 1, offset: .38 },
+      { transform: T + ' scale(1.8)', opacity: 0 }
+    ], { duration: 620, easing: 'cubic-bezier(.3,.7,.3,1)' });
+  }
+  function demoTap(beat, c, my) {
+    var kind = DEMO[beat.b.tap], el = beat.el, b = beat.b;
+    if (!kind) return;
+    later(beat.b.stay ? 120 : 640, function () {
+      if (my !== token || handsOff || !active) return;
+      try {
+        tapMark(el);
+        if (kind.on(el, b, my) === false) return;
+        demoUndo.push(function () { kind.off(el, b); });
+        if (!kind.keep) holdUntil = performance.now() + 2600;
+      } catch (e) { return; }
+      /* whatever opened takes up room: bring it into view */
+      later(460, function () {
+        if (my !== token || handsOff || b.stay || cam !== c) return;
+        var more = kind.also && kind.also(el);
+        spotEl = more ? [el, more] : [el]; spotDirty = true;
+        c.base = aimAll(more ? [more] : spotEl);             // what opened is what's worth reading
+      });
+    });
+  }
+
   /* The glide while a stop is read. A spring follows a moving goal, so every
      change of direction or speed is eased, and the page can't jitter with
      the sound clock. The goal creeps through a tall section as the voice
@@ -855,12 +946,15 @@
     var beats = (s.beats || []).map(function (b) {
       var k = -1;
       for (var n = 0; n < words.length; n++) if (words[n].indexOf(b.at) === 0) { k = n; break; }
-      var box = null;
-      Array.prototype.forEach.call(document.querySelectorAll(b.find), function (c) { if (!box && c.textContent.indexOf(b.has) >= 0) box = c; });
-      return k >= 0 && box ? { k: k, el: box, n: words.length } : null;
+      var box = b.sel ? document.querySelector(b.sel) : null;
+      if (b.find) Array.prototype.forEach.call(document.querySelectorAll(b.find), function (c) { if (!box && c.textContent.indexOf(b.has) >= 0) box = c; });
+      /* a card that is hidden or missing right now is simply passed over */
+      return k >= 0 && box && box.offsetHeight > 0 ? { k: k, el: box, n: words.length, b: b } : null;
     }).filter(Boolean);
     var drift = beats.length ? 0 : Math.max(0, Math.min(maxY(), docTop(el) + el.offsetHeight - R.bottom) - y);
-    var c = cam = { y: y, v: 0, goal: y, base: y, drift: drift, beats: beats, ease: drift ? .9 : .7, last: performance.now(), rid: 0 };
+    var settle = aimAt(el);
+    if (Math.abs(settle - y) > 160 || drift) settle = y;       // sections that finished rendering late: ease into the true spot
+    var c = cam = { y: y, v: 0, goal: settle, base: settle, drift: drift, beats: beats, ease: drift ? .9 : .7, last: performance.now(), rid: 0 };
     var step = function (now) {
       if (cam !== c || my !== token) return;
       c.rid = requestAnimationFrame(step);
@@ -872,10 +966,11 @@
           return w && w[b.k] ? w[b.k][0] - .25 : v.d * b.k / b.n;
         };
         while (c.beats.length && v.t >= when(c.beats[0])) {
-          var b = c.beats.shift();
-          spotEl = b.el; spotDirty = true;
+          var b = c.beats.shift(), late = v.t - when(b) > 1.2;   // coming back mid-stop: don't replay what has passed
+          if (b.b.tap && DEMO[b.b.tap] && !DEMO[b.b.tap].keep) demoPutBack();
+          if (!b.b.stay) { spotEl = [b.el]; spotDirty = true; c.base = aimAll(spotEl); }
           bedHit();
-          c.base = aimAt(b.el);
+          if (b.b.tap && !late) demoTap(b, c, my);
         }
         if (c.drift) {
           var p = Math.max(0, Math.min(1, (v.t - .6) / Math.max(1, v.d - 1.4)));
@@ -1127,7 +1222,7 @@
     token++;
     stopAudio();
     stopCam();
-    spotEl = null;
+    demoEnd();
     bedEnd();
     resetBar();
     voiceNote('');
@@ -1220,7 +1315,8 @@
         bedUnder(false);
         follow(null); markAll();
         if (clip.env) drawScope(clip.env, clip.fps || 25, 1, 1);
-        timer = setTimeout(next, Math.round(nextBeat(.2) * 1000));
+        /* something the tour just opened gets time to be seen before the page moves on */
+        timer = setTimeout(next, Math.round(nextBeat(Math.max(.2, (holdUntil - performance.now()) / 1000)) * 1000));
       };
       audio.onended = end;
       audio.onerror = function () { if (my === token) rescue(run); };
@@ -1274,7 +1370,8 @@
     var my = ++token;
     stopAudio();
     stopCam();
-    spotEl = null; handsOff = false; autoClock = null;
+    demoEnd();
+    handsOff = false; autoClock = null;
     bedScene(STEPS[i].e, STEPS[i].key);
     resetBar();
     clearScope();
@@ -1355,6 +1452,7 @@
     active = false; token++;
     stopAudio();
     stopMotion();
+    demoEnd();
     bedOff(.6);
     cleanup();
     cancelAnimationFrame(raf);

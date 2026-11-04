@@ -32,6 +32,8 @@
   transition: transform .45s cubic-bezier(.2,.8,.2,1), width .45s cubic-bezier(.2,.8,.2,1), height .45s cubic-bezier(.2,.8,.2,1), opacity .4s ease;
   will-change: transform, width, height;
 }
+.tour-tap { position: fixed; left: 0; top: 0; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; opacity: 0; pointer-events: none;
+  border: 2px solid rgba(var(--acc),.95); background: rgba(var(--acc),.16); box-shadow: 0 0 20px rgba(var(--acc),.6); }
 /* a light that runs once around the spotlight's edge when the narration starts */
 .tour-spot::after { content: ""; position: absolute; inset: -2px; border-radius: 20px; padding: 2px; opacity: 0; pointer-events: none;
   background: conic-gradient(from var(--sw), transparent 0deg 250deg, rgba(var(--acc),.0) 262deg, rgba(var(--acc),.95) 330deg, #fff 352deg, transparent 360deg);
