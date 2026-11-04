@@ -51,7 +51,6 @@
 .tour-root.tour-lite .tour-text.live .tw.now { text-shadow: none; }
 .tour-root.tour-lite .tour-hl.trail { display: none; }
 .tour-root.tour-lite .tour-orb::before { display: none; }
-html.tour-lite.tour-on body > *:not(.tour-root):not(script), html.tour-lite.tour-on body > *:not(.tour-root) * { animation-play-state: paused !important; }
 
 .tour-card {
   pointer-events: auto; position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%);

@@ -1319,8 +1319,8 @@ header::after {
   border: 1px solid rgba(255,255,255,0.08);
   cursor: default;
   transition: border-color 0.22s ease, background 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
-  opacity: 0;
-  animation: ts-pill-in 0.4s cubic-bezier(0.16,1,0.3,1) forwards;
+  /* always visible by default: the filter plays its own short reveal (index.html),
+     so a tab change can never leave the pills waiting on a paused or restarted animation */
   --card-glow: #00ffff;
   perspective: none;
   width: auto; height: auto;

@@ -2219,9 +2219,13 @@ section.hero-enter.sec-wipe { opacity: 1; transform: none; clip-path: none; tran
       tabs.forEach(function(t){ t.classList.remove('active'); });
       tab.classList.add('active');
       var cat = tab.dataset.cat;
+      var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches, n = 0;
       cards.forEach(function(c) {
         var match = cat === 'all' || c.dataset.cat === cat;
         c.style.display = match ? '' : 'none';
+        if (match && c.animate && !reduce) c.animate(
+          [{ opacity: 0.25, transform: 'scale(0.94)' }, { opacity: 1, transform: 'none' }],
+          { duration: 240, delay: Math.min(n++, 8) * 18, easing: 'cubic-bezier(0.16,1,0.3,1)', fill: 'backwards' });
       });
     });
   });
