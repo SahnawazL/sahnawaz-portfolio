@@ -1,4 +1,4 @@
-"""Builds the 2-minute tour's narration: one small MP3 per stop, plus the
+"""Builds the 3-minute tour's narration: one small MP3 per stop, plus the
 exact time of every word so the caption can light up as it is spoken.
 
 voice  : Kokoro-82M (open model, Apache-2.0) — natural, human-like narration;

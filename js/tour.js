@@ -1,5 +1,5 @@
 /* ============================================================
-   2-MINUTE TOUR — a guided, narrated walk through the site.
+   3-MINUTE TOUR — a guided, narrated walk through the site.
    Any element with [data-tour] starts it (hero pill, Ctrl+K, chat chip,
    /tour short link). The page flies to each stop, gets a spotlight in its own
    colour, a caption, quick actions, and is read aloud from small pre-made
@@ -61,7 +61,7 @@
      (`find`) containing the text `has`, and the spotlight moves onto it */
   var STEPS = [
     { sel: '#heroStatsBar', title: 'Hi, I’m Sahnawaz', acc: [0, 255, 208],
-      say: 'Hi, I’m Sahnawaz — a full-stack developer and UI designer from Assam. Everything on this site is hand-coded, with no templates. Let me show you around in about two minutes.',
+      say: 'Hi, I’m Sahnawaz — a full-stack developer and UI designer from Assam. Everything on this site is hand-coded, with no templates. Let me show you around in under three minutes.',
       acts: [{ id: 'cv', label: 'Get my CV', icon: 'doc', go: 'cv' }] },
     { sel: '#my-projects', title: 'Built and shipped', acc: [56, 189, 248],
       say: 'These are the products I’ve built and shipped. This very website, StudyLens AI, a homework helper for students, and YojanaSahay, a free government-scheme finder used across India.',

@@ -1,4 +1,4 @@
-/* 2-minute tour (js/tour.js) */
+/* 3-minute tour (js/tour.js) */
 .tour-pill {
   all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; gap: .55rem;
   margin: .95rem auto 0; padding: .55rem .95rem .55rem .6rem; border-radius: 999px;
