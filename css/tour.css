@@ -1,4 +1,4 @@
-/* 60-second tour (js/tour.js) */
+/* 2-minute tour (js/tour.js) */
 .tour-pill {
   all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; gap: .55rem;
   margin: .95rem auto 0; padding: .55rem .95rem .55rem .6rem; border-radius: 999px;
@@ -138,9 +138,9 @@
 .tour-btn:not([disabled]):active { transform: scale(.97); }
 .tour-btn.primary { color: #021018; background: linear-gradient(90deg, #00ffd0, #38bdf8); border-color: transparent; box-shadow: 0 6px 18px rgba(0,255,208,.22); }
 .tour-btn.primary:hover { box-shadow: 0 8px 24px rgba(0,255,208,.32); }
-.tour-dots { flex: 1; display: flex; justify-content: center; gap: .35rem; }
-.tour-dot { all: unset; cursor: pointer; width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.2); transition: width .25s, background .25s; }
-.tour-dot.on { width: 20px; border-radius: 4px; background: rgb(var(--acc)); }
+.tour-dots { flex: 1; min-width: 0; display: flex; justify-content: center; align-items: center; gap: .2rem; }
+.tour-dot { all: unset; cursor: pointer; flex: none; width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,.2); transition: width .25s, background .25s; }
+.tour-dot.on { width: 14px; border-radius: 4px; background: rgb(var(--acc)); }
 
 /* the closing card */
 .tour-fin { text-align: center; padding: .35rem .2rem .1rem; }

@@ -1,11 +1,15 @@
 /* ============================================================
-   60-SECOND TOUR — a guided, narrated walk through the site.
+   2-MINUTE TOUR — a guided, narrated walk through the site.
    Any element with [data-tour] starts it (hero pill, Ctrl+K, chat chip,
-   /tour short link). Each stop scrolls into view, gets a spotlight in its own
+   /tour short link). The page flies to each stop, gets a spotlight in its own
    colour, a caption, quick actions, and is read aloud from small pre-made
    clips (audio/tour/, made by .github/workflows/tour-voice.yml from these
-   captions); the live voice (/api/speak) is a fallback. Muted or without
-   sound, captions advance on a timer. The clips carry word timings (the
+   captions); the live voice (/api/speak) is a fallback. While a stop is read
+   the page keeps gliding: through a tall section, or to the card the voice
+   has just named (beats). A soft ambience, made live in the browser, runs
+   underneath so the gaps between stops are never dead air. Touching the page
+   hands the scroll back to the visitor at once. Muted or without sound,
+   captions advance on a timer. The clips carry word timings (the
    gliding highlight) and a loudness track (the voice orb and the waveform).
    The last stop ends on a short "That's the tour" card.
    Keys: → / Space next, ← back, Esc close.
@@ -53,22 +57,40 @@
 
   /* acc: the stop's colour (spotlight, card tint, highlight, waveform)
      acts: quick actions; tapping one ends the tour and goes there */
+  /* beats: at the word that starts with `at`, the page glides to the card
+     (`find`) containing the text `has`, and the spotlight moves onto it */
   var STEPS = [
     { sel: '#heroStatsBar', title: 'Hi, I’m Sahnawaz', acc: [0, 255, 208],
-      say: 'Hi, I’m Sahnawaz — a full-stack developer and UI designer from Assam. Everything on this site is hand-coded, with no templates. Let me show you around in about a minute.',
+      say: 'Hi, I’m Sahnawaz — a full-stack developer and UI designer from Assam. Everything on this site is hand-coded, with no templates. Let me show you around in about two minutes.',
       acts: [{ id: 'cv', label: 'Get my CV', icon: 'doc', go: 'cv' }] },
-    { sel: '#my-projects', title: 'Live products', acc: [56, 189, 248],
-      say: 'These are my live products: YojanaSahay, a free government-scheme finder used across India, StudyLens AI for students, and this website. Just below, live numbers come straight from both apps.',
-      acts: [{ id: 'live', label: 'See live numbers', icon: 'chart', go: 'live' }] },
-    { sel: '#how-i-ship', title: 'How I ship', acc: [167, 139, 250],
-      say: 'This is how I ship. Every change goes through GitHub, is built automatically, and goes live in about a minute, with one-click rollback.',
-      acts: [{ id: 'code', label: 'See this site’s code', icon: 'code', href: GH + '/sahnawaz-portfolio' }] },
+    { sel: '#my-projects', title: 'Built and shipped', acc: [56, 189, 248],
+      say: 'These are the products I’ve built and shipped. This very website, StudyLens AI, a homework helper for students, and YojanaSahay, a free government-scheme finder used across India.',
+      beats: [{ at: 'website', find: '.mpj-card', has: 'This Portfolio' }, { at: 'StudyLens', find: '.mpj-card', has: 'StudyLens' }, { at: 'YojanaSahay', find: '.mpj-card', has: 'YojanaSahay' }],
+      acts: [{ id: 'yojana', label: 'Open YojanaSahay', icon: 'link', href: 'https://yojanasahay.vercel.app' }] },
+    { sel: '#live-products', title: 'Live numbers', acc: [34, 211, 238],
+      say: 'These numbers aren’t screenshots. They’re fetched from each product right now, while you watch.' },
+    { sel: '#projects', title: 'Where I started', acc: [129, 140, 248],
+      say: 'I started in customer support for Xiaomi and Flipkart, then moved into an IT and developer role at Rapido. Support taught me to find what’s really going wrong.' },
+    { sel: '#achievements', title: 'Milestones', acc: [192, 132, 252],
+      say: 'Here are the milestones I’m proudest of, from multi-agent AI and a live system health dashboard to my signature Hacker Mode. Every card opens the full story.' },
+    { sel: 'section.ts-section', title: 'My toolkit', acc: [45, 212, 191],
+      say: 'This is my everyday toolkit: React and JavaScript up front, Node and Firebase behind, and Figma for design. One person, from first sketch to production.' },
     { sel: '#recent-activity .ra-header', fallback: '#recent-activity', title: 'Live engineering telemetry', acc: [52, 211, 153],
-      say: 'And this is live telemetry, pulled straight from GitHub: what I shipped recently, my commit streak, and how healthy my projects are.',
+      say: 'This is live telemetry, pulled straight from GitHub: what I shipped recently, my commit streak, and how healthy my projects are.',
       acts: [{ id: 'github', label: 'Open my GitHub', icon: 'github', href: GH }] },
+    { sel: '#how-i-ship', title: 'How I ship', acc: [167, 139, 250],
+      say: 'And this is how I ship. Every change goes through GitHub, is built automatically, and goes live in about a minute, with one-click rollback.',
+      acts: [{ id: 'code', label: 'See this site’s code', icon: 'code', href: GH + '/sahnawaz-portfolio' }] },
     { sel: '#job-fit', title: 'Hiring? Check my fit', acc: [251, 191, 36],
       say: 'Hiring? Paste your job post here. An AI compares it with my real work and tells you honestly where I match, and where I don’t.',
       acts: [{ id: 'jobfit', label: 'Try it with a job post', icon: 'pen', go: 'jobfit' }] },
+    { sel: '#what-i-offer', title: 'What I offer', acc: [251, 146, 60],
+      say: 'Need something built? Every service here shows a clear starting price and exactly what’s included. Tap a card, or plan your project with AI.' },
+    { sel: '#website-check', title: 'Free website check', acc: [74, 222, 128],
+      say: 'Already have a website? Run this free check. In about thirty seconds it shows your speed on a phone, your Google basics, and how your link looks on WhatsApp.',
+      acts: [{ id: 'webcheck', label: 'Check my website', icon: 'pen', go: 'webcheck' }] },
+    { sel: '#testimonials', title: 'In their words', acc: [250, 204, 21],
+      say: 'But don’t just take my word for it. These are real words from the managers and team leads I’ve worked with.' },
     { sel: '#contact', title: 'Let’s talk', acc: [244, 114, 182],
       say: 'Ready to talk? Message me, WhatsApp me, or request a call. I personally read every message. Thanks for taking the tour!',
       acts: [{ id: 'whatsapp', label: 'Message me on WhatsApp', icon: 'chat', href: WA }] }
@@ -79,10 +101,10 @@
     { id: 'fin_whatsapp', label: 'WhatsApp', icon: 'chat', href: WA },
     { id: 'fin_cv', label: 'Get my CV', icon: 'doc', go: 'cv' }
   ];
-  var GO = { live: '#live-products', jobfit: '#job-fit', contact: '#contact' };
+  var GO = { jobfit: '#job-fit', webcheck: '#website-check', contact: '#contact' };
   var ICONS = {
     doc: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>',
-    chart: '<path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/>',
+    link: '<path d="M14 4h6v6M20 4l-9 9"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/>',
     pen: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
     code: '<path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/>',
     github: '<path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/>',
@@ -113,6 +135,75 @@
       var p = player.play();
       if (p && p.then) p.then(function () { unlocked = true; }).catch(function () {});
       else unlocked = true;
+    } catch (e) {}
+  }
+
+  /* Ambience: a warm, slowly breathing chord under the voice, and a soft air
+     sweep while the page flies between stops. Both are made live on the
+     site's one audio context, so there is no file to download and no seam
+     between stops. If the context isn't available the tour simply goes without. */
+  var bed = null, BED_LEVEL = 0.055;
+  function bedOn() {
+    if (muted || bed) return;
+    var A = window.__shzAudio && window.__shzAudio();
+    if (!A) return;
+    try {
+      var out = A.createGain(), tone = A.createBiquadFilter(), nodes = [];
+      tone.type = 'lowpass'; tone.frequency.value = 1500; tone.Q.value = 0.3;
+      tone.connect(out); out.connect(A.destination);
+      out.gain.setValueAtTime(0, A.currentTime);
+      out.gain.linearRampToValueAtTime(BED_LEVEL, A.currentTime + 1.8);
+      [[110, .34, .21], [164.81, .24, .17], [220, .2, .27], [329.63, .11, .13], [493.88, .07, .11]].forEach(function (v) {
+        var o = A.createOscillator(), g = A.createGain(), lfo = A.createOscillator(), depth = A.createGain();
+        o.type = 'sine'; o.frequency.value = v[0];
+        g.gain.value = v[1] * .68; depth.gain.value = v[1] * .32;      // each note swells at its own slow pace
+        lfo.frequency.value = v[2]; lfo.connect(depth); depth.connect(g.gain);
+        o.connect(g); g.connect(tone);
+        o.start(); lfo.start();
+        nodes.push(o, lfo);
+      });
+      bed = { A: A, out: out, nodes: nodes };
+    } catch (e) { bed = null; }
+  }
+  function bedOff(fade) {
+    if (!bed) return;
+    var b = bed, now = b.A.currentTime; bed = null;
+    try {
+      b.out.gain.cancelScheduledValues(now);
+      b.out.gain.setValueAtTime(b.out.gain.value, now);
+      b.out.gain.linearRampToValueAtTime(0, now + fade);
+      b.nodes.forEach(function (n) { n.stop(now + fade + .05); });
+    } catch (e) {}
+  }
+  document.addEventListener('visibilitychange', function () {
+    if (!bed) return;
+    try {
+      var now = bed.A.currentTime, g = bed.out.gain;
+      g.cancelScheduledValues(now); g.setValueAtTime(g.value, now);
+      g.linearRampToValueAtTime(document.hidden ? 0 : BED_LEVEL, now + .4);
+    } catch (e) {}
+  });
+  var airBuf = null;
+  function whoosh(ms) {
+    if (muted || !bed || reduce) return;
+    try {
+      var A = bed.A, now = A.currentTime, d = ms / 1000;
+      if (!airBuf) {
+        airBuf = A.createBuffer(1, A.sampleRate * 2, A.sampleRate);
+        var c = airBuf.getChannelData(0);
+        for (var k = 0; k < c.length; k++) c[k] = Math.random() * 2 - 1;
+      }
+      var src = A.createBufferSource(), band = A.createBiquadFilter(), g = A.createGain();
+      src.buffer = airBuf; src.loop = true;
+      band.type = 'bandpass'; band.Q.value = .7;
+      band.frequency.setValueAtTime(260, now);
+      band.frequency.exponentialRampToValueAtTime(1100, now + d * .5);
+      band.frequency.exponentialRampToValueAtTime(320, now + d);
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(.022, now + d * .5);
+      g.gain.linearRampToValueAtTime(0, now + d);
+      src.connect(band); band.connect(g); g.connect(A.destination);
+      src.start(now); src.stop(now + d + .05);
     } catch (e) {}
   }
 
@@ -175,7 +266,7 @@
     ui.close.addEventListener('click', stop);
     root.querySelector('.tour-done').addEventListener('click', stop);
     root.querySelector('.tour-replay').addEventListener('click', function () {
-      if (!muted) unlock();
+      if (!muted) { unlock(); bedOn(); }
       try { if (window.gtag) gtag('event', 'tour_replay'); } catch (e) {}
       show(0);
     });
@@ -190,8 +281,9 @@
       muted = !muted;
       try { localStorage.setItem('shz_tour_muted', muted ? '1' : '0'); } catch (e) {}
       paintMute();
+      if (muted) bedOff(.4); else if (!fin) { unlock(); bedOn(); }
       if (fin) return;
-      if (muted) { stopAudio(); ui.card.classList.remove('has-env'); voiceNote(''); autoAdvance(STEPS[idx].say); } else { unlock(); show(idx); }
+      if (muted) { stopAudio(); ui.card.classList.remove('has-env'); voiceNote(''); autoAdvance(STEPS[idx].say); } else show(idx);
     });
     window.addEventListener('resize', function () { wpos = null; if (active && !fin && hlAt >= 0) pill(hlAt, true); });
     paintMute();
@@ -249,6 +341,10 @@
       var box = document.getElementById('jfText');
       if (box) { try { box.focus({ preventScroll: true }); } catch (x) {} }
     }
+    if (go === 'webcheck') {
+      var url = document.getElementById('wcUrl');
+      if (url) { try { url.focus({ preventScroll: true }); } catch (x) {} }
+    }
     window.scrollTo({ top: Math.max(0, docTop(el) - headerH() - 14), behavior: reduce ? 'auto' : 'smooth' });
   }
 
@@ -297,6 +393,8 @@
     parked = { i: idx, fin: fin, at: at };
     token++;
     stopAudio();
+    stopMotion();
+    bedOff(.5);
     cancelAnimationFrame(raf);
     active = false;
     document.removeEventListener('keydown', onKey, true);
@@ -375,7 +473,8 @@
     window.removeEventListener('scroll', onDockScroll);
     endAnims();
     document.documentElement.classList.remove('tour-docked');
-    if (!muted) unlock();
+    if (!muted) { unlock(); bedOn(); }
+    instantScroll(true);
     /* a dialog the action opened (the CV form) gives way to the tour */
     try { Array.prototype.forEach.call(document.querySelectorAll('#resumeGateModal.rg-open'), function (m) { m.classList.remove('rg-open'); }); } catch (e) {}
     var P = ui.dock.getBoundingClientRect();
@@ -417,15 +516,22 @@
     var loop = function (now) {
       if (!active) return;
       raf = requestAnimationFrame(loop);
-      if (fin) { if (spotAway !== true) { spotAway = true; ui.spot.classList.add('away'); } return; }
+      if (fin || flying) { if (spotAway !== true) { spotAway = true; ui.spot.classList.add('away'); } spotKey = ''; return; }
       if (!spotDirty && now - spotSeen < 250) return;
+      if (cam && now - spotSeen < 120) return;          // the page is gliding: the spotlight's own easing fills the gaps
       spotDirty = false; spotSeen = now;
-      var el = target(STEPS[idx]);
+      var el = spotEl || target(STEPS[idx]);
       if (!el) return;
       var r = el.getBoundingClientRect(), pad = 10, vh = window.innerHeight, vw = window.innerWidth;
       var top = Math.max(8, r.top - pad), bottom = Math.min(vh - 8, r.bottom + pad);
       var left = Math.max(6, r.left - pad), right = Math.min(vw - 6, r.right + pad);
       var visible = bottom - top > 30 && r.bottom > 0 && r.top < vh;
+      if (spotAway === true && visible) {                 // after a flight: the spotlight opens from the centre of its stop
+        ui.spot.style.transition = 'none';
+        ui.spot.style.transform = 'translate(' + Math.round((left + right) / 2) + 'px,' + Math.round((top + bottom) / 2) + 'px)';
+        void ui.spot.offsetWidth;
+        ui.spot.style.transition = '';
+      }
       if (spotAway !== !visible) { spotAway = !visible; ui.spot.classList.toggle('away', !visible); }   // off-screen mid-scroll: just dim
       if (!visible) { top = vh * 0.3; bottom = top + 60; }
       var w = Math.round(Math.max(40, right - left)), h = Math.round(Math.max(40, bottom - top));
@@ -443,45 +549,148 @@
   window.addEventListener('scroll', spotMoved, { passive: true });
   window.addEventListener('resize', spotMoved, { passive: true });
 
-  /* Scroll to the stop and call done() once the page has really stopped.
-     Own scroller (not the site's section lander) so a quick Next/Back can
-     cancel the previous scroll cleanly; re-aims up to twice if sections
-     above finish rendering and shift the page. */
   function headerH() {
     var h = document.querySelector('header'); if (!h) return 0;
     var pos = getComputedStyle(h).position;
     return (pos === 'fixed' || pos === 'sticky') ? h.getBoundingClientRect().height : 0;
   }
   function docTop(el) { var y = 0; for (var n = el; n; n = n.offsetParent) y += n.offsetTop; return y; }
-  function land(el, done, my) {
-    var fired = false, fin = function () { if (fired) return; fired = true; clearTimeout(safety); if (my === token) done && done(); };
-    var safety = setTimeout(fin, 2200);
-    var aim = function () {
-      var room = window.innerHeight - headerH();
-      var top = docTop(el) - headerH() - 14;
-      var h = el.offsetHeight;
-      /* short sections: centre them a little in the space above the caption card */
-      if (h < room * 0.55) top -= Math.round((room * 0.55 - h) / 3);
-      return Math.max(0, Math.min(top, document.documentElement.scrollHeight - window.innerHeight));
-    };
-    var target = aim();
-    if (Math.abs(window.pageYOffset - target) < 24) { fin(); return; }
-    var root = document.documentElement, prevAnchor = root.style.overflowAnchor;
-    root.style.overflowAnchor = 'none';
-    window.scrollTo({ top: target, behavior: reduce ? 'auto' : 'smooth' });
-    var last = -1, still = 0, fixes = 0;
-    (function watch() {
-      if (fired || my !== token) { root.style.overflowAnchor = prevAnchor; return; }
-      var y = Math.round(window.pageYOffset);
-      still = y === last ? still + 1 : 0; last = y;
-      if (still >= 5) {
-        var t2 = aim();
-        if (Math.abs(y - t2) > 24 && fixes < 2) { fixes++; still = 0; window.scrollTo({ top: t2, behavior: reduce ? 'auto' : 'smooth' }); }
-        else { root.style.overflowAnchor = prevAnchor; fin(); return; }
-      }
-      requestAnimationFrame(watch);
-    })();
+  function maxY() { return Math.max(0, document.documentElement.scrollHeight - window.innerHeight); }
+  /* the part of the screen the stop can really be seen in: below the header
+     and, on phones where the card sits over the page, above the card */
+  function roomNow() {
+    var top = headerH() + 12, bottom = window.innerHeight - 12;
+    if (window.innerWidth < 900 && ui) { var c = ui.card.getBoundingClientRect(); if (c.height) bottom = Math.min(bottom, c.top - 10); }
+    return { top: top, bottom: bottom, h: Math.max(120, bottom - top) };
   }
+  function aimAt(el) {
+    var R = roomNow(), h = el.offsetHeight, y = docTop(el) - R.top;
+    if (h < R.h) y -= Math.round((R.h - h) / 2);          // short stops sit in the middle of that space
+    return Math.max(0, Math.min(y, maxY()));
+  }
+  /* the site asks for smooth scrolling in its stylesheet, which would fight a
+     page moved frame by frame, so that is switched off for the tour */
+  function instantScroll(on) {
+    var st = document.documentElement.style;
+    if (on) { st.setProperty('scroll-behavior', 'auto', 'important'); st.setProperty('overflow-anchor', 'none', 'important'); }
+    else { st.removeProperty('scroll-behavior'); st.removeProperty('overflow-anchor'); }
+  }
+  function easeFlight(p) { return p * p * p * (p * (p * 6 - 15) + 10); }
+
+  /* The flight between stops: one unbroken motion that starts and ends
+     softly, taking longer for longer distances. The destination is re-read
+     a few times a second, so a section above that finishes rendering shifts
+     the landing point without a visible correction. */
+  var flying = false, flight = null, cam = null, spotEl = null, handsOff = false;
+  function land(el, done, my) {
+    if (flight) flight.drop();
+    var over = false, safety = 0, rid = 0;
+    var finish = function () {
+      if (over) return;
+      over = true; clearTimeout(safety); cancelAnimationFrame(rid);
+      flight = null; flying = false; spotDirty = true;
+      if (my === token && done) done();
+    };
+    var from = window.pageYOffset, to = aimAt(el), dist = Math.abs(to - from);
+    if (dist < 24 || reduce || handsOff) {
+      if (dist >= 1 && !handsOff) window.scrollTo(0, to);
+      finish();
+      return;
+    }
+    var ms = Math.round(Math.min(2300, Math.max(950, 700 + Math.sqrt(dist) * 24)));
+    flying = true;
+    whoosh(ms);
+    flight = { land: finish, drop: function () { over = true; clearTimeout(safety); cancelAnimationFrame(rid); flight = null; } };
+    /* a hidden tab stops animation frames: never wait on them */
+    safety = setTimeout(function () { window.scrollTo(0, aimAt(el)); finish(); }, ms + 900);
+    var t0 = performance.now(), reread = t0 + 200;
+    var frame = function (now) {
+      if (over) return;
+      var p = Math.min(1, Math.max(0, (now - t0) / ms));
+      if (now >= reread) { reread = now + 200; to = aimAt(el); }
+      window.scrollTo(0, from + (to - from) * easeFlight(p));
+      if (p < 1) rid = requestAnimationFrame(frame); else finish();
+    };
+    rid = requestAnimationFrame(frame);
+  }
+
+  /* The glide while a stop is read. A spring follows a moving goal, so every
+     change of direction or speed is eased, and the page can't jitter with
+     the sound clock. The goal creeps through a tall section as the voice
+     goes along (capped to a readable pace), or jumps to the card a beat names. */
+  var DRIFT_PX_S = 90;
+  function voiceTime() {
+    var r = run;
+    if (r) {
+      var d = r.total || (isFinite(r.a.duration) ? r.a.duration : 0);
+      var t = r.clock ? r.clock.t0 + (performance.now() - r.clock.c0) / 1000 : r.a.currentTime || 0;
+      return d > 0 ? { t: t, d: d, r: r } : null;
+    }
+    if (autoClock) return { t: (performance.now() - autoClock.t0) / 1000, d: autoClock.ms / 1000, r: null };
+    return null;
+  }
+  function stopCam() { if (cam) { cancelAnimationFrame(cam.rid); cam = null; } }
+  function camStart(s, el, my) {
+    stopCam();
+    spotEl = null;
+    if (reduce || handsOff) return;
+    var R = roomNow(), y = window.pageYOffset;
+    var words = s.say.split(' ');
+    var beats = (s.beats || []).map(function (b) {
+      var k = -1;
+      for (var n = 0; n < words.length; n++) if (words[n].indexOf(b.at) === 0) { k = n; break; }
+      var box = null;
+      Array.prototype.forEach.call(document.querySelectorAll(b.find), function (c) { if (!box && c.textContent.indexOf(b.has) >= 0) box = c; });
+      return k >= 0 && box ? { k: k, el: box, n: words.length } : null;
+    }).filter(Boolean);
+    var drift = beats.length ? 0 : Math.max(0, Math.min(maxY(), docTop(el) + el.offsetHeight - R.bottom) - y);
+    var c = cam = { y: y, v: 0, goal: y, base: y, drift: drift, beats: beats, ease: drift ? .9 : .7, last: performance.now(), rid: 0 };
+    var step = function (now) {
+      if (cam !== c || my !== token) return;
+      c.rid = requestAnimationFrame(step);
+      var dt = Math.min(.05, Math.max(.001, (now - c.last) / 1000)); c.last = now;
+      var v = voiceTime();
+      if (v) {
+        var when = function (b) {
+          var w = v.r && v.r.clip.words;
+          return w && w[b.k] ? w[b.k][0] - .25 : v.d * b.k / b.n;
+        };
+        while (c.beats.length && v.t >= when(c.beats[0])) {
+          var b = c.beats.shift();
+          spotEl = b.el; spotDirty = true;
+          c.base = aimAt(b.el);
+        }
+        if (c.drift) {
+          var p = Math.max(0, Math.min(1, (v.t - .6) / Math.max(1, v.d - 1.4)));
+          c.goal = c.base + Math.min(c.drift, DRIFT_PX_S * v.d) * (p * p * (3 - 2 * p));
+        } else c.goal = c.base;
+      } else c.goal = c.base;
+      /* critically damped spring */
+      var w0 = 2 / c.ease, x = w0 * dt, k = 1 / (1 + x + .48 * x * x + .235 * x * x * x);
+      var off = c.y - c.goal, tmp = (c.v + w0 * off) * dt;
+      c.v = (c.v - w0 * tmp) * k;
+      var ny = c.goal + (off + tmp) * k;
+      if (Math.abs(ny - c.y) > .02) { c.y = ny; window.scrollTo(0, ny); }
+    };
+    c.rid = requestAnimationFrame(step);
+  }
+  function stopMotion() {
+    if (flight) flight.drop();
+    flying = false;
+    stopCam();
+    instantScroll(false);
+  }
+  /* the visitor touched the page: it's theirs until the next stop */
+  function takeOver(e) {
+    if (!active || fin || handsOff) return;
+    if (e && e.target && e.target.closest && e.target.closest('.tour-card')) return;
+    if (!flight && !cam) return;
+    handsOff = true;
+    stopCam();
+    if (flight) flight.land();
+  }
+  window.addEventListener('wheel', takeOver, { passive: true });
+  window.addEventListener('touchstart', takeOver, { passive: true });
 
   /* Caption as words, so each one can light up the moment it is spoken
      (times come with the clip: audio/tour/manifest.json → words). A soft
@@ -676,7 +885,7 @@
     if (audio) { try { audio.pause(); } catch (e) {} audio.onended = null; audio.onerror = null; audio.onloadedmetadata = null; audio = null; }
     if (ui) ui.orb.classList.remove('on');
   }
-  var barAt = '';
+  var barAt = '', autoClock = null;
   function resetBar() { barAt = ''; ui.bar.style.transition = 'none'; ui.bar.style.transform = 'scaleX(0)'; }
   function progress(ms) {
     barAt = '';
@@ -687,6 +896,7 @@
   function autoAdvance(text) {
     clearTimeout(timer);
     var ms = Math.max(4500, Math.min(11000, text.split(/\s+/).length * 330));
+    autoClock = { t0: performance.now(), ms: ms };
     progress(ms);
     timer = setTimeout(next, ms);
   }
@@ -697,6 +907,9 @@
     if (!active || !ui || fin) return;
     token++;
     stopAudio();
+    stopCam();
+    spotEl = null;
+    bedOff(2.6);
     resetBar();
     voiceNote('');
     fin = true;
@@ -787,7 +1000,7 @@
         ui.orb.classList.remove('on');
         follow(null); markAll();
         if (clip.env) drawScope(clip.env, clip.fps || 25, 1, 1);
-        timer = setTimeout(next, 700);
+        timer = setTimeout(next, 450);
       };
       audio.onended = end;
       audio.onerror = function () { if (my === token) rescue(run); };
@@ -832,6 +1045,8 @@
     if (i < 0 || i >= STEPS.length) return;
     var my = ++token;
     stopAudio();
+    stopCam();
+    spotEl = null; handsOff = false; autoClock = null;
     resetBar();
     clearScope();
     voiceNote('');
@@ -857,6 +1072,7 @@
       setTimeout(function () { ui.body.classList.remove('in'); }, 420);
       sweep();
       speak(i, my, at);
+      if (el) camStart(s, el, my);
     };
     if (!faded) {
       ui.body.classList.add('out');
@@ -871,7 +1087,8 @@
     if (!active) return;
     if (e.key === 'Escape') { e.preventDefault(); stop(); }
     else if (e.key === 'ArrowRight' || (e.key === ' ' && e.target === document.body)) { e.preventDefault(); next(); }
-    else if (e.key === 'ArrowLeft') { e.preventDefault(); if (fin) show(idx); else if (idx > 0) show(idx - 1); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); if (fin) { if (!muted) bedOn(); show(idx); } else if (idx > 0) show(idx - 1); }
+    else if (/^(ArrowUp|ArrowDown|PageUp|PageDown|Home|End)$/.test(e.key)) takeOver();
   }
 
   function start() {
@@ -880,7 +1097,10 @@
       document.documentElement.classList.remove('tour-docked'); }
     if (active) return;
     build();
-    if (!muted) unlock();   // must run inside the tap
+    if (!muted) { unlock(); bedOn(); }   // must run inside the tap
+    instantScroll(true);
+    /* blocks that are only estimated until seen: give them their real size now, so every landing is exact */
+    Array.prototype.forEach.call(document.querySelectorAll('.testimonials, .certifications'), function (b) { b.style.contentVisibility = 'visible'; });
     clips();                 // fetch the narration list now, so the first stop speaks at once
     if (typeof window.closeChat === 'function') { try { window.closeChat(); } catch (e) {} }
     if (typeof window.closeCaseStudy === 'function') { try { window.closeCaseStudy(); } catch (e) {} }
@@ -904,6 +1124,8 @@
     if (!active) return;
     active = false; token++;
     stopAudio();
+    stopMotion();
+    bedOff(.6);
     cleanup();
     cancelAnimationFrame(raf);
     ui.root.classList.remove('open');

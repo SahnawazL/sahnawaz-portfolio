@@ -706,7 +706,7 @@ const LINK_LABELS = {
   'how-i-ship': '🚀 How he ships code',
   blog: '📝 Read his blog notes',
   testimonials: '⭐ What clients say',
-  tour: '▶ Take the 60-second tour'
+  tour: '▶ Take the 2-minute tour'
 };
 const ACTION_LABELS = {
   'send-message': '📧 Message Sahnawaz',
