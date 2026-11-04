@@ -6,7 +6,7 @@
    clips (audio/tour/, made by .github/workflows/tour-voice.yml from these
    captions); the live voice (/api/speak) is a fallback. While a stop is read
    the page keeps gliding: through a tall section, or to the card the voice
-   has just named (beats). A deep, technical ambience, made live in the browser, runs
+   has just named (beats). A driving electronic track, made live in the browser, runs
    underneath so the gaps between stops are never dead air. Touching the page
    hands the scroll back to the visitor at once. Muted or without sound,
    captions advance on a timer. The clips carry word timings (the
@@ -138,59 +138,109 @@
     } catch (e) {}
   }
 
-  /* Ambience: a lab-instrument hum under the voice. A sub-bass tone that pulses
-     slowly (soft-clipped, so its overtones carry the bass on phone speakers
-     too), a dark drone with a filter sweeping over it, and faint "data" blips
-     on a steady grid, echoing left and right. A low sweep carries each flight
-     and a soft thump marks the landing. All of it is made live on the site's
-     one audio context, so there is no file to download and no seam between
-     stops. If the context isn't available the tour simply goes without. */
-  var bed = null, BED_LEVEL = 0.34, BED_UNDER_VOICE = 0.72, bedVoice = false;
-  var BLIPS = { 0: [1760, -.4], 3: [2637, .35], 6: [1760, .2], 11: [3520, -.2], 14: [2637, .45], 19: [1760, -.35], 22: [3520, .3], 27: [2637, -.1] };
-  var BLIP_STEP = .25, BLIP_LOOP = 32;
+  /* The tour's soundtrack: a driving electronic track at 124 BPM, in A minor
+     (Am, F, C, G, one chord a bar). Four-on-the-floor kick, a rolling off-beat
+     bassline that pumps with the kick, hats, claps, a pad and a synth arp.
+     While the voice speaks the whole mix steps back and the top end closes
+     down so the words stay clear; in the gaps it opens up to full energy.
+     All of it is made live on the site's one audio context, so there is no
+     file to download and no seam between stops. If the context isn't
+     available the tour simply goes without. */
+  var bed = null, BED_LEVEL = 0.3, BED_UNDER_VOICE = 0.55, TOP_OPEN = 7000, TOP_UNDER = 1000, TOP_GAIN_UNDER = 0.55, bedVoice = false;
+  var STEP = 60 / 124 / 4;
+  var ROOTS = [55, 43.65, 65.41, 49];
+  var CHORDS = [[220, 261.63, 329.63, 440], [174.61, 220, 261.63, 349.23], [196, 261.63, 329.63, 392], [196, 246.94, 293.66, 392]];
+  var ARP = { 0: 3, 2: 2, 3: 1, 5: 3, 6: 2, 8: 0, 10: 3, 11: 1, 13: 2, 14: 3 };
   function bedGraph(A, dest) {
-    var osc = [], start = function (o) { o.start(); osc.push(o); return o; };
-    var wobble = function (hz, amount, param) {
-      var l = A.createOscillator(), d = A.createGain();
-      l.frequency.value = hz; d.gain.value = amount;
-      l.connect(d); d.connect(param); start(l);
-    };
-    /* the sub: one low note, gently driven, pulsing once every two seconds */
-    var sub = A.createOscillator(), drive = A.createWaveShaper(), subTone = A.createBiquadFilter(), subG = A.createGain(), curve = new Float32Array(1025);
-    for (var k = 0; k < 1025; k++) { var x = (k - 512) / 512; curve[k] = Math.tanh(x * 2.6) / Math.tanh(2.6); }
-    sub.type = 'sine'; sub.frequency.value = 55; drive.curve = curve;
-    subTone.type = 'lowpass'; subTone.frequency.value = 340; subTone.Q.value = .4;
-    subG.gain.value = .22;
-    wobble(.5, .075, subG.gain);
-    sub.connect(drive); drive.connect(subTone); subTone.connect(subG); subG.connect(dest); start(sub);
-    /* the drone: two slightly detuned saws under a slow resonant sweep */
-    var sweep = A.createBiquadFilter(), droneG = A.createGain();
-    sweep.type = 'lowpass'; sweep.frequency.value = 300; sweep.Q.value = 5;
-    droneG.gain.value = .11;
-    wobble(.07, 170, sweep.frequency);
-    [-7, 7].forEach(function (c) { var o = A.createOscillator(); o.type = 'sawtooth'; o.frequency.value = 110; o.detune.value = c; o.connect(sweep); start(o); });
-    sweep.connect(droneG); droneG.connect(dest);
-    /* the air above it: one glassy, barely-there tone */
-    var glass = A.createOscillator(), glassG = A.createGain();
-    glass.frequency.value = 1318.5; glassG.gain.value = .006;
-    wobble(.11, .004, glassG.gain);
-    glass.connect(glassG); glassG.connect(dest); start(glass);
-    /* the blips share one echo */
-    var blips = A.createGain(), echo = A.createDelay(1), back = A.createGain(), wet = A.createGain();
-    echo.delayTime.value = .375; back.gain.value = .38; wet.gain.value = .45;
-    blips.connect(dest); blips.connect(echo); echo.connect(back); back.connect(echo); echo.connect(wet); wet.connect(dest);
-    return { osc: osc, blips: blips };
+    var master = A.createDynamicsCompressor(), pump = A.createGain(), drive = A.createWaveShaper(), lowTone = A.createBiquadFilter();
+    var top = A.createGain(), topTone = A.createBiquadFilter(), echo = A.createDelay(1), back = A.createGain();
+    var curve = new Float32Array(1025);
+    /* soft clipping: its overtones are what carry the bass on phone speakers */
+    for (var k = 0; k < 1025; k++) { var x = (k - 512) / 512; curve[k] = Math.tanh(x * 3) / Math.tanh(3); }
+    drive.curve = curve;
+    master.threshold.value = -14; master.ratio.value = 5; master.attack.value = .004; master.release.value = .16;
+    master.connect(dest);
+    lowTone.type = 'lowpass'; lowTone.frequency.value = 900;
+    drive.connect(lowTone); lowTone.connect(master);
+    pump.connect(drive);
+    topTone.type = 'lowpass'; topTone.frequency.value = TOP_OPEN; topTone.Q.value = .8;
+    top.connect(topTone); topTone.connect(master);
+    echo.delayTime.value = STEP * 3; back.gain.value = .36;
+    top.connect(echo); echo.connect(back); back.connect(echo); echo.connect(topTone);
+    var noise = A.createBuffer(1, A.sampleRate, A.sampleRate), c = noise.getChannelData(0);
+    for (var n = 0; n < c.length; n++) c[n] = Math.random() * 2 - 1;
+    return { low: pump, pump: pump, kick: drive, master: master, top: top, topTone: topTone, noise: noise };
   }
-  function blip(A, into, t, spec) {
-    var o = A.createOscillator(), g = A.createGain(), last = g;
-    o.frequency.value = spec[0];
-    g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(.16, t + .004);
-    g.gain.exponentialRampToValueAtTime(.0004, t + .09);
-    o.connect(g);
-    if (A.createStereoPanner) { var pan = A.createStereoPanner(); pan.pan.value = spec[1]; g.connect(pan); last = pan; }
-    last.connect(into);
-    o.start(t); o.stop(t + .1);
+  function burst(A, g, into, t, type, hz, q, peak, secs) {
+    var src = A.createBufferSource(), f = A.createBiquadFilter(), e = A.createGain();
+    src.buffer = g.noise; f.type = type; f.frequency.value = hz; f.Q.value = q;
+    e.gain.setValueAtTime(peak, t); e.gain.exponentialRampToValueAtTime(.0005, t + secs);
+    src.connect(f); f.connect(e); e.connect(into);
+    src.start(t, Math.random() * .5); src.stop(t + secs + .02);
+  }
+  function kick(A, g, t) {
+    var o = A.createOscillator(), e = A.createGain();
+    o.frequency.setValueAtTime(165, t);
+    o.frequency.exponentialRampToValueAtTime(46, t + .085);
+    e.gain.setValueAtTime(.0001, t);
+    e.gain.exponentialRampToValueAtTime(1, t + .004);
+    e.gain.exponentialRampToValueAtTime(.001, t + .3);
+    o.connect(e); e.connect(g.kick);
+    o.start(t); o.stop(t + .32);
+    burst(A, g, g.master, t, 'highpass', 2500, .7, .12, .018);
+    /* everything else ducks out of the kick's way, then swells back */
+    g.pump.gain.setValueAtTime(.2, t);
+    g.pump.gain.linearRampToValueAtTime(1, t + STEP * 3.2);
+  }
+  function bassNote(A, g, t, hz, accent) {
+    var saw = A.createOscillator(), sub = A.createOscillator(), f = A.createBiquadFilter(), e = A.createGain(), len = STEP * .92;
+    saw.type = 'sawtooth'; saw.frequency.value = hz; sub.frequency.value = hz;
+    f.type = 'lowpass'; f.Q.value = 7;
+    f.frequency.setValueAtTime(accent ? 1100 : 760, t);
+    f.frequency.exponentialRampToValueAtTime(170, t + len);
+    var sawG = A.createGain(); sawG.gain.value = .5;
+    e.gain.setValueAtTime(.0001, t);
+    e.gain.exponentialRampToValueAtTime(accent ? .95 : .78, t + .006);
+    e.gain.setValueAtTime(accent ? .95 : .78, t + len * .6);
+    e.gain.exponentialRampToValueAtTime(.001, t + len);
+    saw.connect(sawG); sawG.connect(f); sub.connect(e); f.connect(e); e.connect(g.low);
+    saw.start(t); sub.start(t); saw.stop(t + len + .01); sub.stop(t + len + .01);
+  }
+  function pluck(A, g, t, hz) {
+    var o = A.createOscillator(), f = A.createBiquadFilter(), e = A.createGain();
+    o.type = 'sawtooth'; o.frequency.value = hz;
+    f.type = 'lowpass'; f.Q.value = 4;
+    f.frequency.setValueAtTime(3800, t);
+    f.frequency.exponentialRampToValueAtTime(600, t + .13);
+    e.gain.setValueAtTime(.0001, t);
+    e.gain.exponentialRampToValueAtTime(.21, t + .004);
+    e.gain.exponentialRampToValueAtTime(.001, t + .17);
+    o.connect(f); f.connect(e); e.connect(g.top);
+    o.start(t); o.stop(t + .19);
+  }
+  function padChord(A, g, t, chord) {
+    var len = STEP * 16;
+    chord.slice(0, 3).forEach(function (hz) {
+      var o = A.createOscillator(), e = A.createGain();
+      o.type = 'triangle'; o.frequency.value = hz;
+      e.gain.setValueAtTime(.0001, t);
+      e.gain.exponentialRampToValueAtTime(.075, t + .06);
+      e.gain.setValueAtTime(.075, t + len * .8);
+      e.gain.exponentialRampToValueAtTime(.001, t + len);
+      o.connect(e); e.connect(g.top);
+      o.start(t); o.stop(t + len + .01);
+    });
+  }
+  /* one sixteenth note of the track */
+  function bedStep(A, g, t, n) {
+    var s = n % 16, bar = Math.floor(n / 16) % 4, root = ROOTS[bar], chord = CHORDS[bar];
+    if (s % 4 === 0) kick(A, g, t);
+    if (s % 4 >= 2) bassNote(A, g, t, s === 15 ? root * 2 : root, s % 4 === 2);
+    if (s % 4 === 2) burst(A, g, g.master, t, 'highpass', 8000, .8, .3, s === 14 ? .17 : .045);
+    else if (s % 2 === 1) burst(A, g, g.master, t, 'highpass', 9500, .8, .1, .025);
+    if (s === 4 || s === 12 || (bar === 3 && s >= 13)) burst(A, g, g.top, t, 'bandpass', 1700, .9, s < 13 ? .55 : .3, .13);
+    if (ARP[s] != null) pluck(A, g, t, chord[ARP[s]] * 2);
+    if (s === 0) padChord(A, g, t, chord);
   }
   function bedTarget() { return document.hidden ? 0 : BED_LEVEL * (bedVoice ? BED_UNDER_VOICE : 1); }
   function bedOn() {
@@ -201,17 +251,15 @@
       var out = A.createGain();
       out.connect(A.destination);
       out.gain.setValueAtTime(0, A.currentTime);
-      out.gain.linearRampToValueAtTime(bedTarget(), A.currentTime + 1.8);
-      var g = bedGraph(A, out), step = 0, at = A.currentTime + .4;
-      var feed = function () {                           // always half a second of blips queued ahead
-        while (at < A.currentTime + .5) {
-          var spec = BLIPS[step % BLIP_LOOP];
-          if (spec) blip(A, g.blips, at, spec);
-          step++; at += BLIP_STEP;
-        }
+      out.gain.linearRampToValueAtTime(bedTarget(), A.currentTime + 1.2);
+      var g = bedGraph(A, out), n = 0, at = A.currentTime + .15;
+      var feed = function () {                           // always over half a second of the track queued ahead
+        var now = A.currentTime;
+        if (at < now) { var skip = Math.ceil((now - at) / STEP) + 1; n += skip; at += skip * STEP; }   // a stalled page rejoins on the grid
+        while (at < now + .6) { bedStep(A, g, at, n); n++; at += STEP; }
       };
       feed();
-      bed = { A: A, out: out, nodes: g.osc, feed: setInterval(feed, 200) };
+      bed = { A: A, out: out, g: g, feed: setInterval(feed, 200) };
     } catch (e) { bed = null; }
   }
   function bedRamp(level, secs) {
@@ -228,10 +276,24 @@
     bedRamp(0, fade);
     bed = null;
     clearInterval(b.feed);
-    try { var end = b.A.currentTime + fade + .05; b.nodes.forEach(function (n) { n.stop(end); }); } catch (e) {}
+    setTimeout(function () { try { b.out.disconnect(); } catch (e) {} }, (fade + .8) * 1000);
   }
-  /* it steps back a little while the voice speaks and comes forward in the gaps */
-  function bedUnder(on) { if (bedVoice !== on) { bedVoice = on; bedRamp(bedTarget(), .5); } }
+  /* it steps back and darkens while the voice speaks, and opens up in the gaps */
+  function bedUnder(on) {
+    if (bedVoice === on) return;
+    bedVoice = on;
+    bedRamp(bedTarget(), .35);
+    if (!bed) return;
+    try {
+      var A = bed.A, g = bed.g, now = A.currentTime;
+      g.topTone.frequency.cancelScheduledValues(now);
+      g.topTone.frequency.setValueAtTime(g.topTone.frequency.value, now);
+      g.topTone.frequency.exponentialRampToValueAtTime(on ? TOP_UNDER : TOP_OPEN, now + .45);
+      g.top.gain.cancelScheduledValues(now);
+      g.top.gain.setValueAtTime(g.top.gain.value, now);
+      g.top.gain.linearRampToValueAtTime(on ? TOP_GAIN_UNDER : 1, now + .35);
+    } catch (e) {}
+  }
   document.addEventListener('visibilitychange', function () { bedRamp(bedTarget(), .4); });
   function sweepTone(A, into, now, d) {
     var o = A.createOscillator(), band = A.createBiquadFilter(), g = A.createGain();
@@ -244,7 +306,7 @@
     band.frequency.exponentialRampToValueAtTime(900, now + d * .55);
     band.frequency.exponentialRampToValueAtTime(150, now + d);
     g.gain.setValueAtTime(0, now);
-    g.gain.linearRampToValueAtTime(.075, now + d * .5);
+    g.gain.linearRampToValueAtTime(.2, now + d * .5);
     g.gain.linearRampToValueAtTime(0, now + d);
     o.connect(band); band.connect(g); g.connect(into);
     o.start(now); o.stop(now + d + .05);
@@ -254,11 +316,11 @@
     o.frequency.setValueAtTime(92, now);
     o.frequency.exponentialRampToValueAtTime(46, now + .18);
     g.gain.setValueAtTime(.0001, now);
-    g.gain.exponentialRampToValueAtTime(.2, now + .012);
+    g.gain.exponentialRampToValueAtTime(.4, now + .012);
     g.gain.exponentialRampToValueAtTime(.0004, now + .42);
     o.connect(g); g.connect(into);
     tick.frequency.value = 2637;
-    tg.gain.setValueAtTime(.018, now);
+    tg.gain.setValueAtTime(.04, now);
     tg.gain.exponentialRampToValueAtTime(.0003, now + .07);
     tick.connect(tg); tg.connect(into);
     o.start(now); o.stop(now + .45); tick.start(now); tick.stop(now + .08);
