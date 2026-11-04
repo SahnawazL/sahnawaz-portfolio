@@ -4128,6 +4128,8 @@ window.addEventListener('resize', () => {
 <script src="js/job-fit.js" defer></script>
 <script src="js/case-ask.js" defer></script>
 <script src="js/tour.js" defer></script>
+<!-- speaker buttons: nothing audio loads until a section with clips comes near the screen -->
+<script>(function(){if(!('IntersectionObserver'in window))return;var s=['#my-projects','#projects','#achievements','#what-i-offer'].map(function(q){return document.querySelector(q)}).filter(Boolean),io=new IntersectionObserver(function(e){if(!e.some(function(x){return x.isIntersecting}))return;io.disconnect();var t=document.createElement('script');t.src='js/listen.js';t.defer=true;document.head.appendChild(t)},{rootMargin:'300px 0px'});s.forEach(function(x){io.observe(x)})})();</script>
 <script src="js/premium-extras.js" defer></script>
 <script>
 (function(){
