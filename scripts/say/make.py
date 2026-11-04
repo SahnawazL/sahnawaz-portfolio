@@ -50,7 +50,10 @@ def spoken(s):
     s = re.sub(r"₹([\d,]+)", lambda m: rupees(int(m.group(1).replace(",", ""))), s).replace("’", "'")
     for a, b in SAY_AS: s = s.replace(a, b)
     return s
-def plain(s): return re.sub(r"[^a-z ]", "", re.sub(r"<\w+>", "", s).lower().replace("-", " ")).split()
+def plain(s):
+    # the recogniser writes amounts as digits: read them back as words before comparing
+    s = re.sub(r"[₹$]?\b\d[\d,]*\b", lambda m: rupees(int(re.sub(r"\D", "", m.group(0)))).replace(" rupees", ""), s)
+    return re.sub(r"[^a-z ]", "", re.sub(r"<\w+>", "", s).lower().replace("-", " ")).split()
 
 def clip_hash(cid, energy, turns):
     return hashlib.sha1(json.dumps([VERSION, energy, turns], ensure_ascii=False).encode()).hexdigest()[:8]
@@ -101,7 +104,7 @@ def perform(v, sentence):
         long = len(got) > len(want) * 1.2 + 2                     # a repeat
         secs = len(a) / sr; pace = secs / max(1, len(want))
         slack = len(re.findall(r"<\w+>", sentence))
-        odd = pace > .62 + slack * .6                              # far too slow: a stall or a loop
+        odd = pace > .85 + slack * .6                              # far too slow: a stall or a loop
         if best is None or score > best[2]: best = (a, sr, score)
         print(f"   try {attempt + 1}: {score:.2f} {secs:.1f}s {' '.join(got)[:90]}", flush=True)
         if score >= .86 and not long and not odd: return (a, sr, score)
