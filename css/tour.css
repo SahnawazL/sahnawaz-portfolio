@@ -15,37 +15,43 @@
 .tour-pill-wrap { display: flex; justify-content: center; }
 @keyframes tourPulse { 70% { box-shadow: 0 0 0 9px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
 
-/* each stop's colour, as three numbers so it blends smoothly from stop to stop */
-@property --ar { syntax: '<number>'; inherits: true; initial-value: 0; }
-@property --ag { syntax: '<number>'; inherits: true; initial-value: 255; }
-@property --ab { syntax: '<number>'; inherits: true; initial-value: 208; }
-@property --sw { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+/* each stop's colour, as three numbers */
 
 .tour-root { --ar: 0; --ag: 255; --ab: 208; --acc: var(--ar), var(--ag), var(--ab);
   position: fixed; inset: 0; z-index: 2147482000; pointer-events: none; opacity: 0;
-  transition: opacity .3s, --ar .5s ease, --ag .5s ease, --ab .5s ease; }
+  transition: opacity .3s; }
 .tour-root.open { opacity: 1; }
-.tour-root:not(.open) .tour-card, .tour-root:not(.open) .tour-spot { display: none; }
+.tour-root:not(.open) .tour-card, .tour-root:not(.open) .tour-spot, .tour-root:not(.open) .tour-dim { display: none; }
+/* the page's dimming: four solid panels that slide around the stop (see hole() in tour.js) */
+.tour-dim { position: fixed; left: 0; top: 0; width: 100vw; height: 1px; background: rgba(1,6,12,.72); pointer-events: none; transform-origin: 0 0; will-change: transform;
+  transition: transform .42s cubic-bezier(.2,.8,.2,1); }
+.tour-root.tour-snap .tour-dim { transition: none; }
+.tour-root.fin .tour-dim { background: rgba(1,6,12,.62); }
+.tour-root.docked .tour-dim { opacity: 0; }
 .tour-spot {
-  position: fixed; left: 0; top: 0; width: 100px; height: 100px; border-radius: 18px;
-  box-shadow: 0 0 0 200vmax rgba(1,6,12,.72), 0 0 0 2px rgba(var(--acc),.75), 0 0 34px 6px rgba(var(--acc),.26);
-  transition: transform .45s cubic-bezier(.2,.8,.2,1), width .45s cubic-bezier(.2,.8,.2,1), height .45s cubic-bezier(.2,.8,.2,1), opacity .4s ease;
-  will-change: transform, width, height;
+  position: fixed; left: 0; top: 0; width: 100px; height: 100px; border-radius: 10px; opacity: 1;
+  box-shadow: 0 0 0 2px rgba(var(--acc),.75), 0 0 26px 4px rgba(var(--acc),.24);
+  transition: transform .42s cubic-bezier(.2,.8,.2,1), width .42s cubic-bezier(.2,.8,.2,1), height .42s cubic-bezier(.2,.8,.2,1), opacity .2s ease;
+  will-change: transform;
 }
+/* a soft pulse of the ring when the narration starts */
+.tour-spot.sweep { animation: tourRing 1s ease both; }
+.tour-spot.sweep2 { animation: tourRing2 1s ease both; }
+@keyframes tourRing { 0%, 100% { opacity: 1; } 40% { opacity: .45; } }
+@keyframes tourRing2 { 0%, 100% { opacity: 1; } 40% { opacity: .45; } }
+.tour-spot.away { opacity: 0; }
+
 .tour-tap { position: fixed; left: 0; top: 0; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; opacity: 0; pointer-events: none;
-  border: 2px solid rgba(var(--acc),.95); background: rgba(var(--acc),.16); box-shadow: 0 0 20px rgba(var(--acc),.6); }
-/* a light that runs once around the spotlight's edge when the narration starts */
-.tour-spot::after { content: ""; position: absolute; inset: -2px; border-radius: 20px; padding: 2px; opacity: 0; pointer-events: none;
-  background: conic-gradient(from var(--sw), transparent 0deg 250deg, rgba(var(--acc),.0) 262deg, rgba(var(--acc),.95) 330deg, #fff 352deg, transparent 360deg);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);}
-.tour-spot.sweep::after { animation: tourSweep 1.35s cubic-bezier(.45,.05,.3,1) both; }
-.tour-spot.sweep2::after { animation: tourSweep2 1.35s cubic-bezier(.45,.05,.3,1) both; }
-@keyframes tourSweep { 0% { --sw: 0deg; opacity: 0; } 14% { opacity: 1; } 78% { opacity: 1; } 100% { --sw: 360deg; opacity: 0; } }
-@keyframes tourSweep2 { 0% { --sw: 0deg; opacity: 0; } 14% { opacity: 1; } 78% { opacity: 1; } 100% { --sw: 360deg; opacity: 0; } }
-.tour-spot.away { box-shadow: 0 0 0 200vmax rgba(1,6,12,.72); width: 0 !important; height: 0 !important; }
-.tour-spot.away::after { display: none; }
-.tour-root.fin .tour-spot { box-shadow: 0 0 0 200vmax rgba(1,6,12,.62); }
+  border: 2px solid rgba(var(--acc),.95); background: rgba(var(--acc),.16); }
+
+/* light mode: in-app browsers and devices that need it */
+.tour-root.tour-lite .tour-spot { box-shadow: 0 0 0 2px rgba(var(--acc),.8); }
+.tour-root.tour-lite .tour-card { box-shadow: 0 16px 40px rgba(0,0,0,.5); }
+.tour-root.tour-lite .tour-text .tw { transition: none; }
+.tour-root.tour-lite .tour-text.live .tw.now { text-shadow: none; }
+.tour-root.tour-lite .tour-hl.trail { display: none; }
+.tour-root.tour-lite .tour-orb::before { display: none; }
+html.tour-lite.tour-on body > *:not(.tour-root):not(script), html.tour-lite.tour-on body > *:not(.tour-root) * { animation-play-state: paused !important; }
 
 .tour-card {
   pointer-events: auto; position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%);
@@ -230,7 +236,7 @@ html.tour-on .sw-bar, html.tour-on #chatPill, html.tour-on .chat-nudge { visibil
 @media (max-width: 380px) { .tour-voice-tag { display: none; } .tour-step { margin-right: auto; } }
 @media (prefers-reduced-motion: reduce) {
   .tour-root { transition: opacity .3s; }
-  .tour-spot { transition: opacity .3s ease; } .tour-pill-play, .tour-body.in, .tour-orb i, .tour-orb::before, .tour-spot.sweep::after, .tour-spot.sweep2::after, .tour-fin.play > *, .tour-fin.play .tour-fin-mark circle, .tour-fin.play .tour-fin-mark path { animation: none !important; }
+  .tour-spot, .tour-dim { transition: opacity .3s ease; } .tour-pill-play, .tour-body.in, .tour-orb i, .tour-orb::before, .tour-spot.sweep, .tour-spot.sweep2, .tour-fin.play > *, .tour-fin.play .tour-fin-mark circle, .tour-fin.play .tour-fin-mark path { animation: none !important; }
   .tour-body, .tour-text .tw, .tour-hl, .tour-hl.trail, .tour-act { transition: none; }
   .tour-music.on rect { animation: none; transform: scaleY(.8); }
 }

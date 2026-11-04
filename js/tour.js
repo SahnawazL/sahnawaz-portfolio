@@ -73,7 +73,7 @@
         { id: 'pick_all', label: 'See everything', sub: '3 min', icon: 'code', pick: 'all' }] },
     { k: 'projects', sel: '#my-projects', e: 2, key: 0, title: 'Built and shipped', acc: [56, 189, 248],
       say: 'These are the products I’ve built and shipped. This very website, StudyLens AI, a homework helper for students, and YojanaSahay, a free government-scheme finder used across India.',
-      beats: [{ at: 'website', find: '.mpj-card', has: 'This Portfolio' }, { at: 'StudyLens', find: '.mpj-card', has: 'StudyLens' }, { at: 'YojanaSahay', find: '.mpj-card', has: 'YojanaSahay' }],
+      beats: [{ at: 'website', find: '.mpj-card', has: 'This Portfolio' }, { at: 'StudyLens', find: '.mpj-card', has: 'StudyLens' }, { at: 'YojanaSahay', find: '.mpj-card', has: 'Yojana Sahay' }],
       acts: [{ id: 'yojana', label: 'Open YojanaSahay', icon: 'link', href: 'https://yojanasahay.vercel.app' }] },
     { k: 'live', sel: '#live-products', e: 2, key: 0, title: 'Live numbers', acc: [34, 211, 238],
       say: 'These numbers aren’t screenshots. They’re fetched from each product right now, while you watch.' },
@@ -101,14 +101,14 @@
       acts: [{ id: 'jobfit', label: 'Try it with a job post', icon: 'pen', go: 'jobfit' }] },
     { k: 'offer', sel: '#what-i-offer', e: 2, key: 0, title: 'What I offer', acc: [251, 146, 60],
       say: 'Need something built? Every service flips open to show a clear starting price and exactly what’s included. Here’s website design, and here’s a portfolio site.',
-      beats: [{ at: 'website', find: '.wio-card', has: 'Website Design', tap: 'price' }, { at: 'portfolio', find: '.wio-card', has: 'Portfolio Website', tap: 'price' }] },
+      beats: [{ at: 'flips', find: '.wio-card', has: 'Website Design', tap: 'price' }, { at: 'portfolio', find: '.wio-card', has: 'Portfolio Website', tap: 'price' }] },
     { k: 'check', sel: '#website-check', e: 2, key: 3, title: 'Free website check', acc: [74, 222, 128],
       say: 'Already have a website? Run this free check. In about thirty seconds it shows your speed on a phone, your Google basics, and how your link looks on WhatsApp.',
       beats: [{ at: 'Run', sel: '#wcUrl', tap: 'type', text: 'yourbusiness.com' }],
       acts: [{ id: 'webcheck', label: 'Check my website', icon: 'pen', go: 'webcheck' }] },
     { k: 'quotes', sel: '#testimonials', e: 1, key: 0, title: 'In their words', acc: [250, 204, 21],
       say: 'But don’t just take my word for it. These are real words from the managers and team leads I’ve worked with.',
-      beats: [{ at: 'managers', find: '.ptesti-card', has: 'Project Manager', tap: 'quote' }, { at: 'team', find: '.ptesti-card', has: 'Adiba Kirmani', tap: 'quote' }] },
+      beats: [{ at: 'real', find: '.ptesti-card', has: 'Adiba Kirmani', tap: 'quote', hold: 4500 }] },
     { k: 'talk', sel: '#contact', e: 3, key: 2, title: 'Let’s talk', acc: [244, 114, 182],
       say: 'Ready to talk? Message me, WhatsApp me, or request a call. I personally read every message. Thanks for taking the tour!',
       acts: [{ id: 'whatsapp', label: 'Message me on WhatsApp', icon: 'chat', href: WA }] },
@@ -454,7 +454,8 @@
     root.setAttribute('role', 'dialog');
     root.setAttribute('aria-label', 'Guided tour');
     root.innerHTML =
-      '<div class="tour-spot" aria-hidden="true"></div>'
+      '<div class="tour-dim t" aria-hidden="true"></div><div class="tour-dim b" aria-hidden="true"></div><div class="tour-dim l" aria-hidden="true"></div><div class="tour-dim r" aria-hidden="true"></div>'
+      + '<div class="tour-spot" aria-hidden="true"></div>'
       + '<div class="tour-tap" aria-hidden="true"></div>'
       + '<div class="tour-card">'
       +   '<div class="tour-top"><span class="tour-orb" aria-hidden="true"><i></i></span><span class="tour-step"></span>'
@@ -488,7 +489,7 @@
       + '</div>';
     document.body.appendChild(root);
     ui = {
-      root: root, spot: root.querySelector('.tour-spot'), tap: root.querySelector('.tour-tap'), card: root.querySelector('.tour-card'),
+      root: root, spot: root.querySelector('.tour-spot'), dims: root.querySelectorAll('.tour-dim'), tap: root.querySelector('.tour-tap'), card: root.querySelector('.tour-card'),
       step: root.querySelector('.tour-step'), title: root.querySelector('.tour-title'), text: root.querySelector('.tour-text'),
       bar: root.querySelector('.tour-bar span'), dots: root.querySelector('.tour-dots'), orb: root.querySelector('.tour-orb'),
       scope: root.querySelector('.tour-scope'), acts: root.querySelector('.tour-acts'),
@@ -511,7 +512,7 @@
       useRoute('all'); paintDots();
       show(0);
     });
-    ui.spot.addEventListener('animationend', function (e) { if (/tourSweep/.test(e.animationName)) ui.spot.classList.remove('sweep', 'sweep2'); });
+    ui.spot.addEventListener('animationend', function (e) { if (/tourRing/.test(e.animationName)) ui.spot.classList.remove('sweep', 'sweep2'); });
     ui.dockGo.addEventListener('click', resume);
     root.querySelector('.tour-dock-x').addEventListener('click', function () { dockAway(); });
     ui.dock.addEventListener('mouseenter', function () { holdDock('hover', true); });
@@ -600,9 +601,22 @@
     var st = ui.root.style;
     st.setProperty('--ar', rgb[0]); st.setProperty('--ag', rgb[1]); st.setProperty('--ab', rgb[2]);
   }
+  /* The dimmed page is four solid panels around the stop, moved only with
+     transforms, so the graphics chip does the work and nothing is repainted.
+     (A single giant shadow around the spotlight repainted the whole screen on
+     every frame it moved, which is what felt laggy on phones.) */
+  function hole(left, top, w, h) {
+    var d = ui.dims, vw = window.innerWidth, H = Math.max(window.innerHeight, window.screen ? window.screen.height : 0) + 200;
+    d[0].style.height = d[1].style.height = H + 'px';
+    d[0].style.transform = 'translate3d(0,' + (top - H) + 'px,0)';
+    d[1].style.transform = 'translate3d(0,' + (top + h) + 'px,0)';
+    d[2].style.transform = 'translate3d(' + (left - vw) + 'px,' + top + 'px,0) scaleY(' + h + ')';
+    d[3].style.transform = 'translate3d(' + (left + w) + 'px,' + top + 'px,0) scaleY(' + h + ')';
+  }
+  function dimsInstant(on) { ui.root.classList.toggle('tour-snap', on); }
   function sweep() {
-    if (reduce) return;
-    /* two identical animations, alternated, restart the light without forcing a re-layout */
+    if (reduce || lite) return;
+    /* two identical animations, alternated, restart the pulse without forcing a re-layout */
     var a = ui.spot.classList.contains('sweep');
     ui.spot.classList.remove('sweep', 'sweep2');
     ui.spot.classList.add(a ? 'sweep2' : 'sweep');
@@ -816,7 +830,7 @@
      that shifts by itself, and the spotlight is written only when its box
      really changed. Measuring every frame forced the whole page to re-layout
      60 times a second, which is what makes phones stutter. */
-  var spotDirty = true, spotSeen = 0, spotKey = '', spotAway = null;
+  var spotDirty = true, spotSeen = 0, spotKey = '', spotAway = null, spotCx = 0, spotCy = 0;
   function spotMoved() { spotDirty = true; }
   function track() {
     cancelAnimationFrame(raf);
@@ -824,7 +838,11 @@
     var loop = function (now) {
       if (!active) return;
       raf = requestAnimationFrame(loop);
-      if (fin || flying) { if (spotAway !== true) { spotAway = true; ui.spot.classList.add('away'); } spotKey = ''; return; }
+      if (fin || flying) {
+        if (spotAway !== true) { spotAway = true; ui.spot.classList.add('away'); hole(spotCx, spotCy, 0, 0); }
+        spotKey = '';
+        return;
+      }
       if (!spotDirty && now - spotSeen < 250) return;
       if (cam && now - spotSeen < 120) return;          // the page is gliding: the spotlight's own easing fills the gaps
       spotDirty = false; spotSeen = now;
@@ -836,21 +854,26 @@
       var top = Math.max(8, r.top - pad), bottom = Math.min(vh - 8, r.bottom + pad);
       var left = Math.max(6, r.left - pad), right = Math.min(vw - 6, r.right + pad);
       var visible = bottom - top > 30 && r.bottom > 0 && r.top < vh;
-      if (spotAway === true && visible) {                 // after a flight: the spotlight opens from the centre of its stop
-        ui.spot.style.transition = 'none';
-        ui.spot.style.transform = 'translate(' + Math.round((left + right) / 2) + 'px,' + Math.round((top + bottom) / 2) + 'px)';
-        void ui.spot.offsetWidth;
-        ui.spot.style.transition = '';
-      }
-      if (spotAway !== !visible) { spotAway = !visible; ui.spot.classList.toggle('away', !visible); }   // off-screen mid-scroll: just dim
       if (!visible) { top = vh * 0.3; bottom = top + 60; }
       var w = Math.round(Math.max(40, right - left)), h = Math.round(Math.max(40, bottom - top));
       left = Math.round(left); top = Math.round(top);
       var key = left + ',' + top + ',' + w + ',' + h;
-      if (key === spotKey) return;
+      if (key === spotKey && spotAway === !visible) return;
+      var opening = spotAway === true && visible;
+      if (spotAway !== !visible) { spotAway = !visible; ui.spot.classList.toggle('away', !visible); }   // off-screen mid-scroll: just dim
       spotKey = key;
+      spotCx = left + w / 2; spotCy = top + h / 2;
       var st = ui.spot.style;
-      st.transform = 'translate(' + left + 'px,' + top + 'px)';
+      if (opening) {                                       // after a flight: the spotlight opens from the centre of its stop
+        dimsInstant(true);
+        hole(spotCx, spotCy, 0, 0);
+        st.width = w + 'px'; st.height = h + 'px'; st.transform = 'translate3d(' + left + 'px,' + top + 'px,0)';
+        var L = left, T = top, W = w, H2 = h, k2 = key;
+        requestAnimationFrame(function () { requestAnimationFrame(function () { dimsInstant(false); if (spotKey === k2) hole(L, T, W, H2); }); });
+        return;
+      }
+      if (visible) hole(left, top, w, h); else hole(spotCx, spotCy, 0, 0);
+      st.transform = 'translate3d(' + left + 'px,' + top + 'px,0)';
       st.width = w + 'px';
       st.height = h + 'px';
     };
@@ -892,6 +915,11 @@
      a few times a second, so a section above that finishes rendering shifts
      the landing point without a visible correction. */
   var flying = false, flight = null, cam = null, spotEl = null, handsOff = false;
+  /* Light mode: for in-app browsers (Instagram, Facebook and the like) and any
+     device that shows it needs it. Same tour, same sound; the page glides with
+     the browser's own scrolling, and the small visual extras step aside. */
+  var lite = /Instagram|FBAN|FBAV|FB_IAB|Line\/|MicroMessenger|; wv\)/i.test(navigator.userAgent);
+  function goLite() { lite = true; if (ui) ui.root.classList.add('tour-lite'); document.documentElement.classList.add('tour-lite'); }
   function land(el, done, my) {
     if (flight) flight.drop();
     var over = false, safety = 0, rid = 0;
@@ -921,13 +949,27 @@
     flight = { land: finish, drop: function () { over = true; clearTimeout(safety); cancelAnimationFrame(rid); flight = null; } };
     /* a hidden tab stops animation frames: never wait on them */
     safety = setTimeout(function () { window.scrollTo(0, aimAt(el)); finish(); }, ms + 900);
-    var t0 = performance.now(), reread = t0 + 200;
+    var t0 = performance.now(), checks = [.4, .72], last = t0, slowN = 0, frames = 0;
+    if (lite) {
+      /* the browser's own smooth scroll runs off the page's busy thread, so it stays fluid on a slow phone */
+      window.scrollTo({ top: to, behavior: 'smooth' });
+      var again = setTimeout(function () { if (over) return; var t2 = aimAt(el); if (Math.abs(t2 - window.pageYOffset) > 40) window.scrollTo({ top: t2, behavior: 'smooth' }); }, ms * .6);
+      demoTimers.push(again);
+      rid = 0;
+      setTimeout(finish, ms);
+      return;
+    }
     var frame = function (now) {
       if (over) return;
       var p = Math.min(1, Math.max(0, (now - t0) / ms));
-      if (now >= reread) { reread = now + 200; to = aimAt(el); }
+      if (checks.length && p >= checks[0]) { checks.shift(); to = aimAt(el); }   // one look at a time: each look costs a full page layout
       window.scrollTo(0, from + (to - from) * easeFlight(p));
-      if (p < 1) rid = requestAnimationFrame(frame); else finish();
+      frames++; if (now - last > 28) slowN++; last = now;
+      if (p < 1) rid = requestAnimationFrame(frame);
+      else {
+        if (frames > 12 && slowN / frames > .3) goLite();      // this device is struggling: lighter from the next stop on
+        finish();
+      }
     };
     rid = requestAnimationFrame(frame);
   }
@@ -995,7 +1037,7 @@
         tapMark(el);
         if (kind.on(el, b, my) === false) return;
         demoUndo.push(function () { kind.off(el, b); });
-        if (!kind.keep) holdUntil = performance.now() + 2600;
+        if (!kind.keep) holdUntil = performance.now() + (b.hold || 2600);
       } catch (e) { return; }
       /* whatever opened takes up room: bring it into view */
       later(460, function () {
@@ -1040,7 +1082,7 @@
     var drift = beats.length ? 0 : Math.max(0, Math.min(maxY(), docTop(el) + el.offsetHeight - R.bottom) - y);
     var settle = aimAt(el);
     if (Math.abs(settle - y) > 160 || drift) settle = y;       // sections that finished rendering late: ease into the true spot
-    var c = cam = { y: y, v: 0, goal: settle, base: settle, drift: drift, beats: beats, ease: drift ? .9 : .7, last: performance.now(), rid: 0 };
+    var c = cam = { y: y, v: 0, sent: y, goal: settle, base: settle, drift: lite ? 0 : drift, beats: beats, ease: drift ? .9 : .7, last: performance.now(), rid: 0 };
     var step = function (now) {
       if (cam !== c || my !== token) return;
       c.rid = requestAnimationFrame(step);
@@ -1068,6 +1110,10 @@
       var off = c.y - c.goal, tmp = (c.v + w0 * off) * dt;
       c.v = (c.v - w0 * tmp) * k;
       var ny = c.goal + (off + tmp) * k;
+      if (lite) {                                               // one smooth move per change, by the browser
+        if (Math.abs(c.goal - c.sent) > 2) { c.sent = c.goal; window.scrollTo({ top: c.goal, behavior: 'smooth' }); }
+        return;
+      }
       if (Math.abs(ny - c.y) > .02) { c.y = ny; window.scrollTo(0, ny); }
     };
     c.rid = requestAnimationFrame(step);
@@ -1532,6 +1578,7 @@
     build();
     paintDots();
     statNew();
+    if (lite) goLite();
     if (!muted) unlock();   // must run inside the tap
     bedOn();
     instantScroll(true);

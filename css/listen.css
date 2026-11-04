@@ -10,7 +10,7 @@
 .sl-pill:focus-visible { outline: 2px solid #7dd3fc; outline-offset: 2px; }
 .sl-pill[data-state="off"] { color: #fcd34d; border-color: rgba(252,211,77,.4); background: rgba(252,211,77,.08); }
 .mpj-card-links .sl-pill { margin: 0; }
-.wio-back .sl-pill { margin: .15rem auto; align-self: center; flex: none; }
+.wio-back .sl-pill { margin: .15rem auto; padding: .36rem .55rem; font-size: .68rem; white-space: nowrap; align-self: center; flex: none; }
 .sl-spin { width: 12px; height: 12px; border-radius: 50%; border: 2px solid rgba(0,255,208,.25); border-top-color: #00ffd0; animation: slSpin .8s linear infinite; }
 @keyframes slSpin { to { transform: rotate(360deg); } }
 .sl-eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 12px; }
