@@ -6,7 +6,7 @@
    clips (audio/tour/, made by .github/workflows/tour-voice.yml from these
    captions); the live voice (/api/speak) is a fallback. While a stop is read
    the page keeps gliding: through a tall section, or to the card the voice
-   has just named (beats). A soft ambience, made live in the browser, runs
+   has just named (beats). A deep, technical ambience, made live in the browser, runs
    underneath so the gaps between stops are never dead air. Touching the page
    hands the scroll back to the visitor at once. Muted or without sound,
    captions advance on a timer. The clips carry word timings (the
@@ -138,73 +138,138 @@
     } catch (e) {}
   }
 
-  /* Ambience: a warm, slowly breathing chord under the voice, and a soft air
-     sweep while the page flies between stops. Both are made live on the
-     site's one audio context, so there is no file to download and no seam
-     between stops. If the context isn't available the tour simply goes without. */
-  var bed = null, BED_LEVEL = 0.055;
+  /* Ambience: a lab-instrument hum under the voice. A sub-bass tone that pulses
+     slowly (soft-clipped, so its overtones carry the bass on phone speakers
+     too), a dark drone with a filter sweeping over it, and faint "data" blips
+     on a steady grid, echoing left and right. A low sweep carries each flight
+     and a soft thump marks the landing. All of it is made live on the site's
+     one audio context, so there is no file to download and no seam between
+     stops. If the context isn't available the tour simply goes without. */
+  var bed = null, BED_LEVEL = 0.34, BED_UNDER_VOICE = 0.72, bedVoice = false;
+  var BLIPS = { 0: [1760, -.4], 3: [2637, .35], 6: [1760, .2], 11: [3520, -.2], 14: [2637, .45], 19: [1760, -.35], 22: [3520, .3], 27: [2637, -.1] };
+  var BLIP_STEP = .25, BLIP_LOOP = 32;
+  function bedGraph(A, dest) {
+    var osc = [], start = function (o) { o.start(); osc.push(o); return o; };
+    var wobble = function (hz, amount, param) {
+      var l = A.createOscillator(), d = A.createGain();
+      l.frequency.value = hz; d.gain.value = amount;
+      l.connect(d); d.connect(param); start(l);
+    };
+    /* the sub: one low note, gently driven, pulsing once every two seconds */
+    var sub = A.createOscillator(), drive = A.createWaveShaper(), subTone = A.createBiquadFilter(), subG = A.createGain(), curve = new Float32Array(1025);
+    for (var k = 0; k < 1025; k++) { var x = (k - 512) / 512; curve[k] = Math.tanh(x * 2.6) / Math.tanh(2.6); }
+    sub.type = 'sine'; sub.frequency.value = 55; drive.curve = curve;
+    subTone.type = 'lowpass'; subTone.frequency.value = 340; subTone.Q.value = .4;
+    subG.gain.value = .22;
+    wobble(.5, .075, subG.gain);
+    sub.connect(drive); drive.connect(subTone); subTone.connect(subG); subG.connect(dest); start(sub);
+    /* the drone: two slightly detuned saws under a slow resonant sweep */
+    var sweep = A.createBiquadFilter(), droneG = A.createGain();
+    sweep.type = 'lowpass'; sweep.frequency.value = 300; sweep.Q.value = 5;
+    droneG.gain.value = .11;
+    wobble(.07, 170, sweep.frequency);
+    [-7, 7].forEach(function (c) { var o = A.createOscillator(); o.type = 'sawtooth'; o.frequency.value = 110; o.detune.value = c; o.connect(sweep); start(o); });
+    sweep.connect(droneG); droneG.connect(dest);
+    /* the air above it: one glassy, barely-there tone */
+    var glass = A.createOscillator(), glassG = A.createGain();
+    glass.frequency.value = 1318.5; glassG.gain.value = .006;
+    wobble(.11, .004, glassG.gain);
+    glass.connect(glassG); glassG.connect(dest); start(glass);
+    /* the blips share one echo */
+    var blips = A.createGain(), echo = A.createDelay(1), back = A.createGain(), wet = A.createGain();
+    echo.delayTime.value = .375; back.gain.value = .38; wet.gain.value = .45;
+    blips.connect(dest); blips.connect(echo); echo.connect(back); back.connect(echo); echo.connect(wet); wet.connect(dest);
+    return { osc: osc, blips: blips };
+  }
+  function blip(A, into, t, spec) {
+    var o = A.createOscillator(), g = A.createGain(), last = g;
+    o.frequency.value = spec[0];
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(.16, t + .004);
+    g.gain.exponentialRampToValueAtTime(.0004, t + .09);
+    o.connect(g);
+    if (A.createStereoPanner) { var pan = A.createStereoPanner(); pan.pan.value = spec[1]; g.connect(pan); last = pan; }
+    last.connect(into);
+    o.start(t); o.stop(t + .1);
+  }
+  function bedTarget() { return document.hidden ? 0 : BED_LEVEL * (bedVoice ? BED_UNDER_VOICE : 1); }
   function bedOn() {
     if (muted || bed) return;
     var A = window.__shzAudio && window.__shzAudio();
     if (!A) return;
     try {
-      var out = A.createGain(), tone = A.createBiquadFilter(), nodes = [];
-      tone.type = 'lowpass'; tone.frequency.value = 1500; tone.Q.value = 0.3;
-      tone.connect(out); out.connect(A.destination);
+      var out = A.createGain();
+      out.connect(A.destination);
       out.gain.setValueAtTime(0, A.currentTime);
-      out.gain.linearRampToValueAtTime(BED_LEVEL, A.currentTime + 1.8);
-      [[110, .34, .21], [164.81, .24, .17], [220, .2, .27], [329.63, .11, .13], [493.88, .07, .11]].forEach(function (v) {
-        var o = A.createOscillator(), g = A.createGain(), lfo = A.createOscillator(), depth = A.createGain();
-        o.type = 'sine'; o.frequency.value = v[0];
-        g.gain.value = v[1] * .68; depth.gain.value = v[1] * .32;      // each note swells at its own slow pace
-        lfo.frequency.value = v[2]; lfo.connect(depth); depth.connect(g.gain);
-        o.connect(g); g.connect(tone);
-        o.start(); lfo.start();
-        nodes.push(o, lfo);
-      });
-      bed = { A: A, out: out, nodes: nodes };
+      out.gain.linearRampToValueAtTime(bedTarget(), A.currentTime + 1.8);
+      var g = bedGraph(A, out), step = 0, at = A.currentTime + .4;
+      var feed = function () {                           // always half a second of blips queued ahead
+        while (at < A.currentTime + .5) {
+          var spec = BLIPS[step % BLIP_LOOP];
+          if (spec) blip(A, g.blips, at, spec);
+          step++; at += BLIP_STEP;
+        }
+      };
+      feed();
+      bed = { A: A, out: out, nodes: g.osc, feed: setInterval(feed, 200) };
     } catch (e) { bed = null; }
   }
-  function bedOff(fade) {
-    if (!bed) return;
-    var b = bed, now = b.A.currentTime; bed = null;
-    try {
-      b.out.gain.cancelScheduledValues(now);
-      b.out.gain.setValueAtTime(b.out.gain.value, now);
-      b.out.gain.linearRampToValueAtTime(0, now + fade);
-      b.nodes.forEach(function (n) { n.stop(now + fade + .05); });
-    } catch (e) {}
-  }
-  document.addEventListener('visibilitychange', function () {
+  function bedRamp(level, secs) {
     if (!bed) return;
     try {
       var now = bed.A.currentTime, g = bed.out.gain;
       g.cancelScheduledValues(now); g.setValueAtTime(g.value, now);
-      g.linearRampToValueAtTime(document.hidden ? 0 : BED_LEVEL, now + .4);
+      g.linearRampToValueAtTime(level, now + secs);
     } catch (e) {}
-  });
-  var airBuf = null;
+  }
+  function bedOff(fade) {
+    if (!bed) return;
+    var b = bed;
+    bedRamp(0, fade);
+    bed = null;
+    clearInterval(b.feed);
+    try { var end = b.A.currentTime + fade + .05; b.nodes.forEach(function (n) { n.stop(end); }); } catch (e) {}
+  }
+  /* it steps back a little while the voice speaks and comes forward in the gaps */
+  function bedUnder(on) { if (bedVoice !== on) { bedVoice = on; bedRamp(bedTarget(), .5); } }
+  document.addEventListener('visibilitychange', function () { bedRamp(bedTarget(), .4); });
+  function sweepTone(A, into, now, d) {
+    var o = A.createOscillator(), band = A.createBiquadFilter(), g = A.createGain();
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(48, now);
+    o.frequency.exponentialRampToValueAtTime(96, now + d * .55);
+    o.frequency.exponentialRampToValueAtTime(52, now + d);
+    band.type = 'lowpass'; band.Q.value = 7;
+    band.frequency.setValueAtTime(130, now);
+    band.frequency.exponentialRampToValueAtTime(900, now + d * .55);
+    band.frequency.exponentialRampToValueAtTime(150, now + d);
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime(.075, now + d * .5);
+    g.gain.linearRampToValueAtTime(0, now + d);
+    o.connect(band); band.connect(g); g.connect(into);
+    o.start(now); o.stop(now + d + .05);
+  }
+  function thump(A, into, now) {
+    var o = A.createOscillator(), g = A.createGain(), tick = A.createOscillator(), tg = A.createGain();
+    o.frequency.setValueAtTime(92, now);
+    o.frequency.exponentialRampToValueAtTime(46, now + .18);
+    g.gain.setValueAtTime(.0001, now);
+    g.gain.exponentialRampToValueAtTime(.2, now + .012);
+    g.gain.exponentialRampToValueAtTime(.0004, now + .42);
+    o.connect(g); g.connect(into);
+    tick.frequency.value = 2637;
+    tg.gain.setValueAtTime(.018, now);
+    tg.gain.exponentialRampToValueAtTime(.0003, now + .07);
+    tick.connect(tg); tg.connect(into);
+    o.start(now); o.stop(now + .45); tick.start(now); tick.stop(now + .08);
+  }
   function whoosh(ms) {
     if (muted || !bed || reduce) return;
-    try {
-      var A = bed.A, now = A.currentTime, d = ms / 1000;
-      if (!airBuf) {
-        airBuf = A.createBuffer(1, A.sampleRate * 2, A.sampleRate);
-        var c = airBuf.getChannelData(0);
-        for (var k = 0; k < c.length; k++) c[k] = Math.random() * 2 - 1;
-      }
-      var src = A.createBufferSource(), band = A.createBiquadFilter(), g = A.createGain();
-      src.buffer = airBuf; src.loop = true;
-      band.type = 'bandpass'; band.Q.value = .7;
-      band.frequency.setValueAtTime(260, now);
-      band.frequency.exponentialRampToValueAtTime(1100, now + d * .5);
-      band.frequency.exponentialRampToValueAtTime(320, now + d);
-      g.gain.setValueAtTime(0, now);
-      g.gain.linearRampToValueAtTime(.022, now + d * .5);
-      g.gain.linearRampToValueAtTime(0, now + d);
-      src.connect(band); band.connect(g); g.connect(A.destination);
-      src.start(now); src.stop(now + d + .05);
-    } catch (e) {}
+    try { sweepTone(bed.A, bed.A.destination, bed.A.currentTime, ms / 1000); } catch (e) {}
+  }
+  function arrive() {
+    if (muted || !bed || reduce) return;
+    try { thump(bed.A, bed.A.destination, bed.A.currentTime); } catch (e) {}
   }
 
   function build() {
@@ -609,7 +674,7 @@
       var p = Math.min(1, Math.max(0, (now - t0) / ms));
       if (now >= reread) { reread = now + 200; to = aimAt(el); }
       window.scrollTo(0, from + (to - from) * easeFlight(p));
-      if (p < 1) rid = requestAnimationFrame(frame); else finish();
+      if (p < 1) rid = requestAnimationFrame(frame); else { arrive(); finish(); }
     };
     rid = requestAnimationFrame(frame);
   }
@@ -882,6 +947,7 @@
   function stopAudio() {
     clearTimeout(timer);
     follow(null);
+    bedUnder(false);
     if (audio) { try { audio.pause(); } catch (e) {} audio.onended = null; audio.onerror = null; audio.onloadedmetadata = null; audio = null; }
     if (ui) ui.orb.classList.remove('on');
   }
@@ -998,6 +1064,7 @@
         if (done || my !== token) return;
         done = true;
         ui.orb.classList.remove('on');
+        bedUnder(false);
         follow(null); markAll();
         if (clip.env) drawScope(clip.env, clip.fps || 25, 1, 1);
         timer = setTimeout(next, 450);
@@ -1011,6 +1078,7 @@
         audio.onloadedmetadata = function () { try { if (audio && audio.currentTime < at - 0.3) audio.currentTime = at; } catch (e) {} };
       } else audio.src = clip.url;
       follow(clip, my, end);
+      bedUnder(true);
       var p = audio.play();
       voiceNote('');
       if (p && p.catch) p.catch(function (err) {
