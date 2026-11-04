@@ -7,8 +7,9 @@
    captions); the live voice (/api/speak) is a fallback. While a stop is read
    the page keeps gliding: through a tall section, or to the card the voice
    has just named (beats). A driving electronic track, made live in the browser, runs
-   underneath so the gaps between stops are never dead air. Touching the page
-   hands the scroll back to the visitor at once. Muted or without sound,
+   underneath and follows the tour: flights land on the beat, each stop has its
+   own energy, the voice enters on a beat, and the music breathes around the
+   voice's real loudness. Touching the page hands the scroll back to the visitor. Muted or without sound,
    captions advance on a timer. The clips carry word timings (the
    gliding highlight) and a loudness track (the voice orb and the waveform).
    The last stop ends on a short "That's the tour" card.
@@ -24,7 +25,7 @@
   /* Narration made in advance (one small MP3 per stop, scripts/tour-voice):
      a clip is used only when its text matches the caption exactly; otherwise
      the live voice above, and failing that, captions on a timer. */
-  var CLIPS = '/audio/tour/';
+  var CLIPS = '/audio/tour/', CLIP_LEAD = .25;   // the clips open with this much silence
   var clipList = null;
   /* every network wait has a time limit, so the tour can never hang on one */
   function timed(ms, run) {
@@ -57,41 +58,42 @@
 
   /* acc: the stop's colour (spotlight, card tint, highlight, waveform)
      acts: quick actions; tapping one ends the tour and goes there */
-  /* beats: at the word that starts with `at`, the page glides to the card
+  /* e: the music's energy here (1 calm, 2 full, 3 peak); key: its shift in semitones
+     beats: at the word that starts with `at`, the page glides to the card
      (`find`) containing the text `has`, and the spotlight moves onto it */
   var STEPS = [
-    { sel: '#heroStatsBar', title: 'Hi, I’m Sahnawaz', acc: [0, 255, 208],
+    { sel: '#heroStatsBar', e: 1, key: 0, title: 'Hi, I’m Sahnawaz', acc: [0, 255, 208],
       say: 'Hi, I’m Sahnawaz — a full-stack developer and UI designer from Assam. Everything on this site is hand-coded, with no templates. Let me show you around in under three minutes.',
       acts: [{ id: 'cv', label: 'Get my CV', icon: 'doc', go: 'cv' }] },
-    { sel: '#my-projects', title: 'Built and shipped', acc: [56, 189, 248],
+    { sel: '#my-projects', e: 2, key: 0, title: 'Built and shipped', acc: [56, 189, 248],
       say: 'These are the products I’ve built and shipped. This very website, StudyLens AI, a homework helper for students, and YojanaSahay, a free government-scheme finder used across India.',
       beats: [{ at: 'website', find: '.mpj-card', has: 'This Portfolio' }, { at: 'StudyLens', find: '.mpj-card', has: 'StudyLens' }, { at: 'YojanaSahay', find: '.mpj-card', has: 'YojanaSahay' }],
       acts: [{ id: 'yojana', label: 'Open YojanaSahay', icon: 'link', href: 'https://yojanasahay.vercel.app' }] },
-    { sel: '#live-products', title: 'Live numbers', acc: [34, 211, 238],
+    { sel: '#live-products', e: 2, key: 0, title: 'Live numbers', acc: [34, 211, 238],
       say: 'These numbers aren’t screenshots. They’re fetched from each product right now, while you watch.' },
-    { sel: '#projects', title: 'Where I started', acc: [129, 140, 248],
+    { sel: '#projects', e: 1, key: -2, title: 'Where I started', acc: [129, 140, 248],
       say: 'I started in customer support for Xiaomi and Flipkart, then moved into an IT and developer role at Rapido. Support taught me to find what’s really going wrong.' },
-    { sel: '#achievements', title: 'Milestones', acc: [192, 132, 252],
+    { sel: '#achievements', e: 3, key: 0, title: 'Milestones', acc: [192, 132, 252],
       say: 'Here are the milestones I’m proudest of, from multi-agent AI and a live system health dashboard to my signature Hacker Mode. Every card opens the full story.' },
-    { sel: 'section.ts-section', title: 'My toolkit', acc: [45, 212, 191],
+    { sel: 'section.ts-section', e: 2, key: 0, title: 'My toolkit', acc: [45, 212, 191],
       say: 'This is my everyday toolkit: React and JavaScript up front, Node and Firebase behind, and Figma for design. One person, from first sketch to production.' },
-    { sel: '#recent-activity .ra-header', fallback: '#recent-activity', title: 'Live engineering telemetry', acc: [52, 211, 153],
+    { sel: '#recent-activity .ra-header', e: 2, key: 2, fallback: '#recent-activity', title: 'Live engineering telemetry', acc: [52, 211, 153],
       say: 'This is live telemetry, pulled straight from GitHub: what I shipped recently, my commit streak, and how healthy my projects are.',
       acts: [{ id: 'github', label: 'Open my GitHub', icon: 'github', href: GH }] },
-    { sel: '#how-i-ship', title: 'How I ship', acc: [167, 139, 250],
+    { sel: '#how-i-ship', e: 3, key: 2, title: 'How I ship', acc: [167, 139, 250],
       say: 'And this is how I ship. Every change goes through GitHub, is built automatically, and goes live in about a minute, with one-click rollback.',
       acts: [{ id: 'code', label: 'See this site’s code', icon: 'code', href: GH + '/sahnawaz-portfolio' }] },
-    { sel: '#job-fit', title: 'Hiring? Check my fit', acc: [251, 191, 36],
+    { sel: '#job-fit', e: 1, key: 0, title: 'Hiring? Check my fit', acc: [251, 191, 36],
       say: 'Hiring? Paste your job post here. An AI compares it with my real work and tells you honestly where I match, and where I don’t.',
       acts: [{ id: 'jobfit', label: 'Try it with a job post', icon: 'pen', go: 'jobfit' }] },
-    { sel: '#what-i-offer', title: 'What I offer', acc: [251, 146, 60],
+    { sel: '#what-i-offer', e: 2, key: 0, title: 'What I offer', acc: [251, 146, 60],
       say: 'Need something built? Every service here shows a clear starting price and exactly what’s included. Tap a card, or plan your project with AI.' },
-    { sel: '#website-check', title: 'Free website check', acc: [74, 222, 128],
+    { sel: '#website-check', e: 2, key: 3, title: 'Free website check', acc: [74, 222, 128],
       say: 'Already have a website? Run this free check. In about thirty seconds it shows your speed on a phone, your Google basics, and how your link looks on WhatsApp.',
       acts: [{ id: 'webcheck', label: 'Check my website', icon: 'pen', go: 'webcheck' }] },
-    { sel: '#testimonials', title: 'In their words', acc: [250, 204, 21],
+    { sel: '#testimonials', e: 1, key: 0, title: 'In their words', acc: [250, 204, 21],
       say: 'But don’t just take my word for it. These are real words from the managers and team leads I’ve worked with.' },
-    { sel: '#contact', title: 'Let’s talk', acc: [244, 114, 182],
+    { sel: '#contact', e: 3, key: 2, title: 'Let’s talk', acc: [244, 114, 182],
       say: 'Ready to talk? Message me, WhatsApp me, or request a call. I personally read every message. Thanks for taking the tour!',
       acts: [{ id: 'whatsapp', label: 'Message me on WhatsApp', icon: 'chat', href: WA }] }
   ];
@@ -146,8 +148,9 @@
      All of it is made live on the site's one audio context, so there is no
      file to download and no seam between stops. If the context isn't
      available the tour simply goes without. */
-  var bed = null, BED_LEVEL = 0.3, BED_UNDER_VOICE = 0.55, TOP_OPEN = 7000, TOP_UNDER = 1000, TOP_GAIN_UNDER = 0.55, bedVoice = false;
-  var STEP = 60 / 124 / 4;
+  var bed = null, musicOff = false, BED_LEVEL = 0.3, BED_UNDER_VOICE = 0.55, TOP_OPEN = 7000, TOP_UNDER = 1000, TOP_GAIN_UNDER = 0.55, bedVoice = false;
+  var STEP = 60 / 124 / 4, BEAT = STEP * 4, HALF_BAR = BEAT * 2;
+  try { musicOff = localStorage.getItem('shz_tour_music') === '0'; } catch (e) {}
   var ROOTS = [55, 43.65, 65.41, 49];
   var CHORDS = [[220, 261.63, 329.63, 440], [174.61, 220, 261.63, 349.23], [196, 261.63, 329.63, 392], [196, 246.94, 293.66, 392]];
   var ARP = { 0: 3, 2: 2, 3: 1, 5: 3, 6: 2, 8: 0, 10: 3, 11: 1, 13: 2, 14: 3 };
@@ -231,20 +234,67 @@
       o.start(t); o.stop(t + len + .01);
     });
   }
-  /* one sixteenth note of the track */
-  function bedStep(A, g, t, n) {
-    var s = n % 16, bar = Math.floor(n / 16) % 4, root = ROOTS[bar], chord = CHORDS[bar];
+  /* one sixteenth note of the track; `sc` is the current stop's energy and key.
+     Calm stops keep the kick, bass and pad; full adds the drums' top end; peak
+     adds the arp. A flight (`rush`) always runs at peak. */
+  function bedStep(A, g, t, n, sc, rush) {
+    var s = n % 16, bar = Math.floor(n / 16) % 4, k = Math.pow(2, sc.key / 12), e = rush ? 3 : sc.e;
+    var root = ROOTS[bar] * k, chord = CHORDS[bar].map(function (h) { return h * k; });
     if (s % 4 === 0) kick(A, g, t);
     if (s % 4 >= 2) bassNote(A, g, t, s === 15 ? root * 2 : root, s % 4 === 2);
     if (s % 4 === 2) burst(A, g, g.master, t, 'highpass', 8000, .8, .3, s === 14 ? .17 : .045);
-    else if (s % 2 === 1) burst(A, g, g.master, t, 'highpass', 9500, .8, .1, .025);
-    if (s === 4 || s === 12 || (bar === 3 && s >= 13)) burst(A, g, g.top, t, 'bandpass', 1700, .9, s < 13 ? .55 : .3, .13);
-    if (ARP[s] != null) pluck(A, g, t, chord[ARP[s]] * 2);
+    else if (s % 2 === 1 && e >= 2) burst(A, g, g.master, t, 'highpass', 9500, .8, .1, .025);
+    if (e >= 2 && (s === 4 || s === 12 || (bar === 3 && s >= 13))) burst(A, g, g.top, t, 'bandpass', 1700, .9, s < 13 ? .55 : .3, .13);
+    if (e >= 3 && ARP[s] != null) pluck(A, g, t, chord[ARP[s]] * 2);
     if (s === 0) padChord(A, g, t, chord);
+  }
+  /* the hit a flight lands on */
+  function crash(A, g, t) {
+    burst(A, g, g.master, t, 'highpass', 3200, .7, .34, .85);
+    thump(A, g.master, t);
+  }
+  /* the next point on the music's grid at or after t */
+  function onGrid(t, unit) { return bed.t0 + Math.ceil((t - bed.t0) / unit - 1e-6) * unit; }
+  function delay() { var A = bed.A; return (A.outputLatency || A.baseLatency || 0); }
+  /* the stop's energy and key, taken at the next landing or the next bar */
+  function bedScene(e, key) { if (bed) bed.want = { e: e, key: key }; }
+  /* seconds until the voice should start so its first word falls on a beat */
+  function voiceEntry(lead) {
+    if (!bed) return 0;
+    var now = bed.A.currentTime, at = onGrid(now + lead + .02, BEAT) - lead;
+    return Math.max(0, at - now - delay());
+  }
+  /* seconds until the next beat, at least `min` */
+  function nextBeat(min) {
+    if (!bed) return min;
+    var now = bed.A.currentTime;
+    return onGrid(now + min, BEAT) - now - delay();
+  }
+  /* the music rises and dips with the voice itself: `v` is the clip's loudness
+     a moment ahead, so the dip arrives with the word, not after it */
+  var envAt = 0;
+  function bedEnv(v) {
+    if (!bed || !bedVoice) return;
+    var ms = performance.now();
+    if (ms - envAt < 80) return;
+    envAt = ms;
+    try {
+      var now = bed.A.currentTime, room = 1 - Math.min(1, v * 1.5);    // 1 in a pause, 0 on a loud word
+      bed.out.gain.setTargetAtTime(BED_LEVEL * (BED_UNDER_VOICE + .4 * room), now, .07);
+      bed.g.top.gain.setTargetAtTime(TOP_GAIN_UNDER + .45 * room, now, .07);
+    } catch (e) {}
+  }
+  /* a small accent when the spotlight jumps to the card the voice has named */
+  function bedHit() {
+    if (!bed) return;
+    try {
+      var A = bed.A, t = onGrid(A.currentTime + .03, STEP), c = CHORDS[Math.floor(bed.n / 16) % 4], k = Math.pow(2, bed.sc.key / 12);
+      pluck(A, bed.g, t, c[3] * 2 * k); pluck(A, bed.g, t + STEP, c[3] * 4 * k);
+    } catch (e) {}
   }
   function bedTarget() { return document.hidden ? 0 : BED_LEVEL * (bedVoice ? BED_UNDER_VOICE : 1); }
   function bedOn() {
-    if (muted || bed) return;
+    if (musicOff || bed) return;
     var A = window.__shzAudio && window.__shzAudio();
     if (!A) return;
     try {
@@ -252,14 +302,26 @@
       out.connect(A.destination);
       out.gain.setValueAtTime(0, A.currentTime);
       out.gain.linearRampToValueAtTime(bedTarget(), A.currentTime + 1.2);
-      var g = bedGraph(A, out), n = 0, at = A.currentTime + .15;
+      var g = bedGraph(A, out), at = A.currentTime + .15;
+      var b = bed = { A: A, out: out, g: g, t0: at, n: 0, sc: { e: 1, key: 0 }, want: null, land: 0, feed: 0 };
       var feed = function () {                           // always over half a second of the track queued ahead
         var now = A.currentTime;
-        if (at < now) { var skip = Math.ceil((now - at) / STEP) + 1; n += skip; at += skip * STEP; }   // a stalled page rejoins on the grid
-        while (at < now + .6) { bedStep(A, g, at, n); n++; at += STEP; }
+        if (at < now) { var skip = Math.ceil((now - at) / STEP) + 1; b.n += skip; at += skip * STEP; }   // a stalled page rejoins on the grid
+        while (at < now + .6) {
+          if (b.land && at >= b.land - STEP / 2) {
+            /* a landing is the top of a new bar in the new stop's mood */
+            b.land = 0; b.n = (Math.floor(b.n / 16) + 1) * 16;
+            if (b.want) { b.sc = b.want; b.want = null; }
+            crash(A, g, at);
+          } else if (b.n % 16 === 0 && b.want && !b.land) { b.sc = b.want; b.want = null; }
+          bedStep(A, g, at, b.n, b.sc, !!b.land);
+          /* a snare roll leads into the landing */
+          if (b.land && at >= b.land - BEAT - STEP / 2) burst(A, g, g.top, at, 'bandpass', 1900, .9, .22 + .34 * (1 - (b.land - at) / BEAT), .08);
+          b.n++; at += STEP;
+        }
       };
       feed();
-      bed = { A: A, out: out, g: g, feed: setInterval(feed, 200) };
+      b.feed = setInterval(feed, 200);
     } catch (e) { bed = null; }
   }
   function bedRamp(level, secs) {
@@ -277,6 +339,17 @@
     bed = null;
     clearInterval(b.feed);
     setTimeout(function () { try { b.out.disconnect(); } catch (e) {} }, (fade + .8) * 1000);
+  }
+  /* the end of the tour: one last hit on the beat, and the chord rings out */
+  function bedEnd() {
+    if (!bed) return;
+    var b = bed;
+    try {
+      var t = onGrid(b.A.currentTime + .1, BEAT), k = Math.pow(2, b.sc.key / 12);
+      b.land = 0; crash(b.A, b.g, t);
+      padChord(b.A, b.g, t, CHORDS[0].map(function (h) { return h * k; }));
+    } catch (e) {}
+    bedOff(3.2);
   }
   /* it steps back and darkens while the voice speaks, and opens up in the gaps */
   function bedUnder(on) {
@@ -325,15 +398,6 @@
     tick.connect(tg); tg.connect(into);
     o.start(now); o.stop(now + .45); tick.start(now); tick.stop(now + .08);
   }
-  function whoosh(ms) {
-    if (muted || !bed || reduce) return;
-    try { sweepTone(bed.A, bed.A.destination, bed.A.currentTime, ms / 1000); } catch (e) {}
-  }
-  function arrive() {
-    if (muted || !bed || reduce) return;
-    try { thump(bed.A, bed.A.destination, bed.A.currentTime); } catch (e) {}
-  }
-
   function build() {
     if (ui) return ui;
     var root = document.createElement('div');
@@ -345,6 +409,7 @@
       + '<div class="tour-card">'
       +   '<div class="tour-top"><span class="tour-orb" aria-hidden="true"><i></i></span><span class="tour-step"></span>'
       +     '<span class="tour-voice-tag" aria-hidden="true">AI narrator</span>'
+      +     '<button type="button" class="tour-ic tour-music" aria-label="Music"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="2" y="3" width="2.4" height="10" rx="1.2"/><rect x="6.8" y="3" width="2.4" height="10" rx="1.2"/><rect x="11.6" y="3" width="2.4" height="10" rx="1.2"/></svg></button>'
       +     '<button type="button" class="tour-ic tour-mute" aria-label="Mute voice"></button>'
       +     '<button type="button" class="tour-ic tour-close" aria-label="Close tour">×</button></div>'
       +   '<div class="tour-body"><h3 class="tour-title"></h3>'
@@ -378,7 +443,7 @@
       bar: root.querySelector('.tour-bar span'), dots: root.querySelector('.tour-dots'), orb: root.querySelector('.tour-orb'),
       scope: root.querySelector('.tour-scope'), acts: root.querySelector('.tour-acts'),
       voice: root.querySelector('.tour-voice'), body: root.querySelector('.tour-body'),
-      prev: root.querySelector('.tour-prev'), next: root.querySelector('.tour-next'), mute: root.querySelector('.tour-mute'), close: root.querySelector('.tour-close'),
+      prev: root.querySelector('.tour-prev'), next: root.querySelector('.tour-next'), mute: root.querySelector('.tour-mute'), music: root.querySelector('.tour-music'), close: root.querySelector('.tour-close'),
       fin: root.querySelector('.tour-fin'), finActs: root.querySelector('.tour-fin-acts'),
       dock: root.querySelector('.tour-dock'), dockGo: root.querySelector('.tour-dock-go'), dockSub: root.querySelector('.tour-dock-txt small'),
       dockTime: root.querySelector('.tour-dock-time i')
@@ -393,7 +458,8 @@
     ui.close.addEventListener('click', stop);
     root.querySelector('.tour-done').addEventListener('click', stop);
     root.querySelector('.tour-replay').addEventListener('click', function () {
-      if (!muted) { unlock(); bedOn(); }
+      if (!muted) unlock();
+      bedOn();
       try { if (window.gtag) gtag('event', 'tour_replay'); } catch (e) {}
       show(0);
     });
@@ -408,12 +474,20 @@
       muted = !muted;
       try { localStorage.setItem('shz_tour_muted', muted ? '1' : '0'); } catch (e) {}
       paintMute();
-      if (muted) bedOff(.4); else if (!fin) { unlock(); bedOn(); }
       if (fin) return;
-      if (muted) { stopAudio(); ui.card.classList.remove('has-env'); voiceNote(''); autoAdvance(STEPS[idx].say); } else show(idx);
+      if (muted) { stopAudio(); ui.card.classList.remove('has-env'); voiceNote(''); autoAdvance(STEPS[idx].say); } else { unlock(); show(idx); }
+    });
+    ui.music.addEventListener('click', function () {
+      musicOff = !musicOff;
+      try { localStorage.setItem('shz_tour_music', musicOff ? '0' : '1'); } catch (e) {}
+      paintMusic();
+      if (musicOff) bedOff(.4);
+      else if (!fin) { bedOn(); if (bed && idx >= 0) { bed.sc = { e: STEPS[idx].e, key: STEPS[idx].key }; if (run) { bedVoice = false; bedUnder(true); } } }
+      try { if (window.gtag) gtag('event', 'tour_music', { on: !musicOff }); } catch (e) {}
     });
     window.addEventListener('resize', function () { wpos = null; if (active && !fin && hlAt >= 0) pill(hlAt, true); });
     paintMute();
+    paintMusic();
     return ui;
   }
   function paintMute() {
@@ -421,6 +495,12 @@
       ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="m22 9-6 6M16 9l6 6"/></svg>'
       : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
     ui.mute.setAttribute('aria-label', muted ? 'Turn voice on' : 'Mute voice');
+  }
+
+  function paintMusic() {
+    ui.music.classList.toggle('on', !musicOff);
+    ui.music.setAttribute('aria-pressed', String(!musicOff));
+    ui.music.setAttribute('aria-label', musicOff ? 'Turn music on' : 'Turn music off');
   }
 
   /* the stop's colour: three numbers the stylesheet blends smoothly */
@@ -600,7 +680,8 @@
     window.removeEventListener('scroll', onDockScroll);
     endAnims();
     document.documentElement.classList.remove('tour-docked');
-    if (!muted) { unlock(); bedOn(); }
+    if (!muted) unlock();
+    bedOn();
     instantScroll(true);
     /* a dialog the action opened (the CV form) gives way to the tour */
     try { Array.prototype.forEach.call(document.querySelectorAll('#resumeGateModal.rg-open'), function (m) { m.classList.remove('rg-open'); }); } catch (e) {}
@@ -725,8 +806,16 @@
       return;
     }
     var ms = Math.round(Math.min(2300, Math.max(950, 700 + Math.sqrt(dist) * 24)));
+    /* with music on, the flight is stretched a touch to land exactly on its grid */
+    if (bed) {
+      try {
+        var now = bed.A.currentTime, soon = onGrid(now + ms / 1000, HALF_BAR);
+        bed.land = soon;
+        ms = Math.round((soon - now + delay()) * 1000);
+        sweepTone(bed.A, bed.A.destination, now, soon - now);
+      } catch (e) {}
+    }
     flying = true;
-    whoosh(ms);
     flight = { land: finish, drop: function () { over = true; clearTimeout(safety); cancelAnimationFrame(rid); flight = null; } };
     /* a hidden tab stops animation frames: never wait on them */
     safety = setTimeout(function () { window.scrollTo(0, aimAt(el)); finish(); }, ms + 900);
@@ -736,7 +825,7 @@
       var p = Math.min(1, Math.max(0, (now - t0) / ms));
       if (now >= reread) { reread = now + 200; to = aimAt(el); }
       window.scrollTo(0, from + (to - from) * easeFlight(p));
-      if (p < 1) rid = requestAnimationFrame(frame); else { arrive(); finish(); }
+      if (p < 1) rid = requestAnimationFrame(frame); else finish();
     };
     rid = requestAnimationFrame(frame);
   }
@@ -785,6 +874,7 @@
         while (c.beats.length && v.t >= when(c.beats[0])) {
           var b = c.beats.shift();
           spotEl = b.el; spotDirty = true;
+          bedHit();
           c.base = aimAt(b.el);
         }
         if (c.drift) {
@@ -1000,6 +1090,7 @@
       /* loudness from the clip; the live voice has none, so a gentle stand-in */
       var v = r.clock || a.paused ? 0 : env ? loud(env, fps, t) : 0.32 + 0.28 * Math.abs(Math.sin(t * 8.3) * Math.sin(t * 2.9 + 1.2));
       setAmp(v);
+      if (!r.clock && !a.paused) bedEnv(env ? loud(env, fps, t + .12) : .6);
       if (env) drawScope(env, fps, t, d);
       syncRaf = requestAnimationFrame(tick);
     })();
@@ -1037,7 +1128,7 @@
     stopAudio();
     stopCam();
     spotEl = null;
-    bedOff(2.6);
+    bedEnd();
     resetBar();
     voiceNote('');
     fin = true;
@@ -1129,7 +1220,7 @@
         bedUnder(false);
         follow(null); markAll();
         if (clip.env) drawScope(clip.env, clip.fps || 25, 1, 1);
-        timer = setTimeout(next, 450);
+        timer = setTimeout(next, Math.round(nextBeat(.2) * 1000));
       };
       audio.onended = end;
       audio.onerror = function () { if (my === token) rescue(run); };
@@ -1139,25 +1230,32 @@
         try { audio.currentTime = at; } catch (e) {}
         audio.onloadedmetadata = function () { try { if (audio && audio.currentTime < at - 0.3) audio.currentTime = at; } catch (e) {} };
       } else audio.src = clip.url;
-      follow(clip, my, end);
-      bedUnder(true);
-      var p = audio.play();
+      /* the music waits for nobody, so the voice joins it: its first word falls on a beat */
+      var begin = function () {
+        if (my !== token || !active || muted) return;
+        follow(clip, my, end);
+        bedUnder(true);
+        var p = audio.play();
+        voiceNote('');
+        if (p && p.catch) p.catch(function (err) {
+          if (my !== token || done) return;
+          if (err && err.name === 'AbortError') return;   // a newer play() took over; the watchdog keeps an eye on it
+          if (err && err.name === 'NotAllowedError') {
+            /* the browser blocked sound: say how to turn it on, keep the captions moving */
+            ui.orb.classList.remove('on');
+            ui.card.classList.remove('has-env');
+            follow(null);
+            voiceNote('Your browser blocked the sound — tap the speaker button to hear the voice.');
+            muted = true; paintMute();
+            autoAdvance(STEPS[i].say);
+            return;
+          }
+          rescue(run);                                     // try again from the server, else carry on silently
+        });
+      };
       voiceNote('');
-      if (p && p.catch) p.catch(function (err) {
-        if (my !== token || done) return;
-        if (err && err.name === 'AbortError') return;   // a newer play() took over; the watchdog keeps an eye on it
-        if (err && err.name === 'NotAllowedError') {
-          /* the browser blocked sound: say how to turn it on, keep the captions moving */
-          ui.orb.classList.remove('on');
-          ui.card.classList.remove('has-env');
-          follow(null);
-          voiceNote('Your browser blocked the sound — tap the speaker button to hear the voice.');
-          muted = true; paintMute();
-          autoAdvance(STEPS[i].say);
-          return;
-        }
-        rescue(run);                                     // try again from the server, else carry on silently
-      });
+      var wait = at > 0 ? 0 : voiceEntry(CLIP_LEAD);
+      if (wait > .02) timer = setTimeout(begin, Math.round(wait * 1000)); else begin();
       if (i + 1 < STEPS.length) setTimeout(function () { fetchVoice(i + 1).catch(function () {}); }, 400);
     }).catch(function () { clearTimeout(guard); captionsOnly(); });
   }
@@ -1177,6 +1275,7 @@
     stopAudio();
     stopCam();
     spotEl = null; handsOff = false; autoClock = null;
+    bedScene(STEPS[i].e, STEPS[i].key);
     resetBar();
     clearScope();
     voiceNote('');
@@ -1217,7 +1316,7 @@
     if (!active) return;
     if (e.key === 'Escape') { e.preventDefault(); stop(); }
     else if (e.key === 'ArrowRight' || (e.key === ' ' && e.target === document.body)) { e.preventDefault(); next(); }
-    else if (e.key === 'ArrowLeft') { e.preventDefault(); if (fin) { if (!muted) bedOn(); show(idx); } else if (idx > 0) show(idx - 1); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); if (fin) { bedOn(); show(idx); } else if (idx > 0) show(idx - 1); }
     else if (/^(ArrowUp|ArrowDown|PageUp|PageDown|Home|End)$/.test(e.key)) takeOver();
   }
 
@@ -1227,7 +1326,8 @@
       document.documentElement.classList.remove('tour-docked'); }
     if (active) return;
     build();
-    if (!muted) { unlock(); bedOn(); }   // must run inside the tap
+    if (!muted) unlock();   // must run inside the tap
+    bedOn();
     instantScroll(true);
     /* blocks that are only estimated until seen: give them their real size now, so every landing is exact */
     Array.prototype.forEach.call(document.querySelectorAll('.testimonials, .certifications'), function (b) { b.style.contentVisibility = 'visible'; });
@@ -1264,7 +1364,7 @@
     try { if (window.gtag) gtag('event', 'tour_end', { step: fin ? 'complete' : idx + 1 }); } catch (e) {}
   }
 
-  window.shzTour = { start: start, stop: stop };
+  window.shzTour = { start: start, stop: stop, clock: function () { return bed ? { t0: bed.t0, beat: BEAT, e: bed.sc.e } : null; } };
   document.addEventListener('click', function (e) {
     var t = e.target.closest && e.target.closest('[data-tour]');
     if (!t) return;

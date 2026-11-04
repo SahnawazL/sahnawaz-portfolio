@@ -83,6 +83,12 @@
 
 .tour-ic { all: unset; cursor: pointer; width: 30px; height: 30px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center;
   font: 400 1rem/1 'DM Sans', sans-serif; color: rgba(210,236,250,.8); background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); }
+.tour-music rect { transform-box: fill-box; transform-origin: center bottom; transform: scaleY(.35); }
+.tour-music.on { color: rgb(var(--acc)); }
+/* the bars move at the track's own tempo (124 BPM) */
+.tour-music.on rect { animation: tourEq .484s ease-in-out infinite alternate; }
+.tour-music.on rect:nth-child(2) { animation-delay: -.16s; } .tour-music.on rect:nth-child(3) { animation-delay: -.32s; }
+@keyframes tourEq { from { transform: scaleY(.35); } to { transform: scaleY(1); } }
 .tour-ic:hover { color: #fff; background: rgba(255,255,255,.08); }
 .tour-close { font-size: 1.25rem; }
 .tour-ic:focus-visible, .tour-btn:focus-visible, .tour-dot:focus-visible, .tour-act:focus-visible, .tour-link:focus-visible { outline: 2px solid #7dd3fc; outline-offset: 2px; }
@@ -145,7 +151,7 @@
 /* the closing card */
 .tour-fin { text-align: center; padding: .35rem .2rem .1rem; }
 .tour-fin[hidden] { display: none; }
-.tour-card.fin .tour-body, .tour-card.fin .tour-meter, .tour-card.fin .tour-nav, .tour-card.fin .tour-mute, .tour-card.fin .tour-voice-tag { display: none; }
+.tour-card.fin .tour-body, .tour-card.fin .tour-meter, .tour-card.fin .tour-nav, .tour-card.fin .tour-mute, .tour-card.fin .tour-music, .tour-card.fin .tour-voice-tag { display: none; }
 .tour-card.fin .tour-step { margin-right: auto; }
 .tour-fin-mark { width: 52px; height: 52px; margin: .2rem auto .55rem; display: grid; place-items: center; border-radius: 50%;
   background: radial-gradient(circle, rgba(var(--acc),.16), rgba(var(--acc),0) 70%); }
@@ -206,5 +212,6 @@ html.tour-on .sw-bar, html.tour-on #chatPill, html.tour-on .chat-nudge { visibil
   .tour-root { transition: opacity .3s; }
   .tour-spot { transition: opacity .3s ease; } .tour-pill-play, .tour-body.in, .tour-orb i, .tour-orb::before, .tour-spot.sweep::after, .tour-spot.sweep2::after, .tour-fin.play > *, .tour-fin.play .tour-fin-mark circle, .tour-fin.play .tour-fin-mark path { animation: none !important; }
   .tour-body, .tour-text .tw, .tour-hl, .tour-hl.trail, .tour-act { transition: none; }
+  .tour-music.on rect { animation: none; transform: scaleY(.8); }
 }
 @media print { .tour-root, .tour-pill-wrap { display: none !important; } }
