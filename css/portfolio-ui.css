@@ -4628,6 +4628,14 @@ header::after {
   justify-content: space-between;
   margin-bottom: 0.9rem;
 }
+.mpj-card-top:has(.mpj-owner) { gap: .5rem; }
+.mpj-card-top:has(.mpj-owner) .mpj-card-status { flex: none; white-space: nowrap; }
+.mpj-owner { display: flex; align-items: center; gap: .7rem; min-width: 0; text-align: left; }
+.mpj-owner-pic { flex: none; width: 58px; height: 58px; padding: 2px; border-radius: 50%; background: linear-gradient(135deg, #00ffe7, #00c6ff); box-shadow: 0 6px 18px rgba(0,0,0,.4), 0 0 18px rgba(0,230,220,.18); box-sizing: border-box; }
+.mpj-owner-pic img { display: block; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; object-position: center 20%; border: 2px solid #0d1b2a; box-sizing: border-box; }
+.mpj-owner-txt { display: flex; flex-direction: column; gap: .2rem; min-width: 0; }
+.mpj-owner-txt b { font: 700 .92rem/1.2 'DM Sans', system-ui, sans-serif; color: #f0fdff; letter-spacing: -.005em; }
+.mpj-owner-txt small { font: 500 .7rem/1.3 'DM Sans', system-ui, sans-serif; color: rgba(150,215,235,.72); }
 .mpj-card-icon {
   width: 42px;
   height: 42px;
