@@ -1,0 +1,39 @@
+/* speaker buttons and the player (js/listen.js) — loaded only when needed */
+.sl-pill { all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; gap: .4rem; margin: .1rem 0 .6rem; padding: .42rem .7rem; border-radius: 999px;
+  font: 600 .74rem/1 'DM Sans', system-ui, sans-serif; color: #dffcf6; background: rgba(0,255,208,.09); border: 1px solid rgba(0,255,208,.34);
+  -webkit-tap-highlight-color: transparent; transition: background .2s ease, border-color .2s ease, transform .15s ease; }
+.sl-pill[hidden] { display: none; }
+.sl-pill svg { color: #00ffd0; flex: none; }
+.sl-pill small { font: 600 .66rem/1 'DM Mono', 'Courier New', monospace; opacity: .66; }
+.sl-pill:hover { background: rgba(0,255,208,.16); border-color: rgba(0,255,208,.6); }
+.sl-pill:active { transform: scale(.97); }
+.sl-pill:focus-visible { outline: 2px solid #7dd3fc; outline-offset: 2px; }
+.sl-pill[data-state="off"] { color: #fcd34d; border-color: rgba(252,211,77,.4); background: rgba(252,211,77,.08); }
+.mpj-card-links .sl-pill { margin: 0; }
+.wio-back .sl-pill { margin: .5rem auto .1rem; align-self: center; }
+.sl-spin { width: 12px; height: 12px; border-radius: 50%; border: 2px solid rgba(0,255,208,.25); border-top-color: #00ffd0; animation: slSpin .8s linear infinite; }
+@keyframes slSpin { to { transform: rotate(360deg); } }
+.sl-eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 12px; }
+.sl-eq b { display: block; width: 3px; height: 100%; border-radius: 2px; background: #00ffd0; transform-origin: bottom; animation: slEq .484s ease-in-out infinite alternate; }
+.sl-eq b:nth-child(2) { animation-delay: -.16s; } .sl-eq b:nth-child(3) { animation-delay: -.32s; }
+@keyframes slEq { from { transform: scaleY(.3); } to { transform: scaleY(1); } }
+
+.sl-bar { position: fixed; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); z-index: 2147481500; width: min(94vw, 470px); box-sizing: border-box; display: flex; align-items: center; gap: .55rem;
+  padding: .55rem .6rem; border-radius: 18px; background: linear-gradient(160deg, rgba(10,30,44,.98), rgba(4,14,23,.99)); border: 1px solid rgba(0,255,208,.26);
+  box-shadow: 0 18px 50px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.07), 0 0 30px rgba(0,255,208,.1);
+  transform: translate(-50%, 130%); opacity: 0; visibility: hidden; transition: transform .34s cubic-bezier(.2,.9,.25,1), opacity .25s ease, visibility 0s linear .34s; }
+.sl-bar.sl-open { transform: translate(-50%, 0); opacity: 1; visibility: visible; transition: transform .34s cubic-bezier(.2,.9,.25,1), opacity .25s ease; }
+.sl-go { all: unset; box-sizing: border-box; cursor: pointer; flex: none; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; color: #021018; background: linear-gradient(135deg, #00ffd0, #38bdf8); box-shadow: 0 6px 16px rgba(0,255,208,.25); }
+.sl-mid { flex: 1; min-width: 0; }
+.sl-line { margin: 0 0 .35rem; min-height: 2.5em; font: 500 .8rem/1.25 'DM Sans', system-ui, sans-serif; color: rgba(190,220,236,.5); }
+.sl-line span { transition: color .16s ease; }
+.sl-line .sl-said { color: rgba(226,244,252,.92); }
+.sl-line .sl-now { color: #fff; text-shadow: 0 0 12px rgba(0,255,208,.6); }
+.sl-track { height: 3px; border-radius: 3px; overflow: hidden; background: rgba(255,255,255,.1); }
+.sl-track i { display: block; height: 100%; background: linear-gradient(90deg, #00ffd0, #38bdf8); transform: scaleX(0); transform-origin: left center; }
+.sl-tag { flex: none; align-self: flex-start; margin-top: .1rem; font: 600 .56rem/1 'DM Sans', sans-serif; letter-spacing: .05em; text-transform: uppercase; color: rgba(0,255,208,.72); padding: .22rem .34rem; border-radius: 5px; border: 1px solid rgba(0,255,208,.18); white-space: nowrap; }
+.sl-x { all: unset; box-sizing: border-box; cursor: pointer; flex: none; align-self: flex-start; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; font: 400 1.05rem/1 'DM Sans', sans-serif; color: rgba(210,236,250,.75); background: rgba(255,255,255,.05); }
+.sl-go:focus-visible, .sl-x:focus-visible { outline: 2px solid #7dd3fc; outline-offset: 2px; }
+html.tour-on .sl-pill { pointer-events: none; opacity: .4; }
+@media (prefers-reduced-motion: reduce) { .sl-eq b { animation: none; } .sl-spin { animation-duration: 2s; } .sl-bar { transition: opacity .2s ease, visibility 0s linear .2s; } }
+@media print { .sl-pill, .sl-bar { display: none !important; } }
