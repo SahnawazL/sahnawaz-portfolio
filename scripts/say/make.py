@@ -13,7 +13,7 @@ import numpy as np
 from faster_whisper import WhisperModel
 from orpheus_cpp import OrpheusCpp
 
-VERSION = "s1"
+VERSION = "s2"
 OUT = "audio/say"
 BEAT = 60 / 124
 LEAD = BEAT * 2          # the music opens for half a bar, and the voice enters on the beat
@@ -90,8 +90,11 @@ def trim(a, sr):
 def heard(a, sr):
     x = a.astype(np.float32) / 32768
     if sr != 16000: x = np.interp(np.arange(0, len(x), sr / 16000), np.arange(len(x)), x).astype(np.float32)
-    seg, _ = ear.transcribe(x, beam_size=3, condition_on_previous_text=False, vad_filter=False)
-    return " ".join(s.text for s in seg)
+    seg, _ = ear.transcribe(x, beam_size=3, condition_on_previous_text=False, vad_filter=False, word_timestamps=True)
+    out = []
+    for s in seg:
+        for w in (s.words or []): out.append((w.word, float(w.start), float(w.end)))
+    return out
 
 def perform(v, sentence):
     """one sentence, checked; returns (audio, sample rate, score) or None"""
@@ -99,25 +102,47 @@ def perform(v, sentence):
     for attempt, (temp, top_p) in enumerate([(.6, .9), (.7, .95), (.5, .9), (.8, .95), (.55, .85)]):
         sr, a = voice.tts(spoken(sentence), options={"voice_id": v, "max_tokens": 2048, "temperature": temp, "top_p": top_p})
         a = trim(np.squeeze(np.asarray(a)).astype(np.int16), sr)
-        got = plain(heard(a, sr))
+        said = heard(a, sr)
+        got = plain(" ".join(w[0] for w in said))
         score = difflib.SequenceMatcher(None, want, got).ratio()
         long = len(got) > len(want) * 1.2 + 2                     # a repeat
         secs = len(a) / sr; pace = secs / max(1, len(want))
         slack = len(re.findall(r"<\w+>", sentence))
         odd = pace > .85 + slack * .6                              # far too slow: a stall or a loop
-        if best is None or score > best[2]: best = (a, sr, score)
+        if best is None or score > best[2]: best = (a, sr, score, said)
         print(f"   try {attempt + 1}: {score:.2f} {secs:.1f}s {' '.join(got)[:90]}", flush=True)
-        if score >= .86 and not long and not odd: return (a, sr, score)
-    a, sr, score = best
-    return best if score >= .92 else None
+        if score >= .86 and not long and not odd: return (a, sr, score, said)
+    return best if best[2] >= .92 else None
 
-def words_of(sentence, start, end):
-    """times for a sentence's caption words, shared by their letters"""
+def words_of(sentence, said, start, length):
+    """the moment each caption word is really spoken: the recogniser's own word
+    times, matched to the script; the rare word it missed sits between its neighbours"""
     ws = caption(sentence).split(" ")
-    n = [max(1, len(re.sub(r"\W", "", w))) for w in ws]; tot = sum(n); acc = 0; out = []
-    for k in n:
-        out.append([round(start + (end - start) * acc / tot, 3), round(start + (end - start) * (acc + k) / tot, 3)]); acc += k
-    return ws, out
+    want, owner = [], []
+    for k, w in enumerate(ws):
+        for t in plain(spoken(w)): want.append(t); owner.append(k)
+    heard_t, times = [], []
+    for w, a, b in said:
+        for t in plain(w): heard_t.append(t); times.append((a, b))
+    first, last = [None] * len(ws), [None] * len(ws)
+    for m in difflib.SequenceMatcher(None, want, heard_t, autojunk=False).get_matching_blocks():
+        for n in range(m.size):
+            k = owner[m.a + n]; a, b = times[m.b + n]
+            if first[k] is None: first[k] = a
+            last[k] = b
+    hits = [k for k in range(len(ws)) if first[k] is not None]
+    miss = len(ws) - len(hits)
+    if miss: print(f"   {miss} of {len(ws)} words placed by neighbours", flush=True)
+    for k in range(len(ws)):
+        if first[k] is None:
+            before = max([h for h in hits if h < k], default=None); after = min([h for h in hits if h > k], default=None)
+            lo = last[before] if before is not None else 0.0
+            hi = first[after] if after is not None else length
+            lo_k = before if before is not None else -1; hi_k = after if after is not None else len(ws)
+            f = (k - lo_k) / (hi_k - lo_k)
+            first[k] = lo + (hi - lo) * f - (hi - lo) / (hi_k - lo_k) * 0
+            last[k] = first[k] + (hi - lo) / (hi_k - lo_k)
+    return ws, [[round(start + first[k], 3), round(start + max(first[k], last[k]), 3)] for k in range(len(ws))]
 
 def envelope(path, fps=25):
     raw = subprocess.check_output(["ffmpeg", "-v", "error", "-i", path, "-f", "s16le", "-ac", "1", "-ar", "8000", "-"])
@@ -134,12 +159,12 @@ def make(cid, energy, turns, h):
             print(f"  {cid} [{v}] {caption(s)[:70]}", flush=True)
             got = perform(v, s)
             if not got: print(f"LEFT OUT {cid}: couldn't get a clean read", flush=True); return False
-            a, sr, score = got; sr0 = sr
+            a, sr, score, said = got; sr0 = sr
             if parts:
                 gap = GAP["turn" if v != last_v else "same"]
                 parts.append(np.zeros(int(gap * sr), np.int16)); at += gap
             end = at + len(a) / sr
-            ws, ts = words_of(s, at, end)
+            ws, ts = words_of(s, said, at, len(a) / sr)
             if last_v is not None and v != last_v: speakers.append(len(words))
             words += ts; text += ws; parts.append(a); at = end; last_v = v
     raw = f"/tmp/{cid}.wav"
