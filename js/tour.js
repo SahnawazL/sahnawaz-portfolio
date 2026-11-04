@@ -66,11 +66,11 @@
      of it is put back when the stop ends. stay: leave the page and spotlight put. */
   var STEPS = [
     { k: 'hi', sel: '#heroStatsBar', e: 1, key: 0, title: 'Hi, I’m Sahnawaz', acc: [0, 255, 208],
-      say: 'Hi, I’m Sahnawaz — a full-stack developer and UI designer from Assam. Everything on this site is hand-coded, with no templates. What brings you here today?',
+      say: 'Hi, I’m Sahnawaz, a full-stack developer and UI designer. What brings you here today?',
       choose: true,
-      acts: [{ id: 'pick_hire', label: 'I’m hiring', sub: '2 min', icon: 'brief', pick: 'hire', main: true },
-        { id: 'pick_build', label: 'I need a website', sub: '1 min', icon: 'pen', pick: 'build' },
-        { id: 'pick_all', label: 'Show me everything', sub: '3 min', icon: 'code', pick: 'all' }] },
+      acts: [{ id: 'pick_hire', label: 'I’m hiring', sub: '2 min', icon: 'brief', pick: 'hire' },
+        { id: 'pick_build', label: 'Need a website', sub: '1 min', icon: 'pen', pick: 'build' },
+        { id: 'pick_all', label: 'See everything', sub: '3 min', icon: 'code', pick: 'all' }] },
     { k: 'projects', sel: '#my-projects', e: 2, key: 0, title: 'Built and shipped', acc: [56, 189, 248],
       say: 'These are the products I’ve built and shipped. This very website, StudyLens AI, a homework helper for students, and YojanaSahay, a free government-scheme finder used across India.',
       beats: [{ at: 'website', find: '.mpj-card', has: 'This Portfolio' }, { at: 'StudyLens', find: '.mpj-card', has: 'StudyLens' }, { at: 'YojanaSahay', find: '.mpj-card', has: 'YojanaSahay' }],
@@ -130,6 +130,14 @@
     build: ['hi', 'projects', 'offer', 'check', 'quotes', 'byeBuild']
   };
   var route = 'all', choosing = false, choiceWaited = false;
+  /* The path to suggest: where this visit came from first (a jobs site means
+     someone hiring), then what they chose last time. Nothing else is guessed. */
+  var JOB_SITES = /(^|\.)(linkedin|naukri|indeed|glassdoor|wellfound|instahyre|foundit|hirist|cutshort)\./i;
+  function lastPath() { try { var p = localStorage.getItem('shz_tour_path'); return ROUTES[p] ? p : null; } catch (e) { return null; } }
+  function suggestion() {
+    try { if (JOB_SITES.test(new URL(document.referrer).hostname)) return 'hire'; } catch (e) {}
+    return lastPath();
+  }
   function useRoute(name) {
     route = name;
     STEPS = ROUTES[name].map(function (k) { return BY[k]; });
@@ -492,7 +500,7 @@
     };
     paintDots();
     ui.prev.addEventListener('click', function () { if (idx > 0) show(idx - 1); });
-    ui.next.addEventListener('click', function () { if (choosing) pick('all'); else if (idx < STEPS.length - 1) show(idx + 1); else finish(); });
+    ui.next.addEventListener('click', function () { if (idx < STEPS.length - 1) show(idx + 1); else finish(); });
     ui.close.addEventListener('click', stop);
     root.querySelector('.tour-done').addEventListener('click', stop);
     root.querySelector('.tour-replay').addEventListener('click', function () {
@@ -537,9 +545,10 @@
       d.addEventListener('click', function () { show(i); }); ui.dots.appendChild(d);
     });
   }
-  /* the visitor said what they came for */
-  function pick(name) {
+  /* the visitor said what they came for (`auto`: nobody answered) */
+  function pick(name, auto) {
     if (!active || !ROUTES[name]) return;
+    if (!auto) { try { localStorage.setItem('shz_tour_path', name); } catch (e) {} }
     try { if (window.gtag) gtag('event', 'tour_path', { path: name }); } catch (e) {}
     if (stat) { stat.path = name; stat.dirty = true; }
     useRoute(name);
@@ -612,6 +621,10 @@
       if (a.href) { el.href = a.href; el.target = '_blank'; el.rel = 'noopener'; } else el.type = 'button';
       el.innerHTML = icon(a.icon) + '<span>' + a.label + '</span>' + (a.sub ? '<small>' + a.sub + '</small>' : '');
       el.addEventListener('click', function (e) { act(a, e); });
+      if (a.pick) {
+        el.setAttribute('data-pick', a.pick);
+        if (a.pick === suggestion()) { el.classList.add('main'); el.insertAdjacentHTML('afterbegin', '<em>For you</em>'); }
+      }
       box.appendChild(el);
     });
   }
@@ -1290,11 +1303,12 @@
   function next() {
     if (!active || fin) return;
     if (choosing) {
-      /* the question gets a moment; with no answer the full tour carries on */
-      if (choiceWaited) { pick('all'); return; }
+      /* the question gets a moment; with no answer the suggested path, or the full tour, carries on */
+      var fallback = suggestion() || 'all';
+      if (choiceWaited) { pick(fallback, true); return; }
       choiceWaited = true;
-      ui.card.classList.remove('has-env');
-      progress(9000);
+      var chip = ui.acts.querySelector('[data-pick="' + fallback + '"]');
+      if (chip) chip.classList.add('counting');            // its button fills up, so the wait explains itself
       timer = setTimeout(next, 9000);
       return;
     }
@@ -1471,9 +1485,9 @@
     setAccent(s.acc);
     choosing = !!s.choose; choiceWaited = false;
     ui.card.classList.toggle('choosing', choosing);
-    ui.step.textContent = choosing ? 'Welcome' : i + ' / ' + (STEPS.length - 1);
+    ui.step.textContent = choosing ? (lastPath() ? 'Welcome back' : 'Welcome') : i + ' / ' + (STEPS.length - 1);
     ui.prev.disabled = i === 0;
-    ui.next.textContent = choosing ? 'Full tour ›' : i === STEPS.length - 1 ? 'Finish' : 'Next ›';
+    ui.next.textContent = i === STEPS.length - 1 ? 'Finish' : 'Next ›';
     if (stat && stat.stops.indexOf(s.k) < 0) { stat.stops.push(s.k); stat.dirty = true; }
     Array.prototype.forEach.call(ui.dots.children, function (d, k) { d.classList.toggle('on', k === i); d.setAttribute('aria-current', k === i ? 'step' : 'false'); });
     if (!muted) fetchVoice(i).catch(function () {});   // fetch the voice while the page scrolls
@@ -1504,7 +1518,7 @@
   function onKey(e) {
     if (!active) return;
     if (e.key === 'Escape') { e.preventDefault(); stop(); }
-    else if (e.key === 'ArrowRight' || (e.key === ' ' && e.target === document.body)) { e.preventDefault(); if (choosing) pick('all'); else next(); }
+    else if (e.key === 'ArrowRight' || (e.key === ' ' && e.target === document.body)) { e.preventDefault(); if (choosing) pick(suggestion() || 'all'); else next(); }
     else if (e.key === 'ArrowLeft') { e.preventDefault(); if (fin) { bedOn(); show(idx); } else if (idx > 0) show(idx - 1); }
     else if (/^(ArrowUp|ArrowDown|PageUp|PageDown|Home|End)$/.test(e.key)) takeOver();
   }
@@ -1534,7 +1548,7 @@
     track();
     idx = -1;
     show(0);
-    setTimeout(function () { try { ui.next.focus({ preventScroll: true }); } catch (e) {} }, 50);
+    setTimeout(function () { try { (ui.acts.querySelector('.tour-act') || ui.next).focus({ preventScroll: true }); } catch (e) {} }, 50);
     try { if (window.gtag) gtag('event', 'tour_start'); } catch (e) {}
   }
   function cleanup() {

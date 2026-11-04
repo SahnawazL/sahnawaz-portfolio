@@ -119,18 +119,24 @@
 /* quick actions for this stop */
 .tour-acts { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: .75rem; }
 .tour-acts:empty { display: none; }
-.tour-acts.picks { flex-direction: column; }
-.tour-acts.picks .tour-act { display: flex; width: 100%; padding: .68rem .85rem; font-size: .86rem; }
-.tour-acts.picks .tour-act span { flex: 1; }
-.tour-acts.picks .tour-act small { font: 600 .68rem/1 'DM Sans', sans-serif; opacity: .72; }
-.tour-card.choosing .tour-dots { visibility: hidden; }
 .tour-card { max-height: calc(100dvh - 24px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
-@media (max-height: 700px) {
-  .tour-card.choosing .tour-meter { display: none; }
-  .tour-card.choosing .tour-text { min-height: 0; font-size: .86rem; line-height: 1.5; }
-  .tour-acts.picks { gap: .32rem; margin-top: .55rem; }
-  .tour-acts.picks .tour-act { padding: .52rem .8rem; }
-}
+/* the welcome: as small as it can be, so the page stays in view */
+.tour-card.choosing { padding-bottom: .9rem; }
+.tour-card.choosing .tour-title, .tour-card.choosing .tour-nav { display: none; }
+.tour-card.choosing .tour-text { min-height: 0; margin-top: .5rem; font-size: .9rem; line-height: 1.5; }
+.tour-card.choosing .tour-meter { height: 12px; margin: .55rem 0 0; }
+.tour-acts.picks { display: grid; grid-template-columns: repeat(3, 1fr); gap: .4rem; margin-top: .6rem; }
+.tour-acts.picks .tour-act { position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3rem; width: auto; min-height: 76px;
+  padding: .55rem .25rem .5rem; border-radius: 14px; font-size: .76rem; line-height: 1.15; text-align: center; }
+.tour-acts.picks .tour-act > * { position: relative; z-index: 1; }
+.tour-acts.picks .tour-act small { font: 600 .64rem/1 'DM Sans', sans-serif; opacity: .68; }
+.tour-acts.picks .tour-act em { position: absolute; top: 0; right: 0; padding: .16rem .36rem; border-radius: 0 0 0 8px; font: 700 .52rem/1.2 'DM Sans', sans-serif; letter-spacing: .03em; font-style: normal; background: rgba(2,16,24,.82); color: #7dfce4; }
+/* no answer yet: the button that will go by itself fills up */
+.tour-act.counting::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; transform-origin: left center; background: rgb(var(--acc)); animation: tourCount 9s linear forwards; }
+.tour-act.main.counting::after { background: #021018; }
+@keyframes tourCount { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.tour-card.choosing .tour-dots { visibility: hidden; }
+@media (max-height: 620px) { .tour-card.choosing .tour-meter { display: none; } .tour-acts.picks .tour-act { min-height: 62px; } }
 .tour-act { all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; gap: .42rem;
   padding: .48rem .78rem; border-radius: 999px; font: 600 .78rem/1 'DM Sans', system-ui, sans-serif; color: #eefaff;
   background: rgba(var(--acc),.09); border: 1px solid rgba(var(--acc),.32);
