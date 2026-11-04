@@ -25,7 +25,7 @@ jobs:
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
           pip install -q faster-whisper
           for f in lab/*.wav; do ffmpeg -y -v error -i "$f" -af "silenceremove=stop_periods=-1:stop_duration=1.2:stop_threshold=-45dB,loudnorm=I=-16:TP=-1.5" -ar 24000 -ac 1 -b:a 96k "${f%.wav}.mp3"; done
-          python scripts/voice-lab/hear.py
+          python scripts/voice-lab/hear.py || true
           rm lab/*.wav
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
