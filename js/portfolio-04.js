@@ -210,7 +210,7 @@
 
     studylens: {
       accent: '#a78bfa',
-      icon: '📚',
+      icon: '<span class="cs-logo brand-own"><img src="studylens-logo.svg" alt="StudyLens AI logo" width="46" height="46"></span>',
       status: '● LIVE — studylens-ai-gamma.vercel.app',
       title: 'StudyLens AI — AI Homework Helper',
       lede: 'Students across Assam follow different boards (SEBA, AHSEC, CBSE, ICSE) and different home languages, but most AI study tools assume one syllabus in one language. StudyLens AI lets a student pick their board, class and subject, then ask a question by typing it or snapping a photo of the textbook page — and get a step-by-step answer in English, Bengali, Hindi or Assamese.',
