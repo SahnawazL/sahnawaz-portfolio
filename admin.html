@@ -1537,6 +1537,22 @@
       <div class="chart-card"><div class="chart-title">Cities</div><div id="trafficCities"><div class="empty-state">Loading…</div></div></div>
       <div class="chart-card"><div class="chart-title">Busiest hours (India time)</div><div class="hours-bars" id="trafficHours"></div><div class="hours-axis"><span>12 am</span><span>6 am</span><span>12 pm</span><span>6 pm</span><span>11 pm</span></div><div class="chart-subtitle" id="trafficDevices"></div></div>
     </div>
+    <div class="section-head" style="margin-top:28px">
+      <span class="section-head-title">Guided tour</span>
+      <div class="section-head-line"></div>
+      <span class="section-count" id="tourCount">loading…</span>
+    </div>
+    <p class="panel-note">One anonymous record per tour: the path chosen, how far it got, which buttons were tapped and how long it ran. Same time range as above. Your own browser isn't counted once it has opened this page.</p>
+    <div class="stats-row traffic-stats" id="tourStats"></div>
+    <div class="charts-row">
+      <div class="chart-card"><div class="chart-title">What people chose (% who finished)</div><div id="tourPaths"><div class="empty-state">Loading…</div></div></div>
+      <div class="chart-card"><div class="chart-title">Buttons tapped during the tour</div><div id="tourActs"><div class="empty-state">Loading…</div></div></div>
+    </div>
+    <div class="charts-row">
+      <div class="chart-card"><div class="chart-title">Hiring path: how far people got</div><div id="tourHire"><div class="empty-state">Loading…</div></div></div>
+      <div class="chart-card"><div class="chart-title">Website path: how far people got</div><div id="tourBuild"><div class="empty-state">Loading…</div></div></div>
+    </div>
+    <div class="chart-card analytics-block"><div class="chart-title">Full tour: how far people got</div><div id="tourAll"><div class="empty-state">Loading…</div></div></div>
     </div>
 
     <div class="panel" id="panel-visitors">
@@ -4051,7 +4067,7 @@
     });
   }
   function loadAdminData() {
-    return adminApi('GET', '&days=' + trafficDays).then(function (d) { adminData = d; adminErr = ''; })
+    return adminApi('GET', '&days=' + trafficDays).then(function (d) { adminData = d; adminErr = ''; try { localStorage.setItem('shz_owner', '1'); } catch (e) {} })
       .catch(function (e) { adminErr = (e && e.message) || 'unavailable'; if (!adminData) adminData = null; });
   }
 
@@ -4261,6 +4277,37 @@
         + '<div class="rank-bar-track"><div class="rank-bar-fill" style="width:' + Math.round(r[1] / max * 100) + '%"></div></div><div class="rank-count">' + r[1] + '</div></div>';
     }).join('');
   }
+  var TOUR_NAMES = { hi: 'Welcome', projects: 'Projects', live: 'Live numbers', exp: 'Work experience', wins: 'Achievements', tools: 'Tech stack', ship: 'How I ship', tele: 'Telemetry',
+    fit: 'Job fit', offer: 'What I offer', check: 'Website check', quotes: 'Testimonials', talk: 'Contact', byeHire: 'Contact', byeBuild: 'Contact',
+    all: 'Show me everything', hire: 'I’m hiring', build: 'I need a website', none: 'Left at the question',
+    cv: 'Get my CV', yojana: 'Open YojanaSahay', github: 'Open my GitHub', code: 'See this site’s code', jobfit: 'Try a job post', webcheck: 'Check my website', whatsapp: 'WhatsApp',
+    fin_hire: 'End: Hire me / Start a project', fin_whatsapp: 'End: WhatsApp', fin_cv: 'End: Get my CV', fin_jobfit: 'End: Check my fit', fin_check: 'End: Check my website' };
+  function renderTour() {
+    var t = adminData && adminData.tour, count = document.getElementById('tourCount');
+    if (!count) return;
+    var name = function (k) { return TOUR_NAMES[k] || k; };
+    var boxes = ['tourPaths', 'tourActs', 'tourHire', 'tourBuild', 'tourAll'];
+    if (!t || !t.runs) {
+      count.textContent = t ? 'no tours yet' : 'unavailable';
+      document.getElementById('tourStats').innerHTML = '';
+      boxes.forEach(function (b) { rankPairs(b, [], t ? 'No tours in this period yet.' : 'Couldn’t load.'); });
+      return;
+    }
+    count.textContent = t.runs + ' tours · last ' + t.days + ' days' + (t.capped ? ' (latest 2,000)' : '');
+    var stat = function (n, label, sub, cls) { return '<div class="stat-card ' + (cls || 'stat-accent-cyan') + '"><div class="stat-num">' + n + '</div><div class="stat-label">' + label + '</div>' + (sub ? '<div class="stat-sub">' + sub + '</div>' : '') + '</div>'; };
+    var clock = function (s) { return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); };
+    var tapped = (t.acts || []).reduce(function (a, r) { return a + r[1]; }, 0);
+    document.getElementById('tourStats').innerHTML =
+      stat(t.runs, 'Tours started') +
+      stat(Math.round(t.finished / t.runs * 100) + '%', 'Finished', t.finished + ' of ' + t.runs, 'stat-accent-green') +
+      stat(clock(t.avgSecs), 'Average time') +
+      stat(tapped, 'Buttons tapped', '', 'stat-accent-yellow');
+    var P = t.paths || {};
+    rankPairs('tourPaths', Object.keys(P).map(function (k) { return [name(k) + ' · ' + Math.round(P[k].finished / P[k].runs * 100) + '%', P[k].runs]; }).sort(function (a, b) { return b[1] - a[1]; }), 'No tours yet.');
+    rankPairs('tourActs', (t.acts || []).map(function (r) { return [name(r[0]), r[1]]; }), 'No buttons tapped yet.');
+    var reach = function (id, k) { rankPairs(id, ((P[k] && P[k].stops) || []).map(function (r) { return [name(r[0]), r[1]]; }), 'Nobody took this path yet.'); };
+    reach('tourHire', 'hire'); reach('tourBuild', 'build'); reach('tourAll', 'all');
+  }
   function renderTraffic() {
     var t = adminData && adminData.traffic;
     var nav = document.getElementById('navCountTraffic');
@@ -4317,11 +4364,11 @@
     btn.classList.add('active');
     trafficDays = parseInt(btn.getAttribute('data-days'), 10) || 30;
     document.getElementById('trafficCount').textContent = 'loading…';
-    adminApi('GET', '&days=' + trafficDays).then(function (d) { adminData.traffic = d.traffic; renderTraffic(); })
+    adminApi('GET', '&days=' + trafficDays).then(function (d) { adminData.traffic = d.traffic; adminData.tour = d.tour; renderTraffic(); renderTour(); })
       .catch(function (e) { adminErr = e.message; renderTraffic(); });
   };
 
-  function afterAdminLoad() { buildLeads(); renderLeads(); renderAttention(); renderTraffic(); }
+  function afterAdminLoad() { buildLeads(); renderLeads(); renderAttention(); renderTraffic(); renderTour(); }
 
   /* coming back to the tab after a while: fresh numbers, no button press */
   var lastLoadAt = 0;

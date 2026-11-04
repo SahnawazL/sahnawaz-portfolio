@@ -152,6 +152,31 @@ async function traffic(db, days) {
   return data;
 }
 
+let tourCache = null;
+async function tourStats(db, days) {
+  if (tourCache && tourCache.days === days && Date.now() - tourCache.at < 5 * 60e3) return tourCache.data;
+  const since = new Date(Date.now() - days * DAY);
+  const snap = await db.collection('tourRuns').where('ts', '>=', since).orderBy('ts', 'desc').limit(2000).get();
+  const P = {}, acts = {};
+  let finished = 0, secs = 0, runs = 0;
+  snap.forEach(d => {
+    const x = d.data() || {}, path = x.path || 'none';
+    const p = P[path] || (P[path] = { runs: 0, finished: 0, secs: 0, stops: {} });
+    runs++; p.runs++; p.secs += x.secs || 0; secs += x.secs || 0;
+    if (x.done) { p.finished++; finished++; }
+    (x.stops || []).forEach(k => bump(p.stops, k));
+    (x.acts || []).forEach(k => bump(acts, k));
+  });
+  const paths = {};
+  Object.keys(P).forEach(k => {
+    const p = P[k];
+    paths[k] = { runs: p.runs, finished: p.finished, avgSecs: Math.round(p.secs / p.runs), stops: top(p.stops, 20) };
+  });
+  const data = { days, runs, finished, avgSecs: runs ? Math.round(secs / runs) : 0, capped: snap.size >= 2000, paths, acts: top(acts, 12) };
+  tourCache = { at: Date.now(), days, data };
+  return data;
+}
+
 async function adminData(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   const db = getDb();
@@ -172,11 +197,12 @@ async function adminData(req, res) {
 
   const days = Math.max(7, Math.min(90, parseInt(req.query.days, 10) || 30));
   const safe = p => p.catch(e => ({ __error: (e && e.message) || 'failed' }));
-  const [fitSnap, checkSnap, handledSnap, traf] = await Promise.all([
+  const [fitSnap, checkSnap, handledSnap, traf, tour] = await Promise.all([
     safe(db.collection('jobFitReports').orderBy('createdAt', 'desc').limit(60).get()),
     safe(db.collection('websiteChecks').orderBy('checkedAt', 'desc').limit(40).get()),
     safe(state.get()),
-    safe(traffic(db, days))
+    safe(traffic(db, days)),
+    safe(tourStats(db, days))
   ]);
   const fit = fitSnap.__error ? null : fitSnap.docs.map(d => {
     const x = d.data() || {}, r = x.result || {};
@@ -193,6 +219,7 @@ async function adminData(req, res) {
     fit, checks,
     handled: handledSnap.__error ? {} : (handledSnap.exists ? handledSnap.data() : {}),
     traffic: traf.__error ? null : traf,
+    tour: tour.__error ? null : tour,
     errors: [fitSnap, checkSnap, traf].filter(x => x && x.__error).map(x => x.__error)
   });
 }

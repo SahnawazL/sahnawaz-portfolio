@@ -1,7 +1,8 @@
 /* ============================================================
    3-MINUTE TOUR — a guided, narrated walk through the site.
    Any element with [data-tour] starts it (hero pill, Ctrl+K, chat chip,
-   /tour short link). The page flies to each stop, gets a spotlight in its own
+   /tour short link). The first stop asks what the visitor came for, and they
+   get a path to match (ROUTES). The page flies to each stop, gets a spotlight in its own
    colour, a caption, quick actions, and is read aloud from small pre-made
    clips (audio/tour/, made by .github/workflows/tour-voice.yml from these
    captions); the live voice (/api/speak) is a fallback. While a stop is read
@@ -47,7 +48,7 @@
     return clips().then(function (list) {
       for (var k = 0; k < list.length; k++) {
         var c = list[k];
-        if (c.i === i && c.text === STEPS[i].say) {
+        if (c.i === STEPS[i].id && c.text === STEPS[i].say) {
           return { url: CLIPS + c.file, net: CLIPS + c.file, words: c.words || null, seconds: c.seconds || 0,
             env: typeof c.env === 'string' && c.env.length ? c.env : null, fps: c.fps || 25 };
         }
@@ -64,57 +65,85 @@
      tap: then the tour uses that card the way a visitor would (see DEMO); all
      of it is put back when the stop ends. stay: leave the page and spotlight put. */
   var STEPS = [
-    { sel: '#heroStatsBar', e: 1, key: 0, title: 'Hi, I’m Sahnawaz', acc: [0, 255, 208],
-      say: 'Hi, I’m Sahnawaz — a full-stack developer and UI designer from Assam. Everything on this site is hand-coded, with no templates. Let me show you around in under three minutes.',
-      acts: [{ id: 'cv', label: 'Get my CV', icon: 'doc', go: 'cv' }] },
-    { sel: '#my-projects', e: 2, key: 0, title: 'Built and shipped', acc: [56, 189, 248],
+    { k: 'hi', sel: '#heroStatsBar', e: 1, key: 0, title: 'Hi, I’m Sahnawaz', acc: [0, 255, 208],
+      say: 'Hi, I’m Sahnawaz — a full-stack developer and UI designer from Assam. Everything on this site is hand-coded, with no templates. What brings you here today?',
+      choose: true,
+      acts: [{ id: 'pick_hire', label: 'I’m hiring', sub: '2 min', icon: 'brief', pick: 'hire', main: true },
+        { id: 'pick_build', label: 'I need a website', sub: '1 min', icon: 'pen', pick: 'build' },
+        { id: 'pick_all', label: 'Show me everything', sub: '3 min', icon: 'code', pick: 'all' }] },
+    { k: 'projects', sel: '#my-projects', e: 2, key: 0, title: 'Built and shipped', acc: [56, 189, 248],
       say: 'These are the products I’ve built and shipped. This very website, StudyLens AI, a homework helper for students, and YojanaSahay, a free government-scheme finder used across India.',
       beats: [{ at: 'website', find: '.mpj-card', has: 'This Portfolio' }, { at: 'StudyLens', find: '.mpj-card', has: 'StudyLens' }, { at: 'YojanaSahay', find: '.mpj-card', has: 'YojanaSahay' }],
       acts: [{ id: 'yojana', label: 'Open YojanaSahay', icon: 'link', href: 'https://yojanasahay.vercel.app' }] },
-    { sel: '#live-products', e: 2, key: 0, title: 'Live numbers', acc: [34, 211, 238],
+    { k: 'live', sel: '#live-products', e: 2, key: 0, title: 'Live numbers', acc: [34, 211, 238],
       say: 'These numbers aren’t screenshots. They’re fetched from each product right now, while you watch.' },
-    { sel: '#projects', e: 1, key: -2, title: 'Where I started', acc: [129, 140, 248],
+    { k: 'exp', sel: '#projects', e: 1, key: -2, title: 'Where I started', acc: [129, 140, 248],
       say: 'I started in customer support for Xiaomi and Flipkart, then moved into an IT and developer role at Rapido. Support taught me to find what’s really going wrong.',
       beats: [{ at: 'Xiaomi', find: '.pwork-entry', has: 'Xiaomi India', tap: 'pwork' }, { at: 'Rapido', find: '.pwork-entry', has: 'Rapido — Ienergizer', tap: 'pwork' }] },
-    { sel: '#achievements', e: 3, key: 0, title: 'Milestones', acc: [192, 132, 252],
+    { k: 'wins', sel: '#achievements', e: 3, key: 0, title: 'Milestones', acc: [192, 132, 252],
       say: 'Here are the milestones I’m proudest of. Tap any card and the full story opens, like my GitHub contributions here, or my signature Hacker Mode.',
       beats: [{ at: 'GitHub', find: '.kta3-card', has: 'GitHub Contributions', tap: 'story' }, { at: 'Hacker', find: '.kta3-card', has: 'Hacker Mode', tap: 'story' }] },
-    { sel: 'section.ts-section', e: 2, key: 0, title: 'My toolkit', acc: [45, 212, 191],
+    { k: 'tools', sel: 'section.ts-section', e: 2, key: 0, title: 'My toolkit', acc: [45, 212, 191],
       say: 'This is my everyday toolkit: React and JavaScript up front, Node and Firebase behind, and Figma for design. One person, from first sketch to production.',
       beats: [{ at: 'React', sel: '.ts-tab[data-cat="frontend"]', tap: 'tab', stay: true }, { at: 'Node', sel: '.ts-tab[data-cat="backend"]', tap: 'tab', stay: true }, { at: 'Figma', sel: '.ts-tab[data-cat="design"]', tap: 'tab', stay: true }] },
-    { sel: '#how-i-ship', e: 3, key: 2, title: 'How I ship', acc: [167, 139, 250],
+    { k: 'ship', sel: '#how-i-ship', e: 3, key: 2, title: 'How I ship', acc: [167, 139, 250],
       say: 'This is how I ship. Every change goes through GitHub, is built automatically, and goes live in about a minute, with one-click rollback.',
       beats: [{ at: 'GitHub', find: '.hs-step', has: 'Commit' }, { at: 'built', find: '.hs-step', has: 'Build check' }, { at: 'live', find: '.hs-step', has: 'Auto-deploy' }],
       acts: [{ id: 'code', label: 'See this site’s code', icon: 'code', href: GH + '/sahnawaz-portfolio' }] },
-    { sel: '#recent-activity .ra-header', fallback: '#recent-activity', e: 2, key: 2, title: 'Live engineering telemetry', acc: [52, 211, 153],
+    { k: 'tele', sel: '#recent-activity .ra-header', fallback: '#recent-activity', e: 2, key: 2, title: 'Live engineering telemetry', acc: [52, 211, 153],
       say: 'And this is live telemetry, pulled straight from GitHub. My contribution map, project stats, build health and release timeline, then dependency freshness, what I shipped recently, system status, and a live security check.',
       beats: [{ at: 'contribution', sel: '#raHeatmap' }, { at: 'project', sel: '#raProjectStats' }, { at: 'build', sel: '#raCIHealth' }, { at: 'release', sel: '#raReleaseTimeline' },
         { at: 'dependency', sel: '#raDepFreshness' }, { at: 'shipped', sel: '#raList' }, { at: 'system', sel: '#raSysStatus' }, { at: 'security', sel: '#secCard' }],
       acts: [{ id: 'github', label: 'Open my GitHub', icon: 'github', href: GH }] },
-    { sel: '#job-fit', e: 1, key: 0, title: 'Hiring? Check my fit', acc: [251, 191, 36],
+    { k: 'fit', sel: '#job-fit', e: 1, key: 0, title: 'Hiring? Check my fit', acc: [251, 191, 36],
       say: 'Hiring? Paste your job post here. An AI compares it with my real work and tells you honestly where I match, and where I don’t.',
       beats: [{ at: 'Paste', sel: '#jfText', tap: 'type', text: 'Frontend developer. React, Firebase, strong UI skills.' }],
       acts: [{ id: 'jobfit', label: 'Try it with a job post', icon: 'pen', go: 'jobfit' }] },
-    { sel: '#what-i-offer', e: 2, key: 0, title: 'What I offer', acc: [251, 146, 60],
+    { k: 'offer', sel: '#what-i-offer', e: 2, key: 0, title: 'What I offer', acc: [251, 146, 60],
       say: 'Need something built? Every service flips open to show a clear starting price and exactly what’s included. Here’s website design, and here’s a portfolio site.',
       beats: [{ at: 'website', find: '.wio-card', has: 'Website Design', tap: 'price' }, { at: 'portfolio', find: '.wio-card', has: 'Portfolio Website', tap: 'price' }] },
-    { sel: '#website-check', e: 2, key: 3, title: 'Free website check', acc: [74, 222, 128],
+    { k: 'check', sel: '#website-check', e: 2, key: 3, title: 'Free website check', acc: [74, 222, 128],
       say: 'Already have a website? Run this free check. In about thirty seconds it shows your speed on a phone, your Google basics, and how your link looks on WhatsApp.',
       beats: [{ at: 'Run', sel: '#wcUrl', tap: 'type', text: 'yourbusiness.com' }],
       acts: [{ id: 'webcheck', label: 'Check my website', icon: 'pen', go: 'webcheck' }] },
-    { sel: '#testimonials', e: 1, key: 0, title: 'In their words', acc: [250, 204, 21],
+    { k: 'quotes', sel: '#testimonials', e: 1, key: 0, title: 'In their words', acc: [250, 204, 21],
       say: 'But don’t just take my word for it. These are real words from the managers and team leads I’ve worked with.',
       beats: [{ at: 'managers', find: '.ptesti-card', has: 'Project Manager', tap: 'quote' }, { at: 'team', find: '.ptesti-card', has: 'Adiba Kirmani', tap: 'quote' }] },
-    { sel: '#contact', e: 3, key: 2, title: 'Let’s talk', acc: [244, 114, 182],
+    { k: 'talk', sel: '#contact', e: 3, key: 2, title: 'Let’s talk', acc: [244, 114, 182],
       say: 'Ready to talk? Message me, WhatsApp me, or request a call. I personally read every message. Thanks for taking the tour!',
-      acts: [{ id: 'whatsapp', label: 'Message me on WhatsApp', icon: 'chat', href: WA }] }
+      acts: [{ id: 'whatsapp', label: 'Message me on WhatsApp', icon: 'chat', href: WA }] },
+    { k: 'byeHire', sel: '#contact', e: 3, key: 2, title: 'Let’s talk', acc: [244, 114, 182],
+      say: 'That’s the short version. Get my CV here, or message me and I’ll reply personally. Thanks for watching!',
+      acts: [{ id: 'cv', label: 'Get my CV', icon: 'doc', go: 'cv', main: true }, { id: 'whatsapp', label: 'WhatsApp', icon: 'chat', href: WA }] },
+    { k: 'byeBuild', sel: '#contact', e: 3, key: 2, title: 'Let’s talk', acc: [244, 114, 182],
+      say: 'Tell me about your project, and I’ll personally reply with the next steps. Thanks for watching!',
+      acts: [{ id: 'whatsapp', label: 'Message me on WhatsApp', icon: 'chat', href: WA, main: true }] }
   ];
+  /* Each visitor gets their own path through the stops. The first stop asks
+     what they came for; left unanswered, the full tour carries on by itself.
+     Keep each path in page order, so the page only ever flies downwards. */
+  var ALL = STEPS, BY = {};
+  ALL.forEach(function (s, n) { s.id = n; BY[s.k] = s; });
+  var ROUTES = {
+    all: ['hi', 'projects', 'live', 'exp', 'wins', 'tools', 'ship', 'tele', 'fit', 'offer', 'check', 'quotes', 'talk'],
+    hire: ['hi', 'projects', 'exp', 'wins', 'tools', 'ship', 'fit', 'quotes', 'byeHire'],
+    build: ['hi', 'projects', 'offer', 'check', 'quotes', 'byeBuild']
+  };
+  var route = 'all', choosing = false, choiceWaited = false;
+  function useRoute(name) {
+    route = name;
+    STEPS = ROUTES[name].map(function (k) { return BY[k]; });
+  }
+  useRoute('all');
   var FIN_ACC = [0, 255, 208];
-  var FIN_ACTS = [
-    { id: 'fin_hire', label: 'Hire me', icon: 'brief', go: 'contact', main: true },
-    { id: 'fin_whatsapp', label: 'WhatsApp', icon: 'chat', href: WA },
-    { id: 'fin_cv', label: 'Get my CV', icon: 'doc', go: 'cv' }
-  ];
+  var FIN = {
+    all: { text: 'Live products people use every day, an honest job-fit check, releases in about a minute, and live telemetry from GitHub. All of it hand-coded by me.',
+      acts: [{ id: 'fin_hire', label: 'Hire me', icon: 'brief', go: 'contact', main: true }, { id: 'fin_whatsapp', label: 'WhatsApp', icon: 'chat', href: WA }, { id: 'fin_cv', label: 'Get my CV', icon: 'doc', go: 'cv' }] },
+    hire: { text: 'Real products, real experience, and an honest job-fit check. All of it hand-coded by me.',
+      acts: [{ id: 'fin_cv', label: 'Get my CV', icon: 'doc', go: 'cv', main: true }, { id: 'fin_jobfit', label: 'Check my fit', icon: 'pen', go: 'jobfit' }, { id: 'fin_whatsapp', label: 'WhatsApp', icon: 'chat', href: WA }] },
+    build: { text: 'Clear starting prices, a free website check, and real words from people I’ve worked with.',
+      acts: [{ id: 'fin_hire', label: 'Start a project', icon: 'brief', go: 'contact', main: true }, { id: 'fin_whatsapp', label: 'WhatsApp', icon: 'chat', href: WA }, { id: 'fin_check', label: 'Check my website', icon: 'pen', go: 'webcheck' }] }
+  };
   var GO = { jobfit: '#job-fit', webcheck: '#website-check', contact: '#contact' };
   var ICONS = {
     doc: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>',
@@ -436,7 +465,7 @@
       +   '<div class="tour-fin" hidden>'
       +     '<div class="tour-fin-mark" aria-hidden="true"><svg viewBox="0 0 48 48" width="44" height="44"><circle cx="24" cy="24" r="20"/><path d="m15.5 24.5 5.8 5.8 11.2-12.3"/></svg></div>'
       +     '<h3 class="tour-fin-title">That’s the tour</h3>'
-      +     '<p class="tour-fin-text">Live products people use every day, an honest job-fit check, releases in about a minute, and live telemetry from GitHub. All of it <span style="white-space:nowrap">hand-coded</span> by me.</p>'
+      +     '<p class="tour-fin-text"></p>'
       +     '<div class="tour-fin-acts"></div>'
       +     '<div class="tour-fin-foot"><button type="button" class="tour-link tour-replay">' + icon('replay') + '<span>Replay tour</span></button>'
       +       '<button type="button" class="tour-link tour-done">Close</button></div>'
@@ -457,23 +486,21 @@
       scope: root.querySelector('.tour-scope'), acts: root.querySelector('.tour-acts'),
       voice: root.querySelector('.tour-voice'), body: root.querySelector('.tour-body'),
       prev: root.querySelector('.tour-prev'), next: root.querySelector('.tour-next'), mute: root.querySelector('.tour-mute'), music: root.querySelector('.tour-music'), close: root.querySelector('.tour-close'),
-      fin: root.querySelector('.tour-fin'), finActs: root.querySelector('.tour-fin-acts'),
+      fin: root.querySelector('.tour-fin'), finText: root.querySelector('.tour-fin-text'), finActs: root.querySelector('.tour-fin-acts'),
       dock: root.querySelector('.tour-dock'), dockGo: root.querySelector('.tour-dock-go'), dockSub: root.querySelector('.tour-dock-txt small'),
       dockTime: root.querySelector('.tour-dock-time i')
     };
-    STEPS.forEach(function (_, i) {
-      var d = document.createElement('button'); d.type = 'button'; d.className = 'tour-dot'; d.setAttribute('aria-label', 'Go to stop ' + (i + 1));
-      d.addEventListener('click', function () { show(i); }); ui.dots.appendChild(d);
-    });
-    renderActs(ui.finActs, FIN_ACTS);
+    paintDots();
     ui.prev.addEventListener('click', function () { if (idx > 0) show(idx - 1); });
-    ui.next.addEventListener('click', function () { idx < STEPS.length - 1 ? show(idx + 1) : finish(); });
+    ui.next.addEventListener('click', function () { if (choosing) pick('all'); else if (idx < STEPS.length - 1) show(idx + 1); else finish(); });
     ui.close.addEventListener('click', stop);
     root.querySelector('.tour-done').addEventListener('click', stop);
     root.querySelector('.tour-replay').addEventListener('click', function () {
       if (!muted) unlock();
       bedOn();
       try { if (window.gtag) gtag('event', 'tour_replay'); } catch (e) {}
+      statSend(); statNew();
+      useRoute('all'); paintDots();
       show(0);
     });
     ui.spot.addEventListener('animationend', function (e) { if (/tourSweep/.test(e.animationName)) ui.spot.classList.remove('sweep', 'sweep2'); });
@@ -503,6 +530,48 @@
     paintMusic();
     return ui;
   }
+  function paintDots() {
+    ui.dots.textContent = '';
+    STEPS.forEach(function (_, i) {
+      var d = document.createElement('button'); d.type = 'button'; d.className = 'tour-dot'; d.setAttribute('aria-label', 'Go to stop ' + (i + 1));
+      d.addEventListener('click', function () { show(i); }); ui.dots.appendChild(d);
+    });
+  }
+  /* the visitor said what they came for */
+  function pick(name) {
+    if (!active || !ROUTES[name]) return;
+    try { if (window.gtag) gtag('event', 'tour_path', { path: name }); } catch (e) {}
+    if (stat) { stat.path = name; stat.dirty = true; }
+    useRoute(name);
+    paintDots();
+    show(1);
+  }
+  /* One anonymous record per tour (api/analytics.js → the admin's Site traffic
+     page): which path, how far, which buttons, how long. No name, no account,
+     no address, just a random id for this one run. The owner's own browser is
+     left out once it has opened the admin page. */
+  var stat = null;
+  function statNew() {
+    stat = { run: Date.now().toString(36) + Math.random().toString(36).slice(2, 8), path: 'none', stops: [], acts: [], t0: Date.now(), secs: 0, done: false, dirty: true };
+  }
+  function statSend() {
+    if (!stat || !stat.dirty) return;
+    stat.dirty = false;
+    if (!fin && !parked) stat.secs = Math.round((Date.now() - stat.t0) / 1000);
+    try {
+      if (localStorage.getItem('shz_owner') === '1') return;
+    } catch (e) {}
+    try {
+      var body = JSON.stringify({ event: 'tour', run: stat.run, path: stat.path, stops: stat.stops, acts: stat.acts, secs: Math.min(3600, stat.secs), done: stat.done,
+        device: /Mobi|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop', music: !musicOff, voice: !muted });
+      var type = { type: 'application/json' };
+      if (!(navigator.sendBeacon && navigator.sendBeacon('/api/analytics', new Blob([body], type)))) {
+        fetch('/api/analytics', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body, keepalive: true }).catch(function () {});
+      }
+    } catch (e) {}
+  }
+  document.addEventListener('visibilitychange', function () { if (document.hidden) statSend(); });
+  window.addEventListener('pagehide', statSend);
   function paintMute() {
     ui.mute.innerHTML = muted
       ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="m22 9-6 6M16 9l6 6"/></svg>'
@@ -536,17 +605,20 @@
      word it paused on. Left alone, the pill fades away after a while. */
   function renderActs(box, list) {
     box.textContent = '';
+    box.classList.toggle('picks', !!(list && list[0] && list[0].pick));
     (list || []).forEach(function (a) {
       var el = document.createElement(a.href ? 'a' : 'button');
       el.className = 'tour-act' + (a.main ? ' main' : '');
       if (a.href) { el.href = a.href; el.target = '_blank'; el.rel = 'noopener'; } else el.type = 'button';
-      el.innerHTML = icon(a.icon) + '<span>' + a.label + '</span>';
+      el.innerHTML = icon(a.icon) + '<span>' + a.label + '</span>' + (a.sub ? '<small>' + a.sub + '</small>' : '');
       el.addEventListener('click', function (e) { act(a, e); });
       box.appendChild(el);
     });
   }
   function act(a, e) {
+    if (a.pick) { if (e) e.preventDefault(); pick(a.pick); return; }
     try { if (window.gtag) gtag('event', 'tour_action', { action: a.id }); } catch (x) {}
+    if (stat && stat.acts.indexOf(a.id) < 0) { stat.acts.push(a.id); stat.dirty = true; }
     if (!a.href && e) e.preventDefault();
     park();
     if (a.href) return;                                // the link opens in a new tab by itself
@@ -621,7 +693,7 @@
     document.removeEventListener('keydown', onKey, true);
     document.documentElement.classList.remove('tour-on');
     document.documentElement.classList.add('tour-docked');
-    ui.dockSub.textContent = fin ? 'Back to the summary' : (idx + 1) + ' / ' + STEPS.length + ' · ' + STEPS[idx].title;
+    ui.dockSub.textContent = fin ? 'Back to the summary' : (choosing ? 'Welcome' : idx + ' / ' + (STEPS.length - 1)) + ' · ' + STEPS[idx].title;
     endAnims();
     dockTop();
     var C = ui.card.getBoundingClientRect();
@@ -676,6 +748,7 @@
       ui.root.classList.remove('docked', 'open');
       ui.card.style.visibility = ''; ui.card.style.pointerEvents = '';
       cleanup();
+      statSend();
       try { if (window.gtag) gtag('event', 'tour_end', { step: 'paused' }); } catch (e) {}
     };
     if (ui.dock.animate && !reduce) {
@@ -1214,7 +1287,19 @@
     progress(ms);
     timer = setTimeout(next, ms);
   }
-  function next() { if (!active || fin) return; idx < STEPS.length - 1 ? show(idx + 1) : finish(); }
+  function next() {
+    if (!active || fin) return;
+    if (choosing) {
+      /* the question gets a moment; with no answer the full tour carries on */
+      if (choiceWaited) { pick('all'); return; }
+      choiceWaited = true;
+      ui.card.classList.remove('has-env');
+      progress(9000);
+      timer = setTimeout(next, 9000);
+      return;
+    }
+    if (idx < STEPS.length - 1) show(idx + 1); else finish();
+  }
 
   /* the closing card: a short summary and the three things people want next */
   function finish() {
@@ -1229,6 +1314,9 @@
     fin = true;
     setAccent(FIN_ACC);
     ui.step.textContent = 'Tour complete';
+    ui.finText.textContent = FIN[route].text;
+    renderActs(ui.finActs, FIN[route].acts);
+    if (stat) { stat.done = true; stat.secs = Math.round((Date.now() - stat.t0) / 1000); stat.dirty = true; statSend(); }
     ui.card.classList.remove('has-env');
     ui.card.classList.add('fin');
     ui.root.classList.add('fin');
@@ -1252,9 +1340,10 @@
   /* voice: one request at a time (the voice server allows one); the next
      stop is fetched while this one plays */
   function fetchVoice(i) {
-    if (cache[i]) return cache[i];
+    var key = STEPS[i].id, say = STEPS[i].say;
+    if (cache[key]) return cache[key];
     var attempt = function (n) {
-      return timed(12000, function (sig) { return fetch(SPEAK, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: STEPS[i].say }), signal: sig }); })
+      return timed(12000, function (sig) { return fetch(SPEAK, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: say }), signal: sig }); })
         .then(function (r) {
           /* the voice server makes one clip at a time: wait and retry when busy */
           if (r.status === 429 && n < 4) return new Promise(function (ok) { setTimeout(ok, 900); }).then(function () { return attempt(n + 1); });
@@ -1267,7 +1356,7 @@
           });
         });
     };
-    cache[i] = clipFor(i)
+    cache[key] = clipFor(i)
       .then(function (clip) {
         if (!clip) return attempt(0);
         /* the whole clip (about 50 KB) is downloaded before it plays, so it
@@ -1281,8 +1370,8 @@
           return clip;
         }).catch(function () { clip.url = clip.net; return clip; });
       })
-      .catch(function (e) { delete cache[i]; throw e; });
-    return cache[i];
+      .catch(function (e) { delete cache[key]; throw e; });
+    return cache[key];
   }
   function speak(i, my, at) {
     if (my !== token) return;
@@ -1352,7 +1441,7 @@
       voiceNote('');
       var wait = at > 0 ? 0 : voiceEntry(CLIP_LEAD);
       if (wait > .02) timer = setTimeout(begin, Math.round(wait * 1000)); else begin();
-      if (i + 1 < STEPS.length) setTimeout(function () { fetchVoice(i + 1).catch(function () {}); }, 400);
+      if (!STEPS[i].choose && i + 1 < STEPS.length) setTimeout(function () { if (STEPS[i + 1]) fetchVoice(i + 1).catch(function () {}); }, 400);
     }).catch(function () { clearTimeout(guard); captionsOnly(); });
   }
   /* back from another app or tab: pick the voice up where it stopped */
@@ -1380,9 +1469,12 @@
     idx = i;
     var s = STEPS[i], el = target(s);
     setAccent(s.acc);
-    ui.step.textContent = (i + 1) + ' / ' + STEPS.length;
+    choosing = !!s.choose; choiceWaited = false;
+    ui.card.classList.toggle('choosing', choosing);
+    ui.step.textContent = choosing ? 'Welcome' : i + ' / ' + (STEPS.length - 1);
     ui.prev.disabled = i === 0;
-    ui.next.textContent = i === STEPS.length - 1 ? 'Finish' : 'Next ›';
+    ui.next.textContent = choosing ? 'Full tour ›' : i === STEPS.length - 1 ? 'Finish' : 'Next ›';
+    if (stat && stat.stops.indexOf(s.k) < 0) { stat.stops.push(s.k); stat.dirty = true; }
     Array.prototype.forEach.call(ui.dots.children, function (d, k) { d.classList.toggle('on', k === i); d.setAttribute('aria-current', k === i ? 'step' : 'false'); });
     if (!muted) fetchVoice(i).catch(function () {});   // fetch the voice while the page scrolls
     if (first) { ui.title.textContent = s.title; renderWords(s.say); renderActs(ui.acts, s.acts); }
@@ -1412,7 +1504,7 @@
   function onKey(e) {
     if (!active) return;
     if (e.key === 'Escape') { e.preventDefault(); stop(); }
-    else if (e.key === 'ArrowRight' || (e.key === ' ' && e.target === document.body)) { e.preventDefault(); next(); }
+    else if (e.key === 'ArrowRight' || (e.key === ' ' && e.target === document.body)) { e.preventDefault(); if (choosing) pick('all'); else next(); }
     else if (e.key === 'ArrowLeft') { e.preventDefault(); if (fin) { bedOn(); show(idx); } else if (idx > 0) show(idx - 1); }
     else if (/^(ArrowUp|ArrowDown|PageUp|PageDown|Home|End)$/.test(e.key)) takeOver();
   }
@@ -1422,7 +1514,10 @@
       ui.root.classList.remove('docked'); ui.card.style.visibility = ''; ui.card.style.pointerEvents = '';
       document.documentElement.classList.remove('tour-docked'); }
     if (active) return;
+    useRoute('all');
     build();
+    paintDots();
+    statNew();
     if (!muted) unlock();   // must run inside the tap
     bedOn();
     instantScroll(true);
@@ -1455,6 +1550,7 @@
     demoEnd();
     bedOff(.6);
     cleanup();
+    statSend();
     cancelAnimationFrame(raf);
     ui.root.classList.remove('open');
     document.documentElement.classList.remove('tour-on');
