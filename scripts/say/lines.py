@@ -1,9 +1,9 @@
 """Every pre-made clip on the site. Facts come only from the site's own copy.
-Tags (<chuckle>, <laugh>, <sigh>, <gasp>) are performed, not shown in captions.
+Tags like <chuckle> mark a beat: the voice takes a small pause there.
 {p0}..{p3}: the prices on the What I Offer cards, read from index.html.
 {hosting}: the domain and hosting add-on from the same cards.
 energy: 1 calm, 2 full, 3 peak (the same track as the guided tour)."""
-T, L = "tara", "leah"
+T, L = "af_heart", "af_bella"
 AI_NOTE = "These are AI voices, by the way, but every fact here comes from his real project."
 CLIPS = {
  # ── Work Experience ──

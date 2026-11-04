@@ -18,21 +18,23 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-24.04
-    timeout-minutes: 340
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
       - name: Tools
         run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
-          pip install -q orpheus-cpp huggingface_hub numpy onnxruntime
-          pip install -q llama-cpp-python --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
-          pip install -q faster-whisper
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg espeak-ng > /dev/null
+          pip install -q --extra-index-url https://download.pytorch.org/whl/cpu "torch>=2.6,<2.9" "kokoro>=0.9.4,<1" soundfile numpy
+          python -m spacy download en_core_web_sm -q || true
       - name: Make the clips
         env:
           SAY_ONLY: ${{ github.event.inputs.only }}
           SAY_LIMIT: ${{ github.event.inputs.limit || '0' }}
         run: |
           python scripts/say/make.py 2>&1 | tee "$RUNNER_TEMP/make.log"
-          grep -E "^made|^LEFT OUT|^finished" "$RUNNER_TEMP/make.log" | while read -r l; do echo "::notice title=Listen clips::$l"; done
+          grep -E "^made|^finished|timing by length" "$RUNNER_TEMP/make.log" | while read -r l; do echo "::notice title=Listen clips::$l"; done
+          bash scripts/say/save.sh
