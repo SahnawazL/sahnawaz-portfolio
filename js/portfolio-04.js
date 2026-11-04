@@ -5,7 +5,7 @@
 
     portfolio: {
       accent: '#00e5ff',
-      icon: '🚀',
+      icon: '<span class="cs-logo cs-logo-me"><img src="profile-hero-360.webp" alt="Sahnawaz Ahmed Laskar" width="38" height="38"></span>',
       status: '● LIVE — sahnawaz-portfolio.vercel.app',
       title: 'This Portfolio — Smart Contact Wizard + AI Assistant',
       lede: 'A blank "Message" textarea is the single biggest drop-off point on any portfolio — writing "what I need" from scratch is real effort, and most visitors just leave instead. This site replaces that blank box with two connected systems: a 3-tap quote wizard that turns project type + budget + timeline into an instant AI-priced estimate, and a full AI concierge chat that can answer questions, email a resume, or book a callback — entirely on its own, without ever routing back to a static form unless the visitor wants one.',
@@ -94,7 +94,7 @@
 
     yojanasahay: {
       accent: '#22d3ee',
-      icon: '🇮🇳',
+      icon: '<span class="cs-logo brand-tile"><img src="yojanasahay-logo.webp" alt="YojanaSahay logo" width="38" height="38"></span>',
       status: '● LIVE — yojanasahay.vercel.app',
       title: 'YojanaSahay — AI Government Scheme Finder',
       lede: 'Millions of Indians qualify for welfare schemes they never find out about — the information is scattered across thousands of government pages, in English, written for officials rather than citizens. YojanaSahay is a bilingual AI layer over 1,202 Central and State schemes across all 34 states and UTs, backed by a production-grade verification pipeline that keeps that data honest instead of going stale the way most scheme-listing sites do. It now reaches people where they already are: as an installable web app, an Android app and a Telegram bot that runs the same checker and assistant — and the code and scheme data are open, with a Digital Public Goods application under review.',

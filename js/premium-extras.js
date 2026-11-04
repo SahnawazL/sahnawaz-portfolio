@@ -363,7 +363,7 @@
     var code = $('.c2d-code pre', box), stage = box;
     var LINES = [
       [['t', '<'], ['k', 'Card'], ['a', ' glow'], ['t', '>']],
-      [['t', '  <'], ['k', 'Logo'], ['a', ' src'], ['t', '='], ['s', '"yojana.svg"'], ['t', ' />']],
+      [['t', '  <'], ['k', 'Logo'], ['a', ' src'], ['t', '='], ['s', '"logo.webp"'], ['t', ' />']],
       [['t', '  <'], ['k', 'Title'], ['t', '>'], ['x', 'Yojana Sahay'], ['t', '</'], ['k', 'Title'], ['t', '>']],
       [['t', '  <'], ['k', 'Stat'], ['a', ' value'], ['t', '={'], ['n', 'schemes'], ['t', '}'], ['a', ' live'], ['t', ' />']],
       [['t', '  <'], ['k', 'Button'], ['t', '>'], ['x', 'Open app →'], ['t', '</'], ['k', 'Button'], ['t', '>']],
