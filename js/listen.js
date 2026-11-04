@@ -56,6 +56,8 @@
       });
     });
     syncStory();
+    /* the flip cards size themselves to their content on resize: let them fit the new button */
+    window.dispatchEvent(new Event('resize'));
   }
   /* the achievements share one panel per group, so its button follows the open card */
   function syncStory() {
