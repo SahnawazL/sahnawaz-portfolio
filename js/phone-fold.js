@@ -1,12 +1,18 @@
 /* Shorter page on phones. A few long, detailed parts start folded behind a
-   "Show" button: each project's problem and lessons, the live speed numbers
+   "Show" button that says what is inside: the experience summary, each
+   project's problem and lessons, the skill levels, the live speed numbers
    and the full list of security checks. Nothing is removed; one tap opens
    it again, and on wider screens everything stays open as before. */
 (function () {
   'use strict';
   var phone = matchMedia('(max-width: 640px)');
   var FOLDS = [
+    { card: '.exp-para-wrap', parts: ['.exp-para-text'], label: 'My experience', note: function () { return 'Xiaomi · Flipkart · Rapido'; } },
     { card: '.mpj-card', parts: ['.mpj-problem', '.mpj-hindsight'], label: 'Problem & lessons learned' },
+    { card: '#tsBarsSection', parts: ['#tsBars'], label: 'Skill levels', note: function (card) {
+        var v = (card.querySelector('#tsBars').textContent.match(/\d{2,3}(?=\s*%)/g) || []).map(Number);
+        return v.length ? v.length + ' skills · ' + Math.min.apply(null, v) + '–' + Math.max.apply(null, v) + '%' : '';
+      } },
     { card: '#wvCard', parts: ['#wvcBody'], label: 'Live speed numbers' },
     { card: '#secCard', parts: ['.sec-rows'], label: 'All security checks' }
   ];
@@ -41,18 +47,21 @@
         b.className = 'pf-btn';
         b.setAttribute('aria-controls', parts[0].id);
         b.innerHTML = '<span></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
-        b.addEventListener('click', function () { set(card, b, f.label, card.classList.contains('pf-closed')); });
+        b.addEventListener('click', function () { set(card, b, f.label, card.classList.contains('pf-closed'), f.note); });
         parts[0].parentNode.insertBefore(b, parts[0]);
-        card.__pf = { b: b, label: f.label };
-        set(card, b, f.label, !phone.matches);
+        card.__pf = { b: b, label: f.label, note: f.note };
+        set(card, b, f.label, !phone.matches, f.note);
       });
     });
   }
 
-  function set(card, b, label, open) {
+  /* a closed fold says what is inside it, like the security card's score */
+  function set(card, b, label, open, note) {
     card.classList.toggle('pf-closed', !open);
     b.setAttribute('aria-expanded', String(open));
-    b.firstChild.textContent = (open ? 'Hide ' : 'Show ') + label.charAt(0).toLowerCase() + label.slice(1);
+    var extra = '';
+    if (!open && note) { try { extra = note(card) || ''; } catch (e) {} }
+    b.firstChild.textContent = (open ? 'Hide ' : 'Show ') + label.charAt(0).toLowerCase() + label.slice(1) + (extra ? ' · ' + extra : '');
     b.hidden = !phone.matches;
   }
 
@@ -61,11 +70,21 @@
     make();
     FOLDS.forEach(function (f) {
       [].slice.call(document.querySelectorAll(f.card)).forEach(function (card) {
-        if (card.__pf) set(card, card.__pf.b, card.__pf.label, !phone.matches);
+        if (card.__pf) set(card, card.__pf.b, card.__pf.label, !phone.matches, card.__pf.note);
       });
     });
   }
 
   if (phone.addEventListener) phone.addEventListener('change', sync);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', sync); else sync();
+  /* the skill bars are drawn after load: refresh the summaries once */
+  addEventListener('load', function () {
+    setTimeout(function () {
+      FOLDS.forEach(function (f) {
+        [].slice.call(document.querySelectorAll(f.card)).forEach(function (card) {
+          if (card.__pf && card.classList.contains('pf-closed')) set(card, card.__pf.b, card.__pf.label, false, card.__pf.note);
+        });
+      });
+    }, 1500);
+  }, { once: true });
 })();

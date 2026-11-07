@@ -18,7 +18,8 @@
     mail: '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/>',
     link: '<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>',
     out: '<path d="M7 17 17 7M9 7h8v8"/>',
-    arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>'
+    arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+    code: '<path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/>'
   };
   var svg = function (p) { return '<svg viewBox="0 0 24 24" aria-hidden="true">' + p + '</svg>'; };
 
@@ -77,7 +78,7 @@
       '.rqv-skills{display:flex;flex-wrap:wrap;gap:6px}',
       '.rqv-skills span{padding:5px 10px;border-radius:99px;font-size:.8rem;color:#d6eef8;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09)}',
       '.rqv-edu{margin:0;font-size:.88rem;line-height:1.6;color:#cfe3ec}',
-      '.rqv-acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:20px}',
+      '.rqv-acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:20px}.rqv-acts .main{grid-column:1/-1}',
       '@media(max-width:520px){.rqv-acts{grid-template-columns:1fr}}',
       '.rqv-acts button,.rqv-acts a{display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 14px;border-radius:13px;font:700 .9rem "DM Sans",sans-serif;cursor:pointer;text-decoration:none;color:#e6f3fb;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)}',
       '.rqv-acts .main{color:#04121a;background:linear-gradient(135deg,#5ae0ff,#4fe0a2);border-color:transparent}',
@@ -134,7 +135,8 @@
       + '<h3>Education</h3><p class="rqv-edu"><b>MCA</b>, Yenepoya University, Bangalore · 2025 – now<br><b>BCA</b>, Yenepoya University, Bangalore · 2022 – 2025</p>'
       + '<div class="rqv-acts">'
       +   '<button type="button" class="main" data-rqv="fit">' + svg(I.target) + 'Check my fit for your role</button>'
-      +   '<button type="button" data-rqv="cv">' + svg(I.file) + 'Download CV (PDF)</button>'
+      +   '<a href="/resume-ats.pdf" download="Sahnawaz-Ahmed-Laskar-Resume.pdf" data-rqv-track="cv">' + svg(I.file) + 'Download resume (PDF)</a>'
+      +   '<a href="https://github.com/SahnawazL" target="_blank" rel="noopener" data-rqv-track="github">' + svg(I.code) + 'View GitHub</a>'
       +   '<a href="mailto:' + EMAIL + '?subject=' + encodeURIComponent('Opportunity for Sahnawaz') + '">' + svg(I.mail) + 'Email me</a>'
       +   '<button type="button" data-rqv="share">' + svg(I.link) + '<span>Copy link to this view</span></button>'
       + '</div>'
@@ -172,6 +174,8 @@
 
   function onClick(e) {
     if (e.target === root) return close();
+    var t = e.target.closest('[data-rqv-track]');
+    if (t) { try { if (window.gtag) gtag('event', 'recruiter_view_action', { action: t.getAttribute('data-rqv-track') }); } catch (x) {} return; }
     var b = e.target.closest('[data-rqv]');
     if (!b) return;
     var what = b.getAttribute('data-rqv');

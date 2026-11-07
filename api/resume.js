@@ -871,6 +871,9 @@ async function handlePost(req, res) {
     return res.status(500).json({ success: false, error: 'Resume file not found on server.' });
   }
   const pdfBuffer = fs.readFileSync(pdfPath);
+  /* plain text version that job portals (ATS) can read, sent alongside */
+  const atsPath = path.join(process.cwd(), 'resume-ats.pdf');
+  const atsBuffer = fs.existsSync(atsPath) ? fs.readFileSync(atsPath) : null;
 
   const refId = makeRefId();
   const now = new Date().toLocaleString('en-IN', {
@@ -892,7 +895,11 @@ async function handlePost(req, res) {
         filename:    'Sahnawaz_Resume.pdf',
         content:     pdfBuffer,
         contentType: 'application/pdf',
-      }],
+      }].concat(atsBuffer ? [{
+        filename:    'Sahnawaz_Resume_ATS.pdf',
+        content:     atsBuffer,
+        contentType: 'application/pdf',
+      }] : []),
     });
 
     /* ── Notification TO Sahnawaz — premium branded template ── */

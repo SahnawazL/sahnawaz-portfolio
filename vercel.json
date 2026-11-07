@@ -6,6 +6,9 @@
     },
     "api/chat.js": {
       "includeFiles": "js/portfolio-04.js"
+    },
+    "api/resume.js": {
+      "includeFiles": "{resume.pdf,resume-ats.pdf}"
     }
   },
   "rewrites": [

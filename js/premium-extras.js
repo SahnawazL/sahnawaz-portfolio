@@ -235,9 +235,9 @@
      ============================================================ */
   var PEEK = [
     { sec: '#blog', group: '.blog-grid', card: '.pblog-card', phone: 4, wide: 5, noun: 'posts' },
-    { sec: '#achievements', group: '.kta3-grid', card: '.kta3-card', phone: 4, wide: 5, noun: 'achievements' },
-    { sec: '#why-website', group: '.wnw-grid', card: '.wnw-card', phone: 4, wide: 5, noun: 'reasons' },
-    { sec: '#tools-services', group: '.syb-grid', card: '.syb-card', phone: 4, wide: 8, noun: 'services' }
+    { sec: '#achievements', group: '.kta3-grid', card: '.kta3-card', phone: 2, wide: 5, noun: 'achievements' },
+    { sec: '#why-website', group: '.wnw-grid', card: '.wnw-card', phone: 2, wide: 5, noun: 'reasons' },
+    { sec: '#tools-services', group: '.syb-grid', card: '.syb-card', phone: 2, wide: 8, noun: 'services' }
   ];
   part('peek', function () {
     var WIDE = window.matchMedia ? matchMedia('(min-width: 900px)') : { matches: false };
