@@ -1,86 +1,173 @@
 <!doctype html>
-<!-- Source of resume-ats.pdf: a plain, one-column, text-based resume that
-     applicant tracking systems can read. Same facts as the CV on the site.
+<!-- Source of resume-ats.pdf: a one-page resume that looks designed but is
+     still plain, selectable text in reading order, so job portals (ATS) can
+     read every word. Same facts as the CV on the site.
      After editing, rebuild the PDF with: node scripts/build-resume-ats.js -->
 <html lang="en"><head><meta charset="utf-8"><title>Sahnawaz Ahmed Laskar - Resume</title>
 <style>
-@page { size: A4; margin: 10mm 13mm; }
+@page { size: A4; margin: 0; }
+:root { --ink: #0f1c26; --muted: #55657a; --line: #dfe7ee; --accent: #0e8fae; --accent2: #12b39a; --navy: #0b1d2e; }
 * { box-sizing: border-box; }
-body { margin: 0; font: 9.2pt/1.3 Arial, Helvetica, sans-serif; color: #111; }
-h1 { margin: 0; font-size: 18pt; letter-spacing: .3pt; }
-.role { margin: 1px 0 4px; font-size: 10.5pt; font-weight: bold; color: #134e63; }
-.contact { font-size: 8.9pt; color: #222; }
-h2 { margin: 7px 0 3px; padding-bottom: 2px; font-size: 10pt; letter-spacing: .6pt; text-transform: uppercase; color: #134e63; border-bottom: 1px solid #134e63; }
+html, body { margin: 0; }
+body { width: 210mm; height: 297mm; overflow: hidden; font: 8.6pt/1.36 Inter, Arial, sans-serif; color: var(--ink); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+a { color: inherit; text-decoration: none; }
+
+/* header band */
+header { position: relative; display: flex; align-items: center; gap: 16px; padding: 15px 15mm 14px; color: #fff; background: var(--navy); }
+header::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+.photo { flex: none; width: 66px; height: 66px; border-radius: 50%; object-fit: cover; border: 2px solid #5ad7f0; }
+.who { flex: 1; min-width: 0; }
+h1 { margin: 0; font: 700 20pt/1.05 "Inter Display", Inter, sans-serif; letter-spacing: -.2pt; }
+.role { margin: 4px 0 0; font-size: 9.6pt; font-weight: 600; color: #7fe3f5; letter-spacing: .4pt; }
+.open { display: inline-block; margin-top: 6px; padding: 2px 8px; border-radius: 20px; font-size: 7.6pt; font-weight: 600; color: #04121a; background: linear-gradient(90deg, #5ae0ff, #4fe0a2); }
+.contact { flex: none; margin: 0; padding: 0; list-style: none; font-size: 7.6pt; line-height: 1.55; color: #d7e9f2; text-align: right; }
+.contact b { color: #7fe3f5; font-weight: 600; }
+.contact li { padding: 0; margin: 0; color: #d7e9f2; }
+.contact li::before { content: none; }
+
+main { padding: 9px 15mm 0; }
+
+/* key numbers */
+.facts { display: flex; margin: 0 0 2px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.fact { flex: 1; padding: 6px 4px 5px; text-align: center; border-left: 1px solid var(--line); }
+.fact:first-child { border-left: 0; }
+.fact b { display: block; font: 700 12.5pt/1.1 "Inter Display", Inter, sans-serif; color: var(--accent); }
+.fact span { font-size: 7.3pt; color: var(--muted); }
+
+h2 { display: flex; align-items: center; gap: 8px; margin: 8px 0 3px; font-size: 8.3pt; font-weight: 700; letter-spacing: 1.4pt; text-transform: uppercase; color: var(--navy); }
+h2::before { content: ''; width: 14px; height: 3px; border-radius: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+h2::after { content: ''; flex: 1; height: 1px; background: var(--line); }
 p { margin: 0; }
-ul { margin: 2px 0 0; padding-left: 14px; }
-li { margin: 0 0 1px; }
-.row { display: flex; justify-content: space-between; gap: 10px; font-weight: bold; margin-top: 4px; }
-.row span { font-weight: normal; white-space: nowrap; }
-.sub { font-style: italic; color: #333; }
-.skills p { margin-bottom: 1px; }
+.summary { color: #22323f; }
+
+.skills { display: grid; grid-template-columns: 74px 1fr; row-gap: 3px; column-gap: 8px; }
+.skills dt { font-weight: 700; font-size: 8pt; color: var(--navy); padding-top: 1px; }
+.skills dd { margin: 0; }
+.tag { display: inline-block; margin: 0 2px 2px 0; padding: 0 6px; border-radius: 4px; font-size: 7.9pt; line-height: 1.55; background: #eef6f9; color: #12303d; }
+
+.item { margin-top: 4px; }
+.head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.title { font-weight: 700; font-size: 9.1pt; }
+.title i { font-style: normal; font-weight: 600; color: var(--accent); }
+.when { flex: none; font-size: 7.9pt; font-weight: 600; color: var(--muted); }
+ul { margin: 2px 0 0; padding: 0; list-style: none; }
+li { position: relative; padding-left: 11px; margin-bottom: 1px; color: #22323f; }
+li::before { content: ''; position: absolute; left: 1px; top: .58em; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
+.stack { margin-top: 1px; font-size: 7.8pt; color: var(--muted); }
+.stack b { color: var(--navy); font-weight: 600; }
+
+.cols { display: flex; gap: 18px; }
+.cols > section { flex: 1; min-width: 0; }
+.edu { display: flex; justify-content: space-between; gap: 8px; margin-top: 3px; }
+.edu b { font-weight: 600; }
+.langs { margin-top: 4px; }
+.langs b { color: var(--navy); }
+.edu small { display: block; font-size: 7.8pt; color: var(--muted); }
+
+footer { position: absolute; left: 15mm; right: 15mm; bottom: 8mm; display: flex; justify-content: space-between; padding-top: 5px; border-top: 1px solid var(--line); font-size: 7.4pt; color: var(--muted); }
+footer b { color: var(--accent); font-weight: 600; }
 </style></head><body>
-<h1>Sahnawaz Ahmed Laskar</h1>
-<p class="role">Full Stack Developer | UI/UX Designer</p>
-<p class="contact">Bangalore, Karnataka, India | +91 7339203154 | shzthedigitalalchemist@gmail.com<br>
-Portfolio: sahnawaz-portfolio.vercel.app | LinkedIn: linkedin.com/in/sahnawaz-ahmed-laskar-021608168 | GitHub: github.com/SahnawazL</p>
 
-<h2>Profile</h2>
-<p>Full Stack Developer and UI/UX Designer with 5+ years as a developer, including freelance and personal projects since 2021, and IT-industry experience at Xiaomi, Flipkart and Rapido. Builds fast, fully responsive web applications, from solo React and Firebase products to AI-integrated platforms. Pursuing an MCA in Bangalore. Open to full-time roles and freelance work.</p>
+<header>
+  <img class="photo" src="../profile-hero-360.webp" alt="">
+  <div class="who">
+    <h1>Sahnawaz Ahmed Laskar</h1>
+    <p class="role">Full Stack Developer | UI/UX Designer</p>
+    <span class="open">Open to full-time roles and freelance work</span>
+  </div>
+  <ul class="contact">
+    <li><a href="mailto:shzthedigitalalchemist@gmail.com">shzthedigitalalchemist@gmail.com</a></li>
+    <li>+91 7339203154 | Bangalore, India</li>
+    <li><b>Portfolio:</b> <a href="https://sahnawaz-portfolio.vercel.app">sahnawaz-portfolio.vercel.app</a></li>
+    <li><b>GitHub:</b> <a href="https://github.com/SahnawazL">github.com/SahnawazL</a></li>
+    <li><a href="https://linkedin.com/in/sahnawaz-ahmed-laskar-021608168">linkedin.com/in/sahnawaz-ahmed-laskar-021608168</a></li>
+  </ul>
+</header>
 
-<h2>Skills</h2>
-<div class="skills">
-<p><b>Frontend:</b> HTML5, CSS3, JavaScript, React, Tailwind CSS, Vite, PWA</p>
-<p><b>Backend:</b> Node.js, Python, PHP, MySQL, Firebase (Auth, Firestore), REST APIs, serverless functions</p>
-<p><b>AI:</b> Groq API, Gemini API, AI chat assistants, AI agents</p>
-<p><b>Design:</b> UI/UX design, Figma, Adobe XD, wireframing, prototyping</p>
-<p><b>Tools:</b> Git, GitHub, GitHub Actions, Vercel, VS Code, Google Analytics (GA4), WordPress, Shopify, Excel</p>
-</div>
+<main>
+  <div class="facts">
+    <div class="fact"><b>5+ years</b><span>as a developer</span></div>
+    <div class="fact"><b>50+</b><span>web projects built</span></div>
+    <div class="fact"><b>2 live products</b><span>built solo</span></div>
+    <div class="fact"><b>2,000+</b><span>commits on YojanaSahay</span></div>
+  </div>
 
-<h2>Projects</h2>
-<p class="row">YojanaSahay - government welfare scheme finder <span>yojanasahay.vercel.app</span></p>
-<ul>
-<li>React and Firebase app that helps Indian citizens find the Central and State welfare schemes they qualify for, covering 1,200+ schemes, with a Groq-powered assistant.</li>
-<li>Bilingual; installable as a PWA and an Android app; Telegram bot (@YojanaSahayBot) runs the same checker. Open source (MIT) with open scheme data.</li>
-<li>2,000+ commits; designed, built and maintained solo. Stack: React, Vite, Firebase, Groq API, Telegram Bot API, Vercel.</li>
-</ul>
-<p class="row">StudyLens AI - AI homework helper <span>studylens-ai-gamma.vercel.app</span></p>
-<ul>
-<li>Syllabus-aware homework helper for Class KG-12 students across SEBA, AHSEC, CBSE and ICSE boards, in four languages.</li>
-<li>Students type or photograph a question; answers come from Groq and Gemini for the right board and class. Stack: JavaScript, Groq and Gemini APIs, Firebase, Vercel.</li>
-</ul>
-<p class="row">Personal Portfolio and Engineering Platform <span>sahnawaz-portfolio.vercel.app</span></p>
-<ul>
-<li>50,000+ lines of hand-written HTML, CSS and JavaScript across 1,000+ commits, with no frameworks or templates.</li>
-<li>AI assistant, job fit checker, live Core Web Vitals, security header checks, GitHub activity, Firebase sign-in and serverless APIs on Vercel.</li>
-</ul>
+  <h2>Profile</h2>
+  <p class="summary">Full Stack Developer and UI/UX Designer with 5+ years as a developer, including freelance and personal projects since 2021, and IT-industry experience at Xiaomi, Flipkart and Rapido. I build fast, fully responsive web applications, from solo React and Firebase products to AI-integrated platforms, and I design them as carefully as I code them. Pursuing an MCA in Bangalore.</p>
 
-<h2>Experience</h2>
-<p class="row">Full Stack Developer and UI/UX Designer - Freelance and personal projects <span>2021 - Present</span></p>
-<ul>
-<li>Built and shipped 50+ web products, from client sites to analytics dashboards.</li>
-<li>Managed several brand sites at once, delivering on time.</li>
-</ul>
-<p class="row">IT / Developer - Rapido (via Ienergizer), Bangalore <span>2023 - 2024</span></p>
-<ul>
-<li>Moved from customer support to the IT team, building internal tooling and systems for the Rapido process.</li>
-<li>Led real-time chat support for ride, payment and driver-partner issues during peak shifts.</li>
-<li>Designed and delivered agent training on deep-resolution workflows, adopted floor-wide.</li>
-</ul>
-<p class="row">L2 Support, Returns and Refunds - Flipkart (via Ienergizer) <span>2023</span></p>
-<ul>
-<li>Handled L2 return and refund queries escalated from frontline agents; recognised by QA and HR for precision.</li>
-</ul>
-<p class="row">L1 Inbound Support to MSM Troubleshooting - Xiaomi India (via One Point One Solutions) <span>2022 - 2023</span></p>
-<ul>
-<li>Handled live inbound support for Xiaomi devices; promoted into the Mobile Screen Mirroring troubleshooting pilot batch.</li>
-</ul>
+  <h2>Skills</h2>
+  <dl class="skills">
+    <dt>Frontend</dt><dd><span class="tag">HTML5</span> <span class="tag">CSS3</span> <span class="tag">JavaScript</span> <span class="tag">React</span> <span class="tag">Tailwind CSS</span> <span class="tag">Vite</span> <span class="tag">PWA</span></dd>
+    <dt>Backend</dt><dd><span class="tag">Node.js</span> <span class="tag">Python</span> <span class="tag">PHP</span> <span class="tag">MySQL</span> <span class="tag">Firebase Auth &amp; Firestore</span> <span class="tag">REST APIs</span> <span class="tag">Serverless functions</span></dd>
+    <dt>AI</dt><dd><span class="tag">Groq API</span> <span class="tag">Gemini API</span> <span class="tag">AI chat assistants</span> <span class="tag">AI agents</span></dd>
+    <dt>Design</dt><dd><span class="tag">UI/UX design</span> <span class="tag">Figma</span> <span class="tag">Adobe XD</span> <span class="tag">Wireframing</span> <span class="tag">Prototyping</span></dd>
+    <dt>Tools</dt><dd><span class="tag">Git</span> <span class="tag">GitHub Actions</span> <span class="tag">Vercel</span> <span class="tag">VS Code</span> <span class="tag">Google Analytics (GA4)</span> <span class="tag">WordPress</span> <span class="tag">Shopify</span> <span class="tag">Excel</span></dd>
+  </dl>
 
-<h2>Education</h2>
-<p class="row">Master of Computer Applications (MCA) - Yenepoya University, Bangalore <span>2025 - Present</span></p>
-<p class="row">Bachelor of Computer Applications (BCA) - Yenepoya University, Bangalore <span>2022 - 2025</span></p>
-<p class="row">Bachelor of Arts (BA) - G.C. College, Silchar, Assam <span>2018 - 2021</span></p>
+  <h2>Projects</h2>
+  <div class="item">
+    <div class="head"><span class="title">YojanaSahay <i>| Government welfare scheme finder</i></span><a class="when" href="https://yojanasahay.vercel.app">yojanasahay.vercel.app</a></div>
+    <ul>
+      <li>React and Firebase app that helps Indian citizens find the Central and State welfare schemes they qualify for, covering 1,200+ schemes, with a Groq-powered assistant.</li>
+      <li>Bilingual; installable as a PWA and an Android app; a Telegram bot (@YojanaSahayBot) runs the same checker. Open source (MIT) with open scheme data.</li>
+      <li>2,000+ commits; designed, built and maintained solo.</li>
+    </ul>
+    <p class="stack"><b>Stack:</b> React, Vite, Firebase, Groq API, Telegram Bot API, GitHub Actions, Vercel</p>
+  </div>
+  <div class="item">
+    <div class="head"><span class="title">StudyLens AI <i>| AI homework helper</i></span><a class="when" href="https://studylens-ai-gamma.vercel.app">studylens-ai-gamma.vercel.app</a></div>
+    <ul>
+      <li>Syllabus-aware homework helper for Class KG-12 students across SEBA, AHSEC, CBSE and ICSE boards, in four languages.</li>
+      <li>Students type or photograph a question; answers come from Groq and Gemini for the right board and class.</li>
+    </ul>
+    <p class="stack"><b>Stack:</b> JavaScript, Groq and Gemini APIs, Firebase, Vercel</p>
+  </div>
+  <div class="item">
+    <div class="head"><span class="title">Personal Portfolio and Engineering Platform</span><a class="when" href="https://sahnawaz-portfolio.vercel.app">sahnawaz-portfolio.vercel.app</a></div>
+    <ul>
+      <li>50,000+ lines of hand-written HTML, CSS and JavaScript across 1,000+ commits, with no frameworks or templates.</li>
+      <li>AI assistant, job fit checker, live Core Web Vitals, security header checks, GitHub activity, Firebase sign-in and serverless APIs on Vercel.</li>
+    </ul>
+  </div>
 
-<h2>Certifications and languages</h2>
-<p>Diploma in Computer Applications; UI/UX Design and React Development; Web Development Basics; JavaScript Programming; HTML Essentials; Programming in C++; Advanced Excel and Business Reporting; Technical and Backend Support.</p>
-<p><b>Languages:</b> English, Hindi, Bengali, Assamese.</p>
+  <h2>Experience</h2>
+  <div class="item">
+    <div class="head"><span class="title">Full Stack Developer and UI/UX Designer <i>| Freelance and personal projects</i></span><span class="when">2021 - Present</span></div>
+    <ul>
+      <li>Built and shipped 50+ web products, from client sites to analytics dashboards; managed several brand sites at once, delivering on time.</li>
+    </ul>
+  </div>
+  <div class="item">
+    <div class="head"><span class="title">IT / Developer <i>| Rapido (via Ienergizer), Bangalore</i></span><span class="when">2023 - 2024</span></div>
+    <ul>
+      <li>Moved from customer support to the IT team, building internal tooling and systems for the Rapido process.</li>
+      <li>Led real-time chat support for ride, payment and driver-partner issues during peak shifts.</li>
+      <li>Designed and delivered agent training on deep-resolution workflows, adopted floor-wide.</li>
+    </ul>
+  </div>
+  <div class="item">
+    <div class="head"><span class="title">L2 Support, Returns and Refunds <i>| Flipkart (via Ienergizer)</i></span><span class="when">2023</span></div>
+    <ul><li>Handled L2 return and refund queries escalated from frontline agents; recognised by QA and HR for precision.</li></ul>
+  </div>
+  <div class="item">
+    <div class="head"><span class="title">L1 Inbound Support to MSM Troubleshooting <i>| Xiaomi India (via One Point One Solutions)</i></span><span class="when">2022 - 2023</span></div>
+    <ul><li>Handled live inbound support for Xiaomi devices; promoted into the Mobile Screen Mirroring troubleshooting pilot batch.</li></ul>
+  </div>
+
+  <div class="cols">
+    <section>
+      <h2>Education</h2>
+      <div class="edu"><span><b>Master of Computer Applications (MCA)</b><small>Yenepoya University, Bangalore</small></span><span class="when">2025 - Present</span></div>
+      <div class="edu"><span><b>Bachelor of Computer Applications (BCA)</b><small>Yenepoya University, Bangalore</small></span><span class="when">2022 - 2025</span></div>
+      <div class="edu"><span><b>Bachelor of Arts (BA)</b> <small>G.C. College, Silchar, Assam</small></span><span class="when">2018 - 2021</span></div>
+    </section>
+    <section>
+      <h2>Certifications</h2>
+      <p class="certs"><span class="tag">Diploma in Computer Applications</span> <span class="tag">UI/UX Design and React Development</span> <span class="tag">JavaScript Programming</span> <span class="tag">Web Development Basics</span> <span class="tag">HTML Essentials</span> <span class="tag">Programming in C++</span> <span class="tag">Advanced Excel and Business Reporting</span> <span class="tag">Technical and Backend Support</span></p>
+      <p class="langs"><b>Languages:</b> English, Hindi, Bengali, Assamese</p>
+    </section>
+  </div>
+</main>
+
+<footer><span>Live demos, case studies and code: <b>sahnawaz-portfolio.vercel.app</b></span><span>Sahnawaz Ahmed Laskar | Resume</span></footer>
 </body></html>
