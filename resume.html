@@ -1,9 +1,14 @@
 <!doctype html>
-<!-- Source of resume-ats.pdf: a one-page resume that looks designed but is
-     still plain, selectable text in reading order, so job portals (ATS) can
-     read every word. Same facts as the CV on the site.
+<!-- The resume page, and the source of resume-ats.pdf: one page that looks
+     designed but is plain, selectable text in reading order, so job portals
+     (ATS) can read every word. Same facts as the CV on the site.
+     /resume.html#fit=… (from Job Fit) adds a "Why I fit" part for one role
+     and opens the save-as-PDF dialogue.
      After editing, rebuild the PDF with: node scripts/build-resume-ats.js -->
-<html lang="en"><head><meta charset="utf-8"><title>Sahnawaz Ahmed Laskar - Resume</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
+<title>Sahnawaz Ahmed Laskar - Resume</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap">
 <style>
 @page { size: A4; margin: 0; }
 :root { --ink: #0f1c26; --muted: #55657a; --line: #dfe7ee; --accent: #0e8fae; --accent2: #12b39a; --navy: #0b1d2e; }
@@ -66,10 +71,27 @@ li::before { content: ''; position: absolute; left: 1px; top: .58em; width: 4px;
 
 footer { position: absolute; left: 15mm; right: 15mm; bottom: 8mm; display: flex; justify-content: space-between; padding-top: 5px; border-top: 1px solid var(--line); font-size: 7.4pt; color: var(--muted); }
 footer b { color: var(--accent); font-weight: 600; }
+
+/* "Why I fit" for one role (Job Fit). The resume may then run to a second page. */
+.fit { margin-top: 8px; padding: 6px 10px 7px; border-radius: 8px; background: #eef8fb; border-left: 3px solid var(--accent); }
+.fit h2 { margin-top: 0; }
+body.has-fit { height: auto; overflow: visible; }
+body.has-fit footer { position: static; margin: 12px 15mm 8mm; }
+body.has-fit .item, body.has-fit .fit li { break-inside: avoid; }
+/* room for the fit part: the numbers strip and stack lines step aside */
+body.has-fit .facts, body.has-fit .stack { display: none; }
+
+/* on a screen: the page on a grey desk, with a save button */
+@media screen {
+  html { background: #c9d3db; }
+  body { margin: 18px auto; box-shadow: 0 6px 30px rgba(0,0,0,.25); position: relative; background: #fff; }
+  .save { position: fixed; right: 16px; bottom: 16px; z-index: 5; display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 18px; border: 0; border-radius: 14px; font: 700 14px Inter, sans-serif; color: #04121a; background: linear-gradient(90deg, #5ae0ff, #4fe0a2); box-shadow: 0 6px 20px rgba(0,0,0,.25); cursor: pointer; }
+}
+@media print { .save { display: none; } body { margin: 0; box-shadow: none; } }
 </style></head><body>
 
 <header>
-  <img class="photo" src="../profile-hero-360.webp" alt="">
+  <img class="photo" src="profile-hero-360.webp" alt="">
   <div class="who">
     <h1>Sahnawaz Ahmed Laskar</h1>
     <p class="role">Full Stack Developer | UI/UX Designer</p>
@@ -169,5 +191,34 @@ footer b { color: var(--accent); font-weight: 600; }
   </div>
 </main>
 
+<button type="button" class="save" id="save" hidden>Save as PDF</button>
 <footer><span>Live demos, case studies and code: <b>sahnawaz-portfolio.vercel.app</b></span><span>Sahnawaz Ahmed Laskar | Resume</span></footer>
+<script>
+(function () {
+  var save = document.getElementById('save');
+  var esc = function (s) { return String(s || '').replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var fit = null;
+  try { var m = /#fit=(.+)$/.exec(location.hash); if (m) fit = JSON.parse(decodeURIComponent(m[1])); } catch (e) { fit = null; }
+  if (fit && fit.role && Array.isArray(fit.matches) && fit.matches.length) {
+    var box = document.createElement('section');
+    box.className = 'fit';
+    box.innerHTML = '<h2>Why I fit: ' + esc(fit.role).slice(0, 90) + '</h2><ul>'
+      + fit.matches.slice(0, 5).map(function (x) { return '<li><b>' + esc(String(x.requirement).slice(0, 90)) + '</b> - ' + esc(String(x.evidence).slice(0, 170)) + '</li>'; }).join('')
+      + '</ul>';
+    var profile = document.querySelector('.summary');
+    profile.parentNode.insertBefore(box, profile.nextSibling);
+    document.body.classList.add('has-fit');
+    document.title = 'Sahnawaz-Ahmed-Laskar-Resume-' + String(fit.role).replace(/[^\w]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
+  }
+  /* fit the A4 page to a phone screen (screen only; printing is unaffected) */
+  var fitScreen = function () { document.body.style.zoom = Math.min(1, (document.documentElement.clientWidth - 16) / 794).toFixed(3); };
+  fitScreen(); addEventListener('resize', fitScreen);
+  addEventListener('beforeprint', function () { document.body.style.zoom = ''; });
+  addEventListener('afterprint', fitScreen);
+  save.hidden = false;
+  save.addEventListener('click', function () { window.print(); });
+  /* from Job Fit: open the save dialogue once the fonts are in */
+  if (fit) (document.fonts ? document.fonts.ready : Promise.resolve()).then(function () { setTimeout(function () { window.print(); }, 400); });
+})();
+</script>
 </body></html>

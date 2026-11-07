@@ -106,7 +106,7 @@
       + '</div>'
       + '<div class="jf-actions">'
       +   '<button type="button" class="jf-act" data-jf="resume">📄 Get my resume</button>'
-      +   '<button type="button" class="jf-act primary" data-jf="cv">🎯 CV for this role (PDF)</button>'
+      +   '<button type="button" class="jf-act primary" data-jf="cv">🎯 Resume for this role (PDF)</button>'
       +   '<button type="button" class="jf-act" data-jf="contact">✉️ Contact me</button>'
       +   '<button type="button" class="jf-act" data-jf="ask">💬 Ask my assistant</button>'
       +   '<button type="button" class="jf-act" data-jf="copy">📋 Copy report</button>'
@@ -195,7 +195,10 @@
       if (typeof window.openResumeEmailModal === 'function') window.openResumeEmailModal();
       else { var rb = document.querySelector('[onclick*="openResumeEmailModal"]'); if (rb) rb.click(); }
     } else if (what === 'cv') {
-      if (typeof window.printCV === 'function') window.printCV({ role: last.role, matches: last.matches });
+      /* the designed one-page resume, with a "Why I fit" part for this role */
+      var url = '/resume.html#fit=' + encodeURIComponent(JSON.stringify({ role: last.role, matches: (last.matches || []).slice(0, 6) }));
+      var tab = window.open(url, '_blank');
+      if (!tab) location.href = url;
       try { if (window.gtag) gtag('event', 'job_fit_cv', { fit: last.fit }); } catch (x) {}
     } else if (what === 'contact') {
       var c = document.getElementById('contact');
