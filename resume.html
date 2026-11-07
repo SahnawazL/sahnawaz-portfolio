@@ -1,129 +1,105 @@
 <!doctype html>
-<!-- The resume page, and the source of resume-ats.pdf: one page that looks
-     designed but is plain, selectable text in reading order, so job portals
-     (ATS) can read every word. Same facts as the CV on the site.
-     /resume.html#fit=… (from Job Fit) adds a "Why I fit" part for one role
-     and opens the save-as-PDF dialogue.
+<!-- The resume page, and the source of resume-ats.pdf. Plain, selectable
+     text in reading order, so job portals (ATS) can read every word. Same
+     facts as the CV on the site. /resume.html#fit=… (from Job Fit) adds a
+     "Why I fit" part for one role and opens the save-as-PDF dialogue.
      After editing, rebuild the PDF with: node scripts/build-resume-ats.js -->
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
 <title>Sahnawaz Ahmed Laskar - Resume</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@500;600&display=swap">
 <style>
-@page { size: A4; margin: 0; }
-:root { --ink: #0f1c26; --muted: #55657a; --line: #dfe7ee; --accent: #0e8fae; --accent2: #12b39a; --navy: #0b1d2e; }
+@page { size: A4; margin: 12mm 15mm 10mm; }
+:root { --ink: #16202a; --text: #2b3640; --muted: #66727d; --rule: #cfd6dc; --accent: #0b6e86; }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
-body { width: 210mm; height: 297mm; overflow: hidden; font: 8.6pt/1.36 Inter, Arial, sans-serif; color: var(--ink); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { font: 8.7pt/1.36 Inter, Arial, sans-serif; color: var(--text); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 a { color: inherit; text-decoration: none; }
-
-/* header band */
-header { position: relative; display: flex; align-items: center; gap: 16px; padding: 15px 15mm 14px; color: #fff; background: var(--navy); }
-header::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
-.photo { flex: none; width: 66px; height: 66px; border-radius: 50%; object-fit: cover; border: 2px solid #5ad7f0; }
-.who { flex: 1; min-width: 0; }
-h1 { margin: 0; font: 700 20pt/1.05 "Inter Display", Inter, sans-serif; letter-spacing: -.2pt; }
-.role { margin: 4px 0 0; font-size: 9.6pt; font-weight: 600; color: #7fe3f5; letter-spacing: .4pt; }
-.open { display: inline-block; margin-top: 6px; padding: 2px 8px; border-radius: 20px; font-size: 7.6pt; font-weight: 600; color: #04121a; background: linear-gradient(90deg, #5ae0ff, #4fe0a2); }
-.contact { flex: none; margin: 0; padding: 0; list-style: none; font-size: 7.6pt; line-height: 1.55; color: #d7e9f2; text-align: right; }
-.contact b { color: #7fe3f5; font-weight: 600; }
-.contact li { padding: 0; margin: 0; color: #d7e9f2; }
-.contact li::before { content: none; }
-
-main { padding: 9px 15mm 0; }
-
-/* key numbers */
-.facts { display: flex; margin: 0 0 2px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
-.fact { flex: 1; padding: 6px 4px 5px; text-align: center; border-left: 1px solid var(--line); }
-.fact:first-child { border-left: 0; }
-.fact b { display: block; font: 700 12.5pt/1.1 "Inter Display", Inter, sans-serif; color: var(--accent); }
-.fact span { font-size: 7.3pt; color: var(--muted); }
-
-h2 { display: flex; align-items: center; gap: 8px; margin: 8px 0 3px; font-size: 8.3pt; font-weight: 700; letter-spacing: 1.4pt; text-transform: uppercase; color: var(--navy); }
-h2::before { content: ''; width: 14px; height: 3px; border-radius: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
-h2::after { content: ''; flex: 1; height: 1px; background: var(--line); }
 p { margin: 0; }
-.summary { color: #22323f; }
 
-.skills { display: grid; grid-template-columns: 74px 1fr; row-gap: 3px; column-gap: 8px; }
-.skills dt { font-weight: 700; font-size: 8pt; color: var(--navy); padding-top: 1px; }
+/* header: name and title, a rule, then the contact lines */
+header { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; padding-bottom: 9px; border-bottom: 1.4pt solid var(--ink); }
+h1 { margin: 0; font: 600 25pt/1.05 Lora, Georgia, serif; color: var(--ink); letter-spacing: -.2pt; }
+.role { margin-top: 5px; font-size: 10.4pt; font-weight: 500; color: var(--accent); letter-spacing: .2pt; }
+.photo { flex: none; width: 62px; height: 62px; border-radius: 6px; object-fit: cover; object-position: center 22%; }
+.contact.links { margin-top: 1px; }
+.contact { margin: 7px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; font-size: 8.4pt; color: var(--text); }
+.contact li { white-space: nowrap; }
+.contact li + li::before { content: '|'; margin: 0 7px; color: #b3bcc4; }
+.contact a { color: var(--accent); }
+
+h2 { margin: 11px 0 4px; padding-bottom: 3px; font-size: 8.4pt; font-weight: 700; letter-spacing: .6pt; text-transform: uppercase; color: var(--ink); border-bottom: .75pt solid var(--rule); }
+.summary { color: var(--text); }
+
+.skills { display: grid; grid-template-columns: 70px 1fr; gap: 2px 10px; margin: 0; }
+.skills dt { font-weight: 600; color: var(--ink); }
 .skills dd { margin: 0; }
-.tag { display: inline-block; margin: 0 2px 2px 0; padding: 0 6px; border-radius: 4px; font-size: 7.9pt; line-height: 1.55; background: #eef6f9; color: #12303d; }
 
-.item { margin-top: 4px; }
-.head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
-.title { font-weight: 700; font-size: 9.1pt; }
-.title i { font-style: normal; font-weight: 600; color: var(--accent); }
-.when { flex: none; font-size: 7.9pt; font-weight: 600; color: var(--muted); }
-ul { margin: 2px 0 0; padding: 0; list-style: none; }
-li { position: relative; padding-left: 11px; margin-bottom: 1px; color: #22323f; }
-li::before { content: ''; position: absolute; left: 1px; top: .58em; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
-.stack { margin-top: 1px; font-size: 7.8pt; color: var(--muted); }
-.stack b { color: var(--navy); font-weight: 600; }
+.item { margin-top: 6px; break-inside: avoid; }
+.item:first-of-type { margin-top: 0; }
+.head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.title { font-weight: 600; font-size: 9.4pt; color: var(--ink); }
+.title i { font-style: normal; font-weight: 400; color: var(--muted); }
+.when { flex: none; font-size: 8.4pt; color: var(--muted); font-variant-numeric: tabular-nums; }
+a.when { color: var(--accent); }
+ul { margin: 2px 0 0; padding-left: 13px; }
+li { margin-bottom: 1px; padding-left: 1px; }
+li::marker { color: var(--muted); }
+.stack { margin-top: 2px; font-size: 8.3pt; color: var(--muted); }
+.stack b { font-weight: 600; color: var(--text); }
 
-.cols { display: flex; gap: 18px; }
+.cols { display: flex; gap: 24px; break-inside: avoid; }
+h2 { break-after: avoid; }
 .cols > section { flex: 1; min-width: 0; }
-.edu { display: flex; justify-content: space-between; gap: 8px; margin-top: 3px; }
-.edu b { font-weight: 600; }
-.langs { margin-top: 4px; }
-.langs b { color: var(--navy); }
-.edu small { display: block; font-size: 7.8pt; color: var(--muted); }
+.edu { display: flex; justify-content: space-between; gap: 8px; margin-top: 2px; }
+.edu b { font-weight: 600; color: var(--ink); }
+.edu small { display: block; font-size: 8.3pt; color: var(--muted); }
+.certs { margin: 0; }
+.langs { margin-top: 6px; }
+.langs b { font-weight: 600; color: var(--ink); }
 
-footer { position: absolute; left: 15mm; right: 15mm; bottom: 8mm; display: flex; justify-content: space-between; padding-top: 5px; border-top: 1px solid var(--line); font-size: 7.4pt; color: var(--muted); }
-footer b { color: var(--accent); font-weight: 600; }
+/* "Why I fit" for one role (added by Job Fit) */
+.fit { margin-top: 10px; padding: 7px 11px 8px; border-left: 2.5pt solid var(--accent); background: #f2f7f9; break-inside: avoid; }
+.fit h2 { margin: 0 0 4px; border: 0; padding: 0; color: var(--accent); }
 
-/* "Why I fit" for one role (Job Fit). The resume may then run to a second page. */
-.fit { margin-top: 8px; padding: 6px 10px 7px; border-radius: 8px; background: #eef8fb; border-left: 3px solid var(--accent); }
-.fit h2 { margin-top: 0; }
-body.has-fit { height: auto; overflow: visible; }
-body.has-fit footer { position: static; margin: 12px 15mm 8mm; }
-body.has-fit .item, body.has-fit .fit li { break-inside: avoid; }
-/* room for the fit part: the numbers strip and stack lines step aside */
-body.has-fit .facts, body.has-fit .stack { display: none; }
-
-/* on a screen: the page on a grey desk, with a save button */
+/* on a screen: an A4 sheet on a grey desk, with a save button */
 @media screen {
-  html { background: #c9d3db; }
-  body { margin: 18px auto; box-shadow: 0 6px 30px rgba(0,0,0,.25); position: relative; background: #fff; }
-  .save { position: fixed; right: 16px; bottom: 16px; z-index: 5; display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 18px; border: 0; border-radius: 14px; font: 700 14px Inter, sans-serif; color: #04121a; background: linear-gradient(90deg, #5ae0ff, #4fe0a2); box-shadow: 0 6px 20px rgba(0,0,0,.25); cursor: pointer; }
+  html { background: #d5dbe0; }
+  body { width: 210mm; min-height: 297mm; margin: 18px auto; padding: 13mm 15mm 12mm; background: #fff; box-shadow: 0 4px 24px rgba(0,0,0,.18); }
+  .save { position: fixed; right: 16px; bottom: 16px; z-index: 5; min-height: 46px; padding: 0 18px; border: 0; border-radius: 10px; font: 600 14px Inter, sans-serif; color: #fff; background: var(--ink); box-shadow: 0 6px 18px rgba(0,0,0,.25); cursor: pointer; }
 }
-@media print { .save { display: none; } body { margin: 0; box-shadow: none; } }
+@media print { .save { display: none; } }
 </style></head><body>
 
 <header>
-  <img class="photo" src="profile-hero-360.webp" alt="">
-  <div class="who">
+  <div>
     <h1>Sahnawaz Ahmed Laskar</h1>
-    <p class="role">Full Stack Developer | UI/UX Designer</p>
-    <span class="open">Open to full-time roles and freelance work</span>
+    <p class="role">Full Stack Developer &amp; UI/UX Designer</p>
   </div>
-  <ul class="contact">
-    <li><a href="mailto:shzthedigitalalchemist@gmail.com">shzthedigitalalchemist@gmail.com</a></li>
-    <li>+91 7339203154 | Bangalore, India</li>
-    <li><b>Portfolio:</b> <a href="https://sahnawaz-portfolio.vercel.app">sahnawaz-portfolio.vercel.app</a></li>
-    <li><b>GitHub:</b> <a href="https://github.com/SahnawazL">github.com/SahnawazL</a></li>
-    <li><a href="https://linkedin.com/in/sahnawaz-ahmed-laskar-021608168">linkedin.com/in/sahnawaz-ahmed-laskar-021608168</a></li>
-  </ul>
+  <img class="photo" src="profile-hero-360.webp" alt="">
 </header>
+<ul class="contact">
+  <li>Bangalore, India</li>
+  <li>+91 73392 03154</li>
+  <li><a href="mailto:shzthedigitalalchemist@gmail.com">shzthedigitalalchemist@gmail.com</a></li>
+</ul>
+<ul class="contact links">
+  <li><a href="https://sahnawaz-portfolio.vercel.app">sahnawaz-portfolio.vercel.app</a></li>
+  <li><a href="https://github.com/SahnawazL">github.com/SahnawazL</a></li>
+  <li><a href="https://linkedin.com/in/sahnawaz-ahmed-laskar-021608168">linkedin.com/in/sahnawaz-ahmed-laskar-021608168</a></li>
+</ul>
 
 <main>
-  <div class="facts">
-    <div class="fact"><b>5+ years</b><span>as a developer</span></div>
-    <div class="fact"><b>50+</b><span>web projects built</span></div>
-    <div class="fact"><b>2 live products</b><span>built solo</span></div>
-    <div class="fact"><b>2,000+</b><span>commits on YojanaSahay</span></div>
-  </div>
-
-  <h2>Profile</h2>
-  <p class="summary">Full Stack Developer and UI/UX Designer with 5+ years as a developer, including freelance and personal projects since 2021, and IT-industry experience at Xiaomi, Flipkart and Rapido. I build fast, fully responsive web applications, from solo React and Firebase products to AI-integrated platforms, and I design them as carefully as I code them. Pursuing an MCA in Bangalore.</p>
+<h2>Profile</h2>
+  <p class="summary">Full Stack Developer and UI/UX Designer with 5+ years as a developer, including freelance and personal projects since 2021, and IT-industry experience at Xiaomi, Flipkart and Rapido. I build fast, fully responsive web applications, from solo React and Firebase products to AI-integrated platforms, and I design them as carefully as I code them. Pursuing an MCA in Bangalore; open to full-time roles and freelance work.</p>
 
   <h2>Skills</h2>
   <dl class="skills">
-    <dt>Frontend</dt><dd><span class="tag">HTML5</span> <span class="tag">CSS3</span> <span class="tag">JavaScript</span> <span class="tag">React</span> <span class="tag">Tailwind CSS</span> <span class="tag">Vite</span> <span class="tag">PWA</span></dd>
-    <dt>Backend</dt><dd><span class="tag">Node.js</span> <span class="tag">Python</span> <span class="tag">PHP</span> <span class="tag">MySQL</span> <span class="tag">Firebase Auth &amp; Firestore</span> <span class="tag">REST APIs</span> <span class="tag">Serverless functions</span></dd>
-    <dt>AI</dt><dd><span class="tag">Groq API</span> <span class="tag">Gemini API</span> <span class="tag">AI chat assistants</span> <span class="tag">AI agents</span></dd>
-    <dt>Design</dt><dd><span class="tag">UI/UX design</span> <span class="tag">Figma</span> <span class="tag">Adobe XD</span> <span class="tag">Wireframing</span> <span class="tag">Prototyping</span></dd>
-    <dt>Tools</dt><dd><span class="tag">Git</span> <span class="tag">GitHub Actions</span> <span class="tag">Vercel</span> <span class="tag">VS Code</span> <span class="tag">Google Analytics (GA4)</span> <span class="tag">WordPress</span> <span class="tag">Shopify</span> <span class="tag">Excel</span></dd>
+    <dt>Frontend</dt><dd>HTML5, CSS3, JavaScript, React, Tailwind CSS, Vite, PWA</dd>
+    <dt>Backend</dt><dd>Node.js, Python, PHP, MySQL, Firebase Auth &amp; Firestore, REST APIs, Serverless functions</dd>
+    <dt>AI</dt><dd>Groq API, Gemini API, AI chat assistants, AI agents</dd>
+    <dt>Design</dt><dd>UI/UX design, Figma, Adobe XD, Wireframing, Prototyping</dd>
+    <dt>Tools</dt><dd>Git, GitHub Actions, Vercel, VS Code, Google Analytics (GA4), WordPress, Shopify, Excel</dd>
   </dl>
 
   <h2>Projects</h2>
@@ -181,18 +157,18 @@ body.has-fit .facts, body.has-fit .stack { display: none; }
       <h2>Education</h2>
       <div class="edu"><span><b>Master of Computer Applications (MCA)</b><small>Yenepoya University, Bangalore</small></span><span class="when">2025 - Present</span></div>
       <div class="edu"><span><b>Bachelor of Computer Applications (BCA)</b><small>Yenepoya University, Bangalore</small></span><span class="when">2022 - 2025</span></div>
-      <div class="edu"><span><b>Bachelor of Arts (BA)</b> <small>G.C. College, Silchar, Assam</small></span><span class="when">2018 - 2021</span></div>
+      <div class="edu"><span><b>Bachelor of Arts (BA)</b><small>G.C. College, Silchar, Assam</small></span><span class="when">2018 - 2021</span></div>
     </section>
     <section>
       <h2>Certifications</h2>
-      <p class="certs"><span class="tag">Diploma in Computer Applications</span> <span class="tag">UI/UX Design and React Development</span> <span class="tag">JavaScript Programming</span> <span class="tag">Web Development Basics</span> <span class="tag">HTML Essentials</span> <span class="tag">Programming in C++</span> <span class="tag">Advanced Excel and Business Reporting</span> <span class="tag">Technical and Backend Support</span></p>
+      <p class="certs">Diploma in Computer Applications; UI/UX Design and React Development; JavaScript Programming; Web Development Basics; HTML Essentials; Programming in C++; Advanced Excel and Business Reporting; Technical and Backend Support.</p>
+    
       <p class="langs"><b>Languages:</b> English, Hindi, Bengali, Assamese</p>
     </section>
   </div>
 </main>
 
 <button type="button" class="save" id="save" hidden>Save as PDF</button>
-<footer><span>Live demos, case studies and code: <b>sahnawaz-portfolio.vercel.app</b></span><span>Sahnawaz Ahmed Laskar | Resume</span></footer>
 <script>
 (function () {
   var save = document.getElementById('save');
