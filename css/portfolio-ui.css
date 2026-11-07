@@ -11774,12 +11774,12 @@ html body #hacker-toggle:not(.visible) { animation-play-state: paused !important
    the tap; nothing changes visually. */
 @media (pointer: coarse) {
   .mpj-filter-btn, .mpj-link-btn, .lp-open, .ts-tab, .wvc-btn, .rt-pill, .sys-recheck,
-  .wio-plan, .wc-type, .wc-lang, .wc-nosite, .c2d-tab, .pfeedback-nav {
+  .wio-plan, .wc-type, .wc-lang, .wc-nosite, .pfeedback-nav {
     position: relative;
   }
   .mpj-filter-btn::before, .mpj-link-btn::before, .lp-open::before, .ts-tab::before, .wvc-btn::before,
   .rt-pill::before, .sys-recheck::before, .wio-plan::before, .wc-type::before, .wc-lang::before,
-  .wc-nosite::before, .c2d-tab::before, .pfeedback-nav::before {
+  .wc-nosite::before, .pfeedback-nav::before {
     content: ''; position: absolute; top: -7px; bottom: -7px; left: -3px; right: -3px;
   }
   .kta3-close::before, .wio-close-back::before, .syb-close::before {
