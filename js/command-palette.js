@@ -116,6 +116,10 @@
        CV. Everything is already in the page at load, so there is nothing to
        wait for before opening the print dialogue, where "Save as PDF" is the
        default destination on every platform. */
+    { t:'Recruiter quick view', s:'My whole profile on one screen, in 60 seconds', g:'Share & contact',
+      i:'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/>',
+      k:'recruiter hr hiring quick view summary overview 60 seconds tldr short profile',
+      run:function(){ if (typeof window.openRecruiterView === 'function') { window.openRecruiterView(); return true; } return false; } },
     { t:'Print / Save as PDF', s:'This portfolio as a clean, printable CV', g:'Share & contact',
       i:'<path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/>',
       k:'print save pdf cv resume download paper hire recruiter',
@@ -755,7 +759,28 @@
   window.openCommandPalette  = open;
   window.closeCommandPalette = close;
   /* shared by the palette entry and the desktop footer */
-  window.printCV = function () {
+  /* A CV for one role: the Job Fit report's matches, each with its proof,
+     go in a "Why I fit" part under the profile, and the file is named after
+     the role. Only what the report found is added; gaps are not hidden by
+     anything invented. */
+  function fitSection(fit) {
+    var old = document.getElementById('cvFit');
+    if (old) old.remove();
+    if (!fit || !fit.role || !fit.matches || !fit.matches.length) return null;
+    var esc = function (s) { return String(s || '').replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+    var profile = document.querySelector('#print-cv .cv-main .cv-sec');
+    if (!profile) return null;
+    var sec = document.createElement('section');
+    sec.className = 'cv-sec cv-fit';
+    sec.id = 'cvFit';
+    sec.innerHTML = '<h2>Why I fit: ' + esc(fit.role).slice(0, 80) + '</h2><article class="cv-job"><ul>'
+      + fit.matches.slice(0, 6).map(function (m) { return '<li><b>' + esc(m.requirement) + '</b> &mdash; ' + esc(m.evidence) + '</li>'; }).join('')
+      + '</ul></article>';
+    profile.insertAdjacentElement('afterend', sec);
+    return sec;
+  }
+  window.printCV = function (fit) {
+    var tailored = fitSection(fit);
     /* close anything floating first: an open popup would print over the CV */
     try { if (typeof window.closeCommandPalette === 'function') window.closeCommandPalette(); } catch (e) {}
     try { if (typeof window.closeWebVitals === 'function') window.closeWebVitals(); } catch (e) {}
@@ -763,7 +788,7 @@
     /* browsers name the saved PDF after the document title, so borrow a
        proper filename for the moment the dialogue is open */
     var title = document.title;
-    document.title = 'Sahnawaz-Ahmed-Laskar-CV';
+    document.title = 'Sahnawaz-Ahmed-Laskar-CV' + (tailored ? '-' + String(fit.role).replace(/[^\w]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) : '');
     var restore = function () { document.title = title; };
     setTimeout(function () {
       try { window.print(); } catch (e) {}

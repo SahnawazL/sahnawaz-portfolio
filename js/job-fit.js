@@ -105,7 +105,8 @@
       +   (r.interview && r.interview.length ? '<div class="jf-col ask"><h4>? Worth asking in an interview</h4>' + list(r.interview, 'ask') + '</div>' : '')
       + '</div>'
       + '<div class="jf-actions">'
-      +   '<button type="button" class="jf-act primary" data-jf="resume">📄 Get my resume</button>'
+      +   '<button type="button" class="jf-act" data-jf="resume">📄 Get my resume</button>'
+      +   '<button type="button" class="jf-act primary" data-jf="cv">🎯 CV for this role (PDF)</button>'
       +   '<button type="button" class="jf-act" data-jf="contact">✉️ Contact me</button>'
       +   '<button type="button" class="jf-act" data-jf="ask">💬 Ask my assistant</button>'
       +   '<button type="button" class="jf-act" data-jf="copy">📋 Copy report</button>'
@@ -193,6 +194,9 @@
       /* the same "Get Resume" pop-up as the bio card (emails the resume) */
       if (typeof window.openResumeEmailModal === 'function') window.openResumeEmailModal();
       else { var rb = document.querySelector('[onclick*="openResumeEmailModal"]'); if (rb) rb.click(); }
+    } else if (what === 'cv') {
+      if (typeof window.printCV === 'function') window.printCV({ role: last.role, matches: last.matches });
+      try { if (window.gtag) gtag('event', 'job_fit_cv', { fit: last.fit }); } catch (x) {}
     } else if (what === 'contact') {
       var c = document.getElementById('contact');
       if (c) c.scrollIntoView({ behavior: 'smooth', block: 'start' });

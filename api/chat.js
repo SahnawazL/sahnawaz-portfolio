@@ -76,6 +76,8 @@ const projectBrief = require('../lib/project-brief');
 const jobFit = require('../lib/job-fit');
 const caseAsk = require('../lib/case-ask');
 const PRICING = require('../js/pricing.js');
+const { geminiText, geminiKeys } = require('../lib/gemini');
+const answerCache = require('../lib/chat-cache');
 
 let githubActivityCache = { data: null, fetchedAt: 0, pending: null };
 const GITHUB_ACTIVITY_TTL_MS = 30 * 60 * 1000; // 30 minutes — the feed only changes when he pushes
@@ -143,7 +145,7 @@ async function handleChat(req, res) {
 
   const keys = groqKeys();
   const apiKey = keys[0];
-  if (!apiKey) {
+  if (!apiKey && !geminiKeys().length) {
     return res.status(500).json({ reply: 'API key not configured.' });
   }
 
@@ -437,6 +439,24 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
     visitorActivityHint = lines.join('\n');
   }
 
+  // ── SAVED ANSWERS ─────────────────────────────────────────────────────
+  // A first question with nothing personal ("What are his skills?") gets the
+  // answer saved for the same question earlier, without using the AI.
+  const va0 = (visitorActivity && typeof visitorActivity === 'object') ? visitorActivity : {};
+  const cacheable = !(Array.isArray(history) && history.some(m => m && m.content))
+    && !visitorName && !va0.name && !va0.email && !va0.reviewSubmitted
+    && !(Array.isArray(va0.likedProjects) && va0.likedProjects.length) && !(va0.totalChats > 0)
+    && !ctx.report && !ctx.brief && intent !== 'greeting'
+    && trimmed.length >= 6 && trimmed.length <= 160 && !/\b(my|our|i am|i'm|me)\b|@|\d{6,}/i.test(trimmed);
+  const cacheVariant = visitorType || '';
+  if (cacheable) {
+    const saved = await answerCache.get(trimmed, cacheVariant).catch(() => null);
+    if (saved) {
+      console.log(JSON.stringify({ log: 'chat_cache_hit', q: trimmed.slice(0, 80), t: new Date().toISOString() }));
+      return res.status(200).json(withGo({ reply: saved, cached: true }, trimmed));
+    }
+  }
+
   // ── KNOWLEDGE BASE ─────────────────────────────────────────────────────
   // Only the sections this question needs. The QUESTION picks the topic;
   // earlier messages only help a follow-up that names no topic of its own
@@ -604,6 +624,12 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
       }
     }
 
+    // Every Groq model and key busy: Google Gemini answers instead, if set up
+    if (!reply && geminiKeys().length && deadline - Date.now() > 3000) {
+      reply = cleanContent(await geminiText(messages, { temperature: 0.5, maxTokens: 1000, totalMs: Math.min(15000, deadline - Date.now()) }));
+      if (reply) console.log(JSON.stringify({ log: 'chat_gemini_backup', t: new Date().toISOString() }));
+    }
+
     if (!reply) {
       console.error('All models failed:', lastError);
       return res.status(200).json({
@@ -638,7 +664,9 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
       t:      new Date().toISOString()
     }));
 
-    return res.status(200).json({ reply });
+    if (cacheable) await answerCache.put(trimmed, cacheVariant, reply);
+
+    return res.status(200).json(withGo({ reply }, trimmed));
 
   } catch (err) {
     console.error('Server error:', err);
@@ -706,6 +734,9 @@ const LINK_LABELS = {
   'how-i-ship': '🚀 How he ships code',
   blog: '📝 Read his blog notes',
   testimonials: '⭐ What clients say',
+  certifications: '🎓 See his certifications',
+  'quick-view': '⏱️ 60-second profile view',
+  achievements: '🏆 See his achievements',
   tour: '▶ Take the 3-minute tour'
 };
 const ACTION_LABELS = {
@@ -739,6 +770,9 @@ const CHIP_TOPICS = [            // order = which one wins when several fit
   ['stack',       /tech ?stack|technolog|tools (does|do) he|languages (does|do) he|frameworks?|which stack|what does he (code|build) with/i],
   ['telemetry',   /github|streak|\bcommits?\b|shipped recently|coding right now|telemetry|recent activity/i],
   ['projects',    /\bprojects?\b|\bapps?\b.*\b(built|made|created)\b|what (has|did) he (built|build|make|made)|his work\b|work samples/i],
+  ['quick-view', /quick (view|summary|overview)|60.?sec|one.?minute|tl;?dr|short (version|summary)|summar(y|ise|ize) (of )?(him|his profile|sahnawaz)|in (a )?nutshell|at a glance/i],
+  ['certifications', /certif|certificate|courses? (he )?(did|completed|took)|credential/i],
+  ['achievements', /achievement|award|accomplish|milestone/i],
   ['resume',      /\b(resume|résumé|cv)\b/i],
   ['contact',     /\bcontact\b|reach (him|sahnawaz)|get in touch|email (him|address)|phone number/i]
 ];
@@ -764,6 +798,18 @@ function tidyChips(reply, question, ctx) {
   text = text.replace(/\n{3,}/g, '\n\n').trim();
   const chips = out.slice(0, 2).map(function (k) { return '[[go:' + k + '|' + labelFor(k, ctx) + ']]'; });
   return chips.length ? text + '\n' + chips.join('\n') : text;
+}
+
+// "Show me his projects" / "take me to contact": the page goes there by
+// itself after the answer (the visitor can stop it). Only for a clear request
+// to see a place, and only to a place the answer already offers as a chip.
+const GO_WORDS = /\b(show me|take me|go to|scroll (down |up )?to|jump to|navigate to|bring me to|where (is|are|can i (see|find))|open (the|his)|let me see|dikhao|dekhao)\b/i;
+function withGo(out, question) {
+  if (!GO_WORDS.test(String(question || ''))) return out;
+  const m = /\[\[go:([a-z-]+)\|/i.exec(out.reply || '');
+  const k = m && m[1].toLowerCase();
+  if (k && LINK_LABELS[k] && k !== 'resume' && k !== 'tour') out.go = k;
+  return out;
 }
 
 // Strong, explicit wishes only — a passing "project" or "email" is not enough.

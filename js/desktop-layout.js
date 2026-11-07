@@ -348,7 +348,8 @@
       var isSearch = p.classList.contains('hero-cta-search') || p.hasAttribute('data-command-palette');
       var isChat = p.hasAttribute('data-open-chat');         /* "Talk to My AI Assistant" */
       var isPlan = p.classList.contains('hero-cta-plan');    /* "Plan Your Project with AI" */
-      var target = isSearch ? 'search' : isChat ? 'chat' : isPlan ? 'brief' : (p.getAttribute('href') || '');
+      var isQuick = p.hasAttribute('data-recruiter-view');  /* "Recruiter? 60-sec view" */
+      var target = isSearch ? 'search' : isChat ? 'chat' : isPlan ? 'brief' : isQuick ? 'recruiter' : (p.getAttribute('href') || '');
       if (!label || !target) return;
       var html = '<button type="button" class="dsk-dr-item' + (isPlan ? ' is-plan' : isChat ? ' is-ai' : '') + '" role="menuitem" style="--d:' + i + '" data-dr="' + target + '">' +
                '<span class="dsk-dr-ic">' + (icon ? icon.outerHTML : '') + '</span>' +
@@ -380,6 +381,7 @@
     if (target === 'search') { if (fn('openCommandPalette')) window.openCommandPalette(); arrive('search'); return; }
     if (target === 'chat') { if (fn('openChat')) window.openChat(); arrive('chat'); return; }
     if (target === 'brief') { if (fn('openBrief')) window.openBrief({ from: 'menu' }); arrive('brief'); return; }
+    if (target === 'recruiter') { if (fn('openRecruiterView')) window.openRecruiterView(); return; }
     if (target.charAt(0) !== '#') return;
     goTo(target);
     /* the same arrival scan line as the hero pills (portfolio-06.js) */
@@ -445,6 +447,7 @@
         document.querySelector('#testimonials') && item('Testimonials', 'go:#testimonials')
       ]) +
       col('Work with me', [
+        item('Recruiter Quick View', 'recruiter'),
         fn('openResumeEmailModal') && item('Get the Resume', 'resume'),
         document.querySelector('#tools-services') && item('Book a Service', 'go:#tools-services'),
         document.querySelector('#contact') && item('Contact', 'go:#contact'),
@@ -467,6 +470,7 @@
       var a = b.getAttribute('data-f');
       if (a.indexOf('go:') === 0) return goTo(a.slice(3));
       if (a === 'resume') window.openResumeEmailModal();
+      if (a === 'recruiter' && fn('openRecruiterView')) window.openRecruiterView();
       if (a === 'share') window.openSharePopup();
       if (a === 'print') { if (typeof window.printCV === 'function') window.printCV(); else window.print(); }
       if (a === 'vitals' && fn('openWebVitals')) window.openWebVitals();

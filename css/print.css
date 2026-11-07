@@ -198,6 +198,9 @@
   #print-cv .cv-where:not(#never-used) { font-size: 8.3pt !important; color: #5b6b7c !important; margin-top: 1px !important; }
 
   #print-cv .cv-job ul { list-style: none !important; margin: 3px 0 0 !important; }
+  /* "Why I fit" — added only for a CV made from a Job Fit report */
+  #print-cv .cv-fit .cv-job:not(#never-used) { margin-top: 2px !important; padding: 5px 8px !important; border-left: 2px solid #0f8fb0 !important; background: #f2f8fb !important; }
+  #print-cv .cv-fit li b:not(#never-used) { color: #10202f !important; }
   #print-cv .cv-job li:not(#never-used) {
     position: relative !important;
     padding-left: 9px !important;

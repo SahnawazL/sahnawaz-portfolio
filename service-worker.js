@@ -30,7 +30,7 @@
    effect on the very next load, with no second refresh needed.
    ============================================================ */
 
-const VERSION     = 'v49';
+const VERSION     = 'v50';
 const PRECACHE    = 'shz-precache-' + VERSION;
 const RUNTIME     = 'shz-runtime-' + VERSION;
 const OFFLINE_URL = './offline.html';
@@ -77,6 +77,27 @@ const PRECACHE_URLS = [
   './js/job-fit.js',
   './js/case-ask.js',
   './js/tour.js',
+  './js/recruiter-view.js',
+  './js/phone-fold.js',
+  './icons/tech/css.svg',
+  './icons/tech/excel.svg',
+  './icons/tech/figma.svg',
+  './icons/tech/firebase.svg',
+  './icons/tech/githubcopilot.svg',
+  './icons/tech/googleanalytics.svg',
+  './icons/tech/html5.svg',
+  './icons/tech/javascript.svg',
+  './icons/tech/mysql.svg',
+  './icons/tech/nodedotjs.svg',
+  './icons/tech/notion.svg',
+  './icons/tech/php.svg',
+  './icons/tech/python.svg',
+  './icons/tech/react.svg',
+  './icons/tech/shopify.svg',
+  './icons/tech/tailwindcss.svg',
+  './icons/tech/vercel.svg',
+  './icons/tech/wordpress.svg',
+  './icons/tech/xd.svg',
 
   './profile-hero-360.webp',   /* light hero photo (profile.jpg is only for link previews) */
   './profile-hero-540.webp',

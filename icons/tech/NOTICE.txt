@@ -1,0 +1,5 @@
+Skill icons
+
+Most icons here come from Simple Icons (https://simpleicons.org), released under CC0 1.0.
+excel.svg and xd.svg are plain letter tiles drawn for this site.
+The logos are trademarks of their owners and are shown only to name the tools I use.

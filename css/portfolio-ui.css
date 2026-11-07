@@ -11750,6 +11750,11 @@ div#popup.popup {
 .bot-link:hover { filter: brightness(1.07); }
 .bot-link:active { transform: scale(.97); }
 .bot-link svg { width: 12px; height: 12px; }
+/* "Show me…": the chip fills up, then the page goes there */
+.bot-link { position: relative; overflow: hidden; }
+.bot-link-auto::after { content: ''; position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: rgba(4, 18, 26, .55); transform-origin: left; animation: botLinkFill 1.6s linear forwards; }
+@keyframes botLinkFill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media (prefers-reduced-motion: reduce) { .bot-link-auto::after { animation-duration: .9s; } }
 .bot-link:focus-visible { outline: 2px solid #5ac8ff; outline-offset: 2px; }
 
 
@@ -11762,3 +11767,22 @@ html body #hacker-toggle:not(.visible) { animation-play-state: paused !important
 /* The scroll progress bar only shows while scrolling (it fades out 1.5 s
    after scrolling stops); its shimmer now rests while it is hidden. */
 #scrollProgressTrack:not(.spb-visible) #scrollProgressBar { animation-play-state: paused; }
+
+/* ── Bigger tap areas on phones ───────────────────────────────────────
+   These buttons look right at their size but were under 40px tall, which
+   is easy to miss with a thumb. An invisible area around each one takes
+   the tap; nothing changes visually. */
+@media (pointer: coarse) {
+  .mpj-filter-btn, .mpj-link-btn, .lp-open, .ts-tab, .wvc-btn, .rt-pill, .sys-recheck,
+  .wio-plan, .wc-type, .wc-lang, .wc-nosite, .c2d-tab, .pfeedback-nav {
+    position: relative;
+  }
+  .mpj-filter-btn::before, .mpj-link-btn::before, .lp-open::before, .ts-tab::before, .wvc-btn::before,
+  .rt-pill::before, .sys-recheck::before, .wio-plan::before, .wc-type::before, .wc-lang::before,
+  .wc-nosite::before, .c2d-tab::before, .pfeedback-nav::before {
+    content: ''; position: absolute; top: -7px; bottom: -7px; left: -3px; right: -3px;
+  }
+  .kta3-close::before, .wio-close-back::before, .syb-close::before {
+    content: ''; position: absolute; inset: -13px;
+  }
+}

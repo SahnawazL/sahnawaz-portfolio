@@ -2447,6 +2447,9 @@
     'how-i-ship': { url: '/#how-i-ship',      run: function () { return scrollTo_('#how-i-ship'); } },
     blog:        { url: '/#blog',             run: function () { return scrollTo_('#blog'); } },
     testimonials: { url: '/#testimonials',    run: function () { return scrollTo_('#testimonials'); } },
+    'quick-view': { url: '/?view=recruiter',  run: function () { return callIf('openRecruiterView'); } },
+    certifications: { url: '/#certSection',   run: function () { return scrollTo_('#certSection'); } },
+    achievements: { url: '/#achievements',    run: function () { return scrollTo_('#achievements'); } },
     /* In-chat actions: start the Help menu flows right here, chat stays open */
     'send-message': { url: '/#contact', inChat: true, run: function () { return callIf('_startHelpFlow', 'quickmail'); } },
     'send-resume':  { url: '/#contact', inChat: true, run: function () { return callIf('_startHelpFlow', 'resume'); } },
@@ -2535,6 +2538,31 @@
       if (typeof closer === 'function') { try { closer(); } catch (err) {} }
       setTimeout(function () { if (!entry.run()) location.href = entry.url; }, 260);
     });
+  }
+
+  /* "Show me his projects": once the answer is shown, its chip fills up
+     for a moment and then takes the visitor there. Typing, or tapping
+     anything in the chat, stops it. */
+  function autoGo(key) {
+    if (!CHAT_LINKS[key] || CHAT_LINKS[key].inChat) return;
+    var tries = 0, stopped = false;
+    var stop = function () { stopped = true; };
+    var wait = setInterval(function () {
+      var all = document.querySelectorAll('[data-bot-go="' + key + '"]');
+      var chip = all[all.length - 1];
+      if (!chip && ++tries < 60) return;
+      clearInterval(wait);
+      if (!chip) return;
+      var box = chip.closest('.chat-messages, #chatMessages') || document;
+      var input = document.querySelector('#chatInput, .chat-input input, .chat-input textarea');
+      box.addEventListener('pointerdown', stop, { once: true });
+      if (input) input.addEventListener('input', stop, { once: true });
+      chip.classList.add('bot-link-auto');
+      setTimeout(function () {
+        chip.classList.remove('bot-link-auto');
+        if (!stopped && chip.isConnected) chip.click();
+      }, matchMedia('(prefers-reduced-motion: reduce)').matches ? 900 : 1600);
+    }, 150);
   }
 
   function formatBotReply(raw) {
@@ -3573,6 +3601,7 @@
           if (nameMatch) window._chatVisitorName = nameMatch[1];
         }
         addBotTyping(aiReply, val, false, true);
+        if (data.go) autoGo(data.go);
       } else {
         addBotTyping("⚠️ I didn't get a response. Please try again in a moment.", val, false, true);
       }
