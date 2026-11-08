@@ -979,6 +979,15 @@
   .stat-trend { font-family: 'Inter', sans-serif; font-size: .62rem; font-weight: 600; margin-top: 3px; letter-spacing: .01em; }
   .stat-trend.up { color: #4fe0a2; }
   .stat-trend.flat { color: rgba(150,180,210,0.45); }
+    .gap-list { display: grid; gap: 10px; margin-bottom: 26px; }
+    .gap-row { padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(56,189,248,0.16); }
+    .gap-row.answered { border-color: rgba(52,211,153,0.28); }
+    .gap-q { font-family: 'Inter', sans-serif; font-size: .86rem; font-weight: 600; color: #e6f3fb; }
+    .gap-meta { margin-top: 3px; font-family: 'Inter', sans-serif; font-size: .7rem; color: #7d9cad; }
+    .gap-row textarea { width: 100%; min-height: 58px; margin-top: 9px; padding: 8px 10px; border-radius: 9px; border: 1px solid rgba(56,189,248,0.24); background: rgba(0,0,0,0.25); color: #e6f3fb; font: .8rem 'Inter', sans-serif; resize: vertical; box-sizing: border-box; }
+    .gap-acts { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; align-items: center; }
+    .gap-ans { margin-top: 7px; font-family: 'Inter', sans-serif; font-size: .78rem; color: #a7f3d0; }
+    .gap-note { font-family: 'Inter', sans-serif; font-size: .7rem; color: #7d9cad; }
     .export-btn { font-family: 'Inter', sans-serif; font-size: .66rem; font-weight: 600; color: #9fd4f0; background: rgba(56,189,248,0.10); border: 1px solid rgba(56,189,248,0.24); padding: 5px 11px; border-radius: 8px; cursor: pointer; white-space: nowrap; transition: all .15s ease; }
   .export-btn:hover { background: rgba(56,189,248,0.2); color: #dff2ff; }
   .export-btn:active { transform: scale(.96); }
@@ -1652,6 +1661,14 @@
 
     <!-- CHATS PANEL -->
     <div class="panel" id="panel-chats">
+    <!-- Questions the AI chat had no facts for. An answer written here is
+         given to the chat from then on (within about 5 minutes). -->
+    <div class="section-head" id="gapSection">
+      <span class="section-head-title">Questions the chat couldn't answer</span>
+      <div class="section-head-line"></div>
+      <span class="section-count" id="gapCount">loading…</span>
+    </div>
+    <div class="gap-list" id="gapList"><div class="empty-state">Loading…</div></div>
     <div class="section-head" id="chatSection">
       <span class="section-head-title">Chat Messages</span>
       <div class="section-head-line"></div>
@@ -4368,7 +4385,41 @@
       .catch(function (e) { adminErr = e.message; renderTraffic(); });
   };
 
-  function afterAdminLoad() { buildLeads(); renderLeads(); renderAttention(); renderTraffic(); renderTour(); }
+  /* questions the chat had no facts for; writing an answer teaches the chat */
+  function gapEsc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function renderGaps() {
+    var box = document.getElementById('gapList'), count = document.getElementById('gapCount');
+    if (!box) return;
+    var g = adminData && adminData.gaps;
+    if (!g) { count.textContent = 'unavailable'; box.innerHTML = '<div class="empty-state">Couldn’t load.</div>'; return; }
+    var open = g.filter(function (x) { return x.status !== 'answered'; }), done = g.filter(function (x) { return x.status === 'answered'; });
+    count.textContent = open.length + ' open · ' + done.length + ' answered';
+    if (!g.length) { box.innerHTML = '<div class="empty-state">Nothing yet. Questions the chat can’t answer will appear here.</div>'; return; }
+    box.innerHTML = open.concat(done).slice(0, 60).map(function (x) {
+      var when = x.lastAt ? new Date(x.lastAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+      return '<div class="gap-row' + (x.status === 'answered' ? ' answered' : '') + '" data-id="' + gapEsc(x.id) + '">'
+        + '<div class="gap-q">“' + gapEsc(x.q) + '”</div>'
+        + '<div class="gap-meta">Asked ' + x.count + (x.count === 1 ? ' time' : ' times') + (when ? ' · last ' + when : '') + '</div>'
+        + (x.status === 'answered' ? '<div class="gap-ans">✓ ' + gapEsc(x.answer) + '</div>' : '')
+        + '<textarea maxlength="600" placeholder="Write the answer in your own words. The chat will use it from now on.">' + (x.status === 'answered' ? gapEsc(x.answer) : '') + '</textarea>'
+        + '<div class="gap-acts"><button type="button" class="export-btn" data-gap="save">' + (x.status === 'answered' ? 'Update answer' : 'Save answer') + '</button>'
+        + '<button type="button" class="export-btn" data-gap="dismiss">Dismiss</button><span class="gap-note"></span></div></div>';
+    }).join('');
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-gap]');
+    if (!b) return;
+    var row = b.closest('.gap-row'), id = row.getAttribute('data-id'), note = row.querySelector('.gap-note');
+    var dismiss = b.getAttribute('data-gap') === 'dismiss', answer = row.querySelector('textarea').value.trim();
+    if (!dismiss && answer.length < 2) { note.textContent = 'Write an answer first.'; return; }
+    b.disabled = true; note.textContent = 'Saving…';
+    adminApi('POST', '', { gap: { id: id, answer: answer, dismiss: dismiss } }).then(function () {
+      (adminData.gaps || []).forEach(function (x) { if (x.id === id) { if (dismiss) x.status = 'dismissed'; else { x.status = 'answered'; x.answer = answer; } } });
+      adminData.gaps = (adminData.gaps || []).filter(function (x) { return x.status !== 'dismissed'; });
+      renderGaps();
+    }).catch(function (err) { b.disabled = false; note.textContent = 'Failed: ' + err.message; });
+  });
+  function afterAdminLoad() { buildLeads(); renderLeads(); renderAttention(); renderTraffic(); renderTour(); renderGaps(); }
 
   /* coming back to the tab after a while: fresh numbers, no button press */
   var lastLoadAt = 0;

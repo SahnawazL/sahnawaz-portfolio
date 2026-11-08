@@ -78,6 +78,7 @@ const caseAsk = require('../lib/case-ask');
 const PRICING = require('../js/pricing.js');
 const { geminiText, geminiKeys } = require('../lib/gemini');
 const answerCache = require('../lib/chat-cache');
+const chatGaps = require('../lib/chat-gaps');
 
 let githubActivityCache = { data: null, fetchedAt: 0, pending: null };
 const GITHUB_ACTIVITY_TTL_MS = 30 * 60 * 1000; // 30 minutes — the feed only changes when he pushes
@@ -520,8 +521,11 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
   const retrieved = buildKnowledge(trimmed, recent, Object.assign({}, hints, { yojanaSchemesLine, recentShippedLine, impactLine }), { force });
 
   const stateBlock = stateText(ctx);
+  // Answers he added on the admin page for questions the chat couldn't answer
+  const ownerFacts = await chatGaps.facts().catch(() => '');
   // The question's topic goes last, where the model weighs it most.
-  const KNOWLEDGE = retrieved.text + (stateBlock ? '\n\n' + stateBlock : '') + (retrieved.focus ? '\n\n' + retrieved.focus : '');
+  const KNOWLEDGE = retrieved.text + (ownerFacts ? '\n\n' + ownerFacts : '') + '\n\n' + chatGaps.RULE
+    + (stateBlock ? '\n\n' + stateBlock : '') + (retrieved.focus ? '\n\n' + retrieved.focus : '');
   console.log('[chat] knowledge ' + retrieved.tokens + ' tokens \u00b7 ' + retrieved.used.join(', ') + (retrieved.topics.length ? ' \u00b7 topic ' + retrieved.topics.join(', ') : ''));
 
   // ── UPGRADE 1: Conversation history ───────────────────────────────────
@@ -642,6 +646,11 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
     // anywhere in the text (AI sometimes embeds them mid-response or wraps in bold).
     reply = stripTags(reply);
 
+    // A question it had no facts for: saved for the admin page, never cached
+    const gapCheck = chatGaps.readGap(reply);
+    reply = gapCheck.reply;
+    if (gapCheck.gap && intent !== 'greeting') await chatGaps.log(trimmed).catch(() => {});
+
     // ── Offer the right in-chat action when the visitor clearly wants one ──
     // The model is asked to add these chips itself; this makes sure a visitor
     // who says "I want to hire him" always gets a one-tap way to act on it.
@@ -664,7 +673,7 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
       t:      new Date().toISOString()
     }));
 
-    if (cacheable) await answerCache.put(trimmed, cacheVariant, reply);
+    if (cacheable && !gapCheck.gap) await answerCache.put(trimmed, cacheVariant, reply);
 
     return res.status(200).json(withGo({ reply }, trimmed));
 

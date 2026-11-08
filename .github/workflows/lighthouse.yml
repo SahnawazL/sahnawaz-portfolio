@@ -34,6 +34,14 @@ jobs:
             const r = JSON.parse(fs.readFileSync("lh-" + f + ".json")), c = r.categories, a = r.audits, s = k => Math.round((c[k].score || 0) * 100);
             md += `| ${f} | ${s("performance")} | ${s("accessibility")} | ${s("best-practices")} | ${s("seo")} | ${a["largest-contentful-paint"].displayValue} | ${a["total-blocking-time"].displayValue} | ${a["cumulative-layout-shift"].displayValue} |\n`;
             if (f === "mobile") {
+              const items = k => ((a[k] && a[k].details && a[k].details.items) || []);
+              console.log("LCP element:", JSON.stringify(items("largest-contentful-paint-element").slice(0, 2)).slice(0, 600));
+              console.log("LCP parts:", JSON.stringify((a["lcp-breakdown-insight"] || {}).details || {}).slice(0, 600));
+              console.log("Script time:", items("bootup-time").slice(0, 10).map(i => (i.url || "").replace(/^https?:\/\/[^/]+/, "") + " " + Math.round(i.total) + "ms").join(" | "));
+              console.log("Main thread:", items("mainthread-work-breakdown").slice(0, 7).map(i => i.groupLabel + " " + Math.round(i.duration) + "ms").join(" | "));
+              console.log("Render blocking:", items("render-blocking-resources").concat(items("render-blocking-insight")).map(i => (i.url || "").replace(/^https?:\/\/[^/]+/, "") + " " + Math.round(i.wastedMs || i.totalBytes || 0)).join(" | "));
+              console.log("Long tasks:", items("long-tasks").slice(0, 8).map(i => (i.url || "").replace(/^https?:\/\/[^/]+/, "") + " " + Math.round(i.duration) + "ms@" + Math.round(i.startTime)).join(" | "));
+              console.log("FCP", a["first-contentful-paint"].displayValue, "SI", a["speed-index"].displayValue);
               const fails = Object.values(a).filter(x => x.score !== null && x.score < 0.9 && x.details && x.details.overallSavingsMs > 150).sort((x, y) => y.details.overallSavingsMs - x.details.overallSavingsMs).slice(0, 8);
               if (fails.length) md += "\n**Biggest phone savings:** " + fails.map(x => x.title + " (" + Math.round(x.details.overallSavingsMs) + " ms)").join(", ") + "\n\n";
             }

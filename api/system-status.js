@@ -186,6 +186,19 @@ async function adminData(req, res) {
 
   if (req.method === 'POST') {
     const b = req.body || {};
+    /* an answer for a question the chat couldn't answer, or dismissing it */
+    if (b.gap) {
+      const id = String(b.gap.id || '');
+      if (!/^[a-f0-9]{32}$/.test(id)) return res.status(400).json({ error: 'Bad question id' });
+      const ref = db.collection('chatGaps').doc(id);
+      if (b.gap.dismiss) await ref.set({ status: 'dismissed', doneAt: new Date() }, { merge: true });
+      else {
+        const answer = String(b.gap.answer || '').trim().slice(0, 600);
+        if (answer.length < 2) return res.status(400).json({ error: 'Write an answer first' });
+        await ref.set({ status: 'answered', answer, doneAt: new Date() }, { merge: true });
+      }
+      return res.status(200).json({ ok: true });
+    }
     const keys = Array.isArray(b.keys) ? b.keys.slice(0, 400) : [b.key];
     const KEY = /^[a-z]{2,12}:[A-Za-z0-9_.:@-]{1,160}$/;
     if (!keys.length || !keys.every(k => KEY.test(String(k || '')))) return res.status(400).json({ error: 'Bad key' });
@@ -197,13 +210,18 @@ async function adminData(req, res) {
 
   const days = Math.max(7, Math.min(90, parseInt(req.query.days, 10) || 30));
   const safe = p => p.catch(e => ({ __error: (e && e.message) || 'failed' }));
-  const [fitSnap, checkSnap, handledSnap, traf, tour] = await Promise.all([
+  const [fitSnap, checkSnap, handledSnap, traf, tour, gapSnap] = await Promise.all([
     safe(db.collection('jobFitReports').orderBy('createdAt', 'desc').limit(60).get()),
     safe(db.collection('websiteChecks').orderBy('checkedAt', 'desc').limit(40).get()),
     safe(state.get()),
     safe(traffic(db, days)),
-    safe(tourStats(db, days))
+    safe(tourStats(db, days)),
+    safe(db.collection('chatGaps').orderBy('lastAt', 'desc').limit(120).get())
   ]);
+  const gaps = gapSnap.__error ? null : gapSnap.docs.map(d => {
+    const x = d.data() || {};
+    return { id: d.id, q: x.q || '', count: x.count || 1, lastAt: iso(x.lastAt), status: x.status || 'open', answer: x.answer || '' };
+  }).filter(g => g.status !== 'dismissed');
   const fit = fitSnap.__error ? null : fitSnap.docs.map(d => {
     const x = d.data() || {}, r = x.result || {};
     return { id: d.id, at: iso(x.createdAt), role: r.role || '', fit: r.fit || '', score: typeof r.score === 'number' ? r.score : null,
@@ -220,6 +238,7 @@ async function adminData(req, res) {
     handled: handledSnap.__error ? {} : (handledSnap.exists ? handledSnap.data() : {}),
     traffic: traf.__error ? null : traf,
     tour: tour.__error ? null : tour,
+    gaps,
     errors: [fitSnap, checkSnap, traf].filter(x => x && x.__error).map(x => x.__error)
   });
 }
