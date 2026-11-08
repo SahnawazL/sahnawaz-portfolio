@@ -1,37 +1,65 @@
 /* Shorter page on phones. A few long, detailed parts start folded behind a
-   "Show" button that says what is inside: the experience summary, each
-   project's problem and lessons, the skill levels, the live speed numbers
-   and the full list of security checks. Nothing is removed; one tap opens
-   it again, and on wider screens everything stays open as before. */
+   button that says what is inside: the experience summary, each project's
+   problem and lessons, the skill levels, the live speed numbers and the
+   full list of security checks. On wider screens everything stays open.
+
+   How it moves (the same idea as the certification cards, made smoother):
+   - The part sits in a wrapper whose height eases from 0 to its natural
+     height with a CSS grid transition, so nothing is measured in script
+     and the browser animates it in one smooth pass.
+   - The content fades in and settles a few pixels as the space opens.
+   - The button keeps the same size in both states: "Show" and "Hide"
+     swap in place with a short vertical slide, the summary line under it
+     stays put, and the chevron turns. No glow or zoom on tap. */
 (function () {
   'use strict';
   var phone = matchMedia('(max-width: 640px)');
   var FOLDS = [
-    { card: '.exp-para-wrap', parts: ['.exp-para-text'], label: 'My experience', note: function () { return 'Xiaomi · Flipkart · Rapido'; } },
-    { card: '.mpj-card', parts: ['.mpj-problem', '.mpj-hindsight'], label: 'Problem & lessons learned' },
-    { card: '#tsBarsSection', parts: ['#tsBars'], label: 'Skill levels', note: function (card) {
+    { card: '.exp-para-wrap', parts: ['.exp-para-text'], label: 'my experience', note: function () { return 'Xiaomi · Flipkart · Rapido'; } },
+    { card: '.mpj-card', parts: ['.mpj-problem', '.mpj-hindsight'], label: 'problem & lessons learned' },
+    { card: '#tsBarsSection', parts: ['#tsBars'], label: 'skill levels', note: function (card) {
         var v = (card.querySelector('#tsBars').textContent.match(/\d{2,3}(?=\s*%)/g) || []).map(Number);
         return v.length ? v.length + ' skills · ' + Math.min.apply(null, v) + '–' + Math.max.apply(null, v) + '%' : '';
       }, onOpen: function () { if (typeof window.tsBarsPlay === 'function') window.tsBarsPlay(); } },
-    { card: '#wvCard', parts: ['#wvcBody'], label: 'Live speed numbers' },
-    { card: '#secCard', parts: ['.sec-rows'], label: 'All security checks' }
+    { card: '#wvCard', parts: ['#wvcBody'], label: 'live speed numbers' },
+    { card: '#secCard', parts: ['.sec-rows'], label: 'all security checks' }
   ];
-  var made = false;
+  var made = false, all = [];
+  var EASE = 'cubic-bezier(.22,1,.36,1)';
 
   function css() {
     var s = document.createElement('style');
-    s.textContent =
-      '.pf-closed .pf-part{display:none!important}' +
-      '.pf-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:42px;margin:8px 0;padding:0 12px;border-radius:11px;' +
-      'border:1px dashed rgba(90,224,255,.28);background:rgba(90,224,255,.05);color:#8fd7ef;font:600 .8rem "DM Sans",Inter,system-ui,sans-serif;cursor:pointer}' +
-      '.pf-btn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}' +
-      '.pf-btn[aria-expanded="true"] svg{transform:rotate(180deg)}' +
-      '.pf-btn:focus-visible{outline:2px solid #5ae0ff;outline-offset:2px}' +
-      '.pf-btn{-webkit-tap-highlight-color:transparent;touch-action:manipulation;-webkit-user-select:none;user-select:none}' +
-      '.pf-btn:active{background:rgba(90,224,255,.09)}' +
-      /* the site-wide button hover glow (and its 1.03 zoom) sticks after a tap on phones */
-      '.pf-btn,.pf-btn:hover,.pf-btn:focus{box-shadow:none!important;transform:none!important;transition:background .15s ease!important}' +
-      '@media print{.pf-btn{display:none!important}}';
+    s.textContent = [
+      /* the folding wrapper: 0fr -> 1fr rows animate the real height */
+      '.pf-wrap{display:grid;grid-template-rows:1fr;opacity:1;transition:grid-template-rows .5s ' + EASE + ',opacity .38s ease .06s}',
+      '.pf-wrap>.pf-inner{min-height:0;overflow:hidden}',
+      '.pf-wrap>.pf-inner>*{transition:transform .5s ' + EASE + '}',
+      '.pf-closed .pf-wrap{grid-template-rows:0fr;opacity:0;transition:grid-template-rows .42s ' + EASE + ',opacity .2s ease}',
+      '.pf-closed .pf-wrap>.pf-inner>*{transform:translateY(-10px)}',
+      'html:not(.pf-ready) .pf-wrap,html:not(.pf-ready) .pf-wrap>.pf-inner>*{transition:none!important}',
+      /* the button */
+      '.pf-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin:8px 0;padding:9px 14px;border-radius:12px;box-sizing:border-box;',
+      '  border:1px solid rgba(90,224,255,.2);background:rgba(90,224,255,.045);color:#9be3f6;font:600 .82rem/1.2 "DM Sans",Inter,system-ui,sans-serif;cursor:pointer;',
+      '  -webkit-tap-highlight-color:transparent;touch-action:manipulation;-webkit-user-select:none;user-select:none}',
+      '.pf-btn,.pf-btn:hover,.pf-btn:focus{box-shadow:none!important;transform:none!important;transition:background .2s ease,border-color .2s ease!important}',
+      '.pf-btn:active{background:rgba(90,224,255,.1)}',
+      '.pf-btn[aria-expanded="true"]{border-color:rgba(90,224,255,.12);background:rgba(90,224,255,.03)}',
+      '.pf-btn:focus-visible{outline:2px solid #5ae0ff;outline-offset:2px}',
+      '.pf-txt{display:flex;flex-direction:column;align-items:center;min-width:0}',
+      '.pf-lbl{display:grid;overflow:hidden}',
+      '.pf-lbl>span{grid-area:1/1;white-space:nowrap;transition:transform .34s ' + EASE + ',opacity .26s ease}',
+      '.pf-lbl .pf-hide{transform:translateY(100%);opacity:0}',
+      '.pf-btn[aria-expanded="true"] .pf-show{transform:translateY(-100%);opacity:0}',
+      '.pf-btn[aria-expanded="true"] .pf-hide{transform:none;opacity:1}',
+      '.pf-note{margin-top:3px;font-size:.7rem;font-weight:500;letter-spacing:.02em;color:rgba(160,215,235,.6)}',
+      '.pf-note:empty{display:none}',
+      '.pf-chev{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(90,224,255,.22);',
+      '  transition:transform .45s cubic-bezier(.34,1.56,.64,1),background .25s,border-color .25s}',
+      '.pf-btn[aria-expanded="true"] .pf-chev{transform:rotate(180deg);background:rgba(90,224,255,.1);border-color:rgba(90,224,255,.4)}',
+      '.pf-chev svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}',
+      '@media (prefers-reduced-motion: reduce){.pf-wrap,.pf-wrap>.pf-inner>*,.pf-lbl>span,.pf-chev{transition:none!important}}',
+      '@media print{.pf-btn{display:none!important}.pf-wrap{grid-template-rows:1fr!important;opacity:1!important}}'
+    ].join('\n');
     document.head.appendChild(s);
   }
 
@@ -44,93 +72,57 @@
       [].slice.call(document.querySelectorAll(f.card)).forEach(function (card) {
         var parts = f.parts.map(function (sel) { return card.querySelector(sel); }).filter(Boolean);
         if (!parts.length) return;
-        var id = 'pfPart' + (++n);
-        parts.forEach(function (p, i) { p.classList.add('pf-part'); if (!i) p.id = p.id || id; });
+        /* each part gets its own wrapper, so the card's order is untouched */
+        parts.forEach(function (p) {
+          var wrap = document.createElement('div'), inner = document.createElement('div');
+          wrap.className = 'pf-wrap'; inner.className = 'pf-inner';
+          wrap.id = 'pfPart' + (++n);
+          p.parentNode.insertBefore(wrap, p);
+          inner.appendChild(p); wrap.appendChild(inner);
+        });
+        var first = parts[0].parentNode.parentNode;
         var b = document.createElement('button');
         b.type = 'button';
         b.className = 'pf-btn';
-        b.setAttribute('aria-controls', parts[0].id);
-        b.innerHTML = '<span></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+        b.setAttribute('aria-controls', parts.map(function (p) { return p.parentNode.parentNode.id; }).join(' '));
+        b.innerHTML = '<span class="pf-txt"><span class="pf-lbl"><span class="pf-show">Show ' + f.label + '</span><span class="pf-hide" aria-hidden="true">Hide ' + f.label + '</span></span>'
+          + '<span class="pf-note"></span></span><span class="pf-chev" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span>';
+        first.parentNode.insertBefore(b, first);
+        var item = { card: card, b: b, f: f };
+        all.push(item);
         b.addEventListener('click', function () {
-          var opening = card.classList.contains('pf-closed');
-          if (opening) {
-            set(card, b, f.label, true, f.note);
-            reveal(parts, f);
-            if (f.onOpen) requestAnimationFrame(f.onOpen);
-          } else {
-            hide(parts, function () { set(card, b, f.label, false, f.note); });
-            b.firstChild.textContent = 'Show ' + f.label.charAt(0).toLowerCase() + f.label.slice(1);
-          }
+          var open = card.classList.contains('pf-closed');
+          set(item, open);
+          if (open && f.onOpen) setTimeout(f.onOpen, 120);
         });
-        parts[0].parentNode.insertBefore(b, parts[0]);
-        card.__pf = { b: b, label: f.label, note: f.note };
-        set(card, b, f.label, !phone.matches, f.note);
       });
     });
+    /* transitions only after the first state is drawn, so nothing animates on load */
+    requestAnimationFrame(function () { requestAnimationFrame(function () { document.documentElement.classList.add('pf-ready'); }); });
   }
 
-  /* ── Opening and closing smoothly ──
-     The space opens at once and the content fades up in a fifth of a
-     second; closing fades it out and folds it away.
-     With "reduce motion" on, it simply opens and closes. */
-  var EASE = 'cubic-bezier(0.16,1,0.3,1)';
-  var still = function () { return !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) || !Element.prototype.animate; };
-
-  /* Only opacity and a small lift are animated: the phone's graphics chip
-     does those on its own, so nothing has to re-measure the long page on
-     every frame. The space opens at once; the content settles in fast. */
-  function reveal(parts, f) {
-    if (still()) return;
-    parts.forEach(function (part, pi) {
-      part.animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }],
-        { duration: 200, delay: pi * 40, easing: EASE, fill: 'backwards' });
-    });
+  function set(item, open) {
+    item.card.classList.toggle('pf-closed', !open);
+    item.b.setAttribute('aria-expanded', String(open));
+    item.b.querySelector('.pf-show').setAttribute('aria-hidden', String(open));
+    item.b.querySelector('.pf-hide').setAttribute('aria-hidden', String(!open));
+    note(item);
+    item.b.hidden = !phone.matches;
   }
-
-  function hide(parts, done) {
-    if (still()) return done();
-    var left = parts.length;
-    parts.forEach(function (part) {
-      var a = part.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, easing: 'ease-out', fill: 'forwards' });
-      var finished = false;
-      a.onfinish = a.oncancel = function () {
-        if (finished) return; finished = true;
-        if (--left === 0) done();
-        a.cancel();
-      };
-    });
-  }
-
-  /* a closed fold says what is inside it, like the security card's score */
-  function set(card, b, label, open, note) {
-    card.classList.toggle('pf-closed', !open);
-    b.setAttribute('aria-expanded', String(open));
-    var extra = '';
-    if (!open && note) { try { extra = note(card) || ''; } catch (e) {} }
-    b.firstChild.textContent = (open ? 'Hide ' : 'Show ') + label.charAt(0).toLowerCase() + label.slice(1) + (extra ? ' · ' + extra : '');
-    b.hidden = !phone.matches;
+  function note(item) {
+    var t = '';
+    if (item.f.note) { try { t = item.f.note(item.card) || ''; } catch (e) {} }
+    item.b.querySelector('.pf-note').textContent = t;
   }
 
   function sync() {
     if (!phone.matches && !made) return;
     make();
-    FOLDS.forEach(function (f) {
-      [].slice.call(document.querySelectorAll(f.card)).forEach(function (card) {
-        if (card.__pf) set(card, card.__pf.b, card.__pf.label, !phone.matches, card.__pf.note);
-      });
-    });
+    all.forEach(function (item) { set(item, !phone.matches); });
   }
 
   if (phone.addEventListener) phone.addEventListener('change', sync);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', sync); else sync();
-  /* the skill bars are drawn after load: refresh the summaries once */
-  addEventListener('load', function () {
-    setTimeout(function () {
-      FOLDS.forEach(function (f) {
-        [].slice.call(document.querySelectorAll(f.card)).forEach(function (card) {
-          if (card.__pf && card.classList.contains('pf-closed')) set(card, card.__pf.b, card.__pf.label, false, card.__pf.note);
-        });
-      });
-    }, 1500);
-  }, { once: true });
+  /* the skill bars are drawn after load: fill in their summary once */
+  addEventListener('load', function () { setTimeout(function () { all.forEach(note); }, 1500); }, { once: true });
 })();
