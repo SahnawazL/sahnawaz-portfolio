@@ -2250,18 +2250,27 @@ header::after {
   position: relative;
   isolation: isolate;
 }
-/* slow rotating conic glow behind the whole carousel — premium ambient light */
+/* soft light that sweeps slowly across the carousel, left to right.
+   (It used to be a rotating gradient, whose turning corners showed as a
+   wedge going round the box.) */
 .pfeedback-wrap::before {
   content: '';
   position: absolute;
-  top: 50%; left: 50%;
-  width: 140%; height: 400px;
-  background: conic-gradient(from 0deg, transparent 0%, rgba(0,200,255,0.08) 15%, transparent 30%, rgba(0,255,200,0.06) 55%, transparent 70%);
-  transform: translate(-50%,-50%);
-  animation: pfeedRotateGlow 14s linear infinite;
+  top: 0; bottom: 0; left: 0;
+  width: 70%;
+  background: linear-gradient(105deg, transparent 0%, rgba(0,200,255,0.035) 30%, rgba(0,230,255,0.085) 50%, rgba(0,255,210,0.035) 70%, transparent 100%);
+  transform: translateX(-110%);
+  animation: pfeedShimmer 9s cubic-bezier(0.45,0,0.55,1) infinite;
   pointer-events: none;
   z-index: 0;
+  will-change: transform;
 }
+@keyframes pfeedShimmer {
+  0%   { transform: translateX(-110%); }
+  70%  { transform: translateX(160%); }
+  100% { transform: translateX(160%); }
+}
+@media (prefers-reduced-motion: reduce) { .pfeedback-wrap::before { animation: none; opacity: 0; } }
 @keyframes pfeedRotateGlow { to { transform: translate(-50%,-50%) rotate(360deg); } }
 
 .pfeedback-header {
