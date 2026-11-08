@@ -8,6 +8,11 @@
    own API), StudyLens AI and this portfolio. It moves to the next one by
    itself while it is on screen, pauses while the pointer is over it, and
    the file tabs switch by hand.
+   Smarter touches: suggestions pop up while a component name is typed,
+   files hand over smoothly (old lines slide out, the card folds back),
+   the finished code is editable (title, button text, glow colour) with
+   the preview following as you type, and the card tilts toward the
+   pointer with a soft light.
    Phones keep the original Code / Preview card from premium-extras.js;
    this only takes over at desktop width and hands back below it. */
 (function () {
@@ -35,14 +40,25 @@
 
   function lines(f) {
     return [
-      [['t', '<'], ['k', 'Card'], ['a', ' glow'], ['t', '='], ['s', '"' + f.glow + '"'], ['t', '>']],
+      [['t', '<'], ['k', 'Card'], ['a', ' glow'], ['t', '='], ['q', '"'], ['e:glow', f.glow], ['q', '"'], ['t', '>']],
       [['t', '  <'], ['k', 'Logo'], ['a', ' src'], ['t', '='], ['s', '"' + f.logo + '"'], ['t', ' />']],
-      [['t', '  <'], ['k', 'Title'], ['t', '>'], ['x', f.title], ['t', '</'], ['k', 'Title'], ['t', '>']],
+      [['t', '  <'], ['k', 'Title'], ['t', '>'], ['e:title', f.title], ['t', '</'], ['k', 'Title'], ['t', '>']],
       [['t', '  <'], ['k', 'Stat'], ['a', ' value'], ['t', '={'], ['n', f.key], ['t', '}'], ['a', ' live'], ['t', ' />']],
-      [['t', '  <'], ['k', 'Button'], ['a', ' href'], ['t', '='], ['s', '"' + f.host + '"'], ['t', '>'], ['x', f.btn], ['t', '</'], ['k', 'Button'], ['t', '>']],
+      [['t', '  <'], ['k', 'Button'], ['a', ' href'], ['t', '='], ['s', '"' + f.host + '"'], ['t', '>'], ['e:btn', f.btn], ['t', '</'], ['k', 'Button'], ['t', '>']],
       [['t', '</'], ['k', 'Card'], ['t', '>']]
     ];
   }
+  /* a token's colour class; "e:…" tokens become editable once typed */
+  function tok(p) {
+    var el = document.createElement('span'), t = p[0];
+    if (t.indexOf('e:') === 0) { el.className = (t === 'e:glow' ? 'cs-s' : 'cs-x') + ' cs-e'; el.setAttribute('data-edit', t.slice(2)); }
+    else el.className = 'cs-' + (t === 'q' ? 's' : t);
+    return el;
+  }
+  var COLORS = { saffron: '#ff9933', orange: '#ff9933', violet: '#a78bfa', purple: '#a78bfa', cyan: '#38bdf8', blue: '#60a5fa', teal: '#00ffd0',
+    green: '#22e3a5', pink: '#f472b6', gold: '#fbbf24', yellow: '#fde047', red: '#f87171', white: '#e2f3ff' };
+  var COMPONENTS = ['Card', 'Logo', 'Title', 'Stat', 'Button', 'Badge', 'Chart'];
+
   /* which part of the card each line builds */
   var PART = ['card', 'logo', 'title', 'stat', 'btn', 'card'];
   var TAG = ['<Card>', '<Logo>', '<Title>', '<Stat>', '<Button>', '<Card>'];
@@ -113,7 +129,27 @@
       '.cs-status .grow { margin-left: auto; }',
       '.cs-fade { animation: csFade .35s ease both; }',
       '@keyframes csFade { from { opacity: 0; } }',
-      '@media (prefers-reduced-motion: reduce) { .cs-card, .cs-p, .cs-chip { transition: none; } .cs-caret, .cs-live i { animation: none; } }'
+      /* IntelliSense box */
+      '.cs-sug { position: absolute; z-index: 3; min-width: 180px; padding: 4px; border-radius: 8px; background: #0d2234; border: 1px solid rgba(120,200,255,.22); box-shadow: 0 10px 26px rgba(0,0,0,.5);',
+      '  font: 500 .72rem/1 "DM Mono","Courier New",monospace; color: rgba(200,230,245,.75); opacity: 0; transform: translateY(-3px); pointer-events: none; transition: opacity .12s, transform .15s; }',
+      '.cs-sug.on { opacity: 1; transform: none; }',
+      '.cs-sug div { display: flex; align-items: center; gap: 7px; padding: 5px 7px; border-radius: 5px; }',
+      '.cs-sug div.sel { background: rgba(80,210,255,.16); color: #eafcff; }',
+      '.cs-sug i { font-style: normal; color: #c4b5fd; }',
+      '.cs-sug b { color: #50d2ff; font-weight: 700; }',
+      '.cs-sug em { margin-left: auto; font-style: normal; font-size: .62rem; color: rgba(160,200,220,.45); }',
+      /* editable values */
+      '.cs-editable .cs-e { cursor: text; border-radius: 3px; outline: none; box-shadow: 0 1px 0 rgba(252,211,77,.45); transition: background .2s, box-shadow .2s; }',
+      '.cs-editable .cs-e:hover { background: rgba(252,211,77,.1); }',
+      '.cs-editable .cs-e:focus { background: rgba(252,211,77,.14); box-shadow: 0 0 0 1px rgba(252,211,77,.6); }',
+      '.cs-editable .cs-e.cs-x { box-shadow: 0 1px 0 rgba(244,253,255,.35); }',
+      /* tilt and light */
+      '.cs-card:not(.pending) { transform: perspective(800px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }',
+      '.cs-card.tilt { transition: transform .12s ease-out, border-color .5s, box-shadow .6s; }',
+      '.cs-card::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .3s;',
+      '  background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 30%), rgba(255,255,255,.1), transparent 60%); }',
+      '.cs-card.tilt::after { opacity: 1; }',
+      '@media (prefers-reduced-motion: reduce) { .cs-card, .cs-p, .cs-chip, .cs-sug { transition: none; } .cs-caret, .cs-live i { animation: none; } }'
     ].join('\n');
     document.head.appendChild(s);
   }
@@ -185,6 +221,28 @@
       else if (part) inspect(PART.indexOf(part.getAttribute('data-part')));
     });
     root.addEventListener('mouseleave', function () { if (!playing) inspect(-1); });
+    var pre = root.querySelector('.cs-pre');
+    pre.addEventListener('focusin', function (e) {
+      if (!e.target.hasAttribute('data-edit')) return;
+      setAuto(false); inspect(+e.target.closest('.cs-ln').getAttribute('data-l'));
+      status('Editing', 'type, and the preview changes as you type');
+    });
+    pre.addEventListener('focusout', function (e) { if (e.target.hasAttribute && e.target.hasAttribute('data-edit')) inspect(-1); });
+    pre.addEventListener('input', function (e) { if (e.target.hasAttribute && e.target.hasAttribute('data-edit')) applyEdit(e.target); });
+    pre.addEventListener('keydown', function (e) {
+      if (!e.target.hasAttribute('data-edit')) return;
+      if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); e.target.blur(); }
+      else if (e.target.textContent.length >= 40 && e.key.length === 1) e.preventDefault();
+    });
+    pre.addEventListener('paste', function (e) {
+      if (!e.target.hasAttribute || !e.target.hasAttribute('data-edit')) return;
+      e.preventDefault();
+      var t = (e.clipboardData || window.clipboardData).getData('text').replace(/\s+/g, ' ').slice(0, 40);
+      document.execCommand('insertText', false, t);
+    });
+    var view = root.querySelector('.cs-view');
+    view.addEventListener('pointermove', tilt);
+    view.addEventListener('pointerleave', untilt);
   }
 
   function setAuto(on) {
@@ -235,7 +293,25 @@
     if (!reduce) { inspect(i); later(function () { if (playing) inspect(-1); }, 650); }
   }
 
+  function selectTab(i) {
+    box.querySelectorAll('.cs-tab').forEach(function (t, j) { t.setAttribute('aria-selected', String(j === i)); t.tabIndex = j === i ? 0 : -1; });
+  }
+  /* the old file leaves first: its lines slide away one after another and
+     the card folds back, then the new file starts typing */
   function show(i) {
+    var lns = root.querySelectorAll('.cs-ln');
+    if (reduce || !lns.length || !Element.prototype.animate) return start(i);
+    stop(); suggest(null); selectTab(i);
+    playing = true;
+    status('Opening ' + FILES[i].file + '…', '');
+    lns.forEach(function (l, j) { l.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateX(-14px)' }], { duration: 200, delay: j * 28, easing: 'ease-in', fill: 'forwards' }); });
+    root.querySelectorAll('.cs-gut span').forEach(function (g, j) { g.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, delay: j * 28, fill: 'forwards' }); });
+    var card = root.querySelector('.cs-card');
+    card.animate([{ opacity: 1, transform: getComputedStyle(card).transform === 'none' ? 'none' : getComputedStyle(card).transform }, { opacity: 0, transform: 'translateY(8px) scale(.94)' }], { duration: 260, delay: 60, easing: 'ease-in', fill: 'forwards' });
+    later(function () { card.getAnimations().forEach(function (a) { a.cancel(); }); start(i); }, 340);
+  }
+
+  function start(i) {
     stop();
     idx = i;
     var f = FILES[i], L = lines(f);
@@ -259,12 +335,13 @@
     inspect(-1);
     var pre = root.querySelector('.cs-pre'), gut = root.querySelector('.cs-gut');
     pre.innerHTML = ''; gut.innerHTML = '';
+    root.classList.remove('cs-editable');
     pre.classList.remove('cs-fade'); void pre.offsetWidth; pre.classList.add('cs-fade');
     status('Typing…', 'Ln 1, Col 1');
     playing = true; t0 = performance.now();
 
     if (reduce) {
-      L.forEach(function (l, li) { addLine(pre, gut, li).innerHTML = l.map(function (p) { return '<span class="cs-' + p[0] + '">' + esc(p[1]) + '</span>'; }).join(''); });
+      L.forEach(function (l, li) { var ln = addLine(pre, gut, li); ln.classList.remove('on'); l.forEach(function (p) { var e = tok(p); e.textContent = p[1]; ln.appendChild(e); }); });
       card.classList.remove('pending');
       for (var k = 0; k < 6; k++) reveal(k, f);
       return finish(f, L);
@@ -273,12 +350,14 @@
     caret.className = 'cs-caret';
     later(function () { card.classList.remove('pending'); }, 120);
     (function step() {
-      if (li >= L.length) { caret.remove(); return finish(f, L); }
+      if (li >= L.length) { caret.remove(); suggest(null); return finish(f, L); }
       if (!line) { line = addLine(pre, gut, li); }
       var p = L[li][pi];
-      if (!span) { span = document.createElement('span'); span.className = 'cs-' + p[0]; line.appendChild(span); }
+      if (!span) { span = tok(p); line.appendChild(span); }
       span.textContent += p[1].charAt(ci++);
       line.appendChild(caret);
+      /* IntelliSense: suggestions pop up while a component name is typed */
+      if (p[0] === 'k' && pi === 1 && li < 5) suggest(span.textContent, p[1], caret); else suggest(null);
       status('Typing…', 'Ln ' + (li + 1) + ', Col ' + (line.textContent.length + 1));
       if (ci >= p[1].length) { ci = 0; pi++; span = null; }
       if (pi >= L[li].length) {
@@ -290,6 +369,59 @@
       later(step, p[0] === 't' ? 14 : 26);
     })();
   }
+
+  /* the IntelliSense box under the cursor */
+  function suggest(typed, word, caret) {
+    var pop = root.querySelector('.cs-sug');
+    if (typed === null || typed.length < 1 || typed === word) { if (pop) pop.classList.remove('on'); return; }
+    if (!pop) { pop = document.createElement('div'); pop.className = 'cs-sug'; root.querySelector('.cs-code').appendChild(pop); }
+    var list = COMPONENTS.filter(function (c) { return c.toLowerCase().indexOf(typed.toLowerCase()) === 0; });
+    if (list.indexOf(word) < 0) list.unshift(word);
+    pop.innerHTML = list.slice(0, 3).map(function (c) {
+      return '<div class="' + (c === word ? 'sel' : '') + '"><i>◇</i><b>' + esc(c.slice(0, typed.length)) + '</b>' + esc(c.slice(typed.length)) + '<em>component</em></div>';
+    }).join('');
+    var r = caret.getBoundingClientRect(), box2 = root.querySelector('.cs-code').getBoundingClientRect();
+    pop.style.left = Math.min(box2.width - 190, Math.max(8, r.left - box2.left - 8 * typed.length)) + 'px';
+    pop.style.top = (r.bottom - box2.top + 4) + 'px';
+    pop.classList.add('on');
+  }
+
+  /* after it is written: the yellow values can be edited and the preview follows */
+  function editable() {
+    root.classList.add('cs-editable');
+    root.querySelectorAll('[data-edit]').forEach(function (e) {
+      e.setAttribute('contenteditable', 'plaintext-only');
+      if (e.contentEditable !== 'plaintext-only') e.setAttribute('contenteditable', 'true');
+      e.setAttribute('spellcheck', 'false');
+      e.setAttribute('role', 'textbox');
+      e.setAttribute('aria-label', 'Edit ' + e.getAttribute('data-edit'));
+    });
+  }
+  function applyEdit(e) {
+    var what = e.getAttribute('data-edit'), v = e.textContent.replace(/\s+/g, ' ').slice(0, 40);
+    if (what === 'title') root.querySelector('.cs-title').textContent = v || ' ';
+    if (what === 'btn') root.querySelector('.cs-btn').textContent = v || ' ';
+    if (what === 'glow') {
+      var c = COLORS[v.trim().toLowerCase()];
+      if (c) { root.style.setProperty('--acc', c); status('Edited', 'glow = ' + v.trim()); }
+      else status('Unknown colour', 'try saffron, violet, cyan, green, pink or gold');
+      return;
+    }
+    status('Edited', 'the preview follows your code');
+  }
+
+  /* the preview card leans toward the pointer, with a soft light on it */
+  function tilt(e) {
+    var view = root.querySelector('.cs-view'), card = root.querySelector('.cs-card');
+    if (reduce || playing || card.classList.contains('pending')) return;
+    var r = view.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+    card.style.setProperty('--ry', (x * 9).toFixed(2) + 'deg');
+    card.style.setProperty('--rx', (-y * 7).toFixed(2) + 'deg');
+    card.style.setProperty('--mx', ((x + .5) * 100).toFixed(1) + '%');
+    card.style.setProperty('--my', ((y + .5) * 100).toFixed(1) + '%');
+    card.classList.add('tilt');
+  }
+  function untilt() { var card = root.querySelector('.cs-card'); card.classList.remove('tilt'); card.style.setProperty('--rx', '0deg'); card.style.setProperty('--ry', '0deg'); }
 
   function addLine(pre, gut, li) {
     var ln = document.createElement('span');
@@ -308,7 +440,8 @@
   function finish(f, L) {
     playing = false;
     var ms = Math.round(performance.now() - t0);
-    status('Rendered', 'Ln ' + L.length + ' · 5 components');
+    status('Rendered', 'Ln ' + L.length + ' · 5 components · click a yellow value to edit');
+    editable();
     next(5200);
   }
 
