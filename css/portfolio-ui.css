@@ -1295,6 +1295,18 @@ header::after {
   color: #00e0ff;
   background: rgba(0,200,255,0.07);
 }
+/* smart filter: counts, a pill that slides to the chosen tab, and a note */
+.ts-tabs { position: relative; }
+.ts-tab { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 6px; }
+.ts-tab-n { min-width: 17px; padding: 1px 5px; border-radius: 999px; font-size: 0.6rem; letter-spacing: 0; line-height: 1.4; text-align: center; color: rgba(180,230,255,0.55); background: rgba(255,255,255,0.06); transition: color .25s ease, background .25s ease; }
+.ts-tab.active .ts-tab-n { color: #04121a; background: #00e0ff; }
+.ts-tab-ink { position: absolute; left: 0; top: 0; z-index: 0; width: 0; height: 0; opacity: 0; border-radius: 999px; pointer-events: none;
+  border: 1px solid rgba(0,200,255,0.5); background: rgba(0,200,255,0.1); box-shadow: 0 0 16px rgba(0,200,255,0.18);
+  transition: transform .42s cubic-bezier(0.16,1,0.3,1), width .42s cubic-bezier(0.16,1,0.3,1), height .42s ease, opacity .2s ease; }
+.ts-tabs.has-ink .ts-tab.active { background: transparent; border-color: transparent; }
+.ts-tab:focus-visible { outline: 2px solid #00e0ff; outline-offset: 2px; }
+.ts-filter-note { min-height: 1.1em; margin: -1rem 0 0.9rem; text-align: center; font-size: 0.7rem; letter-spacing: .4px; color: rgba(160,215,240,0.55); }
+@media (prefers-reduced-motion: reduce) { .ts-tab-ink { transition: none; } }
 
 /* ── Icon pill grid ── */
 .ts-grid {

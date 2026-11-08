@@ -2080,12 +2080,15 @@ section.hero-enter.sec-wipe { opacity: 1; transform: none; clip-path: none; tran
   </div>
 
   <!-- Category tabs -->
-  <div class="ts-tabs">
-    <button class="ts-tab active" data-cat="all">All</button>
-    <button class="ts-tab" data-cat="frontend">Frontend</button>
-    <button class="ts-tab" data-cat="backend">Backend</button>
-    <button class="ts-tab" data-cat="design">Design</button>
+  <div class="ts-tabs" role="tablist" aria-label="Filter the tech stack">
+    <span class="ts-tab-ink" aria-hidden="true"></span>
+    <button class="ts-tab active" data-cat="all" role="tab" aria-selected="true">All</button>
+    <button class="ts-tab" data-cat="frontend" role="tab" aria-selected="false" tabindex="-1">Frontend</button>
+    <button class="ts-tab" data-cat="backend" role="tab" aria-selected="false" tabindex="-1">Backend</button>
+    <button class="ts-tab" data-cat="design" role="tab" aria-selected="false" tabindex="-1">Design</button>
+    <button class="ts-tab" data-cat="tools" role="tab" aria-selected="false" tabindex="-1">Tools &amp; CMS</button>
   </div>
+  <p class="ts-filter-note" id="tsFilterNote" aria-live="polite"></p>
 
   <!-- Pill grid -->
   <div class="ts-grid" id="tsGrid">
@@ -2131,7 +2134,7 @@ section.hero-enter.sec-wipe { opacity: 1; transform: none; clip-path: none; tran
         <span class="ts-card-label">Python</span>
       </div>
     </div>
-    <div class="ts-card" data-cat="backend" style="--card-glow:#21a366; animation-delay:0.32s">
+    <div class="ts-card" data-cat="tools" style="--card-glow:#21a366; animation-delay:0.32s">
       <div class="ts-card-inner">
         <img loading="lazy" src="icons/tech/excel.svg" width="22" height="22" decoding="async" alt="Excel"/>
         <span class="ts-card-label">Excel</span>
@@ -2143,7 +2146,7 @@ section.hero-enter.sec-wipe { opacity: 1; transform: none; clip-path: none; tran
         <span class="ts-card-label">Firebase</span>
       </div>
     </div>
-    <div class="ts-card" data-cat="backend" style="--card-glow:#ffffff; animation-delay:0.40s">
+    <div class="ts-card" data-cat="tools" style="--card-glow:#ffffff; animation-delay:0.40s">
       <div class="ts-card-inner">
         <img loading="lazy" src="icons/tech/vercel.svg" width="22" height="22" decoding="async" alt="Vercel"/>
         <span class="ts-card-label">Vercel</span>
@@ -2155,7 +2158,7 @@ section.hero-enter.sec-wipe { opacity: 1; transform: none; clip-path: none; tran
         <span class="ts-card-label">Figma</span>
       </div>
     </div>
-    <div class="ts-card" data-cat="design" style="--card-glow:#21759b; animation-delay:0.48s">
+    <div class="ts-card" data-cat="tools" style="--card-glow:#21759b; animation-delay:0.48s">
       <div class="ts-card-inner">
         <img loading="lazy" src="icons/tech/wordpress.svg" width="22" height="22" decoding="async" alt="WordPress"/>
         <span class="ts-card-label">WordPress</span>
@@ -2179,25 +2182,25 @@ section.hero-enter.sec-wipe { opacity: 1; transform: none; clip-path: none; tran
         <span class="ts-card-label">Adobe XD</span>
       </div>
     </div>
-    <div class="ts-card" data-cat="design" style="--card-glow:#95bf47; animation-delay:0.64s">
+    <div class="ts-card" data-cat="tools" style="--card-glow:#95bf47; animation-delay:0.64s">
       <div class="ts-card-inner">
         <img loading="lazy" src="icons/tech/shopify.svg" width="22" height="22" decoding="async" alt="Shopify"/>
         <span class="ts-card-label">Shopify</span>
       </div>
     </div>
-    <div class="ts-card" data-cat="backend" style="--card-glow:#e37400; animation-delay:0.68s">
+    <div class="ts-card" data-cat="tools" style="--card-glow:#e37400; animation-delay:0.68s">
       <div class="ts-card-inner">
         <img loading="lazy" src="icons/tech/googleanalytics.svg" width="22" height="22" decoding="async" alt="Google Analytics GA4"/>
         <span class="ts-card-label">GA4</span>
       </div>
     </div>
-    <div class="ts-card" data-cat="backend" style="--card-glow:#ffffff; animation-delay:0.72s">
+    <div class="ts-card" data-cat="tools" style="--card-glow:#ffffff; animation-delay:0.72s">
       <div class="ts-card-inner">
         <img loading="lazy" src="icons/tech/notion.svg" width="22" height="22" decoding="async" alt="Notion AI"/>
         <span class="ts-card-label">Notion AI</span>
       </div>
     </div>
-    <div class="ts-card" data-cat="backend" style="--card-glow:#ffffff; animation-delay:0.76s">
+    <div class="ts-card" data-cat="tools" style="--card-glow:#ffffff; animation-delay:0.76s">
       <div class="ts-card-inner">
         <img loading="lazy" src="icons/tech/githubcopilot.svg" width="22" height="22" decoding="async" alt="GitHub Copilot"/>
         <span class="ts-card-label">Copilot</span>
@@ -2213,22 +2216,107 @@ section.hero-enter.sec-wipe { opacity: 1; transform: none; clip-path: none; tran
 
 <script>
 (function(){
-  /* ── Category filter ── */
-  var tabs = document.querySelectorAll('.ts-tab');
-  var cards = document.querySelectorAll('#tsGrid .ts-card');
-  tabs.forEach(function(tab) {
-    tab.addEventListener('click', function() {
-      tabs.forEach(function(t){ t.classList.remove('active'); });
-      tab.classList.add('active');
-      var cat = tab.dataset.cat;
-      var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches, n = 0;
-      cards.forEach(function(c) {
-        var match = cat === 'all' || c.dataset.cat === cat;
-        c.style.display = match ? '' : 'none';
-        if (match && c.animate && !reduce) c.animate(
-          [{ opacity: 0.25, transform: 'scale(0.94)' }, { opacity: 1, transform: 'none' }],
-          { duration: 240, delay: Math.min(n++, 8) * 18, easing: 'cubic-bezier(0.16,1,0.3,1)', fill: 'backwards' });
+  /* ── Category filter ──
+     Each tab shows how many tools it holds, a pill slides to the chosen tab,
+     the pills that leave fade out, the ones that stay glide to their new
+     places, and the new ones grow in. Arrow keys move between tabs. */
+  var tabsBox = document.querySelector('.ts-tabs');
+  var tabs = [].slice.call(document.querySelectorAll('.ts-tab'));
+  var cards = [].slice.call(document.querySelectorAll('#tsGrid .ts-card'));
+  var ink = tabsBox.querySelector('.ts-tab-ink');
+  var note = document.getElementById('tsFilterNote');
+  var NAMES = { all: 'All', frontend: 'Frontend', backend: 'Backend', design: 'Design', tools: 'Tools & CMS' };
+  var reduce = function () { return !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); };
+  var EASE = 'cubic-bezier(0.16,1,0.3,1)';
+  var current = 'all', run = 0;
+  var anims = function (c) { return c.getAnimations ? c.getAnimations() : []; };
+
+  tabs.forEach(function (t) {
+    var cat = t.dataset.cat;
+    var n = cat === 'all' ? cards.length : cards.filter(function (c) { return c.dataset.cat === cat; }).length;
+    var b = document.createElement('span');
+    b.className = 'ts-tab-n';
+    b.textContent = n;
+    t.appendChild(b);
+    t.setAttribute('aria-label', NAMES[cat] + ', ' + n + ' tools');
+  });
+
+  function moveInk(tab, instant) {
+    if (!ink || !tab || !tab.offsetWidth) return;
+    if (instant) ink.style.transition = 'none';
+    ink.style.width = tab.offsetWidth + 'px';
+    ink.style.height = tab.offsetHeight + 'px';
+    ink.style.transform = 'translate(' + tab.offsetLeft + 'px,' + tab.offsetTop + 'px)';
+    ink.style.opacity = '1';
+    if (instant) { void ink.offsetWidth; ink.style.transition = ''; }
+  }
+  var activeTab = function () { return tabs.filter(function (t) { return t.classList.contains('active'); })[0]; };
+  addEventListener('resize', function () { moveInk(activeTab(), true); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { moveInk(activeTab(), true); });
+  setTimeout(function () { moveInk(activeTab(), true); }, 60);
+  if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { if (e[0].isIntersecting) moveInk(activeTab(), true); }).observe(tabsBox);
+  tabsBox.classList.add('has-ink');
+
+  function show(cat) {
+    if (cat === current) return;
+    current = cat;
+    var token = ++run;
+    var fits = function (c) { return cat === 'all' || c.dataset.cat === cat; };
+    var shown = cards.filter(function (c) { return c.style.display !== 'none'; });
+    var leaving = shown.filter(function (c) { return !fits(c); });
+    var staying = shown.filter(fits);
+    var count = cards.filter(fits).length;
+    if (note) note.textContent = cat === 'all' ? '' : count + ' ' + (count === 1 ? 'tool' : 'tools') + ' in ' + NAMES[cat];
+
+    if (reduce() || !Element.prototype.animate) {
+      cards.forEach(function (c) { c.style.display = fits(c) ? '' : 'none'; });
+      return;
+    }
+    cards.forEach(function (c) { anims(c).forEach(function (a) { a.cancel(); }); });
+
+    /* 1. the ones that leave fade and shrink */
+    var out = leaving.map(function (c) {
+      return c.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(0.8)' }], { duration: 150, easing: 'ease-in', fill: 'forwards' }).finished.catch(function () {});
+    });
+    Promise.all(out).then(function () {
+      if (token !== run) return;
+      /* 2. the ones that stay glide from where they were (FLIP) */
+      var first = new Map();
+      staying.forEach(function (c) { first.set(c, c.getBoundingClientRect()); });
+      cards.forEach(function (c) { c.style.display = fits(c) ? '' : 'none'; anims(c).forEach(function (a) { a.cancel(); }); });
+      var n = 0;
+      cards.filter(fits).forEach(function (c) {
+        var was = first.get(c);
+        if (was) {
+          var now = c.getBoundingClientRect(), dx = was.left - now.left, dy = was.top - now.top;
+          if (dx || dy) c.animate([{ transform: 'translate(' + dx + 'px,' + dy + 'px)' }, { transform: 'none' }], { duration: 380, easing: EASE });
+        } else {
+          /* 3. the new ones grow in, one after another */
+          c.animate([{ opacity: 0, transform: 'scale(0.82) translateY(6px)' }, { opacity: 1, transform: 'none' }],
+            { duration: 320, delay: 60 + Math.min(n++, 10) * 28, easing: EASE, fill: 'backwards' });
+        }
       });
+    });
+  }
+
+  function choose(tab, focus) {
+    tabs.forEach(function (t) {
+      var on = t === tab;
+      t.classList.toggle('active', on);
+      t.setAttribute('aria-selected', String(on));
+      t.tabIndex = on ? 0 : -1;
+    });
+    if (focus) tab.focus();
+    moveInk(tab);
+    show(tab.dataset.cat);
+  }
+  tabs.forEach(function (tab, i) {
+    tab.addEventListener('click', function () { choose(tab); });
+    tab.addEventListener('keydown', function (e) {
+      var k = e.key, j = k === 'ArrowRight' ? i + 1 : k === 'ArrowLeft' ? i - 1 : k === 'Home' ? 0 : k === 'End' ? tabs.length - 1 : null;
+      if (j === null) return;
+      e.preventDefault();
+      choose(tabs[(j + tabs.length) % tabs.length], true);
     });
   });
 
