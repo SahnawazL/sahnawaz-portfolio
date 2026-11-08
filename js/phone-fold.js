@@ -7,7 +7,7 @@
   'use strict';
   var phone = matchMedia('(max-width: 640px)');
   var FOLDS = [
-    { card: '.exp-para-wrap', parts: ['.exp-para-text'], label: 'My experience', words: true, note: function () { return 'Xiaomi · Flipkart · Rapido'; } },
+    { card: '.exp-para-wrap', parts: ['.exp-para-text'], label: 'My experience', unroll: true, note: function () { return 'Xiaomi · Flipkart · Rapido'; } },
     { card: '.mpj-card', parts: ['.mpj-problem', '.mpj-hindsight'], label: 'Problem & lessons learned' },
     { card: '#tsBarsSection', parts: ['#tsBars'], label: 'Skill levels', note: function (card) {
         var v = (card.querySelector('#tsBars').textContent.match(/\d{2,3}(?=\s*%)/g) || []).map(Number);
@@ -27,7 +27,7 @@
       '.pf-btn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}' +
       '.pf-btn[aria-expanded="true"] svg{transform:rotate(180deg)}' +
       '.pf-btn:focus-visible{outline:2px solid #5ae0ff;outline-offset:2px}' +
-      '.pf-w{display:inline-block}' +
+      '.pf-sweep{position:absolute;left:-6%;right:-6%;top:0;height:46px;pointer-events:none;background:linear-gradient(180deg,transparent,rgba(90,224,255,.16),transparent);filter:blur(2px)}' +
       '@media print{.pf-btn{display:none!important}}';
     document.head.appendChild(s);
   }
@@ -67,9 +67,9 @@
   }
 
   /* ── Opening and closing smoothly ──
-     The part grows open from nothing while its content rises into place.
-     The experience text arrives word by word out of a soft blur, and the
-     company names glow once as they land. Closing folds it away again.
+     The part grows open quickly while its content rises into place; the
+     experience text unrolls from the top in one sweep with a soft light
+     passing over it. Closing folds it away again.
      With "reduce motion" on, it simply opens and closes. */
   var EASE = 'cubic-bezier(0.16,1,0.3,1)';
   var still = function () { return !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) || !Element.prototype.animate; };
@@ -81,51 +81,27 @@
     a.onfinish = a.oncancel = function () { if (once) return; once = true; part.style.overflow = ''; if (done) done(); };
   }
 
-  /* splits the paragraph into words once; a highlighted name stays whole */
-  function words(part) {
-    if (part.__words) return part.__words;
-    var out = [];
-    [].slice.call(part.childNodes).forEach(function (node) {
-      if (node.nodeType === 3) {
-        var frag = document.createDocumentFragment();
-        node.textContent.split(/(\s+)/).forEach(function (bit) {
-          if (!bit) return;
-          if (/^\s+$/.test(bit)) { frag.appendChild(document.createTextNode(bit)); return; }
-          var w = document.createElement('span');
-          w.className = 'pf-w';
-          w.textContent = bit;
-          frag.appendChild(w); out.push(w);
-        });
-        part.replaceChild(frag, node);
-      } else if (node.nodeType === 1) {
-        node.classList.add('pf-w');
-        if (/^(STRONG|B|EM)$/.test(node.tagName)) node.__name = true;
-        out.push(node);
-      }
-    });
-    return (part.__words = out);
-  }
-
   function reveal(parts, f) {
     if (still()) return;
     parts.forEach(function (part, pi) {
       var h = part.scrollHeight;
-      grow(part, 0, h, 560);
-      if (f.words) {
-        var list = words(part), step = Math.min(16, 950 / Math.max(1, list.length));
-        list.forEach(function (w, i) {
-          var delay = 140 + i * step;
-          w.animate([
-            { opacity: 0, transform: 'translateY(9px)', filter: 'blur(6px)' },
-            { opacity: 1, transform: 'none', filter: 'blur(0)' }
-          ], { duration: 460, delay: delay, easing: EASE, fill: 'backwards' });
-          if (w.__name) w.animate([
-            { filter: 'brightness(1)' }, { filter: 'brightness(1.75) drop-shadow(0 0 8px rgba(90,224,255,.45))' }, { filter: 'brightness(1)' }
-          ], { duration: 900, delay: delay + 380, easing: 'ease-in-out' });
-        });
+      grow(part, 0, h, 340);
+      if (f.unroll) {
+        /* the experience text unrolls from the top in one quick, even sweep,
+           with a soft light passing down over it */
+        part.animate([
+          { clipPath: 'inset(0 0 100% 0)', opacity: .4, transform: 'translateY(-4px)' },
+          { clipPath: 'inset(0 0 0 0)', opacity: 1, transform: 'none' }
+        ], { duration: 360, easing: EASE });
+        var sweep = document.createElement('span');
+        sweep.className = 'pf-sweep';
+        part.style.position = part.style.position || 'relative';
+        part.appendChild(sweep);
+        sweep.animate([{ transform: 'translateY(-100%)', opacity: 0 }, { opacity: 1, offset: .3 }, { transform: 'translateY(' + h + 'px)', opacity: 0 }],
+          { duration: 520, easing: 'cubic-bezier(.4,0,.2,1)' }).onfinish = function () { sweep.remove(); };
       } else {
-        part.animate([{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }],
-          { duration: 480, delay: 90 + pi * 70, easing: EASE, fill: 'backwards' });
+        part.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }],
+          { duration: 300, delay: pi * 50, easing: EASE, fill: 'backwards' });
       }
     });
   }
@@ -134,8 +110,8 @@
     if (still()) return done();
     var left = parts.length;
     parts.forEach(function (part) {
-      part.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, easing: 'ease-out', fill: 'forwards' });
-      grow(part, part.offsetHeight, 0, 380, function () {
+      part.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 180, easing: 'ease-out', fill: 'forwards' });
+      grow(part, part.offsetHeight, 0, 280, function () {
         (part.getAnimations ? part.getAnimations() : []).forEach(function (a) { a.cancel(); });
         if (--left === 0) done();
       });
