@@ -29,6 +29,8 @@
       '.pf-btn:focus-visible{outline:2px solid #5ae0ff;outline-offset:2px}' +
       '.pf-btn{-webkit-tap-highlight-color:transparent;touch-action:manipulation;-webkit-user-select:none;user-select:none}' +
       '.pf-btn:active{background:rgba(90,224,255,.09)}' +
+      /* the site-wide button hover glow (and its 1.03 zoom) sticks after a tap on phones */
+      '.pf-btn,.pf-btn:hover,.pf-btn:focus{box-shadow:none!important;transform:none!important;transition:background .15s ease!important}' +
       '@media print{.pf-btn{display:none!important}}';
     document.head.appendChild(s);
   }
