@@ -7,7 +7,7 @@
   'use strict';
   var phone = matchMedia('(max-width: 640px)');
   var FOLDS = [
-    { card: '.exp-para-wrap', parts: ['.exp-para-text'], label: 'My experience', unroll: true, note: function () { return 'Xiaomi · Flipkart · Rapido'; } },
+    { card: '.exp-para-wrap', parts: ['.exp-para-text'], label: 'My experience', note: function () { return 'Xiaomi · Flipkart · Rapido'; } },
     { card: '.mpj-card', parts: ['.mpj-problem', '.mpj-hindsight'], label: 'Problem & lessons learned' },
     { card: '#tsBarsSection', parts: ['#tsBars'], label: 'Skill levels', note: function (card) {
         var v = (card.querySelector('#tsBars').textContent.match(/\d{2,3}(?=\s*%)/g) || []).map(Number);
@@ -27,7 +27,8 @@
       '.pf-btn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}' +
       '.pf-btn[aria-expanded="true"] svg{transform:rotate(180deg)}' +
       '.pf-btn:focus-visible{outline:2px solid #5ae0ff;outline-offset:2px}' +
-      '.pf-sweep{position:absolute;left:-6%;right:-6%;top:0;height:46px;pointer-events:none;background:linear-gradient(180deg,transparent,rgba(90,224,255,.16),transparent);filter:blur(2px)}' +
+      '.pf-btn{-webkit-tap-highlight-color:transparent;touch-action:manipulation;-webkit-user-select:none;user-select:none}' +
+      '.pf-btn:active{background:rgba(90,224,255,.09)}' +
       '@media print{.pf-btn{display:none!important}}';
     document.head.appendChild(s);
   }
@@ -67,42 +68,20 @@
   }
 
   /* ── Opening and closing smoothly ──
-     The part grows open quickly while its content rises into place; the
-     experience text unrolls from the top in one sweep with a soft light
-     passing over it. Closing folds it away again.
+     The space opens at once and the content fades up in a fifth of a
+     second; closing fades it out and folds it away.
      With "reduce motion" on, it simply opens and closes. */
   var EASE = 'cubic-bezier(0.16,1,0.3,1)';
   var still = function () { return !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) || !Element.prototype.animate; };
 
-  function grow(part, from, to, ms, done) {
-    part.style.overflow = 'hidden';
-    var a = part.animate([{ height: from + 'px' }, { height: to + 'px' }], { duration: ms, easing: EASE });
-    var once = false;
-    a.onfinish = a.oncancel = function () { if (once) return; once = true; part.style.overflow = ''; if (done) done(); };
-  }
-
+  /* Only opacity and a small lift are animated: the phone's graphics chip
+     does those on its own, so nothing has to re-measure the long page on
+     every frame. The space opens at once; the content settles in fast. */
   function reveal(parts, f) {
     if (still()) return;
     parts.forEach(function (part, pi) {
-      var h = part.scrollHeight;
-      grow(part, 0, h, 340);
-      if (f.unroll) {
-        /* the experience text unrolls from the top in one quick, even sweep,
-           with a soft light passing down over it */
-        part.animate([
-          { clipPath: 'inset(0 0 100% 0)', opacity: .4, transform: 'translateY(-4px)' },
-          { clipPath: 'inset(0 0 0 0)', opacity: 1, transform: 'none' }
-        ], { duration: 360, easing: EASE });
-        var sweep = document.createElement('span');
-        sweep.className = 'pf-sweep';
-        part.style.position = part.style.position || 'relative';
-        part.appendChild(sweep);
-        sweep.animate([{ transform: 'translateY(-100%)', opacity: 0 }, { opacity: 1, offset: .3 }, { transform: 'translateY(' + h + 'px)', opacity: 0 }],
-          { duration: 520, easing: 'cubic-bezier(.4,0,.2,1)' }).onfinish = function () { sweep.remove(); };
-      } else {
-        part.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }],
-          { duration: 300, delay: pi * 50, easing: EASE, fill: 'backwards' });
-      }
+      part.animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }],
+        { duration: 200, delay: pi * 40, easing: EASE, fill: 'backwards' });
     });
   }
 
@@ -110,11 +89,13 @@
     if (still()) return done();
     var left = parts.length;
     parts.forEach(function (part) {
-      part.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 180, easing: 'ease-out', fill: 'forwards' });
-      grow(part, part.offsetHeight, 0, 280, function () {
-        (part.getAnimations ? part.getAnimations() : []).forEach(function (a) { a.cancel(); });
+      var a = part.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, easing: 'ease-out', fill: 'forwards' });
+      var finished = false;
+      a.onfinish = a.oncancel = function () {
+        if (finished) return; finished = true;
         if (--left === 0) done();
-      });
+        a.cancel();
+      };
     });
   }
 
