@@ -854,7 +854,12 @@ section.hero-enter.sec-wipe { opacity: 1; transform: none; clip-path: none; tran
 <!-- ═══════════════════════════════════════════
      PREMIUM SCROLL PROGRESS BAR v8
      ═══════════════════════════════════════════ -->
-<link rel="stylesheet" href="css/portfolio-ui.css">
+<!-- The first screens' styles block drawing; the full stylesheet loads right
+     after without blocking and, being later in the page, is what finally
+     applies. Built by scripts/build-critical-css.js. -->
+<link rel="stylesheet" href="css/portfolio-ui-critical.css">
+<link rel="preload" href="css/portfolio-ui.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="css/portfolio-ui.css"></noscript>
 <link rel="stylesheet" href="css/desktop.css">
 <link rel="preload" href="css/website-check.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="css/website-check.css"></noscript>
