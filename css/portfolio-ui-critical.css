@@ -282,7 +282,7 @@ header::after { content: ""; position: absolute; bottom: 0px; left: 0px; right: 
   0%, 100% { opacity: 1; }
   50% { opacity: 0.2; }
 }
-.mpj-title { display: flex; align-items: center; gap: 0.5rem; justify-content: center; font-family: "Playfair Display", serif; font-size: clamp(1.45rem, 5vw, 1.95rem); font-weight: 700; text-align: center; background: linear-gradient(135deg, rgb(232, 248, 255) 0%, rgb(80, 210, 255) 45%, rgb(0, 153, 204) 100%) text; -webkit-text-fill-color: transparent; margin: 0px 0px 0.3rem; line-height: 1.2; letter-spacing: normal; }
+.mpj-title { display: flex; align-items: center; gap: 0.5rem; justify-content: center; font-family: "Playfair Display", serif; font-size: clamp(1.45rem, 5vw, 1.95rem); font-weight: 700; text-align: center; background: linear-gradient(135deg, rgb(232, 248, 255) 0%, rgb(80, 210, 255) 45%, rgb(0, 153, 204) 100%) text; -webkit-text-fill-color: transparent; margin: 0px auto 0.3rem; line-height: 1.2; letter-spacing: normal; width: fit-content; max-width: 100%; }
 .mpj-title-icon { display: inline-flex; flex-shrink: 0; }
 .mpj-subtitle { font-family: "DM Sans", sans-serif; font-size: 0.72rem; color: rgba(150, 210, 240, 0.4); text-align: center; letter-spacing: 0.4px; margin-bottom: 1.8rem; line-height: 1.5; }
 .mpj-divider { width: 48px; height: 2px; background: linear-gradient(90deg, transparent, rgb(127, 224, 255), transparent); border-radius: 2px; margin: 0px auto 1.6rem; box-shadow: rgba(120, 220, 255, 0.9) 0px 0px 6px, rgba(80, 210, 255, 0.5) 0px 0px 14px; }
@@ -314,7 +314,7 @@ header::after { content: ""; position: absolute; bottom: 0px; left: 0px; right: 
 .mpj-status-live { background: rgba(0, 255, 100, 0.1); border: 1px solid rgba(0, 255, 100, 0.3); color: rgb(0, 255, 128); }
 .mpj-card-name { font-size: 1.05rem; font-weight: 800; color: rgb(228, 248, 255); margin-bottom: 0.35rem; line-height: 1.25; }
 .mpj-card-tagline { font-size: 0.78rem; color: rgba(160, 210, 230, 0.65); margin-bottom: 0.8rem; line-height: 1.5; }
-.mpj-problem { font-size: 0.72rem; color: rgba(0, 255, 200, 0.55); font-family: "Courier New", monospace; margin-bottom: 0.85rem; padding: 0.5rem 0.75rem; background: rgba(0, 255, 200, 0.04); border-left: 2px solid rgba(0, 255, 200, 0.25); border-radius: 0px 6px 6px 0px; line-height: 1.5; }
+.mpj-problem { font-size: 0.78rem; color: rgba(195, 240, 232, 0.78); font-family: inherit; text-align: left; margin-bottom: 0.85rem; padding: 0.5rem 0.75rem; background: rgba(0, 255, 200, 0.04); border-left: 2px solid rgba(0, 255, 200, 0.25); border-radius: 0px 6px 6px 0px; line-height: 1.5; }
 .mpj-stack { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.9rem; }
 .mpj-pill { font-size: 0.65rem; font-weight: 700; padding: 0.22rem 0.6rem; border-radius: 50px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: rgba(200, 235, 245, 0.7); letter-spacing: 0.3px; transition: 0.2s; }
 .mpj-card:hover .mpj-pill { border-color: rgba(0, 255, 200, 0.2); color: rgba(0, 255, 200, 0.8); }

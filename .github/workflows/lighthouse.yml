@@ -33,6 +33,8 @@ jobs:
             if (!fs.existsSync("lh-" + f + ".json")) { md += "| " + f + " | failed |||||||\n"; continue; }
             const r = JSON.parse(fs.readFileSync("lh-" + f + ".json")), c = r.categories, a = r.audits, s = k => Math.round((c[k].score || 0) * 100);
             md += `| ${f} | ${s("performance")} | ${s("accessibility")} | ${s("best-practices")} | ${s("seo")} | ${a["largest-contentful-paint"].displayValue} | ${a["total-blocking-time"].displayValue} | ${a["cumulative-layout-shift"].displayValue} |\n`;
+            const shifts = ((a["layout-shifts"] || {}).details || {}).items || [];
+            if (shifts.length) console.log(f + " layout shifts:", JSON.stringify(shifts.slice(0, 4).map(x => [x.score, x.node && x.node.selector])).slice(0, 700));
             if (f === "mobile") {
               const items = k => ((a[k] && a[k].details && a[k].details.items) || []);
               console.log("LCP element:", JSON.stringify(items("largest-contentful-paint-element").slice(0, 2)).slice(0, 600));

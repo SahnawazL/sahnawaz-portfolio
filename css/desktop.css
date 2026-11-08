@@ -42,6 +42,14 @@
   section:has(> #pfpStage) .prem-name { flex-wrap: wrap; justify-content: center; }
   section:has(> #pfpStage) .hero-cta-group { flex-wrap: wrap; justify-content: center; }
   section:has(> #pfpStage) .premium-bio-card { max-width: 100%; }
+  /* the live code card sits centred under both columns, so the two
+     columns end level instead of the left one running long */
+  section:has(> #pfpStage) > #c2d {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: min(620px, 100%);
+    margin-top: 34px;
+  }
 }
 
 /* ---------- 3. tech stack: tools beside their proficiency (960px+) --
@@ -305,6 +313,13 @@
     max-width: 1200px; margin: 0 auto; box-sizing: border-box; padding: 16px 84px;
   }
   footer #shz-footer-body > * { margin: 0; }
+  /* the bottom bar was set for a phone (7-9px, very faint): readable here */
+  footer #shz-copyright { font-size: 11px; letter-spacing: .06em; white-space: nowrap; color: rgba(200, 225, 245, .5); }
+  footer #shz-copyright span { color: rgba(90, 200, 255, .75); }
+  footer #shz-clock-time { font-size: 12px; color: rgba(190, 230, 255, .8); }
+  footer #shz-clock-date { font-size: 11px; color: rgba(120, 200, 255, .55); }
+  footer #shz-vbadge-title { font-size: 10.5px; }
+  footer #shz-vbadge-sub { font-size: 9.5px; color: rgba(140, 200, 255, .6); }
 }
 @media (min-width: 960px) and (prefers-reduced-motion: reduce) {
   .dsk-link, .dsk-link::after, .dsk-btn, .dsk-f-a, .dsk-f-soc a { transition: none; }

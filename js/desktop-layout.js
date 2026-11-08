@@ -515,6 +515,20 @@
     head.parentNode.insertBefore(ctWrap, head.nextSibling);
     left.forEach(function (el) { L.appendChild(el); });
     right.forEach(function (el) { R.appendChild(el); });
+    adoptChat();
+    /* the chat card is added by another script, sometimes after this ran */
+    if (!document.getElementById('chatLauncher') && 'MutationObserver' in window) {
+      var mo = new MutationObserver(function () { if (adoptChat()) mo.disconnect(); });
+      mo.observe(sec, { childList: true });
+      setTimeout(function () { mo.disconnect(); }, 15000);
+    }
+  }
+  /* puts the chat assistant card under the channels in the left column */
+  function adoptChat() {
+    var c = document.getElementById('chatLauncher'), L = document.getElementById('dsk-ct-left');
+    if (!c || !L || !ctWrap) return false;
+    if (c.parentNode !== L) { ctMoved.push({ el: c, parent: c.parentNode, next: c.nextSibling }); L.appendChild(c); }
+    return true;
   }
   function destroyContact() {
     if (!ctWrap) return;

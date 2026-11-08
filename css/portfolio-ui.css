@@ -4531,8 +4531,11 @@ header::after {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin: 0 0 0.3rem; line-height: 1.2;
+  margin: 0 auto 0.3rem; line-height: 1.2;
   letter-spacing: normal;
+  /* only as wide as the words, so the underline sits under the title
+     instead of running across the whole page */
+  width: fit-content; max-width: 100%;
 }
 .mpj-title-icon { display: inline-flex; flex-shrink: 0; }
 
@@ -4718,9 +4721,12 @@ header::after {
   line-height: 1.5;
 }
 .mpj-problem {
-  font-size: 0.72rem;
-  color: rgba(0,255,200,0.55);
-  font-family: 'Courier New', monospace;
+  /* readable body text, left-aligned like a note, instead of faint
+     centred typewriter text */
+  font-size: 0.78rem;
+  color: rgba(195,240,232,0.78);
+  font-family: inherit;
+  text-align: left;
   margin-bottom: 0.85rem;
   padding: 0.5rem 0.75rem;
   background: rgba(0,255,200,0.04);
