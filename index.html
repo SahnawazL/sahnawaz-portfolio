@@ -3797,15 +3797,63 @@ section.hero-enter.sec-wipe { opacity: 1; transform: none; clip-path: none; tran
 
 <!-- ══ Page scripts: kept together after every section above, in their original order, so each one finds its section already on the page ══ -->
 <script>
+/* A tapped note opens in a reader panel right under its row. The card
+   itself stays where it is (it used to stretch across the whole row,
+   which pushed the other cards around and made it jump back on close).
+   Tapping the same card, or the panel's close button, folds it away;
+   tapping another card moves the panel to that card. */
 function toggleBlogCard(card) {
-  const wasExpanded = card.classList.contains('expanded');
-  document.querySelectorAll('.pblog-card.expanded').forEach(c => c.classList.remove('expanded'));
+  var grid = card.parentNode;
+  var reader = grid.querySelector('.pblog-reader');
+  var wasOpen = card.classList.contains('is-reading');
   /* click burst */
   card.classList.remove('blog-clicked');
   void card.offsetWidth;
   card.classList.add('blog-clicked');
-  setTimeout(() => card.classList.remove('blog-clicked'), 500);
-  if (!wasExpanded) card.classList.add('expanded');
+  setTimeout(function () { card.classList.remove('blog-clicked'); }, 500);
+  grid.querySelectorAll('.pblog-card.is-reading').forEach(function (c) { c.classList.remove('is-reading'); c.setAttribute('aria-expanded', 'false'); });
+  if (wasOpen) { blogReaderClose(reader); return; }
+
+  if (!reader) {
+    reader = document.createElement('div');
+    reader.className = 'pblog-reader';
+    reader.setAttribute('role', 'region');
+    reader.innerHTML = '<div class="pblog-reader-in"><div class="pblog-reader-body">'
+      + '<span class="pblog-reader-tag"></span><h4 class="pblog-reader-title"></h4><p class="pblog-reader-text"></p>'
+      + '<button type="button" class="pblog-reader-close">Close note <span aria-hidden="true">↑</span></button></div></div>';
+    reader.querySelector('.pblog-reader-close').addEventListener('click', function () {
+      grid.querySelectorAll('.pblog-card.is-reading').forEach(function (c) { c.classList.remove('is-reading'); c.setAttribute('aria-expanded', 'false'); });
+      blogReaderClose(reader);
+    });
+  }
+  /* fill it with this card's note */
+  var tag = card.querySelector('.pblog-tag');
+  var t = reader.querySelector('.pblog-reader-tag');
+  t.textContent = tag ? tag.textContent : '';
+  t.style.color = tag ? tag.style.color : '';
+  reader.querySelector('.pblog-reader-title').textContent = card.querySelector('.pblog-card-title').textContent;
+  reader.querySelector('.pblog-reader-text').innerHTML = card.querySelector('.pblog-card-desc').innerHTML;
+  reader.setAttribute('aria-label', card.querySelector('.pblog-card-title').textContent);
+
+  /* place it after the last visible card in the same row */
+  var top = card.offsetTop, last = card;
+  [].forEach.call(grid.querySelectorAll('.pblog-card'), function (c) {
+    if (c.offsetParent && Math.abs(c.offsetTop - top) < 4) last = c;
+  });
+  var moving = reader.parentNode && last.nextElementSibling !== reader;
+  if (moving) { reader.classList.remove('open'); }
+  if (last.nextElementSibling !== reader) last.insertAdjacentElement('afterend', reader);
+  card.classList.add('is-reading');
+  card.setAttribute('aria-expanded', 'true');
+  clearTimeout(reader._t);
+  void reader.offsetHeight;
+  requestAnimationFrame(function () { reader.classList.add('open'); });
+}
+function blogReaderClose(reader) {
+  if (!reader) return;
+  reader.classList.remove('open');
+  clearTimeout(reader._t);
+  reader._t = setTimeout(function () { if (!reader.classList.contains('open') && reader.parentNode) reader.parentNode.removeChild(reader); }, 520);
 }
 
 /* animate bar fills on viewport entry */

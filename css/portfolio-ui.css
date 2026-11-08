@@ -1949,8 +1949,28 @@ header::after {
   }
   .blog-grid .pblog-card-title { font-size: 0.74rem; line-height: 1.35; }
 }
-/* An open note spans the full row and is set in a readable size, so long
-   notes are never cut off mid-sentence. */
+/* The reader panel under the tapped card's row: the card stays in place,
+   the note opens below it at a readable size. */
+.blog-grid .pblog-reader { flex: 0 0 100%; grid-column: 1 / -1; display: grid; grid-template-rows: 0fr; opacity: 0;
+  transition: grid-template-rows .45s cubic-bezier(.22,1,.36,1), opacity .3s ease; }
+.blog-grid .pblog-reader.open { grid-template-rows: 1fr; opacity: 1; }
+.pblog-reader-in { min-height: 0; overflow: hidden; }
+.pblog-reader-body { max-width: 640px; margin: 0 auto; padding: 0.9rem 1rem 1rem; text-align: left;
+  border-top: 1px solid rgba(0,255,200,0.12); transform: translateY(-8px); transition: transform .45s cubic-bezier(.22,1,.36,1); }
+.pblog-reader.open .pblog-reader-body { transform: none; }
+.pblog-reader-tag { display: inline-block; font: 700 0.6rem/1 'DM Sans', sans-serif; letter-spacing: 1.2px; text-transform: uppercase; }
+.pblog-reader-title { margin: 0.45rem 0 0.4rem; font: 700 0.95rem/1.3 'DM Sans', sans-serif; color: #e9f8ff; }
+.pblog-reader-text { margin: 0; font: 400 0.82rem/1.65 'DM Sans', sans-serif; color: rgba(205,232,250,0.86); }
+.pblog-reader-close { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; margin-top: 0.75rem; padding: 6px 12px; border-radius: 9px;
+  font: 600 0.72rem/1 'DM Sans', sans-serif; color: rgba(0,255,200,0.75); background: rgba(0,255,200,0.06); border: 1px solid rgba(0,255,200,0.16);
+  -webkit-tap-highlight-color: transparent; }
+.pblog-reader-close:focus-visible { outline: 2px solid #00ffc8; outline-offset: 2px; }
+.pblog-card.is-reading { background: rgba(0,255,200,0.05) !important; }
+.pblog-card.is-reading .pblog-hint { opacity: 0; }
+.pblog-card.is-reading .pblog-bar-fill { box-shadow: 0 0 10px rgba(0,255,200,0.5); }
+@media (prefers-reduced-motion: reduce) { .blog-grid .pblog-reader, .pblog-reader-body { transition: none; } }
+/* (older: an open note spanned the full row; kept for anything that still
+   adds .expanded) */
 .blog-grid .pblog-card.expanded { grid-column: 1 / -1; min-width: 100%; }
 .blog-grid .pblog-card.expanded .pblog-card-desc {
   max-height: 520px;
