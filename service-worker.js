@@ -81,6 +81,7 @@ const PRECACHE_URLS = [
   './js/recruiter-view.js',
   './js/phone-fold.js',
   './js/visitor-mode.js',
+  './js/code-studio.js',
   './icons/tech/css.svg',
   './icons/tech/excel.svg',
   './icons/tech/figma.svg',
