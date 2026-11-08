@@ -1,0 +1,48 @@
+name: Speed check (Lighthouse)
+# Runs Google's Lighthouse on the live site as a phone and a desktop, every
+# Monday and on demand, and writes the scores to the run's summary page.
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: '30 3 * * 1'
+permissions:
+  contents: read
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run Lighthouse
+        run: |
+          npm i -g lighthouse@12 >/dev/null 2>&1
+          URL=https://sahnawaz-portfolio.vercel.app/
+          for form in mobile desktop; do
+            flags="--quiet --chrome-flags=--headless=new --only-categories=performance,accessibility,best-practices,seo --output=json --output-path=lh-$form.json"
+            [ "$form" = desktop ] && flags="$flags --preset=desktop"
+            for try in 1 2; do lighthouse "$URL" $flags && break; sleep 10; done
+          done
+      - name: Write the scores
+        run: |
+          node -e '
+          const fs = require("fs");
+          let md = "## Lighthouse scores\n\n| | Performance | Accessibility | Best practices | SEO | LCP | TBT | CLS |\n|---|---|---|---|---|---|---|---|\n";
+          for (const f of ["mobile", "desktop"]) {
+            if (!fs.existsSync("lh-" + f + ".json")) { md += "| " + f + " | failed |||||||\n"; continue; }
+            const r = JSON.parse(fs.readFileSync("lh-" + f + ".json")), c = r.categories, a = r.audits, s = k => Math.round((c[k].score || 0) * 100);
+            md += `| ${f} | ${s("performance")} | ${s("accessibility")} | ${s("best-practices")} | ${s("seo")} | ${a["largest-contentful-paint"].displayValue} | ${a["total-blocking-time"].displayValue} | ${a["cumulative-layout-shift"].displayValue} |\n`;
+            if (f === "mobile") {
+              const fails = Object.values(a).filter(x => x.score !== null && x.score < 0.9 && x.details && x.details.overallSavingsMs > 150).sort((x, y) => y.details.overallSavingsMs - x.details.overallSavingsMs).slice(0, 8);
+              if (fails.length) md += "\n**Biggest phone savings:** " + fails.map(x => x.title + " (" + Math.round(x.details.overallSavingsMs) + " ms)").join(", ") + "\n\n";
+            }
+          }
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, md);
+          console.log(md);'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-reports
+          path: lh-*.json
+          retention-days: 14
