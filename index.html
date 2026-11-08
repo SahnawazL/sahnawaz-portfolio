@@ -2267,17 +2267,25 @@ section.hero-enter.sec-wipe { opacity: 1; transform: none; clip-path: none; tran
     barData.push({ row:row, fill:fill, pct:s.pct });
   });
 
-  var animated = false;
+  /* bars grow from zero; played when they first come into view, and again
+     each time a phone visitor opens the folded "Skill levels" */
+  var timers = [];
+  function play() {
+    timers.forEach(clearTimeout); timers = [];
+    barData.forEach(function(b) { b.fill.style.transition = 'none'; b.fill.style.width = '0%'; b.row.classList.remove('ts-animated'); });
+    void cont.offsetWidth;
+    barData.forEach(function(b,i) {
+      b.fill.style.transition = '';
+      timers.push(setTimeout(function(){ b.fill.style.width = b.pct + '%'; b.row.classList.add('ts-animated'); }, 60 + i * 80));
+    });
+  }
+  window.tsBarsPlay = play;
+  /* watch the bars themselves, not the section: when they are folded away
+     on a phone they are not in view, so the first play waits for the tap */
   var obs = new IntersectionObserver(function(ents) {
-    if (ents[0].isIntersecting && !animated) {
-      animated = true;
-      barData.forEach(function(b,i) {
-        setTimeout(function(){ b.fill.style.width = b.pct + '%'; b.row.classList.add('ts-animated'); }, i * 80);
-      });
-      obs.disconnect();
-    }
+    if (ents[0].isIntersecting) { play(); obs.disconnect(); }
   }, { threshold: 0.3 });
-  obs.observe(document.getElementById('tsBarsSection'));
+  obs.observe(cont);
 })();
 </script></section>
 

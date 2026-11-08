@@ -12,7 +12,7 @@
     { card: '#tsBarsSection', parts: ['#tsBars'], label: 'Skill levels', note: function (card) {
         var v = (card.querySelector('#tsBars').textContent.match(/\d{2,3}(?=\s*%)/g) || []).map(Number);
         return v.length ? v.length + ' skills · ' + Math.min.apply(null, v) + '–' + Math.max.apply(null, v) + '%' : '';
-      } },
+      }, onOpen: function () { if (typeof window.tsBarsPlay === 'function') window.tsBarsPlay(); } },
     { card: '#wvCard', parts: ['#wvcBody'], label: 'Live speed numbers' },
     { card: '#secCard', parts: ['.sec-rows'], label: 'All security checks' }
   ];
@@ -47,7 +47,11 @@
         b.className = 'pf-btn';
         b.setAttribute('aria-controls', parts[0].id);
         b.innerHTML = '<span></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
-        b.addEventListener('click', function () { set(card, b, f.label, card.classList.contains('pf-closed'), f.note); });
+        b.addEventListener('click', function () {
+          var opening = card.classList.contains('pf-closed');
+          set(card, b, f.label, opening, f.note);
+          if (opening && f.onOpen) requestAnimationFrame(f.onOpen);
+        });
         parts[0].parentNode.insertBefore(b, parts[0]);
         card.__pf = { b: b, label: f.label, note: f.note };
         set(card, b, f.label, !phone.matches, f.note);
