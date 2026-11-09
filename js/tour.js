@@ -1528,6 +1528,15 @@
     var first = leaveFin() || idx < 0 || at != null;
     idx = i;
     var s = STEPS[i], el = target(s);
+    /* on phones some long parts start folded: open the ones this stop points into */
+    if (window.phoneFold) {
+      var need = [el];
+      (s.beats || []).forEach(function (b) {
+        if (b.sel) need.push(document.querySelector(b.sel));
+        if (b.find) Array.prototype.forEach.call(document.querySelectorAll(b.find), function (c) { if (c.textContent.indexOf(b.has) >= 0) need.push(c); });
+      });
+      try { window.phoneFold.reveal(need); } catch (e) {}
+    }
     setAccent(s.acc);
     choosing = !!s.choose; choiceWaited = false;
     ui.card.classList.toggle('choosing', choosing);

@@ -131,6 +131,20 @@
     all.forEach(function (item) { set(item, !phone.matches); });
   }
 
+  /* the guided tour opens any fold that hides what it is about to point at,
+     the same as a visitor tapping its button; it stays open afterwards */
+  window.phoneFold = {
+    reveal: function (els) {
+      all.forEach(function (item) {
+        if (item.open || !phone.matches) return;
+        var hit = els.some(function (e) { return e && item.wraps.some(function (w) { return w.contains(e); }); });
+        if (!hit) return;
+        set(item, true);
+        if (item.f.onOpen) setTimeout(item.f.onOpen, 120);
+      });
+    }
+  };
+
   if (phone.addEventListener) phone.addEventListener('change', sync);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', sync); else sync();
   /* the skill bars are drawn after load: fill in their summary once */
