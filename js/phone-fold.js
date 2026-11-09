@@ -1,7 +1,8 @@
 /* Shorter page on phones. A few long, detailed parts start folded behind a
    button that says what is inside: the experience summary, each project's
    problem and lessons, the skill levels, the live speed numbers and the
-   full list of security checks. On wider screens everything stays open.
+   full list of security checks, the How I ship steps and the deeper GitHub
+   telemetry panels. On wider screens everything stays open.
 
    How it moves (the same idea as the certification cards, made smoother):
    - The part sits in a wrapper whose height eases from 0 to its natural
@@ -22,7 +23,14 @@
         return v.length ? v.length + ' skills · ' + Math.min.apply(null, v) + '–' + Math.max.apply(null, v) + '%' : '';
       }, onOpen: function () { if (typeof window.tsBarsPlay === 'function') window.tsBarsPlay(); } },
     { card: '#wvCard', parts: ['#wvcBody'], label: 'live speed numbers' },
-    { card: '#secCard', parts: ['.sec-rows'], label: 'all security checks' }
+    { card: '#secCard', parts: ['.sec-rows'], label: 'all security checks' },
+    { card: '#how-i-ship', parts: ['.hs-body'], label: 'how I ship', note: function (card) {
+        var n = card.querySelectorAll('.hs-flow > li').length;
+        return n ? n + ' steps · from idea to live' : '';
+      } },
+    { card: '#recent-activity', parts: ['#raRangeToggle', '#raPulse', '#raHeatmap', '#raPunchcard', '#raLangHours', '#raProjectStats',
+        '#raCIHealth', '#raReleaseTimeline', '#raRepoEcosystem', '#raDepFreshness'], label: 'full GitHub telemetry',
+      note: function () { return '9 live panels · commits, CI, releases'; } }
   ];
   var made = false, all = [];
   var EASE = 'cubic-bezier(.22,1,.36,1)';
@@ -34,8 +42,8 @@
       '.pf-wrap{display:grid;grid-template-rows:1fr;opacity:1;transition:grid-template-rows .5s ' + EASE + ',opacity .38s ease .06s}',
       '.pf-wrap>.pf-inner{min-height:0;overflow:hidden}',
       '.pf-wrap>.pf-inner>*{transition:transform .5s ' + EASE + '}',
-      '.pf-closed .pf-wrap{grid-template-rows:0fr;opacity:0;transition:grid-template-rows .42s ' + EASE + ',opacity .2s ease}',
-      '.pf-closed .pf-wrap>.pf-inner>*{transform:translateY(-10px)}',
+      '.pf-wrap.pf-shut{grid-template-rows:0fr;opacity:0;transition:grid-template-rows .42s ' + EASE + ',opacity .2s ease}',
+      '.pf-wrap.pf-shut>.pf-inner>*{transform:translateY(-10px)}',
       'html:not(.pf-ready) .pf-wrap,html:not(.pf-ready) .pf-wrap>.pf-inner>*{transition:none!important}',
       /* the button */
       '.pf-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin:8px 0;padding:9px 14px;border-radius:12px;box-sizing:border-box;',
@@ -88,10 +96,10 @@
         b.innerHTML = '<span class="pf-txt"><span class="pf-lbl"><span class="pf-show">Show ' + f.label + '</span><span class="pf-hide" aria-hidden="true">Hide ' + f.label + '</span></span>'
           + '<span class="pf-note"></span></span><span class="pf-chev" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span>';
         first.parentNode.insertBefore(b, first);
-        var item = { card: card, b: b, f: f };
+        var item = { card: card, b: b, f: f, wraps: parts.map(function (p) { return p.parentNode.parentNode; }), open: true };
         all.push(item);
         b.addEventListener('click', function () {
-          var open = card.classList.contains('pf-closed');
+          var open = !item.open;
           set(item, open);
           if (open && f.onOpen) setTimeout(f.onOpen, 120);
         });
@@ -102,7 +110,9 @@
   }
 
   function set(item, open) {
+    item.open = open;
     item.card.classList.toggle('pf-closed', !open);
+    item.wraps.forEach(function (w) { w.classList.toggle('pf-shut', !open); });
     item.b.setAttribute('aria-expanded', String(open));
     item.b.querySelector('.pf-show').setAttribute('aria-hidden', String(open));
     item.b.querySelector('.pf-hide').setAttribute('aria-hidden', String(!open));
