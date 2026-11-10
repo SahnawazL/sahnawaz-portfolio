@@ -348,6 +348,19 @@
   window.openChat = function(){
     if (!widget) return;
     if (isOpen) return;
+    var nowReading = sectionInView();
+    if (nowReading !== readingNow) {
+      readingNow = nowReading;
+      /* already set up: refresh the suggestions, and the quick questions if
+         the visitor is not in the middle of something */
+      if (inited) setTimeout(function(){
+        try { buildChips(); } catch (e) {}
+        try {
+          if (quickReply && getVisitorType() && !botBusy && !(briefApi && briefApi.isActive()) &&
+              !(window._helpFlowActive && window._helpFlowActive())) { renderQuickReplies(); scrollMsgs(); }
+        } catch (e) {}
+      }, 0);
+    }
     widget.classList.add('chat-open');
     isOpen = true;
     /* the chat opened last, so it goes in front of an open code popup */
@@ -586,6 +599,19 @@
       quickReply.appendChild(cap);
       VISITOR_TYPES.forEach(function (v) {
         quickReply.appendChild(qrButton(v.label, function () { chooseVisitorType(v.type, v.label); }));
+      });
+    } else if (readingNow && !(briefApi && briefApi.hasDraft())) {
+      /* questions about the section the visitor was reading when they opened the chat */
+      var ctxCap = document.createElement('div');
+      ctxCap.className = 'chat-qr-caption';
+      ctxCap.textContent = '👀 You’re looking at ' + SECTION_QS[readingNow].name + ' — ask:';
+      quickReply.appendChild(ctxCap);
+      SECTION_QS[readingNow].chips.slice(0, 3).forEach(function (q) {
+        quickReply.appendChild(qrButton(q, function () {
+          quickReply.style.display = 'none';
+          handleQ(q);
+          resetIdleTimer();
+        }));
       });
     } else {
       var starters = (STARTERS[vt] || STARTERS.none).slice();
@@ -2213,6 +2239,41 @@
      are ordered by why the visitor said they came ("What brings you here?").
      Every question is answered by the AI (api/chat.js), which ends with the
      button that starts the tool. */
+  /* ========== Questions about what the visitor is reading ==========
+     When the chat opens, the section filling the middle of the screen
+     decides the first group of chips, so the visitor can ask about the
+     exact thing in front of them in one tap. */
+  var SECTION_QS = {
+    'my-projects':     { name: 'Projects', chips: ['How does YojanaSahay match people to schemes?', 'What was hardest about building StudyLens AI?', 'Which project best shows his full-stack skills?'] },
+    'live-products':   { name: 'Live products', chips: ['Are his apps live and used by real people?', 'Tell me about YojanaSahay 🇮🇳', 'What is StudyLens AI? 📚'] },
+    'projects':        { name: 'Experience', chips: ["What's his work experience?", 'Has he worked with big brands?', "What's his educational background?"] },
+    'ts':              { name: 'Tech stack', chips: ["What's his tech stack?", 'Which technology is he strongest in?', 'Can he work with React and Node.js?'] },
+    'achievements':    { name: 'Achievements', chips: ['What are his key achievements?', "What's his current GitHub streak? 🔥", 'What makes him different?'] },
+    'certSection':     { name: 'Certifications', chips: ['What certifications does he have?', "What's his educational background?"] },
+    'recent-activity': { name: 'Recently shipped', chips: ['What has he shipped recently?', "What's his current GitHub streak? 🔥", 'How does he test and deploy his code?'] },
+    'job-fit':         { name: 'Job fit', chips: ['Is he available for work right now?', 'How can I get his resume?', "What's his work experience?"] },
+    'what-i-offer':    { name: 'Pricing', chips: ["What's his pricing?", "What's included in a website project?", 'How long does a project take?'] },
+    'why-website':     { name: 'Why a website', chips: ['Does a small business really need a website?', 'Can he build me a website like this?', "What's his pricing?"] },
+    'website-check':   { name: 'Website check', chips: ['🩺 What does the free website check test?', 'Can he fix the issues the check finds?'] },
+    'tools-services':  { name: 'Services', chips: ['What services does Sahnawaz offer?', 'Does he provide domain & hosting?', 'Does he offer post-delivery support?'] },
+    'testimonials':    { name: 'Reviews', chips: ['What do clients say about him?', 'Can I trust him?'] },
+    'blog':            { name: 'Blog', chips: ['What does he write about?', 'How did he build this website?'] },
+    'contact':         { name: 'Contact', chips: ['📧 How do I send Sahnawaz a message?', 'How quickly does he reply?', '📅 How do I request a callback?'] }
+  };
+  var readingNow = null;
+  function sectionInView(){
+    var mid = innerHeight * 0.45, best = null;
+    var list = document.querySelectorAll('main > section');
+    for (var i = 0; i < list.length; i++) {
+      var sec = list[i], r = sec.getBoundingClientRect();
+      if (r.top <= mid && r.bottom >= mid) {
+        best = sec.id || (sec.classList.contains('ts-section') ? 'ts' : null);
+        break;
+      }
+    }
+    return best && SECTION_QS[best] ? best : null;
+  }
+
   var CHIP_GROUPS = {
     start: { label: '✨ New here? Start with these', accent: true, chips: [
       '🤖 What can you help me with?',
@@ -2285,6 +2346,7 @@
     var first = START_FIRST[vt];
     if (first) start = [first].concat(start.filter(function(c){ return c !== first; }));
     var out = [{ key: 'start', label: CHIP_GROUPS.start.label, accent: true, chips: start }];
+    if (readingNow) out.unshift({ key: 'reading', label: '👀 About ' + SECTION_QS[readingNow].name + ' (what you’re reading)', accent: true, chips: SECTION_QS[readingNow].chips.slice() });
     (CHIP_ORDER[vt] || CHIP_ORDER_DEFAULT).forEach(function(k){
       out.push({ key: k, label: CHIP_GROUPS[k].label, chips: CHIP_GROUPS[k].chips.slice() });
     });
@@ -3560,6 +3622,7 @@
         visitorName: conversationHistory.length <= 1 ? namePayload : null,
         visitorActivity: freshActivity || window._visitorActivity || null,
         visitorType: getVisitorType(),
+        readingSection: readingNow ? SECTION_QS[readingNow].name : null,
         context: chatContext()
       });
 

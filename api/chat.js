@@ -136,6 +136,11 @@ function groqKeys() {
 
 async function handleChat(req, res) {
   const { message, history = [], visitorName = null, visitorActivity = null, source = null, visitorType = null } = req.body || {};
+  // The section the visitor was reading when they opened the chat. Only the
+  // site's own section names are accepted, so nothing else reaches the prompt.
+  const READING_SECTIONS = ['Projects', 'Live products', 'Experience', 'Tech stack', 'Achievements', 'Certifications', 'Recently shipped',
+    'Job fit', 'Pricing', 'Why a website', 'Website check', 'Services', 'Reviews', 'Blog', 'Contact'];
+  const readingSection = READING_SECTIONS.includes(req.body && req.body.readingSection) ? req.body.readingSection : null;
   // What the page knows right now: the website check shown in this chat,
   // the visitor's project-brief draft, where they are on the page.
   const ctx = readContext(req.body && req.body.context);
@@ -443,12 +448,15 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
   // ── SAVED ANSWERS ─────────────────────────────────────────────────────
   // A first question with nothing personal ("What are his skills?") gets the
   // answer saved for the same question earlier, without using the AI.
+  // "how much is this?" / "how does it work?" — a question that leans on what is on screen
+  const vagueQ = trimmed.length <= 60 && /\b(this|that|these|those|it|here|them)\b/i.test(trimmed);
   const va0 = (visitorActivity && typeof visitorActivity === 'object') ? visitorActivity : {};
   const cacheable = !(Array.isArray(history) && history.some(m => m && m.content))
     && !visitorName && !va0.name && !va0.email && !va0.reviewSubmitted
     && !(Array.isArray(va0.likedProjects) && va0.likedProjects.length) && !(va0.totalChats > 0)
     && !ctx.report && !ctx.brief && intent !== 'greeting'
-    && trimmed.length >= 6 && trimmed.length <= 160 && !/\b(my|our|i am|i'm|me)\b|@|\d{6,}/i.test(trimmed);
+    && trimmed.length >= 6 && trimmed.length <= 160 && !/\b(my|our|i am|i'm|me)\b|@|\d{6,}/i.test(trimmed)
+    && !(readingSection && vagueQ);
   const cacheVariant = visitorType || '';
   if (cacheable) {
     const saved = await answerCache.get(trimmed, cacheVariant).catch(() => null);
@@ -468,11 +476,14 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
     user: past.filter(m => m && m.role !== 'bot' && m.role !== 'assistant').slice(-3).map(m => String(m.content || '')).join(' \n '),
     bot: String((past.filter(m => m && (m.role === 'bot' || m.role === 'assistant')).slice(-1)[0] || {}).content || '').slice(0, 600)
   };
+  // a vague question borrows its topic from the section being read
+  if (readingSection && vagueQ) recent.user = (recent.user ? recent.user + ' \n ' : '') + readingSection;
   // The page's live tools (website check / brief) come along when the
   // question has no topic of its own ("again", "is it good?").
   const force = (ctx.report || ctx.brief) ? ['site-ai-tools'] : [];
   const hints = {
-    intentHint: [intentHint ? `INTENT HINT: ${intentHint}` : '', visitorTypeHint ? `VISITOR TYPE: ${visitorTypeHint}` : ''].filter(Boolean).join('\n'),
+    intentHint: [intentHint ? `INTENT HINT: ${intentHint}` : '', visitorTypeHint ? `VISITOR TYPE: ${visitorTypeHint}` : '',
+      readingSection ? `READING NOW: the visitor opened this chat while looking at the "${readingSection}" section of the site. If the question is vague ("this", "that", "how much", "how does it work"), take it to be about that section.` : ''].filter(Boolean).join('\n'),
     langHint: langHint ? `LANGUAGE HINT: ${langHint}` : '',
     nameHint: nameHint ? `VISITOR HINT: ${nameHint}` : '',
     visitorActivityHint: visitorActivityHint || ''
