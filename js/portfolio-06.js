@@ -1764,11 +1764,8 @@ window.__shzAudio = (function(){
   /* lazily-rendered blocks (content-visibility:auto) above the target are
      only estimated in size; render them now so the first aim is right
      and the scroll is one motion instead of re-aiming mid-flight */
-  var _cvDone = false;
   function renderLazyAbove(el){
-    if(_cvDone) return;
-    _cvDone = true;
-    var list = document.querySelectorAll('.testimonials, .certifications');
+    var list = document.querySelectorAll('.testimonials, .certifications, main > section');
     for(var i = 0; i < list.length; i++){
       if(el.compareDocumentPosition(list[i]) & Node.DOCUMENT_POSITION_PRECEDING){
         list[i].style.contentVisibility = 'visible';

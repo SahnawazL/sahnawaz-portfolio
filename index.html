@@ -833,6 +833,35 @@ html {
 <script defer src="/_vercel/insights/script.js"></script>
 <!-- ── Google Login CSS ── -->
 <link rel="stylesheet" href="css/login-modal.css">
+<style id="lazy-sections">
+/* Sections far below the screen are not drawn until the visitor scrolls
+   near them. Each one holds its real content height meanwhile (measured
+   per section, phone and desktop), so the page length stays true and
+   links land in the right place. Contact is always drawn (see the note
+   on #contact further up). */
+@supports (content-visibility:auto){
+main>#my-projects,main>#live-products,main>#projects,main>#achievements,main>section.ts-section,main>#certSection,main>#recent-activity,main>#job-fit,main>#what-i-offer,main>#why-website,main>#website-check,main>#tools-services,main>#testimonials,main>#blog,main>#site-feedback{content-visibility:auto}
+main>#my-projects{contain-intrinsic-size:auto 3763px}main>#live-products{contain-intrinsic-size:auto 668px}main>#projects{contain-intrinsic-size:auto 733px}main>#achievements{contain-intrinsic-size:auto 682px}main>section.ts-section{contain-intrinsic-size:auto 788px}main>#certSection{contain-intrinsic-size:auto 604px}main>#recent-activity{contain-intrinsic-size:auto 1501px}main>#job-fit{contain-intrinsic-size:auto 666px}main>#what-i-offer{contain-intrinsic-size:auto 986px}main>#why-website{contain-intrinsic-size:auto 618px}main>#website-check{contain-intrinsic-size:auto 393px}main>#tools-services{contain-intrinsic-size:auto 466px}main>#testimonials{contain-intrinsic-size:auto 926px}main>#blog{contain-intrinsic-size:auto 996px}main>#site-feedback{contain-intrinsic-size:auto 248px}
+@media (min-width:641px){main>#my-projects{contain-intrinsic-size:auto 2033px}main>#live-products{contain-intrinsic-size:auto 409px}main>#projects{contain-intrinsic-size:auto 670px}main>#achievements{contain-intrinsic-size:auto 674px}main>section.ts-section{contain-intrinsic-size:auto 639px}main>#certSection{contain-intrinsic-size:auto 356px}main>#recent-activity{contain-intrinsic-size:auto 2468px}main>#job-fit{contain-intrinsic-size:auto 500px}main>#what-i-offer{contain-intrinsic-size:auto 604px}main>#why-website{contain-intrinsic-size:auto 629px}main>#website-check{contain-intrinsic-size:auto 296px}main>#tools-services{contain-intrinsic-size:auto 580px}main>#testimonials{contain-intrinsic-size:auto 716px}main>#blog{contain-intrinsic-size:auto 767px}main>#site-feedback{contain-intrinsic-size:auto 152px}}
+@media print{main>section{content-visibility:visible!important}}
+}
+</style>
+<script>
+/* a link straight to a section (/#contact): once the page has loaded, land
+   on it again with the site's own scroll helper, since the sections above
+   it were not drawn yet when the browser first jumped */
+addEventListener('load', function () {
+  var id = location.hash.slice(1), el = null;
+  if (!id) return;
+  try { el = document.getElementById(decodeURIComponent(id)); } catch (e) {}
+  if (!el || !el.closest('main')) return;
+  var y = pageYOffset;
+  setTimeout(function () {
+    if (Math.abs(pageYOffset - y) > 40 && Math.abs(el.getBoundingClientRect().top) < 120) return;
+    if (window.shzLandOn) window.shzLandOn(el); else el.scrollIntoView();
+  }, 250);
+}, { once: true });
+</script>
 </head><body>
 <style id="print-only-style">.print-only{display:none}</style>
 <style id="hero-first">
