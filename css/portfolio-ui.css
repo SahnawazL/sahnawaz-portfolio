@@ -11857,3 +11857,14 @@ html body #hacker-toggle:not(.visible) { animation-play-state: paused !important
   html body .cert-meta { font-size: 9px; }
 }
 
+
+/* Flip cards: an opened card rises above its neighbours, its back opens as
+   a raised panel (sized in shzFitFlipCards, index.html). The back only takes
+   taps while it faces the visitor, so its hidden lower part never blocks
+   the card beneath it. Both faces rotate on their own GPU layer. */
+.wio-card.fit-up, .syb-card.fit-up { z-index: 6; }
+.wio-grid.fit-open, .syb-grid.fit-open { z-index: 30; }
+.wio-card.fit-up .wio-back, .syb-card.fit-up .syb-back { background-color: #07131f; }
+.wio-back, .syb-back { pointer-events: none; }
+.wio-card.wio-flipped .wio-back, .syb-card.syb-flipped .syb-back { pointer-events: auto; }
+.wio-inner, .syb-inner { will-change: transform; }

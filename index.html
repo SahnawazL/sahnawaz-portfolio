@@ -4252,10 +4252,15 @@ window.addEventListener('resize', () => {
 window.shzFitFlipCards = function (cards, frontSel, backSel, flippedCls, minH) {
   cards = [].slice.call(cards);
   if (!cards.length) return function () {};
+  /* The card's own height never animates (that made the page below re-flow
+     on every frame and felt laggy). The card keeps its row height; the back
+     face is simply as tall as its details and opens as a raised panel over
+     the space below, so the flip is pure GPU rotation. */
   function height(card) {
-    var h = card._rowH || minH;
-    if (card.classList.contains(flippedCls)) h = Math.max(h, card._backH || 0);
-    card.style.height = (h + 4) + 'px';
+    var h = (card._rowH || minH) + 4;
+    card.style.height = h + 'px';
+    var back = card.querySelector(backSel);
+    if (back) back.style.height = Math.max(h, (card._backH || 0) + 4) + 'px';
   }
   function measure() {
     var faces = [];
@@ -4280,22 +4285,21 @@ window.shzFitFlipCards = function (cards, frontSel, backSel, flippedCls, minH) {
     });
     cards.forEach(height);
   }
-  /* grow or shrink with the flip, whoever flips it (tap, close button, tour) */
-  var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /* an open card sits above its neighbours until it has fully closed */
   if (window.MutationObserver) cards.forEach(function (card) {
     var was = card.classList.contains(flippedCls);
     new MutationObserver(function () {
       var now = card.classList.contains(flippedCls);
       if (now === was) return;
       was = now;
-      /* animate only this change; sizing at load and on resize is instant */
       if (!card._backH || !card._frontH) measure();   /* was hidden when last measured */
-      if (!still) {
-        card.style.transition = 'height .5s cubic-bezier(.22,1,.36,1)';
-        clearTimeout(card._fitT);
-        card._fitT = setTimeout(function () { card.style.transition = ''; }, 650);
-      }
-      height(card);
+      clearTimeout(card._fitT);
+      var grid = card.parentElement;
+      if (now) { card.classList.add('fit-up'); grid.classList.add('fit-open'); }
+      else card._fitT = setTimeout(function () {
+        card.classList.remove('fit-up');
+        if (!grid.querySelector('.fit-up')) grid.classList.remove('fit-open');
+      }, 800);
     }).observe(card, { attributes: true, attributeFilter: ['class'] });
   });
   /* measure again once the real styles and fonts are in, and as the cards
