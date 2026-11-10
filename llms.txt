@@ -4,7 +4,7 @@
 
 - Official website (the only canonical address): [sahnawaz-portfolio.vercel.app](https://sahnawaz-portfolio.vercel.app/)
 - The old GitHub Pages copy (sahnawazl.github.io/sahnawaz-portfolio/) is retired and redirects to the official website.
-- Last updated: 26 October 2026
+- Last updated: 11 November 2026
 
 ---
 
@@ -34,13 +34,15 @@
 
 ## Key Pages
 
-- [Projects](https://sahnawaz-portfolio.vercel.app/#projects): selected work and case studies
+- [Projects](https://sahnawaz-portfolio.vercel.app/#my-projects): selected work and case studies
+- [Experience](https://sahnawaz-portfolio.vercel.app/#projects): professional journey (Xiaomi, Flipkart, Rapido)
 - [Services & pricing](https://sahnawaz-portfolio.vercel.app/#what-i-offer): what he builds and starting prices
 - [Plan your project with AI](https://sahnawaz-portfolio.vercel.app/?plan=website): describe a project, see a typical price range and send him a brief
 - [Free website check](https://sahnawaz-portfolio.vercel.app/#website-check): a free phone speed and customer-readiness check for any business website
 - [Live coding activity](https://sahnawaz-portfolio.vercel.app/#recent-activity): real-time engineering telemetry
 - [Contact](https://sahnawaz-portfolio.vercel.app/#contact): email, WhatsApp and callback options
-- [Resume (PDF)](https://sahnawaz-portfolio.vercel.app/resume.pdf)
+- [Resume (PDF)](https://sahnawaz-portfolio.vercel.app/resume.pdf) · [ATS-friendly resume (PDF)](https://sahnawaz-portfolio.vercel.app/resume-ats.pdf)
+- Recruiters: [60-second profile](https://sahnawaz-portfolio.vercel.app/?view=recruiter) — the short version: role, proof, resume, contact
 - Recruiters: [/fit](https://sahnawaz-portfolio.vercel.app/fit) — paste a job post for an honest AI fit report
 - Short links: [/contact](https://sahnawaz-portfolio.vercel.app/contact), [/projects](https://sahnawaz-portfolio.vercel.app/projects), [/yojanasahay](https://sahnawaz-portfolio.vercel.app/yojanasahay) (case study), [/studylens](https://sahnawaz-portfolio.vercel.app/studylens) (case study)
 
@@ -167,4 +169,4 @@ A: Silchar, Assam, India. Works remotely with clients worldwide.
 - Canonical name: "Sahnawaz Ahmed Laskar"
 - Business email: shzthedigitalalchemist@gmail.com
 - Location: Silchar, Assam, India
-- Last updated: 26 October 2026
+- Last updated: 11 November 2026

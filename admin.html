@@ -1258,6 +1258,13 @@
   .hours-bars i.peak { background: var(--cyan); }
   .hours-axis { display: flex; justify-content: space-between; font-size: .62rem; color: var(--text-dim); margin: 6px 0 10px; }
   @media (max-width: 640px) { .lead-done { margin-left: 0; } .attn-go { width: 100%; text-align: center; } }
+.msg-tri{margin:0 0 8px;display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
+.tri-pill{display:inline-block;padding:3px 9px;border-radius:999px;font-size:.7rem;font-weight:700;text-transform:capitalize;letter-spacing:.02em}
+.tri-high{background:rgba(79,224,162,.16);color:#4fe0a2;border:1px solid rgba(79,224,162,.4)}
+.tri-normal{background:rgba(90,224,255,.1);color:#5ae0ff;border:1px solid rgba(90,224,255,.3)}
+.tri-low{background:rgba(255,255,255,.05);color:#8fa9b8;border:1px solid rgba(255,255,255,.12)}
+.tri-need{font-size:.8rem;font-weight:600;color:#e8f6ff}
+.tri-sum{width:100%;font-size:.76rem;line-height:1.5;color:#9fbfcf}
 </style>
 </head>
 <body>
@@ -1718,7 +1725,7 @@
       <button class="export-btn" onclick="exportInbox()" title="Download this view as CSV">⬇ Export</button>
     </div>
     <div class="filter-bar">
-      <input type="text" class="search-input" id="inboxSearch" placeholder="Search by name, email or text…" oninput="filterInbox()">
+      <input type="text" class="search-input" id="inboxSearch" placeholder="Search name, email, text — or type “high” for hot leads…" oninput="filterInbox()">
       <div class="resume-timefilter" id="inboxTimeFilter">
         <button type="button" class="rtf-btn active" data-days="0"   onclick="setInboxRange(this)">All time</button>
         <button type="button" class="rtf-btn"        data-days="7"   onclick="setInboxRange(this)">7 days</button>
@@ -3690,7 +3697,8 @@
       return !query ||
         (d.name    || '').toLowerCase().includes(query) ||
         (d.email   || '').toLowerCase().includes(query) ||
-        (d.message || '').toLowerCase().includes(query);
+        (d.message || '').toLowerCase().includes(query) ||
+        (d.chatSummary ? ((d.chatSummary.need || '') + ' ' + (d.chatSummary.summary || '') + ' ' + (d.chatSummary.who || '') + ' ' + (d.chatSummary.priority || '')).toLowerCase().includes(query) : false);
     });
     inboxVisibleCount = INBOX_PAGE_SIZE;
     renderInbox(filtered);
@@ -3737,7 +3745,7 @@
           '<div class="resume-user">' +
             avatarImg('', g.name, 'resume-avatar') +
             '<div>' +
-              '<div class="resume-name">' + sanitize(g.name) + '</div>' +
+              '<div class="resume-name">' + (g.items.some(function(d){ return d.chatSummary && d.chatSummary.priority === 'high'; }) ? '\uD83D\uDD25 ' : '') + sanitize(g.name) + '</div>' +
               '<div class="resume-email">' + sanitize(g.email || '\u2014') + '</div>' +
               '<div class="msg-lastseen">Last: ' + formatDate(inboxDate(g.items[0])) + '</div>' +
             '</div>' +
@@ -3750,7 +3758,18 @@
 
       var rowsHtml = g.items.map(function(d) {
         var mailto = 'mailto:' + encodeURIComponent(d.email || '') + '?subject=' + encodeURIComponent('Re: your message') ;
-        return '<div class="msg-subrow">' +
+        var ai = d.chatSummary, tri = '';
+        if (ai && typeof ai === 'object') {
+          var pc = ai.priority === 'high' ? 'tri-high' : ai.priority === 'low' ? 'tri-low' : 'tri-normal';
+          tri = '<div class="msg-tri">' +
+            '<span class="tri-pill ' + pc + '">' + (ai.priority === 'high' ? '\uD83D\uDD25 ' : '') + sanitize(ai.who || 'visitor') + ' \u00b7 ' + sanitize(ai.priority || 'normal') + '</span>' +
+            (ai.need ? '<span class="tri-need">' + sanitize(ai.need) + '</span>' : '') +
+            (ai.summary ? '<div class="tri-sum">' + sanitize(ai.summary) + '</div>' : '') +
+          '</div>';
+        } else if (d.source === 'chat') {
+          tri = '<div class="msg-tri"><span class="tri-pill tri-normal">from the AI chat</span></div>';
+        }
+        return '<div class="msg-subrow">' + tri +
           '<div class="msg-text">' + sanitize(d.message || '\u2014') + '</div>' +
           '<div class="msg-meta">' +
             '<span class="cb-muted">\uD83D\uDCC5 ' + formatDate(inboxDate(d)) + '</span>' +
