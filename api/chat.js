@@ -462,7 +462,8 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
     const saved = await answerCache.get(trimmed, cacheVariant).catch(() => null);
     if (saved) {
       console.log(JSON.stringify({ log: 'chat_cache_hit', q: trimmed.slice(0, 80), t: new Date().toISOString() }));
-      return res.status(200).json(withGo({ reply: saved, cached: true }, trimmed));
+      const sn = splitNext(saved);
+      return res.status(200).json(withGo(sn.next.length ? { reply: sn.text, next: sn.next, cached: true } : { reply: sn.text, cached: true }, trimmed));
     }
   }
 
@@ -535,7 +536,7 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
   // Answers he added on the admin page for questions the chat couldn't answer
   const ownerFacts = await chatGaps.facts().catch(() => '');
   // The question's topic goes last, where the model weighs it most.
-  const KNOWLEDGE = retrieved.text + (ownerFacts ? '\n\n' + ownerFacts : '') + '\n\n' + chatGaps.RULE
+  const KNOWLEDGE = retrieved.text + (ownerFacts ? '\n\n' + ownerFacts : '') + '\n\n' + chatGaps.RULE + (intent !== 'greeting' ? '\n\n' + NEXT_RULE : '')
     + (stateBlock ? '\n\n' + stateBlock : '') + (retrieved.focus ? '\n\n' + retrieved.focus : '');
   console.log('[chat] knowledge ' + retrieved.tokens + ' tokens \u00b7 ' + retrieved.used.join(', ') + (retrieved.topics.length ? ' \u00b7 topic ' + retrieved.topics.join(', ') : ''));
 
@@ -656,6 +657,8 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
     // should never be visible to visitors. Handles: [CAT:x], **[CAT:x]**, **CAT:x**, CAT:x
     // anywhere in the text (AI sometimes embeds them mid-response or wraps in bold).
     reply = stripTags(reply);
+    const nx = splitNext(reply);
+    reply = nx.text;
 
     // A question it had no facts for: saved for the admin page, never cached
     const gapCheck = chatGaps.readGap(reply);
@@ -684,9 +687,10 @@ Generate ONE unique greeting now. Be creative, warm, and personal.`;
       t:      new Date().toISOString()
     }));
 
-    if (cacheable && !gapCheck.gap) await answerCache.put(trimmed, cacheVariant, reply);
+    const nextQs = gapCheck.gap ? [] : nx.next;
+    if (cacheable && !gapCheck.gap) await answerCache.put(trimmed, cacheVariant, reply + (nextQs.length ? '\n[[next: ' + nextQs.join(' | ') + ']]' : ''));
 
-    return res.status(200).json(withGo({ reply }, trimmed));
+    return res.status(200).json(withGo(nextQs.length ? { reply, next: nextQs } : { reply }, trimmed));
 
   } catch (err) {
     console.error('Server error:', err);
@@ -1041,6 +1045,23 @@ function cleanAdvice(text) {
   if (s.length < 25) return null;
   if (s.length > 360) s = s.slice(0, 357).replace(/\s+\S*$/, '') + '…';
   return s;
+}
+
+// ── NEXT QUESTIONS ─────────────────────────────────────────────────────
+// The model ends an answer with [[next: question | question]]: two short
+// questions the visitor is likely to ask next. They are lifted out of the
+// text and sent as a list the chat shows as one-tap buttons.
+const NEXT_RULE = `NEXT QUESTIONS: End every answer with one final line exactly in this form:
+[[next: <question> | <question>]]
+Two short follow-up questions (each under 8 words) that THIS visitor would naturally ask next, written in their voice about Sahnawaz (e.g. "How long would that take?", "Can I see his GitHub?"). They must follow from this answer, must not repeat what was already asked, and must be answerable from the facts above. Same language as the visitor. Never mention this line in the answer itself.`;
+function splitNext(text) {
+  let next = [];
+  const out = String(text || '').replace(/\n?\s*\[\[\s*next\s*:\s*([^\]]{3,240})\]\]\s*/gi, function (_, body) {
+    if (!next.length) next = body.split('|').map(function (q) { return q.replace(/^[\s"'“”\-•*]+|[\s"'“”]+$/g, '').slice(0, 70); })
+      .filter(function (q) { return q.length >= 4 && !/[<>\[\]{}]/.test(q); }).slice(0, 2);
+    return '\n';
+  }).trim();
+  return { text: out, next: next };
 }
 
 function stripTags(text) {

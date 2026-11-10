@@ -634,6 +634,36 @@
     quickReply.style.display = 'flex';
   }
 
+  /* Two follow-up questions the assistant suggests after an answer, shown
+     as one-tap buttons once the answer has finished typing — unless the
+     visitor has already typed, tapped something or started a flow. */
+  function showNextQs(list) {
+    if (!quickReply || !list || !list.length) return;
+    var at = conversationHistory.length, tries = 0;
+    (function wait() {
+      if (botBusy && tries++ < 80) { setTimeout(wait, 150); return; }
+      var last = conversationHistory[conversationHistory.length - 1];
+      if (botBusy || !last || last.role !== 'bot' || conversationHistory.length > at + 1) return;
+      if (input && input.value.trim()) return;
+      if ((briefApi && briefApi.isActive()) || (window._helpFlowActive && window._helpFlowActive())) return;
+      quickReply.innerHTML = '';
+      var cap = document.createElement('div');
+      cap.className = 'chat-qr-caption';
+      cap.textContent = '💡 You might ask next';
+      quickReply.appendChild(cap);
+      list.slice(0, 2).forEach(function (q) {
+        q = String(q).slice(0, 70);
+        quickReply.appendChild(qrButton(q, function () {
+          quickReply.style.display = 'none';
+          handleQ(q);
+          resetIdleTimer();
+        }));
+      });
+      quickReply.style.display = 'flex';
+      scrollMsgs();
+    })();
+  }
+
   function chooseVisitorType(type, label) {
     if (botBusy) return;
     if (window._helpFlowActive && window._helpFlowActive()) return;
@@ -3685,6 +3715,7 @@
         }
         addBotTyping(aiReply, val, false, true);
         if (data.go) autoGo(data.go);
+        if (data.next && data.next.length) showNextQs(data.next);
       } else {
         addBotTyping("⚠️ I didn't get a response. Please try again in a moment.", val, false, true);
       }
