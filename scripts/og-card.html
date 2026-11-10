@@ -1,0 +1,58 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<!-- Source of og-card.jpg, the 1200x630 image LinkedIn, WhatsApp and X show
+     when the site is shared. Open at 1200x630 and screenshot to update it. -->
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1200px;height:630px;overflow:hidden}
+  body{font-family:"Inter","Inter Display",sans-serif;color:#e8f4fb;
+    background:
+      radial-gradient(520px 380px at 12% 18%, rgba(90,224,255,.20), transparent 70%),
+      radial-gradient(560px 420px at 95% 100%, rgba(79,224,162,.16), transparent 70%),
+      linear-gradient(135deg,#04101b 0%,#061624 55%,#04121c 100%);
+    position:relative}
+  .grid{position:absolute;inset:0;
+    background-image:linear-gradient(rgba(90,224,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(90,224,255,.06) 1px,transparent 1px);
+    background-size:40px 40px;mask-image:radial-gradient(900px 520px at 70% 45%,#000 30%,transparent 80%)}
+  .edge{position:absolute;left:0;right:0;top:0;height:6px;background:linear-gradient(90deg,#5ae0ff,#4fe0a2 60%,#5ae0ff)}
+  .photo{position:absolute;left:64px;top:74px;width:372px;height:482px;border-radius:28px;padding:3px;
+    background:linear-gradient(160deg,#5ae0ff,rgba(90,224,255,.15) 45%,#4fe0a2)}
+  .photo div{width:100%;height:100%;border-radius:25px;background:#0b1b29 url(../profile.jpg) 50% 28%/cover no-repeat;
+    box-shadow:inset 0 -120px 120px -60px rgba(4,16,27,.55)}
+  .badge{position:absolute;left:84px;top:510px;display:flex;align-items:center;gap:9px;padding:9px 15px;border-radius:999px;
+    background:rgba(4,16,27,.82);border:1px solid rgba(79,224,162,.45);font-size:17px;font-weight:600;color:#c9f7e6}
+  .badge i{width:11px;height:11px;border-radius:50%;background:#4fe0a2;box-shadow:0 0 0 5px rgba(79,224,162,.18)}
+  .txt{position:absolute;left:500px;top:84px;right:60px}
+  .tag{font-size:19px;font-weight:700;letter-spacing:.2em;color:#5ae0ff;text-transform:uppercase}
+  h1{margin-top:22px;font-family:"Inter Display","Inter",sans-serif;font-size:66px;line-height:1.02;font-weight:800;letter-spacing:-.025em;color:#fff}
+  .role{margin-top:20px;font-size:31px;font-weight:600;line-height:1.25;
+    background:linear-gradient(90deg,#9be9fb,#7ff0c4);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .chips{margin-top:34px;display:flex;flex-wrap:wrap;gap:12px}
+  .chip{padding:11px 18px;border-radius:14px;font-size:21px;font-weight:600;color:#dceef7;
+    background:rgba(255,255,255,.05);border:1px solid rgba(90,224,255,.22)}
+  .chip b{color:#5ae0ff;font-weight:700}
+  .foot{position:absolute;left:500px;right:60px;bottom:66px;display:flex;align-items:center;justify-content:space-between;
+    padding-top:22px;border-top:1px solid rgba(90,224,255,.18)}
+  .url{font-size:24px;font-weight:700;color:#fff;letter-spacing:-.01em}
+  .url span{color:#5ae0ff}
+  .brand{font-size:19px;font-weight:600;color:#8fb3c5}
+</style></head>
+<body>
+  <div class="grid"></div><div class="edge"></div>
+  <div class="photo"><div></div></div>
+  <div class="badge"><i></i>Available for freelance &amp; full-time</div>
+  <div class="txt">
+    <div class="tag">Portfolio · Assam, India</div>
+    <h1>Sahnawaz Ahmed Laskar</h1>
+    <div class="role">Full Stack Developer &amp; UI/UX Designer</div>
+    <div class="chips">
+      <div class="chip"><b>Built</b> YojanaSahay</div>
+      <div class="chip"><b>Built</b> StudyLens AI</div>
+      <div class="chip">Xiaomi · Flipkart · Rapido</div>
+    </div>
+  </div>
+  <div class="foot">
+    <div class="url">sahnawaz-portfolio<span>.vercel.app</span></div>
+    <div class="brand">ByteWithSahnawaz</div>
+  </div>
+</body></html>
