@@ -1054,6 +1054,8 @@
 
     /* ── Conversational flow state ── */
     var _flow   = null;  // 'quickmail' | 'resume' | 'callback'
+    var _qmChat = null;  /* recent chat lines sent along with a quick mail */
+    function QM_NOTE() { return _qmChat ? "\n\n(I'll add a short summary of our chat so he has the context.)" : ''; }
     var _step   = 0;
     var _data   = {};    // collected: name, email, message, phone, time
     var _apiUrl = 'https://sahnawaz-portfolio.vercel.app/api/';
@@ -1146,12 +1148,16 @@
       var _knownFull  = _loggedIn && _loggedIn.fullName   ? _loggedIn.fullName   : _knownName;
 
       if (type === 'quickmail') {
+        /* the conversation so far goes with the message (the visitor is told) */
+        _qmChat = (conversationHistory || []).filter(function (m) { return m && (m.role === 'user' || m.role === 'bot') && m.text; })
+          .slice(-12).map(function (m) { return { role: m.role, text: String(m.text).slice(0, 500) }; });
+        if (!_qmChat.some(function (m) { return m.role === 'user'; })) _qmChat = null;
         if (_knownName && _knownEmail) {
           /* Both known — skip name + email, jump straight to message */
           _data.name  = _knownFull;
           _data.email = _knownEmail;
           _step = 3;
-          botSay("Hey " + _knownName + "! 👋 I already have your details from your Google login.\n\nJust type your message for Sahnawaz below 💬");
+          botSay("Hey " + _knownName + "! 👋 I already have your details from your Google login.\n\nJust type your message for Sahnawaz below 💬" + QM_NOTE());
           setPlaceholder('Type your message...');
         } else if (_knownName) {
           /* Name known — skip to email step */
@@ -1292,7 +1298,7 @@
           }
           _errCount.qmEmail = 0;
           _data.email = userInput; _step = 3;
-          botSay("Got it! Now type your message for Sahnawaz 💬"); setPlaceholder('Type your message...'); return true;
+          botSay("Got it! Now type your message for Sahnawaz 💬" + QM_NOTE()); setPlaceholder('Type your message...'); return true;
         }
         if (_step === 3) {
           _data.message = userInput;
@@ -1301,7 +1307,8 @@
           resetFlow();
           fetch(_apiUrl + 'contact', {
             method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ name: qmName, email: qmEmail, message: qmMsg })
+            body: JSON.stringify({ name: qmName, email: qmEmail, message: qmMsg, chat: _qmChat || undefined,
+              visitorType: getVisitorType() || undefined, section: readingNow ? SECTION_QS[readingNow].name : undefined })
           })
           .then(function(r){ return r.json(); })
           .then(function(d){
