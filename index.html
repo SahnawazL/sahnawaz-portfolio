@@ -5490,11 +5490,21 @@ function sendMail(e) { if(e) e.preventDefault(); ctSendMail(); }
 document.addEventListener('DOMContentLoaded', function(){
   var cs = document.getElementById('contact');
   if (!cs) return;
-  var QS = [
-    ['💰', 'What does a website cost?', "What's his pricing?"],
-    ['⏱️', 'How fast can he deliver?', 'How long does a project take?'],
-    ['🏆', 'Brands he has worked with', 'Has he worked with big brands?']
-  ];
+  /* questions that fit why the visitor is here (they told the chat, or came
+     from a job site / a recruiter link); everyone else gets a mix */
+  var vt = null;
+  try { vt = localStorage.getItem('shz_visitor_type'); } catch (e) {}
+  var QSETS = {
+    recruiter: [['🧑‍💼', 'Experience', "What's his work experience?"], ['🛠️', 'Tech stack', "What's his tech stack?"], ['📄', 'Resume', 'How can I get his resume?']],
+    client:    [['💰', 'Pricing', "What's his pricing?"], ['⏱️', 'Timeline', 'How long does a project take?'], ['✨', 'A site like this', 'Can Sahnawaz build me a website like this?']],
+    other:     [['💰', 'Pricing', "What's his pricing?"], ['🧑‍💼', 'Experience', "What's his work experience?"], ['✅', 'Available?', 'Is he available for work right now?']]
+  };
+  var QS = QSETS[vt] || QSETS.other;
+  var hr = new Date().getHours();
+  var hello = hr < 5 ? 'Up late? 🌙' : hr < 12 ? 'Good morning! ☀️' : hr < 17 ? 'Good afternoon! 👋' : hr < 21 ? 'Good evening! 👋' : 'Hi there! 🌙';
+  var line = vt === 'recruiter' ? 'Ask me about his experience, skills or availability.'
+           : vt === 'client' ? 'Tell me about your project, or ask about price and timeline.'
+           : 'Ask me anything about Sahnawaz \u2014 I answer in seconds.';
   var card = document.createElement('div');
   card.id = 'chatLauncher';
   card.className = 'cl2';
@@ -5502,14 +5512,13 @@ document.addEventListener('DOMContentLoaded', function(){
   card.setAttribute('aria-label', "Ask Sahnawaz's AI assistant");
   card.innerHTML =
     '<div class="cl2-head">' +
-      '<span class="cl2-av"><img src="chat-avatar.jpg" width="40" height="40" alt="" loading="lazy" onerror="this.onerror=null;this.src=\'favicon-32x32.png\'"><i></i></span>' +
-      '<span class="cl2-who"><b>Sahnawaz\u2019s Assistant</b><small>Online \u00b7 answers in seconds</small></span>' +
-      '<span class="cl2-badge">AI</span>' +
+      '<span class="cl2-av"><img src="chat-avatar.jpg" width="34" height="34" alt="" loading="lazy" onerror="this.onerror=null;this.src=\'favicon-32x32.png\'"><i></i></span>' +
+      '<span class="cl2-who"><b>Sahnawaz\u2019s Assistant <em>AI</em></b><small>Online \u00b7 usually answers in seconds</small></span>' +
     '</div>' +
     '<div class="cl2-msg"><span class="cl2-dots" aria-hidden="true"><i></i><i></i><i></i></span>' +
-      '<p>Hi! \ud83d\udc4b Ask me anything about Sahnawaz\u2019s work, pricing or availability \u2014 or tap a question.</p></div>' +
+      '<p><b>' + hello + '</b> ' + line + '</p></div>' +
     '<div class="cl2-qs">' + QS.map(function (q, i) {
-      return '<button type="button" class="cl2-q" style="--i:' + i + '" data-q="' + q[2].replace(/"/g, '&quot;') + '"><span>' + q[0] + '</span>' + q[1] + '</button>';
+      return '<button type="button" class="cl2-q" style="--i:' + i + '" data-q="' + q[2].replace(/"/g, '&quot;') + '" aria-label="Ask: ' + q[2].replace(/"/g, '&quot;') + '"><span aria-hidden="true">' + q[0] + '</span>' + q[1] + '</button>';
     }).join('') + '</div>' +
     '<button type="button" class="cl2-ask" data-q=""><span>Ask me anything\u2026</span>' +
       '<i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6"/></svg></i></button>';
