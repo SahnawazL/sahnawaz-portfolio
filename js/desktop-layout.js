@@ -222,7 +222,7 @@
     hdrActs.innerHTML =
       '<span class="dsk-time" title="Local time in Silchar, India"><i aria-hidden="true"></i>Silchar <b></b></span>' +
       (fn('openCommandPalette')
-        ? '<button type="button" class="dsk-btn" data-act="search" aria-label="Quick search">' +
+        ? '<button type="button" class="dsk-btn" data-act="search" aria-keyshortcuts="Meta+K Control+K">' +
             svg('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>') +
             '<span class="dsk-btn-t">Search</span><kbd>\u2318K</kbd></button>' : '') +
       '<button type="button" class="dsk-btn is-cta" data-act="talk">' +

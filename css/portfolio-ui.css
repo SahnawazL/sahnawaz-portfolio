@@ -11833,3 +11833,24 @@ html body #hacker-toggle:not(.visible) { animation-play-state: paused !important
     content: ''; position: absolute; inset: -13px;
   }
 }
+
+/* ── Readable text on phones ──
+   Card text had been shrunk to 9–10px on small screens (blog notes,
+   testimonials, certificate notes, feature lists), below what is
+   comfortable to read. Reading text is now at least 12.5px, titles 13px,
+   and the smallest tags and hints at least 10.5px. */
+@media (max-width: 640px) {
+  html body .pblog-card-desc, html body .ptesti-text, html body .cert-desc, html body .shz-stat-desc,
+  html body .mpj-hindsight, html body .pwork-summary, html body .hs-d, html body .wnw-card-desc,
+  html body .wio-desc-short, html body .pwork-achievements li, html body .wio-features li,
+  html body .syb-feats li, html body .wnw-modal-bullets li, html body .ra-label-sub,
+  html body .jf-note, html body .ct-wiz-hint, html body .lp-note { font-size: 12.5px; }
+  html body .pblog-card-title { font-size: 13px; }
+  html body .kta3-card-title, html body .syb-name { font-size: 12.5px; }
+  html body .mpj-pill, html body .mpj-metric, html body .mpj-role-tag, html body .pwork-pill,
+  html body .mpj-stack span, html body .sg-item { font-size: 11px; }
+  html body .cert-chip, html body .ptesti-role, html body .pfeedback-verified,
+  html body .pblog-hint, html body .kta3-hint, html body .wnw-card-hint, html body .syb-hint,
+  html body .syb-price-note, html body .cert-chips span, html body .kta3-card span { font-size: 10.5px; }
+  html body .cert-meta { font-size: 9px; }
+}
