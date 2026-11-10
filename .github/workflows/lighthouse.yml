@@ -46,6 +46,13 @@ jobs:
             if (!fs.existsSync("lh-" + f + ".json")) { md += "| " + f + " | failed |||||||\n"; continue; }
             const r = JSON.parse(fs.readFileSync("lh-" + f + ".json")), c = r.categories, a = r.audits, s = k => Math.round((c[k].score || 0) * 100);
             md += `| ${f} | ${s("performance")} | ${s("accessibility")} | ${s("best-practices")} | ${s("seo")} | ${a["largest-contentful-paint"].displayValue} | ${a["total-blocking-time"].displayValue} | ${a["cumulative-layout-shift"].displayValue} |\n`;
+            /* every failed check outside Performance, with what triggered it */
+            for (const cat of ["accessibility", "best-practices", "seo"]) for (const ref of c[cat].auditRefs) {
+              const x = a[ref.id];
+              if (!x || x.score === null || x.score >= 1 || ref.weight === 0 && x.scoreDisplayMode !== "binary") continue;
+              const it = ((x.details || {}).items || []).slice(0, 4).map(i => i.description || i.source && i.source.url || i.url || i.sourceLocation && i.sourceLocation.url || (i.node && i.node.selector) || JSON.stringify(i).slice(0, 120));
+              console.log(f + " [" + cat + "] " + x.id + ": " + x.title + " :: " + JSON.stringify(it).slice(0, 500));
+            }
             const shifts = ((a["layout-shifts"] || {}).details || {}).items || [];
             if (shifts.length) console.log(f + " layout shifts:", JSON.stringify(shifts.slice(0, 4).map(x => [x.score, x.node && x.node.selector])).slice(0, 700));
             if (f === "mobile") {
