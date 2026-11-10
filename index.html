@@ -872,8 +872,8 @@ html {
    on #contact further up). */
 @supports (content-visibility:auto){
 main>#my-projects,main>#live-products,main>#projects,main>#achievements,main>section.ts-section,main>#certSection,main>#recent-activity,main>#job-fit,main>#what-i-offer,main>#why-website,main>#website-check,main>#tools-services,main>#testimonials,main>#blog,main>#site-feedback{content-visibility:auto}
-main>#my-projects{contain-intrinsic-size:auto 3809px}main>#live-products{contain-intrinsic-size:auto 671px}main>#projects{contain-intrinsic-size:auto 733px}main>#achievements{contain-intrinsic-size:auto 699px}main>section.ts-section{contain-intrinsic-size:auto 788px}main>#certSection{contain-intrinsic-size:auto 637px}main>#recent-activity{contain-intrinsic-size:auto 1521px}main>#job-fit{contain-intrinsic-size:auto 671px}main>#what-i-offer{contain-intrinsic-size:auto 1110px}main>#why-website{contain-intrinsic-size:auto 626px}main>#website-check{contain-intrinsic-size:auto 393px}main>#tools-services{contain-intrinsic-size:auto 530px}main>#testimonials{contain-intrinsic-size:auto 983px}main>#blog{contain-intrinsic-size:auto 1042px}main>#site-feedback{contain-intrinsic-size:auto 248px}
-@media (min-width:641px){main>#my-projects{contain-intrinsic-size:auto 2033px}main>#live-products{contain-intrinsic-size:auto 409px}main>#projects{contain-intrinsic-size:auto 670px}main>#achievements{contain-intrinsic-size:auto 674px}main>section.ts-section{contain-intrinsic-size:auto 639px}main>#certSection{contain-intrinsic-size:auto 356px}main>#recent-activity{contain-intrinsic-size:auto 2468px}main>#job-fit{contain-intrinsic-size:auto 500px}main>#what-i-offer{contain-intrinsic-size:auto 604px}main>#why-website{contain-intrinsic-size:auto 629px}main>#website-check{contain-intrinsic-size:auto 296px}main>#tools-services{contain-intrinsic-size:auto 580px}main>#testimonials{contain-intrinsic-size:auto 716px}main>#blog{contain-intrinsic-size:auto 767px}main>#site-feedback{contain-intrinsic-size:auto 152px}}
+main>#my-projects{contain-intrinsic-size:auto 3809px}main>#live-products{contain-intrinsic-size:auto 671px}main>#projects{contain-intrinsic-size:auto 733px}main>#achievements{contain-intrinsic-size:auto 699px}main>section.ts-section{contain-intrinsic-size:auto 788px}main>#certSection{contain-intrinsic-size:auto 637px}main>#recent-activity{contain-intrinsic-size:auto 1521px}main>#job-fit{contain-intrinsic-size:auto 671px}main>#what-i-offer{contain-intrinsic-size:auto 719px}main>#why-website{contain-intrinsic-size:auto 626px}main>#website-check{contain-intrinsic-size:auto 393px}main>#tools-services{contain-intrinsic-size:auto 444px}main>#testimonials{contain-intrinsic-size:auto 983px}main>#blog{contain-intrinsic-size:auto 1042px}main>#site-feedback{contain-intrinsic-size:auto 248px}
+@media (min-width:641px){main>#my-projects{contain-intrinsic-size:auto 2033px}main>#live-products{contain-intrinsic-size:auto 409px}main>#projects{contain-intrinsic-size:auto 670px}main>#achievements{contain-intrinsic-size:auto 674px}main>section.ts-section{contain-intrinsic-size:auto 639px}main>#certSection{contain-intrinsic-size:auto 356px}main>#recent-activity{contain-intrinsic-size:auto 2468px}main>#job-fit{contain-intrinsic-size:auto 500px}main>#what-i-offer{contain-intrinsic-size:auto 457px}main>#why-website{contain-intrinsic-size:auto 629px}main>#website-check{contain-intrinsic-size:auto 296px}main>#tools-services{contain-intrinsic-size:auto 530px}main>#testimonials{contain-intrinsic-size:auto 716px}main>#blog{contain-intrinsic-size:auto 767px}main>#site-feedback{contain-intrinsic-size:auto 152px}}
 @media print{main>section{content-visibility:visible!important}}
 }
 </style>
@@ -4243,6 +4243,75 @@ window.addEventListener('resize', () => {
 
 
 <script>
+/* Flip cards (services and bookable skills) — sizing.
+   Each card is as tall as its front, and every card in the same row
+   matches the tallest front in that row, so the grid looks even and
+   nothing is empty. When a card is flipped it grows smoothly to fit
+   the details on its back, and shrinks back when closed. Faces are
+   measured in one pass (one layout), and again only on resize. */
+window.shzFitFlipCards = function (cards, frontSel, backSel, flippedCls, minH) {
+  cards = [].slice.call(cards);
+  if (!cards.length) return function () {};
+  function height(card) {
+    var h = card._rowH || minH;
+    if (card.classList.contains(flippedCls)) h = Math.max(h, card._backH || 0);
+    card.style.height = (h + 4) + 'px';
+  }
+  function measure() {
+    var faces = [];
+    cards.forEach(function (card) {
+      [[card.querySelector(frontSel), 'f'], [card.querySelector(backSel), 'b']].forEach(function (x) {
+        if (x[0]) faces.push({ card: card, el: x[0], k: x[1], pos: x[0].style.position, h: x[0].style.height });
+      });
+    });
+    faces.forEach(function (f) { f.el.style.position = 'static'; f.el.style.height = 'auto'; });
+    faces.forEach(function (f) { f.nat = f.el.scrollHeight; });
+    faces.forEach(function (f) { f.el.style.position = f.pos; f.el.style.height = f.h; });
+    var rows = {};
+    cards.forEach(function (card) {
+      card._frontH = 0; card._backH = 0;
+      faces.forEach(function (f) { if (f.card === card) { if (f.k === 'f') card._frontH = f.nat; else card._backH = f.nat; } });
+      var top = Math.round(card.offsetTop / 8);
+      (rows[top] = rows[top] || []).push(card);
+    });
+    Object.keys(rows).forEach(function (k) {
+      var h = Math.max.apply(null, [minH].concat(rows[k].map(function (c) { return c._frontH; })));
+      rows[k].forEach(function (c) { c._rowH = h; });
+    });
+    cards.forEach(height);
+  }
+  /* grow or shrink with the flip, whoever flips it (tap, close button, tour) */
+  var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (window.MutationObserver) cards.forEach(function (card) {
+    var was = card.classList.contains(flippedCls);
+    new MutationObserver(function () {
+      var now = card.classList.contains(flippedCls);
+      if (now === was) return;
+      was = now;
+      /* animate only this change; sizing at load and on resize is instant */
+      if (!card._backH || !card._frontH) measure();   /* was hidden when last measured */
+      if (!still) {
+        card.style.transition = 'height .5s cubic-bezier(.22,1,.36,1)';
+        clearTimeout(card._fitT);
+        card._fitT = setTimeout(function () { card.style.transition = ''; }, 650);
+      }
+      height(card);
+    }).observe(card, { attributes: true, attributeFilter: ['class'] });
+  });
+  /* measure again once the real styles and fonts are in, and as the cards
+     come near the screen (hidden or not-yet-drawn cards measure as zero) */
+  addEventListener('load', function () { measure(); }, { once: true });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { measure(); });
+  if ('IntersectionObserver' in window) {
+    var seen = new IntersectionObserver(function (en) {
+      if (en.some(function (e) { return e.isIntersecting; })) measure();
+    }, { rootMargin: '600px 0px' });
+    cards.forEach(function (c) { seen.observe(c); });
+  }
+  return measure;
+};
+</script>
+<script>
 (function(){
   var cards = document.querySelectorAll('.wio-card');
   var compareEl = document.getElementById('wio-compare');
@@ -4278,24 +4347,7 @@ window.addEventListener('resize', () => {
     card.style.height = needed + 'px';
   }
 
-  /* measure every face in one pass: set them all to their natural size,
-     read all heights (one layout), then put them back */
-  function sizeAllCards(){
-    var faces = [];
-    cards.forEach(function(card){
-      [card.querySelector('.wio-front'), card.querySelector('.wio-back')].forEach(function(el){
-        if (el) faces.push({ card: card, el: el, pos: el.style.position, h: el.style.height });
-      });
-    });
-    faces.forEach(function(f){ f.el.style.position = 'static'; f.el.style.height = 'auto'; });
-    faces.forEach(function(f){ f.nat = f.el.scrollHeight; });
-    faces.forEach(function(f){ f.el.style.position = f.pos; f.el.style.height = f.h; });
-    cards.forEach(function(card){
-      var need = 175;
-      faces.forEach(function(f){ if (f.card === card) need = Math.max(need, f.nat); });
-      card.style.height = (need + 4) + 'px';
-    });
-  }
+  var sizeAllCards = window.shzFitFlipCards(cards, '.wio-front', '.wio-back', 'wio-flipped', 150);
   sizeAllCards();
   /* Re-measure on resize/orientation change — text wraps differently at
      different widths, so the height each card actually needs can change. */
@@ -4362,7 +4414,53 @@ window.addEventListener('resize', () => {
 <script src="js/website-check.js" defer></script>
 <script src="js/job-fit.js" defer></script>
 <script src="js/case-ask.js" defer></script>
-<script src="js/tour.js" defer></script>
+<script>
+/* The guided tour (js/tour.js, ~90 KB) is only loaded when someone starts it.
+   Until then this small stand-in answers the same calls: any [data-tour]
+   button, window.shzTour.start() from search or chat, and ?tour links.
+   Once the page is idle the file is fetched in the background (not run),
+   so the first start is still instant. */
+(function () {
+  var SRC = 'js/tour.js', loading = null;
+  function load() {
+    if (!loading) loading = new Promise(function (ok, bad) {
+      var s = document.createElement('script');
+      s.src = SRC; s.onload = ok; s.onerror = function () { loading = null; bad(); };
+      document.head.appendChild(s);
+    });
+    return loading;
+  }
+  function begin() {
+    var pill = document.querySelector('.tour-pill');
+    if (pill) pill.setAttribute('aria-busy', 'true');
+    return load().then(function () {
+      if (pill) pill.removeAttribute('aria-busy');
+      if (window.shzTour && !window.shzTour.stub) window.shzTour.start();
+    }, function () { if (pill) pill.removeAttribute('aria-busy'); });
+  }
+  window.shzTour = { stub: true, start: begin, stop: function () {}, clock: function () { return null; } };
+  document.addEventListener('click', function (e) {
+    if (!window.shzTour || !window.shzTour.stub) return;
+    var t = e.target.closest && e.target.closest('[data-tour]');
+    if (!t) return;
+    e.preventDefault();
+    begin();
+  });
+  /* ?tour opens the site straight into the tour: the tour file handles that itself */
+  if (/[?&]tour(=|&|$)/.test(location.search)) {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load, { once: true }); else load();
+    return;
+  }
+  function warm() {
+    var l = document.createElement('link');
+    l.rel = 'prefetch'; l.as = 'script'; l.href = SRC;
+    document.head.appendChild(l);
+  }
+  addEventListener('load', function () {
+    setTimeout(function () { (window.requestIdleCallback || setTimeout)(warm, { timeout: 4000 }); }, 3000);
+  }, { once: true });
+})();
+</script>
 <!-- speaker buttons: nothing audio loads until a section with clips comes near the screen -->
 <script>(function(){if(!('IntersectionObserver'in window))return;var s=['#my-projects','#projects','#achievements','#what-i-offer'].map(function(q){return document.querySelector(q)}).filter(Boolean),io=new IntersectionObserver(function(e){if(!e.some(function(x){return x.isIntersecting}))return;io.disconnect();var t=document.createElement('script');t.src='js/listen.js';t.defer=true;document.head.appendChild(t)},{rootMargin:'300px 0px'});s.forEach(function(x){io.observe(x)})})();</script>
 <script src="js/premium-extras.js" defer></script>
@@ -4395,24 +4493,7 @@ window.addEventListener('resize', () => {
     var needed = Math.max(frontH, backH, 165) + 4;
     card.style.height = needed + 'px';
   }
-  /* measure every face in one pass: set them all to their natural size,
-     read all heights (one layout), then put them back */
-  function sybSizeAllCards(){
-    var faces = [];
-    sybCards.forEach(function(card){
-      [card.querySelector('.syb-front'), card.querySelector('.syb-back')].forEach(function(el){
-        if (el) faces.push({ card: card, el: el, pos: el.style.position, h: el.style.height });
-      });
-    });
-    faces.forEach(function(f){ f.el.style.position = 'static'; f.el.style.height = 'auto'; });
-    faces.forEach(function(f){ f.nat = f.el.scrollHeight; });
-    faces.forEach(function(f){ f.el.style.position = f.pos; f.el.style.height = f.h; });
-    sybCards.forEach(function(card){
-      var need = 165;
-      faces.forEach(function(f){ if (f.card === card) need = Math.max(need, f.nat); });
-      card.style.height = (need + 4) + 'px';
-    });
-  }
+  var sybSizeAllCards = window.shzFitFlipCards(sybCards, '.syb-front', '.syb-back', 'syb-flipped', 140);
   sybSizeAllCards();
   var sybResizeTimer;
   window.addEventListener('resize', function(){

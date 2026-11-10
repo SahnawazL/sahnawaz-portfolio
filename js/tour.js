@@ -18,7 +18,7 @@
    ============================================================ */
 (function () {
   'use strict';
-  if (window.shzTour) return;
+  if (window.shzTour && !window.shzTour.stub) return;   /* the page's stand-in (index.html) loads this on demand */
 
   var SPEAK = 'https://sahnawaz-portfolio.vercel.app/api/speak';
   var WA = 'https://wa.me/917339203154';

@@ -10712,9 +10712,11 @@ body.hacker-mode #footer-console {
   transform: translate(-50%, -50%);
   border: 1.5px solid rgba(0,255,255,0.55);
   box-shadow: 0 0 8px rgba(0,255,255,0.25);
-  transition: width 0.2s, height 0.2s, border-color 0.2s;
+  transition: width 0.25s cubic-bezier(.22,1,.36,1), height 0.25s cubic-bezier(.22,1,.36,1), border-color 0.2s, background-color 0.2s, opacity 0.3s;
   mix-blend-mode: screen;
 }
+#cursorRing.cur-off { opacity: 0; }
+#cursorRing.cur-hover { width: 42px; height: 42px; border-color: rgba(90,224,255,.85); background-color: rgba(90,224,255,.07); }
 .cur-dot {
   position: fixed;
   width: 7px; height: 7px;
@@ -11854,3 +11856,4 @@ html body #hacker-toggle:not(.visible) { animation-play-state: paused !important
   html body .syb-price-note, html body .cert-chips span, html body .kta3-card span { font-size: 10.5px; }
   html body .cert-meta { font-size: 9px; }
 }
+

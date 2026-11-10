@@ -42,7 +42,20 @@
     ringOn = true;
     requestAnimationFrame(animRing);
   }
-  if (ring) { ring.style.left = rx + 'px'; ring.style.top = ry + 'px'; }
+  if (ring) {
+    ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+    /* hidden until the mouse actually moves (it used to wait in the middle
+       of the screen), faded out when the mouse leaves the window, and a
+       little larger over anything clickable */
+    ring.classList.add('cur-off');
+    document.addEventListener('mousemove', function () { ring.classList.remove('cur-off'); }, { passive: true });
+    document.documentElement.addEventListener('mouseleave', function () { ring.classList.add('cur-off'); });
+    var HOT = 'a,button,[role="button"],summary,label,select,.pf-btn,[data-flip],[onclick]';
+    document.addEventListener('mouseover', function (e) {
+      var t = e.target.closest && e.target.closest(HOT);
+      ring.classList.toggle('cur-hover', !!t && !t.disabled);
+    }, { passive: true });
+  }
 
   /* ── 3. SECTION WIPE ── */
   document.querySelectorAll('section').forEach(s => {
