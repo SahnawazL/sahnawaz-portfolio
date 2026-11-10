@@ -2256,10 +2256,13 @@ section.hero-enter.sec-wipe { opacity: 1; transform: none; clip-path: none; tran
     if (instant) { void ink.offsetWidth; ink.style.transition = ''; }
   }
   var activeTab = function () { return tabs.filter(function (t) { return t.classList.contains('active'); })[0]; };
-  addEventListener('resize', function () { moveInk(activeTab(), true); });
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { moveInk(activeTab(), true); });
-  setTimeout(function () { moveInk(activeTab(), true); }, 60);
-  if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { if (e[0].isIntersecting) moveInk(activeTab(), true); }).observe(tabsBox);
+  addEventListener('resize', function () { if (inkSeen) moveInk(activeTab(), true); });
+  /* the pill is placed when the tabs come into view (and again once fonts
+     settle), never while the page is still loading far above them */
+  var inkSeen = !('IntersectionObserver' in window);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { if (inkSeen) moveInk(activeTab(), true); });
+  if (inkSeen) setTimeout(function () { moveInk(activeTab(), true); }, 60);
+  else new IntersectionObserver(function (e) { if (e[0].isIntersecting) { inkSeen = true; moveInk(activeTab(), true); } }).observe(tabsBox);
   tabsBox.classList.add('has-ink');
 
   function show(cat) {
@@ -4215,7 +4218,24 @@ window.addEventListener('resize', () => {
     card.style.height = needed + 'px';
   }
 
-  function sizeAllCards(){ cards.forEach(sizeCard); }
+  /* measure every face in one pass: set them all to their natural size,
+     read all heights (one layout), then put them back */
+  function sizeAllCards(){
+    var faces = [];
+    cards.forEach(function(card){
+      [card.querySelector('.wio-front'), card.querySelector('.wio-back')].forEach(function(el){
+        if (el) faces.push({ card: card, el: el, pos: el.style.position, h: el.style.height });
+      });
+    });
+    faces.forEach(function(f){ f.el.style.position = 'static'; f.el.style.height = 'auto'; });
+    faces.forEach(function(f){ f.nat = f.el.scrollHeight; });
+    faces.forEach(function(f){ f.el.style.position = f.pos; f.el.style.height = f.h; });
+    cards.forEach(function(card){
+      var need = 175;
+      faces.forEach(function(f){ if (f.card === card) need = Math.max(need, f.nat); });
+      card.style.height = (need + 4) + 'px';
+    });
+  }
   sizeAllCards();
   /* Re-measure on resize/orientation change — text wraps differently at
      different widths, so the height each card actually needs can change. */
@@ -4315,7 +4335,24 @@ window.addEventListener('resize', () => {
     var needed = Math.max(frontH, backH, 165) + 4;
     card.style.height = needed + 'px';
   }
-  function sybSizeAllCards(){ sybCards.forEach(sybSizeCard); }
+  /* measure every face in one pass: set them all to their natural size,
+     read all heights (one layout), then put them back */
+  function sybSizeAllCards(){
+    var faces = [];
+    sybCards.forEach(function(card){
+      [card.querySelector('.syb-front'), card.querySelector('.syb-back')].forEach(function(el){
+        if (el) faces.push({ card: card, el: el, pos: el.style.position, h: el.style.height });
+      });
+    });
+    faces.forEach(function(f){ f.el.style.position = 'static'; f.el.style.height = 'auto'; });
+    faces.forEach(function(f){ f.nat = f.el.scrollHeight; });
+    faces.forEach(function(f){ f.el.style.position = f.pos; f.el.style.height = f.h; });
+    sybCards.forEach(function(card){
+      var need = 165;
+      faces.forEach(function(f){ if (f.card === card) need = Math.max(need, f.nat); });
+      card.style.height = (need + 4) + 'px';
+    });
+  }
   sybSizeAllCards();
   var sybResizeTimer;
   window.addEventListener('resize', function(){

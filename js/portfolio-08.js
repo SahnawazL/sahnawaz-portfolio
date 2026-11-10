@@ -276,10 +276,13 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
-    initMatrix();
+    /* sized only when the footer first comes near: reading its size at load
+       forced a full layout of the page while it was still starting up */
+    let matrixReady = false;
     let matrixInterval = null;
     let matrixObserver = new IntersectionObserver(function(entries) {
       entries.forEach(function(entry) {
+        if (entry.isIntersecting && !matrixReady) { initMatrix(); matrixReady = true; }
         if (entry.isIntersecting && !matrixInterval) {
           matrixInterval = setInterval(drawMatrix, 50);
         } else if (!entry.isIntersecting && matrixInterval) {
@@ -289,7 +292,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }, {threshold: 0.1});
     matrixObserver.observe(canvas);
-    window.addEventListener('resize', initMatrix, {passive: true});
+    window.addEventListener('resize', function () { if (matrixReady) initMatrix(); }, {passive: true});
   }
 
   /* Dead "footer console" scaffolding removed (2026 cleanup) — this was
