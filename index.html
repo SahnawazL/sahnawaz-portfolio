@@ -833,6 +833,37 @@ html {
 <script defer src="/_vercel/insights/script.js"></script>
 <!-- ── Google Login CSS ── -->
 <link rel="stylesheet" href="css/login-modal.css">
+<style id="account-chip">
+/* Phones: Sign In becomes a compact account button in the header's top-right
+   corner, next to the logo, like a native app. Signed in, it shows the
+   visitor's photo (or initial) with a small online dot. Desktop unchanged. */
+@media (max-width:640px){
+  header .vl-wrap{margin:0!important;height:0}
+  #visitorLoginBtn{position:absolute!important;top:3px!important;right:10px!important;z-index:5;width:36px!important;height:36px!important;
+    margin:0!important;padding:0!important;gap:0!important;justify-content:center!important;border-radius:50%!important;
+    background:radial-gradient(120% 120% at 30% 20%,rgba(90,224,255,.16),rgba(8,24,38,.55))!important;
+    border:1px solid rgba(90,224,255,.3)!important;color:#bdeefa!important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 4px 14px rgba(0,0,0,.35)!important;
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+    -webkit-tap-highlight-color:transparent;transform:none!important;transition:border-color .2s,background .2s!important}
+  #visitorLoginBtn:hover,#visitorLoginBtn:focus{transform:none!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 4px 14px rgba(0,0,0,.35)!important}
+  #visitorLoginBtn:active{background:rgba(90,224,255,.2)!important}
+  #visitorLoginBtn:focus-visible{outline:2px solid #5ae0ff;outline-offset:3px}
+  #visitorLoginBtn .vl-icon{display:grid;place-items:center;font-size:0!important}
+  #visitorLoginBtn .vl-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  /* one soft ring on arrival, so it is noticed once and then stays quiet */
+  #visitorLoginBtn:not(.logged-in)::after{content:"";position:absolute;inset:-1px;border-radius:50%;border:1px solid rgba(90,224,255,.6);
+    opacity:0;animation:acctHello 1.6s cubic-bezier(.22,1,.36,1) 1.2s 1 both;pointer-events:none}
+  @keyframes acctHello{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(1.45)}}
+  /* signed in: photo or initial, gradient ring, online dot */
+  #visitorLoginBtn.logged-in{background:conic-gradient(from 210deg,#5ae0ff,#4fe0a2,#5ae0ff)!important;border:0!important;padding:2px!important}
+  #visitorLoginBtn.logged-in .vl-avatar{width:100%!important;height:100%!important;border:2px solid #07141f!important;box-sizing:border-box}
+  #visitorLoginBtn.logged-in:not(.has-photo)::before{content:attr(data-initial);display:grid;place-items:center;width:100%;height:100%;border-radius:50%;
+    background:#07141f;color:#9be3f6;font:700 15px/1 "DM Sans",Inter,system-ui,sans-serif}
+  #visitorLoginBtn.logged-in::after{content:"";position:absolute;right:0;bottom:1px;width:10px;height:10px;border-radius:50%;background:#4fe0a2;border:2px solid #07141f}
+  @media (prefers-reduced-motion:reduce){#visitorLoginBtn::after{animation:none!important}}
+}
+</style>
 <style id="lazy-sections">
 /* Sections far below the screen are not drawn until the visitor scrolls
    near them. Each one holds its real content height meanwhile (measured
@@ -1000,7 +1031,7 @@ section.hero-enter.sec-wipe { opacity: 1; transform: none; clip-path: none; tran
     <!-- Sign In: in the page from the first paint. It used to be added by
          js/visitor-auth.js a moment later, which made the header taller and
          pushed the whole page down (Google counted it as a layout shift). -->
-    <div style="display:flex;justify-content:center;margin-top:8px;"><button id="visitorLoginBtn" type="button" onclick="window.openLoginModal&&window.openLoginModal()" style="display:inline-flex;align-items:center;gap:8px;padding:7px 18px;border-radius:30px;background:transparent;border:1.5px solid #00ffff;color:#00ffff;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;"><img class="vl-avatar" src="data:," alt="" style="width:24px;height:24px;border-radius:50%;display:none;object-fit:cover;"><span class="vl-icon">🔑</span><span class="vl-label">Sign In</span></button></div>
+    <div class="vl-wrap" style="display:flex;justify-content:center;margin-top:8px;"><button id="visitorLoginBtn" type="button" aria-label="Sign in" onclick="window.openLoginModal&&window.openLoginModal()" style="display:inline-flex;align-items:center;gap:8px;padding:7px 18px;border-radius:30px;background:transparent;border:1.5px solid #00ffff;color:#00ffff;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;"><img class="vl-avatar" src="data:," alt="" style="width:24px;height:24px;border-radius:50%;display:none;object-fit:cover;"><span class="vl-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.2" r="3.7"/><path d="M4.8 20.2c.9-3.7 3.7-5.7 7.2-5.7s6.3 2 7.2 5.7"/></svg></span><span class="vl-label">Sign In</span></button></div>
 
   </div>
 </header><main id="main">

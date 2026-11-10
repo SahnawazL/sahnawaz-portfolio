@@ -66,8 +66,13 @@ function applyVisitorSession(visitor, showBanner) {
   if (btn) {
     btn.classList.add('logged-in');
     btn.querySelector('.vl-label').textContent = visitor.firstName;
+    btn.setAttribute('data-initial', ((visitor.firstName || '?').trim().charAt(0) || '?').toUpperCase());
+    btn.setAttribute('aria-label', 'Your account: ' + (visitor.fullName || visitor.firstName || 'signed in'));
     var av = btn.querySelector('.vl-avatar');
-    if (av && visitor.avatar) { av.src = visitor.avatar; av.style.display = 'inline-block'; }
+    if (av && visitor.avatar) {
+      av.src = visitor.avatar; av.style.display = 'inline-block'; btn.classList.add('has-photo');
+      av.onerror = function () { av.style.display = 'none'; btn.classList.remove('has-photo'); };
+    } else btn.classList.remove('has-photo');
     var icon = btn.querySelector('.vl-icon');
     if (icon) icon.style.display = 'none';
     btn.ontouchend = function(e) { e.preventDefault(); e.stopPropagation(); toggleProfileDropdown(); };
@@ -109,7 +114,9 @@ function signOut() {
     window.google.accounts.id.disableAutoSelect();
   var btn = document.getElementById('visitorLoginBtn');
   if (btn) {
-    btn.classList.remove('logged-in');
+    btn.classList.remove('logged-in', 'has-photo');
+    btn.removeAttribute('data-initial');
+    btn.setAttribute('aria-label', 'Sign in');
     btn.querySelector('.vl-label').textContent = 'Sign In';
     var av = btn.querySelector('.vl-avatar');
     if (av) { av.src = ''; av.style.display = 'none'; }
@@ -461,7 +468,7 @@ function injectHTML() {
   if (header && !existing) {
     var w = document.createElement('div');
     w.style.cssText = 'display:flex;justify-content:center;margin-top:8px;';
-    w.innerHTML = '<button id="visitorLoginBtn" style="display:inline-flex;align-items:center;gap:8px;padding:7px 18px;border-radius:30px;background:transparent;border:1.5px solid #00ffff;color:#00ffff;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;"><img class="vl-avatar" src="" alt="" style="width:24px;height:24px;border-radius:50%;display:none;object-fit:cover;"><span class="vl-icon">🔑</span><span class="vl-label">Sign In</span></button>';
+    w.innerHTML = '<button id="visitorLoginBtn" style="display:inline-flex;align-items:center;gap:8px;padding:7px 18px;border-radius:30px;background:transparent;border:1.5px solid #00ffff;color:#00ffff;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;"><img class="vl-avatar" src="" alt="" style="width:24px;height:24px;border-radius:50%;display:none;object-fit:cover;"><span class="vl-icon"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.2" r="3.7"/><path d="M4.8 20.2c.9-3.7 3.7-5.7 7.2-5.7s6.3 2 7.2 5.7"/></svg></span><span class="vl-label">Sign In</span></button>';
     header.appendChild(w);
     document.getElementById('visitorLoginBtn').onclick = openLoginModal;
   }
