@@ -587,25 +587,84 @@
     return b;
   }
 
+  /* ========== Suggested questions: the visitor decides ==========
+     Every suggestion strip has a close button. Closing it offers "Don't
+     suggest again"; that choice is remembered on this device and can be
+     switched back on from the Suggestions menu. */
+  var SUGG_KEY = 'shz_chat_autosugg';
+  function suggestOn() {
+    if (window._suggOffMem) return false;
+    try { return localStorage.getItem(SUGG_KEY) !== 'off'; } catch (e) { return true; }
+  }
+  function setSuggest(on) {
+    window._suggOffMem = !on;
+    try { if (on) localStorage.removeItem(SUGG_KEY); else localStorage.setItem(SUGG_KEY, 'off'); } catch (e) {}
+  }
+  function qrCaption(text, closable) {
+    var cap = document.createElement('div');
+    cap.className = 'chat-qr-caption' + (closable ? ' has-x' : '');
+    var t = document.createElement('span');
+    t.textContent = text;
+    cap.appendChild(t);
+    if (closable) {
+      var x = document.createElement('span');
+      x.className = 'chat-qr-x';
+      x.setAttribute('role', 'button');
+      x.setAttribute('tabindex', '0');
+      x.setAttribute('aria-label', 'Hide suggested questions');
+      x.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+      var go = function (e) { e.preventDefault(); e.stopPropagation(); dismissSuggest(); };
+      x.addEventListener('click', go);
+      x.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') go(e); });
+      cap.appendChild(x);
+    }
+    return cap;
+  }
+  var _suggNoteT = null;
+  function dismissSuggest() {
+    if (!quickReply) return;
+    clearTimeout(_suggNoteT);
+    quickReply.innerHTML = '';
+    var note = document.createElement('div');
+    note.className = 'chat-qr-note';
+    note.innerHTML = '<span>Suggestions hidden.</span>';
+    var off = document.createElement('span');
+    off.className = 'chat-qr-link';
+    off.setAttribute('role', 'button');
+    off.setAttribute('tabindex', '0');
+    off.textContent = 'Don\u2019t suggest again';
+    var turnOff = function (e) {
+      e.preventDefault();
+      setSuggest(false);
+      try { buildChips(); } catch (x) {}
+      note.innerHTML = '<span>Okay \u2014 no more suggestions. Turn them back on anytime in \ud83d\udca1 Suggestions.</span>';
+      clearTimeout(_suggNoteT);
+      _suggNoteT = setTimeout(hideNote, 3800);
+    };
+    off.addEventListener('click', turnOff);
+    off.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') turnOff(e); });
+    note.appendChild(off);
+    quickReply.appendChild(note);
+    quickReply.style.display = 'flex';
+    function hideNote() { if (note.parentNode === quickReply) { quickReply.style.display = 'none'; quickReply.innerHTML = ''; } }
+    _suggNoteT = setTimeout(hideNote, 5000);
+  }
+
   function renderQuickReplies() {
     if (!quickReply) return;
     quickReply.innerHTML = '';
     var vt = getVisitorType();
 
+    clearTimeout(_suggNoteT);
+    if (vt && !suggestOn() && !(briefApi && briefApi.hasDraft())) { quickReply.style.display = 'none'; return; }
     if (!vt) {
-      var cap = document.createElement('div');
-      cap.className = 'chat-qr-caption';
-      cap.textContent = 'What brings you here?';
-      quickReply.appendChild(cap);
+      quickReply.appendChild(qrCaption('What brings you here?', true));
       VISITOR_TYPES.forEach(function (v) {
         quickReply.appendChild(qrButton(v.label, function () { chooseVisitorType(v.type, v.label); }));
       });
     } else if (readingNow && !(briefApi && briefApi.hasDraft())) {
       /* questions about the section the visitor was reading when they opened the chat */
-      var ctxCap = document.createElement('div');
-      ctxCap.className = 'chat-qr-caption';
-      ctxCap.textContent = '👀 You’re looking at ' + SECTION_QS[readingNow].name + ' — ask:';
-      quickReply.appendChild(ctxCap);
+      quickReply.appendChild(qrCaption('👀 You’re looking at ' + SECTION_QS[readingNow].name + ' — ask:', true));
       SECTION_QS[readingNow].chips.slice(0, 3).forEach(function (q) {
         quickReply.appendChild(qrButton(q, function () {
           quickReply.style.display = 'none';
@@ -614,6 +673,7 @@
         }));
       });
     } else {
+      quickReply.appendChild(qrCaption('Try asking', true));
       var starters = (STARTERS[vt] || STARTERS.none).slice();
       /* a saved project brief → offer to pick it up where they left off */
       if (briefApi && briefApi.hasDraft()) {
@@ -646,11 +706,10 @@
       if (botBusy || !last || last.role !== 'bot' || conversationHistory.length > at + 1) return;
       if (input && input.value.trim()) return;
       if ((briefApi && briefApi.isActive()) || (window._helpFlowActive && window._helpFlowActive())) return;
+      if (!suggestOn()) return;
+      clearTimeout(_suggNoteT);
       quickReply.innerHTML = '';
-      var cap = document.createElement('div');
-      cap.className = 'chat-qr-caption';
-      cap.textContent = '💡 You might ask next';
-      quickReply.appendChild(cap);
+      quickReply.appendChild(qrCaption('💡 You might ask next', true));
       list.slice(0, 2).forEach(function (q) {
         q = String(q).slice(0, 70);
         quickReply.appendChild(qrButton(q, function () {
@@ -2409,6 +2468,20 @@
   function buildChips(){
     chips.innerHTML = '';
     var n = 0;
+    var sw = document.createElement('button');
+    sw.type = 'button';
+    sw.className = 'chip-autosugg';
+    var on = suggestOn();
+    sw.setAttribute('aria-pressed', String(on));
+    sw.innerHTML = '<span><b>Suggest questions as we chat</b><small>' + (on ? 'On \u2014 a few ideas after each answer' : 'Off \u2014 only this menu') + '</small></span><i aria-hidden="true"></i>';
+    sw.addEventListener('click', function(){
+      var now = !suggestOn();
+      setSuggest(now);
+      sw.setAttribute('aria-pressed', String(now));
+      sw.querySelector('small').textContent = now ? 'On \u2014 a few ideas after each answer' : 'Off \u2014 only this menu';
+      if (!now && quickReply) { quickReply.style.display = 'none'; quickReply.innerHTML = ''; }
+    });
+    chips.appendChild(sw);
     chipGroups().forEach(function(g){
       var head = document.createElement('div');
       head.className = 'chip-group-label' + (g.accent ? ' is-accent' : '');
