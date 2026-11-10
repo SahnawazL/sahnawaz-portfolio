@@ -19,10 +19,23 @@ jobs:
         run: |
           npm i -g lighthouse@12 >/dev/null 2>&1
           URL=https://sahnawaz-portfolio.vercel.app/
+          # one phone run swings by 20+ points on shared runners, so the phone
+          # is measured three times and the middle run is the one reported
           for form in mobile desktop; do
-            flags="--quiet --chrome-flags=--headless=new --only-categories=performance,accessibility,best-practices,seo --output=json --output-path=lh-$form.json"
-            [ "$form" = desktop ] && flags="$flags --preset=desktop"
-            for try in 1 2; do lighthouse "$URL" $flags && break; sleep 10; done
+            runs=1; [ "$form" = mobile ] && runs=3
+            for n in $(seq 1 $runs); do
+              flags="--quiet --chrome-flags=--headless=new --only-categories=performance,accessibility,best-practices,seo --output=json --output-path=lh-$form-$n.json"
+              [ "$form" = desktop ] && flags="$flags --preset=desktop"
+              for try in 1 2; do lighthouse "$URL" $flags && break; sleep 10; done
+            done
+            node -e '
+              const fs = require("fs"), f = process.argv[1];
+              const got = fs.readdirSync(".").filter(x => x.startsWith("lh-" + f + "-") && x.endsWith(".json"))
+                .map(x => ({ x, p: JSON.parse(fs.readFileSync(x)).categories.performance.score || 0 })).sort((a, b) => a.p - b.p);
+              if (!got.length) process.exit(0);
+              console.log(f + " runs:", got.map(g => Math.round(g.p * 100)).join(", "));
+              fs.copyFileSync(got[Math.floor((got.length - 1) / 2)].x, "lh-" + f + ".json");
+            ' "$form"
           done
       - name: Write the scores
         run: |
