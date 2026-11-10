@@ -1969,7 +1969,19 @@
      the Why-website pop-up and the ?plan link. On the very first open the
      planner replaces the greeting and the "What brings you here?"
      question (initChat → startPendingBrief), so nothing stacks up. */
-  var pendingBrief = null, pendingReport = null;
+  var pendingBrief = null, pendingReport = null, pendingQ = null;
+  /* Open the chat and ask a question in one tap (the assistant card in the
+     Contact section). On a first open the question replaces the greeting. */
+  window.askChat = function(q){
+    if (!q) { window.openChat(); setTimeout(function(){ try { input && input.focus(); } catch (e) {} }, 380); return; }
+    if (!inited) { pendingQ = q; window.openChat(); return; }
+    window.openChat();
+    setTimeout(function(){
+      if (botBusy) { if (input) { input.value = q; input.focus(); } return; }
+      setChipsOpen(false);
+      handleQ(q);
+    }, 260);
+  };
   window.openBrief = function(opts){
     opts = opts || {};
     if (!inited) { pendingBrief = opts; window.openChat(); return true; }
@@ -1978,6 +1990,14 @@
     return true;
   };
   function startPendingBrief(){
+    if (pendingQ) {
+      var q = pendingQ; pendingQ = null;
+      if (!hasVisitedBefore) { try { localStorage.setItem('chatVisited', '1'); } catch (e) {} }
+      buildChips();
+      setChipsOpen(false);
+      setTimeout(function(){ handleQ(q); }, 120);
+      return true;
+    }
     if (!pendingBrief && !pendingReport) return false;
     var o = pendingBrief, rep = pendingReport;
     pendingBrief = null; pendingReport = null;

@@ -4551,8 +4551,11 @@ window.shzFitFlipCards = function (cards, frontSel, backSel, flippedCls, minH) {
     .ct-localtime{display:flex;align-items:center;gap:8px;width:max-content;max-width:92%;margin:12px auto 0;padding:7px 14px;border-radius:999px;
       font:500 12.5px/1.4 'DM Sans',system-ui,sans-serif;color:#cfefff;background:rgba(80,210,255,.07);border:1px solid rgba(80,210,255,.22);text-align:center}
     .ct-localtime[hidden]{display:none}
-    .ct-lt-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--lt,#4ade80);box-shadow:0 0 0 0 var(--lt,#4ade80);animation:ctLtPulse 2.4s infinite}
-    @keyframes ctLtPulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--lt,#4ade80) 55%,transparent)}70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
+    /* the ring is its own layer that grows and fades (GPU only), instead of an animated shadow repainted every frame */
+    .ct-lt-dot{position:relative;width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--lt,#4ade80)}
+    .ct-lt-dot::after{content:"";position:absolute;inset:0;border-radius:50%;background:var(--lt,#4ade80);animation:ctLtRing 2.4s cubic-bezier(.22,1,.36,1) infinite}
+    @keyframes ctLtRing{0%{transform:scale(1);opacity:.55}70%,100%{transform:scale(2.75);opacity:0}}
+    @media (prefers-reduced-motion:reduce){.ct-lt-dot::after{animation:none;opacity:0}}
     @media (prefers-reduced-motion:reduce){.ct-lt-dot{animation:none}}
   </style>
   <script>
@@ -5478,157 +5481,77 @@ function sendMail(e) { if(e) e.preventDefault(); ctSendMail(); }
 <!-- ===== CHAT WIDGET v2 (Contact Section) — Smart AI-Powered ===== -->
 
 
-<!-- Inject premium Live Chat card into #contact section -->
+<!-- Assistant card in the Contact section: a real greeting, three questions
+     that open the chat already answering them, and an "Ask anything" box.
+     It used to loop a scripted demo conversation with a frosted-glass blur,
+     which kept the browser re-blurring and re-measuring on every bubble.
+     Now: one short entrance the first time it is seen, then it is still. -->
 <script>
 document.addEventListener('DOMContentLoaded', function(){
   var cs = document.getElementById('contact');
   if (!cs) return;
+  var QS = [
+    ['💰', 'What does a website cost?', "What's his pricing?"],
+    ['⏱️', 'How fast can he deliver?', 'How long does a project take?'],
+    ['🏆', 'Brands he has worked with', 'Has he worked with big brands?']
+  ];
   var card = document.createElement('div');
   card.id = 'chatLauncher';
-  card.title = 'Open live chat';
-  card.setAttribute('role', 'button');
-  card.setAttribute('aria-label', 'Open live chat with Sahnawaz\'s Assistant');
-  card.innerHTML = `
-    <div class="cl-header">
-      <div class="cl-avatar">🧑‍💻</div>
-      <div class="cl-meta">
-        <div class="cl-name">Sahnawaz's Assistant</div>
-        <span class="cl-status-txt">Online — replies instantly</span>
-      </div>
-      <div class="cl-badge">AI · Live</div>
-    </div>
-    <div class="cl-body">
-      <div id="clConvoTrack"></div>
-    </div>
-    <div class="cl-footer">
-      <div class="cl-cta-pill">
-        <span>💬 Live Chat with Us</span>
-        <span class="cl-cta-arrow">→</span>
-      </div>
-    </div>
-  `;
+  card.className = 'cl2';
+  card.setAttribute('role', 'region');
+  card.setAttribute('aria-label', "Ask Sahnawaz's AI assistant");
+  card.innerHTML =
+    '<div class="cl2-head">' +
+      '<span class="cl2-av"><img src="chat-avatar.jpg" width="40" height="40" alt="" loading="lazy" onerror="this.onerror=null;this.src=\'favicon-32x32.png\'"><i></i></span>' +
+      '<span class="cl2-who"><b>Sahnawaz\u2019s Assistant</b><small>Online \u00b7 answers in seconds</small></span>' +
+      '<span class="cl2-badge">AI</span>' +
+    '</div>' +
+    '<div class="cl2-msg"><span class="cl2-dots" aria-hidden="true"><i></i><i></i><i></i></span>' +
+      '<p>Hi! \ud83d\udc4b Ask me anything about Sahnawaz\u2019s work, pricing or availability \u2014 or tap a question.</p></div>' +
+    '<div class="cl2-qs">' + QS.map(function (q, i) {
+      return '<button type="button" class="cl2-q" style="--i:' + i + '" data-q="' + q[2].replace(/"/g, '&quot;') + '"><span>' + q[0] + '</span>' + q[1] + '</button>';
+    }).join('') + '</div>' +
+    '<button type="button" class="cl2-ask" data-q=""><span>Ask me anything\u2026</span>' +
+      '<i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6"/></svg></i></button>';
   var h2 = cs.querySelector('h2');
   if (h2 && h2.parentNode) h2.parentNode.insertBefore(card, h2.nextSibling);
   else cs.prepend(card);
-  card.addEventListener('click', function(){ window.openChat && window.openChat(); });
-
-  /* ── Live conversation preview animator ── */
-  (function() {
-    var track = document.getElementById('clConvoTrack');
-    if (!track) return;
-
-    /* The scripted conversation — loops forever */
-    var script = [
-      { side:'right', text:'Hey! What services do you offer? 👀' },
-      { side:'left',  text:'Hey! 👋 Full websites, UI/UX, SEO, e-commerce — starting ₹3,999.' },
-      { side:'right', text:'How fast can you deliver?' },
-      { side:'left',  text:'Portfolios in 1–2 weeks. Business sites in 2–3 weeks. ⚡' },
-      { side:'right', text:'Worked with any big brands?' },
-      { side:'left',  text:'Flipkart, Xiaomi & Rapido. Each one made me sharper. 🏆' },
-      { side:'right', text:'Sounds great. How do I hire you?' },
-      { side:'left',  text:'Just tap below — I personally reply within milliseconds. 😊🚀' },
-    ];
-
-    var MAX_VISIBLE = 3; /* bubbles shown at once */
-    var rows = [];       /* live DOM nodes */
-    var idx  = 0;
-
-    function makeRow(item) {
-      var isRight = item.side === 'right';
-      var row = document.createElement('div');
-      row.className = 'cl-bubble-row ' + (isRight ? 'cb-right' : 'cb-left');
-
-      var dot = document.createElement('div');
-      dot.className = 'cl-bv-dot' + (isRight ? ' user-dot' : '');
-      dot.textContent = isRight ? '🙋' : '🧑‍💻';
-
-      var bub = document.createElement('div');
-      bub.className = 'cl-bub';
-
-      row.appendChild(dot);
-      row.appendChild(bub);
-      return { row: row, bub: bub };
-    }
-
-    function showTyping(side) {
-      return new Promise(function(resolve) {
-        var isRight = side === 'right';
-        var row = document.createElement('div');
-        row.className = 'cl-bubble-row ' + (isRight ? 'cb-right' : 'cb-left');
-        var dot = document.createElement('div');
-        dot.className = 'cl-bv-dot' + (isRight ? ' user-dot' : '');
-        dot.textContent = isRight ? '🙋' : '🧑‍💻';
-        var bub = document.createElement('div');
-        bub.className = 'cl-bub';
-        bub.innerHTML = '<div class="cl-typing-dots"><span></span><span></span><span></span></div>';
-        row.appendChild(dot); row.appendChild(bub);
-        /* prune BEFORE appending to keep height locked */
-        rows.push({ row: row, typing: true });
-        pruneRows();
-        track.appendChild(row);
-        setTimeout(function(){ row.classList.add('cb-visible'); }, 30);
-        setTimeout(function(){
-          row.classList.add('cb-exit');
-          setTimeout(function(){
-            if (row.parentNode) row.parentNode.removeChild(row);
-            rows = rows.filter(function(r){ return r.row !== row; });
-          }, 350);
-          resolve();
-        }, 900);
-      });
-    }
-
-    function pruneRows() {
-      while (rows.length > MAX_VISIBLE) {
-        var old = rows.shift();
-        old.row.classList.add('cb-exit');
-        (function(r){ setTimeout(function(){
-          if (r.parentNode) r.parentNode.removeChild(r);
-        }, 350); })(old.row);
-      }
-    }
-
-    function addBubble(item) {
-      return new Promise(function(resolve) {
-        var el = makeRow(item);
-        el.bub.textContent = item.text;
-        /* prune BEFORE appending so DOM height stays stable */
-        rows.push({ row: el.row });
-        pruneRows();
-        track.appendChild(el.row);
-        setTimeout(function(){ el.row.classList.add('cb-visible'); }, 30);
-        setTimeout(resolve, 500);
-      });
-    }
-
-    /* plays while the card is on screen and picks up where it stopped
-       (it used to keep adding bubbles off screen all visit) */
-    var clSeen = true, clResting = false;
-    if ('IntersectionObserver' in window) {
-      new IntersectionObserver(function(en){
-        clSeen = en[0].isIntersecting;
-        if (clSeen && clResting) { clResting = false; nextMessage(); }
-      }, { rootMargin: '200px 0px' }).observe(card);
-    }
-    function nextMessage() {
-      if (!clSeen) { clResting = true; return; }
-      var item = script[idx % script.length];
-      idx++;
-      showTyping(item.side).then(function(){
-        addBubble(item).then(function(){
-          /* Pause before next message */
-          var pause = (item.side === 'left') ? 1800 : 900;
-          setTimeout(nextMessage, pause);
-        });
-      });
-    }
-
-    /* Kick off after card has rendered */
-    setTimeout(nextMessage, 800);
-  })();
+  card.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-q]');
+    if (!b) return;
+    if (typeof window.askChat === 'function') window.askChat(b.getAttribute('data-q'));
+    else if (window.openChat) window.openChat();
+  });
+  /* the greeting "types" once, the first time the card is on screen */
+  if ('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    card.classList.add('cl2-wait');
+    var io = new IntersectionObserver(function (en) {
+      if (!en[0].isIntersecting) return;
+      io.disconnect();
+      card.classList.add('cl2-typing');
+      setTimeout(function () {
+        card.classList.remove('cl2-wait', 'cl2-typing'); card.classList.add('cl2-in');
+        setTimeout(function () { card.classList.remove('cl2-in'); }, 1100);   /* hover stays instant afterwards */
+      }, 900);
+    }, { threshold: 0.35 });
+    io.observe(card);
+  }
 });
 </script>
 
+<script>
+/* "Get In Touch": the light sweeps across the heading twice when it comes
+   into view, then rests (it used to sweep forever, repainting every frame) */
+(function () {
+  var t = document.querySelector('#contact .ct-title');
+  if (!t || !('IntersectionObserver' in window)) { if (t) t.classList.add('ct-shine'); return; }
+  var io = new IntersectionObserver(function (en) {
+    if (!en[0].isIntersecting) return;
+    io.disconnect(); t.classList.add('ct-shine');
+  }, { threshold: .6 });
+  io.observe(t);
+})();
+</script>
 <!-- Chat window HTML -->
 <div id="chatPill">
   <img src="chat-avatar.jpg" width="32" height="32" alt="Sahnawaz" onerror="this.onerror=null;this.src='favicon-32x32.png'"/>

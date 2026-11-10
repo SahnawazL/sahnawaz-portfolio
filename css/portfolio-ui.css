@@ -6321,9 +6321,10 @@ header::after {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: ctTitleShimmer 3s linear infinite;
   margin-bottom: 0.3rem;
 }
+.ct-title.ct-shine { animation: ctTitleShimmer 3s linear 2; }
+@media (prefers-reduced-motion: reduce) { .ct-title.ct-shine { animation: none; } }
 @keyframes ctTitleShimmer {
   0%   { background-position: 0% center; }
   100% { background-position: 200% center; }
@@ -9011,246 +9012,78 @@ body.hacker-mode #footer-console {
 /* ---- from index.html line 20842 ---- */
 
 /* ---- Live Chat Launcher — Premium Card ---- */
-#chatLauncher {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-  margin: 2rem auto 2.5rem;
-  width: min(420px, 92vw);
-  cursor: pointer;
-  position: relative;
-  isolation: isolate;
-  border-radius: 20px;
-  overflow: hidden;
-  background: linear-gradient(160deg, rgba(0,30,55,0.85) 0%, rgba(0,18,36,0.92) 100%);
-  border: 1px solid rgba(0,220,255,0.22);
-  box-shadow:
-    0 0 0 1px rgba(0,180,255,0.10),
-    0 0 40px rgba(0,200,255,0.06) inset,
-    0 20px 60px rgba(0,0,0,0.55),
-    0 4px 18px rgba(0,150,255,0.14);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  animation: launcherPop 0.55s cubic-bezier(0.16,1,0.3,1) 0.4s both;
-  transition: transform 0.28s cubic-bezier(0.16,1,0.3,1), box-shadow 0.28s ease;
-  text-align: center;
-}
-/* Top shimmer accent line */
-#chatLauncher::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 15%; right: 15%; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(0,220,255,0.55), transparent);
-  border-radius: 1px;
-}
-/* Corner accent dots */
-#chatLauncher::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 20px;
+/* ── Assistant card (Contact section) ──
+   Solid surface, no backdrop blur, nothing looping except the online
+   ring (transform + opacity only, so it never repaints the card). */
+#chatLauncher.cl2 {
+  position: relative; isolation: isolate;
+  width: min(440px, 92vw); margin: 2rem auto 2.5rem; padding: 16px;
+  border-radius: 22px; text-align: left;
   background:
-    radial-gradient(circle at 0% 0%, rgba(0,200,255,0.08) 0%, transparent 50%),
-    radial-gradient(circle at 100% 100%, rgba(0,100,200,0.06) 0%, transparent 50%);
-  pointer-events: none;
+    radial-gradient(120% 80% at 0% 0%, rgba(0,200,255,.10), transparent 55%),
+    radial-gradient(90% 70% at 100% 100%, rgba(79,224,162,.07), transparent 60%),
+    linear-gradient(165deg, #08192a 0%, #061321 100%);
+  border: 1px solid rgba(90,224,255,.20);
+  box-shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 18px 50px rgba(0,0,0,.45);
+  font-family: "DM Sans", Inter, system-ui, sans-serif;
 }
-@keyframes launcherPop {
-  from { opacity:0; transform:translateY(10px) scale(0.97); }
-  to   { opacity:1; transform:translateY(0) scale(1); }
+#chatLauncher.cl2::before {
+  content: ""; position: absolute; top: 0; left: 18%; right: 18%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(90,224,255,.6), transparent);
 }
-#chatLauncher:hover {
-  transform: translateY(-3px);
-  box-shadow:
-    0 0 0 1px rgba(0,220,255,0.28),
-    0 0 50px rgba(0,200,255,0.10) inset,
-    0 28px 70px rgba(0,0,0,0.60),
-    0 8px 30px rgba(0,180,255,0.22);
-}
-#chatLauncher:active { transform: scale(0.98); }
+.cl2-head { display: flex; align-items: center; gap: 12px; }
+.cl2-av { position: relative; flex: none; width: 42px; height: 42px; border-radius: 50%; padding: 1px;
+  background: linear-gradient(135deg, #5ae0ff, #4fe0a2); }
+.cl2-av img { width: 40px; height: 40px; border-radius: 50%; display: block; object-fit: cover; background: #0a1e2e; }
+.cl2-av i { position: absolute; right: -1px; bottom: -1px; width: 12px; height: 12px; border-radius: 50%;
+  background: #4fe0a2; border: 2px solid #07141f; }
+.cl2-av i::after { content: ""; position: absolute; inset: -2px; border-radius: 50%; border: 2px solid #4fe0a2;
+  animation: cl2Ring 2.6s cubic-bezier(.22,1,.36,1) infinite; }
+@keyframes cl2Ring { 0% { transform: scale(1); opacity: .7; } 70%, 100% { transform: scale(2.1); opacity: 0; } }
+.cl2-who { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.cl2-who b { font-size: .95rem; font-weight: 700; color: #eef9ff; letter-spacing: .1px; }
+.cl2-who small { font-size: .74rem; color: #7fe3bd; }
+.cl2-badge { flex: none; align-self: flex-start; font: 700 .62rem/1 Inter, sans-serif; letter-spacing: .14em; color: #9be3f6;
+  padding: 5px 9px; border-radius: 999px; border: 1px solid rgba(90,224,255,.28); background: rgba(90,224,255,.07); }
 
-/* Inner sections */
-.cl-header {
-  width: 100%;
-  padding: 18px 22px 14px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  border-bottom: 1px solid rgba(0,200,255,0.10);
+.cl2-msg { position: relative; margin: 14px 0 12px; padding: 11px 14px; border-radius: 4px 16px 16px 16px;
+  background: rgba(90,224,255,.06); border: 1px solid rgba(90,224,255,.14); min-height: 44px; }
+.cl2-msg p { margin: 0; font-size: .86rem; line-height: 1.5; color: #d4eef9; transition: opacity .35s ease, transform .45s cubic-bezier(.22,1,.36,1); }
+.cl2-dots { position: absolute; left: 14px; top: 50%; display: flex; gap: 4px; margin-top: -3px; opacity: 0; transition: opacity .2s ease; }
+.cl2-dots i { width: 6px; height: 6px; border-radius: 50%; background: #5ae0ff; opacity: .4; }
+.cl2-qs { display: flex; flex-direction: column; gap: 8px; }
+.cl2-q { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 10px 14px; border-radius: 13px;
+  border: 1px solid rgba(90,224,255,.16); background: rgba(255,255,255,.025); color: #cfeaf6; text-align: left;
+  font: 600 .84rem/1.25 "DM Sans", Inter, system-ui, sans-serif; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: border-color .2s ease, background-color .2s ease, transform .45s cubic-bezier(.22,1,.36,1), opacity .35s ease; }
+.cl2-q span { flex: none; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 8px; background: rgba(90,224,255,.08); font-size: .85rem; }
+.cl2-q::after { content: "\2192"; margin-left: auto; color: rgba(90,224,255,.55); transition: transform .2s ease; }
+.cl2-ask { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; margin-top: 12px; min-height: 48px;
+  padding: 6px 6px 6px 16px; border-radius: 14px; border: 1px solid rgba(90,224,255,.22); background: #04101b;
+  color: rgba(190,225,240,.6); font: 500 .88rem "DM Sans", Inter, system-ui, sans-serif; cursor: text; -webkit-tap-highlight-color: transparent;
+  transition: border-color .2s ease, transform .45s cubic-bezier(.22,1,.36,1), opacity .35s ease; }
+.cl2-ask i { flex: none; width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center;
+  background: linear-gradient(135deg, #5ae0ff, #4fe0a2); color: #04121a; }
+.cl2-ask svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+#chatLauncher.cl2 button, #chatLauncher.cl2 button:hover, #chatLauncher.cl2 button:focus { box-shadow: none; }
+.cl2-q:active, .cl2-ask:active { transform: scale(.985); }
+@media (hover: hover) {
+  .cl2-q:hover { border-color: rgba(90,224,255,.4); background: rgba(90,224,255,.06); transform: none; }
+  .cl2-q:hover::after { transform: translateX(3px); }
+  .cl2-ask:hover { border-color: rgba(90,224,255,.45); transform: none; }
 }
-.cl-avatar {
-  width: 46px; height: 46px; border-radius: 50%; flex-shrink: 0;
-  background: linear-gradient(135deg, #00d4ff 0%, #0050cc 100%);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.3rem;
-  box-shadow: 0 0 0 2px rgba(0,200,255,0.25), 0 0 16px rgba(0,180,255,0.35);
-  position: relative;
-}
-/* Single clean online indicator on avatar only */
-.cl-avatar::after {
-  content: '';
-  position: absolute; bottom: 2px; right: 2px;
-  width: 11px; height: 11px; border-radius: 50%;
-  background: #00ff88;
-  border: 2px solid #000e1a;
-  box-shadow: 0 0 8px rgba(0,255,136,0.7);
-  animation: chatPulse 2s ease-in-out infinite;
-}
-.cl-meta { flex: 1; text-align: left; }
-.cl-name {
-  font-size: 0.92rem; font-weight: 800; color: #e8f9ff;
-  letter-spacing: 0.3px; line-height: 1.1;
-}
-/* Status text only — no extra dot */
-.cl-status-txt {
-  display: block;
-  font-size: 0.67rem; color: rgba(0,255,136,0.75);
-  font-weight: 500; letter-spacing: 0.2px;
-  margin-top: 3px;
-}
-.cl-badge {
-  font-size: 0.58rem; font-weight: 700; letter-spacing: 1.5px;
-  text-transform: uppercase; color: rgba(0,220,255,0.5);
-  padding: 3px 10px; border-radius: 999px;
-  border: 1px solid rgba(0,200,255,0.18);
-  background: rgba(0,200,255,0.05);
-  white-space: nowrap;
-  align-self: flex-start;
-}
+.cl2 :focus-visible { outline: 2px solid #5ae0ff; outline-offset: 2px; }
 
-.cl-body {
-  width: 100%;
-  height: 130px;        /* fixed — never grows or shrinks */
-  min-height: 130px;
-  max-height: 130px;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  border-bottom: 1px solid rgba(0,200,255,0.08);
-  position: relative;
-  overflow: hidden;
-}
-
-/* Fade masks top & bottom */
-.cl-body::before,
-.cl-body::after {
-  content: '';
-  position: absolute;
-  left: 0; right: 0;
-  height: 32px;
-  pointer-events: none;
-  z-index: 2;
-}
-.cl-body::before {
-  top: 0;
-  background: linear-gradient(to bottom, #060f1c 30%, transparent);
-}
-.cl-body::after {
-  bottom: 0;
-  background: linear-gradient(to top, #060f1c 30%, transparent);
-}
-
-/* Scrolling track — fills fixed body, scrolls internally */
-#clConvoTrack {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  padding: 10px 14px 10px;
-  overflow: hidden;         /* no scrollbar ever shows */
-  height: 100%;
-  justify-content: flex-end; /* bubbles always anchor to bottom */
-  box-sizing: border-box;
-}
-
-/* Individual bubble rows */
-.cl-bubble-row {
-  display: flex;
-  align-items: flex-end;
-  gap: 6px;
-  opacity: 0;
-  transform: translateY(18px) scale(0.97);
-  transition: opacity 0.45s cubic-bezier(0.16,1,0.3,1),
-              transform 0.45s cubic-bezier(0.16,1,0.3,1);
-  flex-shrink: 0;  /* never compress — old ones get removed instead */
-}
-.cl-bubble-row.cb-right { flex-direction: row-reverse; }
-.cl-bubble-row.cb-visible { opacity: 1; transform: translateY(0) scale(1); }
-.cl-bubble-row.cb-exit {
-  opacity: 0;
-  transform: translateY(-12px) scale(0.96);
-  transition: opacity 0.32s ease, transform 0.32s ease;
-  pointer-events: none;
-}
-
-/* Tiny avatar dot */
-.cl-bv-dot {
-  width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.7rem;
-  background: linear-gradient(135deg,#00d4ff,#0050cc);
-  box-shadow: 0 0 6px rgba(0,180,255,0.4);
-  margin-bottom: 2px;
-}
-.cl-bv-dot.user-dot {
-  background: linear-gradient(135deg,#0a84ff,#004fbe);
-  box-shadow: 0 0 6px rgba(0,100,255,0.4);
-}
-
-/* Bubble */
-.cl-bub {
-  max-width: 78%;
-  padding: 7px 11px;
-  border-radius: 14px;
-  font-size: 0.72rem;
-  line-height: 1.45;
-  position: relative;
-}
-/* Bot bubble */
-.cl-bubble-row.cb-left .cl-bub {
-  background: rgba(0,30,55,0.7);
-  border: 1px solid rgba(0,200,255,0.18);
-  color: #c8eeff;
-  border-bottom-left-radius: 4px;
-}
-/* User bubble */
-.cl-bubble-row.cb-right .cl-bub {
-  background: linear-gradient(135deg,#0a84ff,#0060df);
-  color: #fff;
-  border-bottom-right-radius: 4px;
-  box-shadow: 0 2px 10px rgba(0,100,255,0.3);
-}
-
-/* Typing dots bubble */
-.cl-typing-dots {
-  display: flex; gap: 4px; align-items: center; padding: 2px 4px;
-}
-.cl-typing-dots span {
-  width: 5px; height: 5px; border-radius: 50%;
-  background: rgba(0,200,255,0.6);
-  animation: clDot 1.1s ease-in-out infinite;
-}
-.cl-typing-dots span:nth-child(2){ animation-delay:0.18s; }
-.cl-typing-dots span:nth-child(3){ animation-delay:0.36s; }
-@keyframes clDot {
-  0%,60%,100% { transform:translateY(0) scale(1); opacity:0.4; }
-  30%         { transform:translateY(-4px) scale(1.15); opacity:1; }
-}
-
-.cl-footer {
-  width: 100%;
-  padding: 12px 20px 16px;
-  display: flex; align-items: center; justify-content: center;
-}
-.cl-cta-pill {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 10px 22px; border-radius: 999px;
-  background: linear-gradient(135deg, rgba(0,220,255,0.10), rgba(0,130,255,0.07));
-  border: 1px solid rgba(0,200,255,0.28);
-  color: #00e0f5; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.8px;
-  text-transform: uppercase;
-}
-.cl-cta-arrow { font-size: 0.75rem; opacity: 0.55; transition: transform 0.2s ease; }
-#chatLauncher:hover .cl-cta-arrow { transform: translateX(4px); }
+/* first time on screen: dots, then the greeting and the questions slide in */
+.cl2-wait .cl2-msg p, .cl2-wait .cl2-q, .cl2-wait .cl2-ask { opacity: 0; transform: translateY(8px); }
+.cl2-typing .cl2-dots { opacity: 1; }
+.cl2-typing .cl2-dots i { animation: cl2Dot 1s ease-in-out infinite; }
+.cl2-typing .cl2-dots i:nth-child(2) { animation-delay: .15s; }
+.cl2-typing .cl2-dots i:nth-child(3) { animation-delay: .3s; }
+@keyframes cl2Dot { 0%, 60%, 100% { transform: translateY(0); opacity: .4; } 30% { transform: translateY(-3px); opacity: 1; } }
+.cl2-in .cl2-q { transition-delay: calc(.12s + var(--i) * .07s); }
+.cl2-in .cl2-ask { transition-delay: .36s; }
+@media (prefers-reduced-motion: reduce) { .cl2-av i::after { animation: none; } }
 
 /* Live pulse dot */
 .chat-pulse {
@@ -11243,11 +11076,13 @@ div#popup.popup {
   background: #00ff88;
   border: 2px solid #091c32;
   box-shadow: 0 0 6px rgba(0,255,136,0.8);
-  animation: ctDotPulse 1.8s ease-in-out infinite;
+  animation: ctToastDot 1.8s ease-in-out infinite;
 }
-@keyframes ctDotPulse {
-  0%,100% { box-shadow: 0 0 4px rgba(0,255,136,0.6); }
-  50%      { box-shadow: 0 0 10px rgba(0,255,136,1); }
+/* own name: it used to share "ctDotPulse" with the contact cards' dots and,
+   being later in the file, replaced their GPU pulse with a repainted shadow */
+@keyframes ctToastDot {
+  0%,100% { opacity: 1; }
+  50%      { opacity: .55; }
 }
 
 /* Text */
