@@ -1,11 +1,14 @@
 [
  {"id":"hook",    "text":"Thousands of government schemes exist to help people across India. Most people never hear about the ones meant for them."},
  {"id":"intro",   "text":"Meet YojanaSahay. One free app that finds them for you."},
- {"id":"search",  "text":"Search over a thousand Central and State schemes, by category, by state, or by who they're for."},
+ {"id":"home",    "text":"Home brings it all together: data checked against official portals, a quick eligibility check, and help for big moments in life, like a new baby or building a house."},
+ {"id":"search",  "text":"Search finds any scheme in an instant, by name, ministry or state."},
+ {"id":"schemes", "text":"Schemes lists over twelve hundred Central and State schemes, with filters for farmers, students, women and more. Open one to see the benefit and exactly how to apply."},
  {"id":"check",   "text":"Not sure what you qualify for? Answer a few quick questions, and see every scheme that matches you, in seconds."},
- {"id":"detail",  "text":"Open any scheme to see its benefits, who can apply, and exactly how to apply."},
- {"id":"ai",      "text":"Still unsure? Ask the AI assistant, in Hindi or English, and get clear next steps made for you."},
- {"id":"reach",   "text":"Use it in Hindi or English, on the web, as an Android app, or right inside Telegram."},
- {"id":"mission", "text":"YojanaSahay is free and independent, built by Sahnawaz Ahmed Laskar, so no one misses what is rightfully theirs."},
- {"id":"cta",     "text":"Find your schemes today, at yojanasahay.vercel.app", "say":"Find your schemes today, at yojana sahay dot vercel dot app."}
+ {"id":"ai",      "text":"AI Help answers in Hindi or English. It finds schemes for you and your family, explains why you're not eligible, compares schemes, and even checks if a message is a scam."},
+ {"id":"profile", "text":"Set up your profile once, and every result and answer is made for you."},
+ {"id":"reach",   "text":"Switch to Hindi or dark mode in one tap, and use it on the web, as an Android app, or right inside Telegram."},
+ {"id":"about",   "text":"About tells the full story: the mission, where the data comes from, and how your privacy is protected."},
+ {"id":"dev",     "text":"YojanaSahay is free and independent, designed and built end to end by one developer, Sahnawaz Ahmed Laskar."},
+ {"id":"cta",     "text":"Find the schemes meant for you, at yojanasahay.vercel.app", "say":"Find the schemes meant for you, at yojana sahay dot vercel dot app."}
 ]

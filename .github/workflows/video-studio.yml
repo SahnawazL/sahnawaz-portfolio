@@ -25,6 +25,7 @@ jobs:
       - name: Build the app
         working-directory: ys
         run: |
+          if [ -f ../video/ys/out/ys-dist.tgz ]; then echo "app already built"; npm install --no-audit --no-fund --loglevel=error --ignore-scripts >/dev/null; exit 0; fi
           npm install --no-audit --no-fund --loglevel=error
           npm run build
           mkdir -p ../video/ys/out && tar -czf ../video/ys/out/ys-dist.tgz -C dist .
