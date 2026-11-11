@@ -8,7 +8,7 @@ OUT = "video/sl/out/voice"
 LEAD = 0.2
 os.makedirs(OUT, exist_ok=True)
 lines = json.load(open("video/sl/lines.json"))
-clean = lambda w: re.sub(r"[^\wऀ-ॿ]", "", w)
+clean = lambda w: re.sub(r"[^\w\u0900-\u0963\u0966-\u097F]", "", w)
 
 async def speak(text, mp3):
     try:
@@ -24,6 +24,7 @@ async def speak(text, mp3):
 
 def align(words, marks):
     """Give each script word a [start, end], joining or splitting marks as needed."""
+    if len(marks) == len(words): return [[m[0], m[1]] for m in marks]
     target = [clean(w) for w in words]
     out, j = [], 0
     for i, w in enumerate(target):
