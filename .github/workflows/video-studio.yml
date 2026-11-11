@@ -1,0 +1,46 @@
+name: Video studio (temporary)
+
+# Temporary branch only: builds the YojanaSahay app, records the narration and
+# saves real assistant answers for the promo film, then commits them here.
+on:
+  push:
+    branches: [video-studio]
+    paths: ["video/ys/lines.json", "video/ys/*.py", "video/ys/*.mjs", ".github/workflows/video-studio.yml"]
+
+permissions:
+  contents: write
+
+jobs:
+  make:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with: { repository: SahnawazL/Yojana-Sahay, path: ys }
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Build the app
+        working-directory: ys
+        run: |
+          npm install --no-audit --no-fund --loglevel=error
+          npm run build
+          mkdir -p ../video/ys/out && tar -czf ../video/ys/out/ys-dist.tgz -C dist .
+          du -sh dist ../video/ys/out/ys-dist.tgz
+      - name: Real assistant answers
+        run: node video/ys/ai.mjs || true
+      - name: Voice
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg espeak-ng > /dev/null
+          pip install -q --extra-index-url https://download.pytorch.org/whl/cpu "torch>=2.6,<2.9" "kokoro>=0.9.4,<1" soundfile numpy
+          python -m spacy download en_core_web_sm -q || true
+          python video/ys/voice.py
+      - name: Save
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A video/ys/out
+          git commit -qm "Video studio: app build, narration and assistant answers"
+          git push -q origin HEAD:video-studio

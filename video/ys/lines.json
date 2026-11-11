@@ -1,0 +1,11 @@
+[
+ {"id":"hook",    "text":"Thousands of government schemes exist to help people across India. Most people never hear about the ones meant for them."},
+ {"id":"intro",   "text":"Meet YojanaSahay. One free app that finds them for you."},
+ {"id":"search",  "text":"Search over a thousand Central and State schemes, by category, by state, or by who they're for."},
+ {"id":"check",   "text":"Not sure what you qualify for? Answer a few quick questions, and see every scheme that matches you, in seconds."},
+ {"id":"detail",  "text":"Open any scheme to see its benefits, who can apply, and exactly how to apply."},
+ {"id":"ai",      "text":"Still unsure? Ask the AI assistant, in Hindi or English, and get clear next steps made for you."},
+ {"id":"reach",   "text":"Use it in Hindi or English, on the web, as an Android app, or right inside Telegram."},
+ {"id":"mission", "text":"YojanaSahay is free and independent, built by Sahnawaz Ahmed Laskar, so no one misses what is rightfully theirs."},
+ {"id":"cta",     "text":"Find your schemes today, at yojanasahay.vercel.app", "say":"Find your schemes today, at yojana sahay dot vercel dot app."}
+]
