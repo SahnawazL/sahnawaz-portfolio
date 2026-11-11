@@ -1,0 +1,67 @@
+[
+ {
+  "id": "hook",
+  "hi": "रात के दस बजे हैं, कल परीक्षा है, और एक सवाल समझ नहीं आ रहा।",
+  "ro": "Raat ke das baje hain, kal pariksha hai, aur ek sawaal samajh nahin aa raha."
+ },
+ {
+  "id": "intro",
+  "hi": "अब घबराइए मत। पेश है स्टडीलेंस एआई, आपका अपना पढ़ाई का साथी।",
+  "ro": "Ab ghabraiye mat. Pesh hai StudyLens AI, aapka apna padhai ka saathi."
+ },
+ {
+  "id": "lang",
+  "hi": "भाषा भी आपकी पसंद की, हिंदी, अंग्रेज़ी, बांग्ला या असमिया।",
+  "ro": "Bhasha bhi aapki pasand ki, Hindi, English, Bangla ya Asamiya."
+ },
+ {
+  "id": "board",
+  "hi": "सेबा, सीबीएसई या आईसीएसई, अपना बोर्ड चुनिए, फिर क्लास और विषय।",
+  "ro": "SEBA, CBSE ya ICSE, apna board chuniye, phir class aur vishay."
+ },
+ {
+  "id": "ask",
+  "hi": "अब अपना सवाल लिखिए, या किताब की फ़ोटो खींचिए।",
+  "ro": "Ab apna sawaal likhiye, ya kitaab ki photo kheenchiye."
+ },
+ {
+  "id": "answer",
+  "hi": "और कुछ ही पलों में, आसान भाषा में, स्टेप बाय स्टेप जवाब।",
+  "ro": "Aur kuch hi palon mein, aasaan bhasha mein, step by step jawaab."
+ },
+ {
+  "id": "range",
+  "hi": "छोटी क्लास के आसान सवालों से लेकर, दसवीं के विज्ञान और गणित तक।",
+  "ro": "Chhoti class ke aasaan sawaalon se lekar, dasvi ke vigyan aur ganit tak."
+ },
+ {
+  "id": "diagram",
+  "hi": "ज़रूरत हो तो साफ़ सुथरे चित्र भी, ताकि बात सीधे दिमाग में बैठ जाए।",
+  "ro": "Zaroorat ho to saaf suthre chitra bhi, taaki baat seedhe dimaag mein baith jaaye."
+ },
+ {
+  "id": "tools",
+  "hi": "समझ नहीं आया? और आसान करवाइए। सुनना है? जवाब पढ़कर सुनाएगा।",
+  "ro": "Samajh nahin aaya? Aur aasaan karwaiye. Sunna hai? Jawaab padhkar sunayega."
+ },
+ {
+  "id": "quiz",
+  "hi": "फिर एक छोटा सा क्विज़ लीजिए, और देखिए कितना याद रहा।",
+  "ro": "Phir ek chhota sa quiz lijiye, aur dekhiye kitna yaad raha."
+ },
+ {
+  "id": "history",
+  "hi": "हर जवाब सेव रहता है, और पूरे परिवार के लिए अलग अलग प्रोफ़ाइल।",
+  "ro": "Har jawaab save rehta hai, aur poore parivaar ke liye alag alag profile."
+ },
+ {
+  "id": "dev",
+  "hi": "इसे बनाया है सहनवाज़ अहमद लस्कर ने, असम के छात्रों के लिए, दिल से।",
+  "ro": "Ise banaya hai Sahnawaz Ahmed Laskar ne, Assam ke chhaatron ke liye, dil se."
+ },
+ {
+  "id": "cta",
+  "hi": "आज ही आज़माइए, बिल्कुल मुफ़्त। लिंक बायो में है।",
+  "ro": "Aaj hi aazmaaiye, bilkul muft. Link bio mein hai."
+ }
+]
