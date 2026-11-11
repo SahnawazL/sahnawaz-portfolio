@@ -367,10 +367,6 @@ header::after { content: ""; position: absolute; bottom: 0px; left: 0px; right: 
 #ctWaOverlay { position: fixed; inset: 0px; background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(8px); z-index: 19000; display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.35s; }
 .ct-sheet-handle { width: 40px; height: 4px; background: rgba(255, 255, 255, 0.15); border-radius: 2px; margin: 0px auto 1.2rem; }
 #ctYtOverlay { position: fixed; inset: 0px; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); z-index: 19000; display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.35s; }
-@keyframes ctDotPulse { 
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.65); }
-}
 .ct-overlay { display: none; position: fixed; inset: 0px; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); z-index: 99998; align-items: flex-end; justify-content: center; }
 .ct-sheet { width: 100%; max-width: 480px; background: linear-gradient(rgb(13, 31, 51) 0%, rgb(9, 22, 40) 100%); border-radius: 24px 24px 0px 0px; padding: 1.2rem 1.4rem 2rem; border-top: 1px solid rgba(0, 255, 255, 0.18); box-shadow: rgba(0, 0, 0, 0.5) 0px -4px 40px, rgba(0, 255, 255, 0.06) 0px 0px 0px 1px; animation: 0.38s cubic-bezier(0.2, 0.9, 0.2, 1) 0s 1 normal forwards running ctSheetUp; position: relative; overflow: hidden; }
 .ct-sheet::before { content: ""; position: absolute; top: 0px; left: 15%; right: 15%; height: 1px; background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.4), transparent); }
@@ -579,10 +575,10 @@ section.sec-wipe.wipe-in { clip-path: polygon(0px 0%, 100% 0%, 100% 100%, 0% 100
 #hacker-toggle-tooltip::after { border-top-color: rgba(0, 255, 80, 0.3) !important; }
 #chatToast { position: fixed; bottom: 28px; right: 20px; z-index: 10500; display: flex; align-items: center; gap: 12px; padding: 12px 14px 12px 12px; max-width: 300px; border-radius: 20px; background: linear-gradient(145deg, rgb(13, 37, 64) 0%, rgb(9, 28, 50) 100%); border: 1px solid rgba(0, 220, 255, 0.28); box-shadow: rgba(0, 180, 255, 0.12) 0px 0px 0px 1px, rgba(0, 0, 0, 0.7) 0px 20px 50px, rgba(0, 150, 255, 0.18) 0px 6px 20px, rgba(255, 255, 255, 0.07) 0px 1px 0px inset; backdrop-filter: blur(20px); cursor: pointer; opacity: 0; transform: translateY(20px) scale(0.96); transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none; }
 #chatToast .ct-avatar { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; background: linear-gradient(135deg, rgb(0, 212, 255), rgb(0, 85, 221)); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: rgba(0, 180, 255, 0.45) 0px 0px 14px; position: relative; }
-#chatToast .ct-avatar::after { content: ""; position: absolute; bottom: 1px; right: 1px; width: 10px; height: 10px; border-radius: 50%; background: rgb(0, 255, 136); border: 2px solid rgb(9, 28, 50); box-shadow: rgba(0, 255, 136, 0.8) 0px 0px 6px; animation: 1.8s ease-in-out 0s infinite normal none running ctDotPulse; }
-@keyframes ctDotPulse { 
-  0%, 100% { box-shadow: rgba(0, 255, 136, 0.6) 0px 0px 4px; }
-  50% { box-shadow: rgb(0, 255, 136) 0px 0px 10px; }
+#chatToast .ct-avatar::after { content: ""; position: absolute; bottom: 1px; right: 1px; width: 10px; height: 10px; border-radius: 50%; background: rgb(0, 255, 136); border: 2px solid rgb(9, 28, 50); box-shadow: rgba(0, 255, 136, 0.8) 0px 0px 6px; animation: 1.8s ease-in-out 0s infinite normal none running ctToastDot; }
+@keyframes ctToastDot { 
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
 }
 #chatToast .ct-body { display: flex; flex-direction: column; gap: 2px; flex: 1 1 0%; min-width: 0px; }
 #chatToast .ct-name { font-size: 0.78rem; font-weight: 700; color: rgb(226, 246, 255); letter-spacing: 0.15px; }
@@ -606,6 +602,6 @@ html body #hacker-toggle:not(.visible) { animation-play-state: paused !important
 .mpj-filter-btn::before, .mpj-link-btn::before, .lp-open::before, .ts-tab::before, .wvc-btn::before, .rt-pill::before, .sys-recheck::before, .wio-plan::before, .wc-type::before, .wc-lang::before, .wc-nosite::before, .pfeedback-nav::before { content: ""; position: absolute; inset: -7px -3px; }
 }
 @media (max-width: 640px) {
-html body .pblog-card-desc, html body .ptesti-text, html body .cert-desc, html body .shz-stat-desc, html body .mpj-hindsight, html body .pwork-summary, html body .hs-d, html body .wnw-card-desc, html body .wio-desc-short, html body .pwork-achievements li, html body .wio-features li, html body .syb-feats li, html body .wnw-modal-bullets li, html body .ra-label-sub, html body .jf-note, html body .ct-wiz-hint, html body .lp-note { font-size: 12.5px; }
+html body .pblog-card-desc, html body .ptesti-text, html body .shz-stat-desc, html body .mpj-hindsight, html body .pwork-summary, html body .hs-d, html body .wnw-card-desc, html body .wio-desc-short, html body .pwork-achievements li, html body .wio-features li, html body .syb-feats li, html body .wnw-modal-bullets li, html body .ra-label-sub, html body .jf-note, html body .ct-wiz-hint, html body .lp-note { font-size: 12.5px; }
 html body .mpj-pill, html body .mpj-metric, html body .mpj-role-tag, html body .pwork-pill, html body .mpj-stack span, html body .sg-item { font-size: 11px; }
 }

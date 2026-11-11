@@ -5561,6 +5561,29 @@ document.addEventListener('DOMContentLoaded', function(){
   io.observe(t);
 })();
 </script>
+<script>
+/* Certification cards open to the real height of their description and
+   tags (the old fixed 220px cap cut longer ones off), and close back. */
+(function () {
+  var cards = document.querySelectorAll('.cert-card');
+  if (!cards.length || !window.MutationObserver) return;
+  function fit(card) {
+    var d = card.querySelector('.cert-desc');
+    if (!d) return;
+    if (card.classList.contains('is-open')) d.style.maxHeight = (d.scrollHeight + 14) + 'px';
+    else d.style.maxHeight = '';
+  }
+  [].forEach.call(cards, function (card) {
+    var was = card.classList.contains('is-open');
+    new MutationObserver(function () {
+      var now = card.classList.contains('is-open');
+      if (now !== was) { was = now; fit(card); }
+    }).observe(card, { attributes: true, attributeFilter: ['class'] });
+    if (was) fit(card);
+  });
+  addEventListener('resize', function () { [].forEach.call(cards, fit); }, { passive: true });
+})();
+</script>
 <!-- Chat window HTML -->
 <div id="chatPill">
   <img src="chat-avatar.jpg" width="32" height="32" alt="Sahnawaz" onerror="this.onerror=null;this.src='favicon-32x32.png'"/>

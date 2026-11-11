@@ -11699,7 +11699,7 @@ html body #hacker-toggle:not(.visible) { animation-play-state: paused !important
    comfortable to read. Reading text is now at least 12.5px, titles 13px,
    and the smallest tags and hints at least 10.5px. */
 @media (max-width: 640px) {
-  html body .pblog-card-desc, html body .ptesti-text, html body .cert-desc, html body .shz-stat-desc,
+  html body .pblog-card-desc, html body .ptesti-text, html body .shz-stat-desc,
   html body .mpj-hindsight, html body .pwork-summary, html body .hs-d, html body .wnw-card-desc,
   html body .wio-desc-short, html body .pwork-achievements li, html body .wio-features li,
   html body .syb-feats li, html body .wnw-modal-bullets li, html body .ra-label-sub,
@@ -11708,10 +11708,9 @@ html body #hacker-toggle:not(.visible) { animation-play-state: paused !important
   html body .kta3-card-title, html body .syb-name { font-size: 12.5px; }
   html body .mpj-pill, html body .mpj-metric, html body .mpj-role-tag, html body .pwork-pill,
   html body .mpj-stack span, html body .sg-item { font-size: 11px; }
-  html body .cert-chip, html body .ptesti-role, html body .pfeedback-verified,
+  html body .ptesti-role, html body .pfeedback-verified,
   html body .pblog-hint, html body .kta3-hint, html body .wnw-card-hint, html body .syb-hint,
-  html body .syb-price-note, html body .cert-chips span, html body .kta3-card span { font-size: 10.5px; }
-  html body .cert-meta { font-size: 9px; }
+  html body .syb-price-note, html body .kta3-card span { font-size: 10.5px; }
 }
 
 
@@ -11725,3 +11724,8 @@ html body #hacker-toggle:not(.visible) { animation-play-state: paused !important
 .wio-back, .syb-back { pointer-events: none; }
 .wio-card.wio-flipped .wio-back, .syb-card.syb-flipped .syb-back { pointer-events: auto; }
 .wio-inner, .syb-inner { will-change: transform; }
+
+/* Certifications: an open card is exactly as tall as its contents (set in
+   index.html) instead of a fixed 220px cap; while one is open, the cards
+   beside it keep their own height instead of stretching into empty boxes. */
+.cert-grid:has(.cert-card.is-open) > .cert-card:not(.is-open) { align-self: flex-start; }
