@@ -1,0 +1,5 @@
+{
+ "q": "Which schemes can help a small farmer in Assam?",
+ "status": 200,
+ "body": "{\"id\":\"chatcmpl-08cfa770-71df-488d-8a52-50aeae20088c\",\"object\":\"chat.completion\",\"created\":1794381477,\"model\":\"openai/gpt-oss-120b\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"Namaste! How can I help you today? I can check your eligibility for government schemes, tell you about benefits for you or your family, set reminders for important dates, or answer any questions you have about applying.\\n\\nCHIPS:[]\",\"reasoning\":\"User hasn't asked yet.\"},\"logprobs\":null,\"finish_reason\":\"stop\"}],\"usage\":{\"queue_time\":0.316474463,\"prompt_tokens\":2277,\"prompt_time\":0.138923035,\"completion_tokens\":63,\"completion_time\":0.131616326,\"total_tokens\":2340,\"total_time\":0.270539361,\"completion_tokens_details\":{\"reasoning_tokens\":6}},\"usage_breakdown\":null,\"system_fingerprint\":\"fp_f640395b96\",\"x_groq\":{\"id\":\"req_01m74qgx4geakrythdqsrygqfr\",\"seed\":744199040},\"service_tier\":\"on_demand\"}"
+}

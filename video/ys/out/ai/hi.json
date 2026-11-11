@@ -1,0 +1,5 @@
+{
+ "q": "घर बनाने के लिए मुझे कौन सी योजना मिल सकती है?",
+ "status": 200,
+ "body": "{\"id\":\"chatcmpl-9ed72816-3f39-4f1a-8e41-a581a5f40d5e\",\"object\":\"chat.completion\",\"created\":1794381480,\"model\":\"openai/gpt-oss-120b\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"नमस्ते! मैं Yojana Sahay हूँ। मैं आपको सरकारी योजनाओं के बारे में जानकारी दे सकता हूँ, पात्रता जाँच सकता हूँ, आवश्यक दस्तावेज़ बता सकता हूँ, और आवेदन प्रक्रिया में मदद कर सकता हूँ। आप किस योजना या मदद की तलाश में हैं?  \\n\\nCHIPS:[\\\"कौन सी योजना चाहिए\\\",\\\"पात्रता कैसे जाँचें\\\",\\\"आवेदन प्रक्रिया\\\"]\",\"reasoning\":\"User hasn't asked yet.\"},\"logprobs\":null,\"finish_reason\":\"stop\"}],\"usage\":{\"queue_time\":0.318715552,\"prompt_tokens\":2322,\"prompt_time\":0.132324344,\"completion_tokens\":99,\"completion_time\":0.205169475,\"total_tokens\":2421,\"total_time\":0.337493819,\"completion_tokens_details\":{\"reasoning_tokens\":6}},\"usage_breakdown\":null,\"system_fingerprint\":\"fp_fe269835c7\",\"x_groq\":{\"id\":\"req_01m74qgzdpehpb8b45jf7tzmks\",\"seed\":1614148071},\"service_tier\":\"on_demand\"}"
+}
