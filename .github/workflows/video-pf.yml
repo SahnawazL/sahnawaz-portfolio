@@ -1,0 +1,39 @@
+name: Video studio portfolio (temporary)
+
+on:
+  push:
+    branches: [video-studio]
+    paths: ["video/pf/lines.json", "video/pf/*.py", "video/pf/*.mjs", ".github/workflows/video-pf.yml"]
+
+permissions:
+  contents: write
+
+jobs:
+  make:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Live data
+        run: |
+          npm init -y >/dev/null && npm i --no-audit --no-fund playwright@1.48.2 >/dev/null
+          npx playwright install --with-deps chromium >/dev/null
+          node video/pf/capture.mjs || true
+      - name: Voice
+        env: { OUT: video/pf/out/voice, LINES: video/pf/lines.json }
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg espeak-ng > /dev/null
+          pip install -q --extra-index-url https://download.pytorch.org/whl/cpu "torch>=2.6,<2.9" "kokoro>=0.9.4,<1" soundfile numpy
+          python -m spacy download en_core_web_sm -q || true
+          python video/pf/voice.py
+      - name: Save
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A video/pf/out
+          git commit -qm "Video studio: portfolio narration and live data"
+          git push -q origin HEAD:video-studio

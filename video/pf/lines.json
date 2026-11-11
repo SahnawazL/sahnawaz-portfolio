@@ -1,0 +1,16 @@
+[
+ {"id":"hook",     "text":"Some people build websites. Others build experiences that feel alive."},
+ {"id":"intro",    "text":"Meet Sahnawaz Ahmed Laskar, full-stack developer and UI designer."},
+ {"id":"hero",     "text":"His portfolio isn't a brochure. It's a living product: fast, smart, and designed end to end."},
+ {"id":"projects", "text":"He builds real products. This website, StudyLens AI, a homework helper for students, and YojanaSahay, a free government scheme finder used across India."},
+ {"id":"live",     "text":"And these numbers aren't screenshots. They're pulled live from each product, right now."},
+ {"id":"journey",  "text":"His journey began in customer support at Xiaomi and Flipkart, then an IT and developer role at Rapido."},
+ {"id":"wins",     "text":"Every milestone opens into its full story, from GitHub contributions to his signature Hacker Mode."},
+ {"id":"toolkit",  "text":"His toolkit: React and JavaScript up front, Node and Firebase behind, and Figma for design."},
+ {"id":"ship",     "text":"Every change ships through GitHub and goes live in about a minute, with build health and security checked live."},
+ {"id":"services", "text":"Need something built? Each service flips open to show a clear starting price and exactly what's included."},
+ {"id":"check",    "text":"Already have a website? A free check shows your phone speed, Google basics and WhatsApp preview in about thirty seconds."},
+ {"id":"trust",    "text":"And the managers and team leads he's worked with say it best."},
+ {"id":"ai",       "text":"Got a question? His AI assistant knows his work and answers instantly, day or night."},
+ {"id":"cta",      "text":"Let's build something remarkable. Visit sahnawaz-portfolio.vercel.app", "say":"Let's build something remarkable. Visit sahnawaz portfolio dot vercel dot app."}
+]
