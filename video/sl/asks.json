@@ -2,26 +2,26 @@
  {
   "id": "basic",
   "url": "/api/ask?stream=1",
-  "body": "{\"lang\":\"hi\",\"board\":\"CBSE\",\"className\":\"3rd (Class 3)\",\"stream\":\"\",\"subject\":\"The World Around Us (EVS)\",\"subjectType\":\"environment\",\"chapter\":\"\",\"mode\":\"text\",\"question\":\"पानी के तीन रूप कौन-कौन से हैं? उदाहरण सहित बताइए।\"}"
+  "body": "{\"lang\":\"en\",\"board\":\"CBSE\",\"className\":\"3rd (Class 3)\",\"stream\":\"\",\"subject\":\"The World Around Us (EVS)\",\"subjectType\":\"environment\",\"chapter\":\"\",\"mode\":\"text\",\"question\":\"What are the three states of water? Give one example of each.\"}"
  },
  {
   "id": "maths",
   "url": "/api/ask?stream=1",
-  "body": "{\"lang\":\"hi\",\"board\":\"CBSE\",\"className\":\"10th (Class 10)\",\"stream\":\"\",\"subject\":\"Mathematics Standard\",\"subjectType\":\"math\",\"chapter\":\"Ch.4 - Quadratic Equations\",\"mode\":\"text\",\"question\":\"द्विघात समीकरण x² − 5x + 6 = 0 को गुणनखंड विधि से हल कीजिए।\"}"
+  "body": "{\"lang\":\"en\",\"board\":\"CBSE\",\"className\":\"10th (Class 10)\",\"stream\":\"\",\"subject\":\"Mathematics Standard\",\"subjectType\":\"math\",\"chapter\":\"Ch.4 - Quadratic Equations\",\"mode\":\"text\",\"question\":\"Solve the quadratic equation x² − 5x + 6 = 0 by factorisation.\"}"
  },
  {
   "id": "physics",
   "url": "/api/ask?stream=1",
-  "body": "{\"lang\":\"hi\",\"board\":\"CBSE\",\"className\":\"11th (Class 11)\",\"stream\":\"Science\",\"subject\":\"Physics\",\"subjectType\":\"physics\",\"chapter\":\"\",\"mode\":\"text\",\"question\":\"एक कार 20 m/s के वेग से चल रही है। ब्रेक लगाने पर वह 5 s में समान रूप से रुक जाती है। कार का मंदन और रुकने तक तय की गई दूरी ज्ञात कीजिए।\"}"
+  "body": "{\"lang\":\"en\",\"board\":\"CBSE\",\"className\":\"11th (Class 11)\",\"stream\":\"Science\",\"subject\":\"Physics\",\"subjectType\":\"physics\",\"chapter\":\"\",\"mode\":\"text\",\"question\":\"A car moving at 20 m/s stops uniformly in 5 s after the brakes are applied. Find its retardation and the distance it travels before stopping.\"}"
  },
  {
   "id": "chem",
   "url": "/api/ask?stream=1",
-  "body": "{\"lang\":\"hi\",\"board\":\"CBSE\",\"className\":\"11th (Class 11)\",\"stream\":\"Science\",\"subject\":\"Chemistry\",\"subjectType\":\"chemistry\",\"chapter\":\"\",\"mode\":\"text\",\"question\":\"प्रोपेन (C3H8) के पूर्ण दहन का संतुलित रासायनिक समीकरण लिखिए।\"}"
+  "body": "{\"lang\":\"en\",\"board\":\"CBSE\",\"className\":\"11th (Class 11)\",\"stream\":\"Science\",\"subject\":\"Chemistry\",\"subjectType\":\"chemistry\",\"chapter\":\"\",\"mode\":\"text\",\"question\":\"Write the balanced chemical equation for the complete combustion of propane (C3H8).\"}"
  },
  {
   "id": "chem-simple",
   "url": "/api/ask",
-  "body": "{\"lang\": \"hi\", \"board\": \"CBSE\", \"className\": \"11th (Class 11)\", \"stream\": \"Science\", \"subject\": \"Chemistry\", \"subjectType\": \"chemistry\", \"chapter\": \"\", \"mode\": \"text\", \"question\": \"प्रोपेन (C3H8) के पूर्ण दहन का संतुलित रासायनिक समीकरण लिखिए।\", \"simplify\": true}"
+  "body": "{\"lang\": \"en\", \"board\": \"CBSE\", \"className\": \"11th (Class 11)\", \"stream\": \"Science\", \"subject\": \"Chemistry\", \"subjectType\": \"chemistry\", \"chapter\": \"\", \"mode\": \"text\", \"question\": \"Write the balanced chemical equation for the complete combustion of propane (C3H8).\", \"simplify\": true}"
  }
 ]
