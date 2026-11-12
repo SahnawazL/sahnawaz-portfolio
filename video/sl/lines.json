@@ -1,19 +1,97 @@
 [
- {"id":"hook",    "hi":"रात के दस बजे हैं, कल परीक्षा है, और एक सवाल समझ नहीं आ रहा।", "ro":"Raat ke das baje hain, kal pariksha hai, aur ek sawaal samajh nahin aa raha."},
- {"id":"intro",   "hi":"अब घबराइए मत। पेश है स्टडीलेंस एआई, आपका अपना पढ़ाई का साथी।", "ro":"Ab ghabraiye mat. Pesh hai StudyLens AI, aapka apna padhai ka saathi."},
- {"id":"lang",    "hi":"भाषा भी आपकी पसंद की, हिंदी, अंग्रेज़ी, बांग्ला या असमिया।", "ro":"Bhasha bhi aapki pasand ki, Hindi, English, Bangla ya Asamiya."},
- {"id":"board",   "hi":"सेबा, सीबीएसई या आईसीएसई, केजी से बारहवीं तक, अपना बोर्ड और क्लास चुनिए।", "ro":"SEBA, CBSE ya ICSE, KG se barahvi tak, apna board aur class chuniye."},
- {"id":"subject", "hi":"फिर विषय और अध्याय, ताकि जवाब ठीक आपके सिलेबस के हिसाब से मिले।", "ro":"Phir vishay aur adhyay, taaki jawaab theek aapke syllabus ke hisaab se mile."},
- {"id":"ask",     "hi":"सवाल टाइप कीजिए, या किताब, नोट्स या वर्कशीट की फ़ोटो लगाइए।", "ro":"Sawaal type kijiye, ya kitaab, notes ya worksheet ki photo lagaiye."},
- {"id":"engine",  "hi":"पीछे से एक ताक़तवर एआई सिस्टम आपका सवाल समझता है, सही तरीका चुनता है, और जवाब तैयार करता है।", "ro":"Peeche se ek taaqatvar AI system aapka sawaal samajhta hai, sahi tarika chunta hai, aur jawaab taiyaar karta hai."},
- {"id":"think",   "hi":"गणित और विज्ञान के लिए यह कदम दर कदम सोचता है, और हर जवाब को आपकी क्लास के स्तर पर समझाता है।", "ro":"Ganit aur vigyan ke liye yeh kadam dar kadam sochta hai, aur har jawaab ko aapki class ke star par samjhaata hai."},
- {"id":"basic",   "hi":"छोटी क्लास का आसान सवाल? सरल भाषा में, स्टेप बाय स्टेप जवाब।", "ro":"Chhoti class ka aasaan sawaal? Saral bhasha mein, step by step jawaab."},
- {"id":"maths",   "hi":"दसवीं का गणित? हर स्टेप, हर फ़ॉर्मूला, साफ़ साफ़।", "ro":"Dasvi ka ganit? Har step, har formula, saaf saaf."},
- {"id":"physics", "hi":"भौतिकी के न्यूमेरिकल, दिए गए मान, सूत्र और इकाई के साथ।", "ro":"Bhautiki ke numerical, diye gaye maan, sootra aur ikaai ke saath."},
- {"id":"chem",    "hi":"रसायन के समीकरण भी, पूरी तरह संतुलित।", "ro":"Rasayan ke sameekaran bhi, poori tarah santulit."},
- {"id":"tools",   "hi":"समझ नहीं आया? और आसान करवाइए। सुनना है? जवाब पढ़कर सुनाएगा।", "ro":"Samajh nahin aaya? Aur aasaan karwaiye. Sunna hai? Jawaab padhkar sunayega."},
- {"id":"quiz",    "hi":"फिर एक छोटा सा क्विज़ लीजिए, और देखिए कितना याद रहा।", "ro":"Phir ek chhota sa quiz lijiye, aur dekhiye kitna yaad raha."},
- {"id":"history", "hi":"हर जवाब सेव रहता है, और पूरे परिवार के लिए अलग अलग प्रोफ़ाइल।", "ro":"Har jawaab save rehta hai, aur poore parivaar ke liye alag alag profile."},
- {"id":"dev",     "hi":"इसे बनाया है सहनवाज़ अहमद लस्कर ने, असम के छात्रों के लिए, दिल से।", "ro":"Ise banaya hai Sahnawaz Ahmed Laskar ne, Assam ke chhaatron ke liye, dil se."},
- {"id":"cta",     "hi":"आज ही आज़माइए, बिल्कुल मुफ़्त। लिंक बायो में है।", "ro":"Aaj hi aazmaaiye, bilkul muft. Link bio mein hai."}
+ {
+  "id": "hook",
+  "hi": "रात के दस बजे हैं, कल exam है, और एक question समझ नहीं आ रहा।",
+  "ro": "Raat ke das baje hain, kal exam hai, aur ek question samajh nahin aa raha."
+ },
+ {
+  "id": "intro",
+  "hi": "Tension मत लीजिए। Meet Study+Lens AI, आपका अपना smart study partner।",
+  "ro": "Tension mat lijiye. Meet StudyLens AI, aapka apna smart study partner."
+ },
+ {
+  "id": "lang",
+  "hi": "English, Hindi, Bengali या Assamese, जिस language में चाहें।",
+  "ro": "English, Hindi, Bengali ya Assamese, jis language mein chahein."
+ },
+ {
+  "id": "board",
+  "hi": "SEBA, AHSEC, CBSE या ICSE, KG से Class 12 तक, अपना board और class चुनिए।",
+  "ro": "SEBA, AHSEC, CBSE ya ICSE, KG se Class 12 tak, apna board aur class chuniye."
+ },
+ {
+  "id": "subject",
+  "hi": "फिर subject और chapter, ताकि हर answer आपके syllabus के हिसाब से हो।",
+  "ro": "Phir subject aur chapter, taaki har answer aapke syllabus ke hisaab se ho."
+ },
+ {
+  "id": "ask",
+  "hi": "Question type कीजिए, या book, notes या worksheet की photo upload कीजिए।",
+  "ro": "Question type kijiye, ya book, notes ya worksheet ki photo upload kijiye."
+ },
+ {
+  "id": "engine",
+  "hi": "Backend में एक powerful AI engine आपका question समझता है, सही model चुनता है, और answer तैयार करता है।",
+  "ro": "Backend mein ek powerful AI engine aapka question samajhta hai, sahi model chunta hai, aur answer taiyaar karta hai."
+ },
+ {
+  "id": "think",
+  "hi": "Maths और Science के लिए यह step by step सोचता है, और आपकी class के level पर समझाता है।",
+  "ro": "Maths aur Science ke liye yeh step by step sochta hai, aur aapki class ke level par samjhaata hai."
+ },
+ {
+  "id": "maths",
+  "hi": "Class 12 का tough integration? हर step, हर formula, बिल्कुल clear।",
+  "ro": "Class 12 ka tough integration? Har step, har formula, bilkul clear."
+ },
+ {
+  "id": "geometry",
+  "hi": "Coordinate geometry भी, साथ में साफ़ diagram।",
+  "ro": "Coordinate geometry bhi, saath mein saaf diagram."
+ },
+ {
+  "id": "physics",
+  "hi": "Physics के numericals, ray diagram के साथ।",
+  "ro": "Physics ke numericals, ray diagram ke saath."
+ },
+ {
+  "id": "chem",
+  "hi": "Chemistry में Nernst equation से cell का EMF भी, सही units के साथ।",
+  "ro": "Chemistry mein Nernst equation se cell ka EMF bhi, sahi units ke saath."
+ },
+ {
+  "id": "bio",
+  "hi": "और Biology में dihybrid cross, Punnett square के साथ।",
+  "ro": "Aur Biology mein dihybrid cross, Punnett square ke saath."
+ },
+ {
+  "id": "anything",
+  "hi": "Basic से लेकर सबसे hard questions तक, Study+Lens हर subject में मदद करता है।",
+  "ro": "Basic se lekar sabse hard questions tak, StudyLens har subject mein madad karta hai."
+ },
+ {
+  "id": "tools",
+  "hi": "समझ नहीं आया? Simpler पर tap कीजिए। सुनना है? Read aloud कीजिए।",
+  "ro": "Samajh nahin aaya? Simpler par tap kijiye. Sunna hai? Read aloud kijiye."
+ },
+ {
+  "id": "quiz",
+  "hi": "फिर एक quick quiz लीजिए, और check कीजिए कितना याद रहा।",
+  "ro": "Phir ek quick quiz lijiye, aur check kijiye kitna yaad raha."
+ },
+ {
+  "id": "history",
+  "hi": "हर answer history में save रहता है, और पूरी family के लिए अलग profiles।",
+  "ro": "Har answer history mein save rehta hai, aur poori family ke liye alag profiles."
+ },
+ {
+  "id": "dev",
+  "hi": "इसे बनाया है Sahnawaz Ahmed Laskar ने, students के लिए, दिल से।",
+  "ro": "Ise banaya hai Sahnawaz Ahmed Laskar ne, students ke liye, dil se."
+ },
+ {
+  "id": "cta",
+  "hi": "आज ही try कीजिए, बिल्कुल free। Link bio में है।",
+  "ro": "Aaj hi try kijiye, bilkul free. Link bio mein hai."
+ }
 ]

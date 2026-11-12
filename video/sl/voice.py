@@ -12,9 +12,9 @@ clean = lambda w: re.sub(r"[^\w\u0900-\u0963\u0966-\u097F]", "", w)
 
 async def speak(text, mp3):
     try:
-        com = edge_tts.Communicate(text, VOICE, rate="+2%", boundary="WordBoundary")
+        com = edge_tts.Communicate(text, VOICE, rate="+0%", boundary="WordBoundary")
     except TypeError:
-        com = edge_tts.Communicate(text, VOICE, rate="+2%")
+        com = edge_tts.Communicate(text, VOICE, rate="+0%")
     marks = []
     with open(mp3, "wb") as f:
         async for ch in com.stream():
@@ -41,7 +41,7 @@ for ln in lines:
     hi, ro = ln["hi"].split(), ln["ro"].split()
     assert len(hi) == len(ro), (ln["id"], len(hi), len(ro))
     mp3 = f"{OUT}/{ln['id']}.mp3"
-    marks = asyncio.run(speak(ln["hi"], mp3))
+    marks = asyncio.run(speak(ln["hi"].replace("+", " "), mp3))
     wav = f"{OUT}/{ln['id']}.wav"
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", mp3, "-af", f"adelay={int(LEAD*1000)}:all=1,aresample=48000", "-ac", "2", wav], check=True)
     os.remove(mp3)
