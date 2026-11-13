@@ -1,0 +1,25 @@
+name: Video studio desk photos (temporary)
+
+on:
+  push:
+    branches: [video-studio]
+    paths: ["video/ref/photos.txt", ".github/workflows/video-photos.yml"]
+
+jobs:
+  get:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Photos
+        run: |
+          mkdir -p photos
+          while read -r id a b; do
+            [ -z "$id" ] && continue
+            if [ "$a" = "PAGE" ]; then
+              u=$(curl -sL "$b" | grep -oE 'https://burst\.shopifycdn\.com/photos/[^"?]+\.jpg' | head -1); echo "$id -> $u"
+            else u="$a"; fi
+            curl -sL -o "photos/$id.jpg" "$u" && file "photos/$id.jpg" && identify -format "%w x %h\n" "photos/$id.jpg" || echo "$id failed"
+          done < video/ref/photos.txt
+      - uses: actions/upload-artifact@v4
+        with: { name: photos, path: photos, retention-days: 1 }
