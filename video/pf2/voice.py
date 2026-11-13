@@ -8,6 +8,11 @@ RATE, PITCH, LEAD = os.environ.get("RATE", "-6%"), os.environ.get("PITCH", "-2Hz
 ROOT = "video/pf2/out"
 lines = json.load(open("video/pf2/lines.json"))
 clean = lambda w: re.sub(r"[^\w]", "", w).lower()
+# how names are said (captions keep the real spelling)
+SAY_AS = {"Xiaomi": "Sawmi", "Sahnawaz": "Sah-nawaz", "Ahmed": "Aah-med", "Laskar": "Lashkar"}
+def spoken(w):
+    for a, b in SAY_AS.items(): w = w.replace(a, b)
+    return w
 SOFT = "highpass=f=70,deesser=i=0.3,acompressor=threshold=-22dB:ratio=2:attack=10:release=150,aresample=48000"
 
 async def speak(text, voice, mp3):
@@ -39,13 +44,13 @@ def align(words, marks):
 def render(voice, todo, out):
     os.makedirs(out, exist_ok=True); clips = []
     for ln in todo:
-        words = ln["say"].split()
+        words = ln["say"].split(); said = [spoken(w) for w in words]
         mp3 = f"{out}/{ln['id']}.mp3"; wav = f"{out}/{ln['id']}.wav"
-        marks = asyncio.run(speak(ln["say"].replace("+", " "), voice, mp3))
+        marks = asyncio.run(speak(" ".join(said).replace("+", " "), voice, mp3))
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", mp3, "-af", f"adelay={int(LEAD*1000)}:all=1,{SOFT}", "-ac", "2", wav], check=True)
         os.remove(mp3)
         secs = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", wav], capture_output=True, text=True).stdout)
-        t = align(words, marks); how = "marks"
+        t = align(said, marks); how = "marks"
         if not t:
             how = "spread"; s0 = marks[0][0] if marks else 0; s1 = marks[-1][1] if marks else secs - LEAD
             tot = sum(len(clean(w)) + 2 for w in words); x = s0; t = []

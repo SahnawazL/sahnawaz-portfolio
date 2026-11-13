@@ -6,7 +6,7 @@ L = {l["id"]: l["say"].replace("+", "") for l in json.load(open("video/pf2/lines
 for v in ("af_heart", "af_bella"):
     parts = []
     for k in ("hookQ", "brand", "dev", "buildQ"):
-        for r in pipe(L[k].replace("ByteWithSahnawaz", "Byte With Sahnawaz"), voice=v, speed=1.0):
+        for r in pipe(L[k].replace("ByteWithSahnawaz", "Byte With Sah-nawaz").replace("Xiaomi", "Sawmi").replace("Sahnawaz", "Sah-nawaz").replace("Ahmed", "Aah-med").replace("Laskar", "Lashkar"), voice=v, speed=1.0):
             parts.append(r.audio.detach().cpu().numpy() if hasattr(r.audio, "detach") else np.asarray(r.audio))
         parts.append(np.zeros(int(24000 * .5), np.float32))
     sf.write("/tmp/k.wav", np.concatenate(parts), 24000)
