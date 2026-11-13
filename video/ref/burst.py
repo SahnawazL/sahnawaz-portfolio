@@ -21,5 +21,11 @@ for i, s in enumerate(SLUGS):
         u = img_of(s); open(f"/tmp/th/{i:02d}.jpg", "wb").write(get(u + "?width=640")); ok.append((i, s, u)); print(i, s)
     except Exception as e: print("fail", s, e)
 json.dump(ok, open(f"{OUT}/index.json", "w"), indent=0)
-subprocess.run(["montage"] + sum([["-label", f"{i} {s[:28]}", f"/tmp/th/{i:02d}.jpg"] for i, s, _ in ok], []) +
-               ["-tile", "4x", "-geometry", "420x300+4+4", "-pointsize", "16", f"{OUT}/sheet.jpg"], check=True)
+from PIL import Image, ImageDraw
+cells = []
+for i, s, _ in ok:
+    im = Image.open(f"/tmp/th/{i:02d}.jpg").convert("RGB"); im.thumbnail((420, 300)); c = Image.new("RGB", (424, 330), (20, 20, 20)); c.paste(im, (2, 2))
+    ImageDraw.Draw(c).text((6, 308), f"{i} {s}", fill=(255, 255, 0)); cells.append(c)
+rows = (len(cells) + 3) // 4; sheet = Image.new("RGB", (424 * 4, 330 * rows))
+for k, c in enumerate(cells): sheet.paste(c, ((k % 4) * 424, (k // 4) * 330))
+sheet.save(f"{OUT}/sheet.jpg", quality=85)

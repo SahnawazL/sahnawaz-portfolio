@@ -17,6 +17,7 @@ jobs:
       - name: Photos
         run: |
           touch video/ref/pick.txt
+          pip install -q pillow
           PICK=$(cat video/ref/pick.txt) python3 video/ref/burst.py
       - name: Save
         run: |
