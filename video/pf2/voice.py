@@ -11,6 +11,12 @@ clean = lambda w: re.sub(r"[^\w]", "", w).lower()
 SOFT = "highpass=f=70,deesser=i=0.3,acompressor=threshold=-22dB:ratio=2:attack=10:release=150,aresample=48000"
 
 async def speak(text, voice, mp3):
+    for k in range(6):
+        try: return await speak1(text, voice, mp3)
+        except Exception as e: print("  retry", k, e); await asyncio.sleep(3 + 4 * k)
+    raise RuntimeError("no audio for " + text)
+
+async def speak1(text, voice, mp3):
     try: com = edge_tts.Communicate(text, voice, rate=RATE, pitch=PITCH, boundary="WordBoundary")
     except TypeError: com = edge_tts.Communicate(text, voice, rate=RATE, pitch=PITCH)
     marks = []
