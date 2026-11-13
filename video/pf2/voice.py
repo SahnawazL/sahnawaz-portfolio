@@ -50,7 +50,7 @@ def render(voice, todo, out):
     json.dump({"voice": voice, "rate": RATE, "pitch": PITCH, "clips": clips}, open(f"{out}/manifest.json", "w"), indent=1)
 
 render(VOICE, lines, f"{ROOT}/voice")
-pick = [l for l in lines if l["id"] in ("hookQ", "hook", "intro", "projectsQ", "projects")]
+pick = [l for l in lines if l["id"] in ("hookQ", "brand", "dev", "buildQ", "build")]
 for v in SAMPLES:
     d = f"{ROOT}/samples/{v}"; render(v, pick, d)
-    subprocess.run(["bash", "-c", f"cd {d} && for f in hookQ hook intro projectsQ projects; do echo \"file '$f.wav'\"; done > l.txt && ffmpeg -y -loglevel error -f concat -i l.txt -af apad=pad_dur=0.6 ../{v}.mp3 && cd .. && rm -rf {v}"], check=True)
+    subprocess.run(["bash", "-c", f"cd {d} && for f in hookQ brand dev buildQ build; do echo \"file '$f.wav'\"; done > l.txt && ffmpeg -y -loglevel error -f concat -i l.txt -af apad=pad_dur=0.6 ../{v}.mp3 && cd .. && rm -rf {v}"], check=True)
