@@ -1,5 +1,8 @@
 name: Video studio reference frames (temporary)
 
+permissions:
+  contents: write
+
 on:
   push:
     branches: [video-studio]
@@ -18,13 +21,23 @@ jobs:
           mkdir -p ref && n=0
           while read -r u; do
             n=$((n+1)); [ -z "$u" ] && continue
-            yt-dlp -q --no-warnings -f "b[height<=1280]/b" -o "ref/r$n.%(ext)s" "$u" || { echo "r$n: download failed"; continue; }
+            { yt-dlp -q --no-warnings -f "b[height<=1280]/b" -o "ref/r$n.%(ext)s" "$u" || { sleep 5; yt-dlp -q --no-warnings -o "ref/r$n.%(ext)s" "$u"; }; } || { echo "r$n: download failed"; continue; }
             f=$(ls ref/r$n.* | head -1)
             d=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$f"); echo "r$n duration $d"
-            ffmpeg -v error -i "$f" -vf "fps=2,scale=180:-2,tile=8x4" -q:v 4 "ref/r${n}_sheet_%02d.jpg"
+            ffmpeg -v error -i "$f" -vf "fps=3,scale=240:-2,tile=6x3" -q:v 4 "ref/r${n}_sheet_%02d.jpg"
             ffmpeg -v error -i "$f" -vn -ac 1 -ar 16000 "ref/r$n.wav" || true
             rm -f "$f"
           done < video/ref/urls.txt
           ls -la ref
-      - uses: actions/upload-artifact@v4
-        with: { name: ref, path: ref, retention-days: 1 }
+      - name: Seal
+        run: |
+          k=$(openssl rand -hex 32)
+          tar czf - ref | openssl enc -aes-256-cbc -pbkdf2 -pass pass:$k -out video/ref/ref.tgz.enc
+          echo -n $k | openssl pkeyutl -encrypt -pubin -inkey video/ref/pub.pem -out video/ref/ref.key.enc
+      - name: Save
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A video/ref
+          git commit -qm "Video studio: reference frames" || exit 0
+          for i in 1 2 3; do git pull -q --rebase origin video-studio && git push -q origin HEAD:video-studio && break; sleep 5; done

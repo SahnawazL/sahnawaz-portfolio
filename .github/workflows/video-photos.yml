@@ -1,5 +1,8 @@
 name: Video studio desk photos (temporary)
 
+permissions:
+  contents: write
+
 on:
   push:
     branches: [video-studio]
@@ -13,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Photos
         run: |
-          mkdir -p photos
+          mkdir -p photos && echo run2
           while read -r id a b; do
             [ -z "$id" ] && continue
             if [ "$a" = "PAGE" ]; then
@@ -21,5 +24,12 @@ jobs:
             else u="$a"; fi
             curl -sL -o "photos/$id.jpg" "$u" && file "photos/$id.jpg" && identify -format "%w x %h\n" "photos/$id.jpg" || echo "$id failed"
           done < video/ref/photos.txt
-      - uses: actions/upload-artifact@v4
-        with: { name: photos, path: photos, retention-days: 1 }
+      - name: Move
+        run: mkdir -p video/ref/photos && cp photos/*.jpg video/ref/photos/
+      - name: Save
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A video/ref
+          git commit -qm "Video studio: desk photos" || exit 0
+          for i in 1 2 3; do git pull -q --rebase origin video-studio && git push -q origin HEAD:video-studio && break; sleep 5; done
