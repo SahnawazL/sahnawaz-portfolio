@@ -1,0 +1,27 @@
+name: Video studio laptop photos (temporary)
+
+on:
+  push:
+    branches: [video-studio]
+    paths: ["video/ref/burst.py", "video/ref/pick.txt", ".github/workflows/video-burst.yml"]
+
+permissions:
+  contents: write
+
+jobs:
+  get:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Photos
+        run: |
+          touch video/ref/pick.txt
+          PICK=$(cat video/ref/pick.txt) python3 video/ref/burst.py
+      - name: Save
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A video/ref/burst
+          git commit -qm "Video studio: laptop photos" || exit 0
+          for i in 1 2 3; do git pull -q --rebase origin video-studio && git push -q origin HEAD:video-studio && break; sleep 5; done
