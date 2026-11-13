@@ -4,10 +4,11 @@ HDR = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/
 get = lambda u: urllib.request.urlopen(urllib.request.Request(u, headers=HDR), timeout=60).read()
 OUT = "video/ref/mixkit"; os.makedirs(OUT, exist_ok=True)
 pick = [s for s in os.environ.get("PICK", "").split(",") if s]
+os.makedirs("/tmp/clips", exist_ok=True)
 if pick:
     for i in pick:
         for q in ("2160", "1080", "720"):
-            try: open(f"{OUT}/{i}.mp4", "wb").write(get(f"https://assets.mixkit.co/videos/{i}/{i}-{q}.mp4")); print("got", i, q); break
+            try: open(f"/tmp/clips/{i}.mp4", "wb").write(get(f"https://assets.mixkit.co/videos/{i}/{i}-{q}.mp4")); print("got", i, q); break
             except Exception as e: print("no", i, q, e)
     raise SystemExit
 items = {}

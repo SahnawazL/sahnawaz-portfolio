@@ -19,6 +19,16 @@ jobs:
           touch video/ref/mixpick.txt
           pip install -q pillow
           PICK=$(cat video/ref/mixpick.txt) python3 video/ref/mixkit.py
+          if [ -s video/ref/mixpick.txt ]; then
+            sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
+            for f in /tmp/clips/*.mp4; do i=$(basename $f .mp4)
+              ffprobe -v error -show_entries stream=width,height,r_frame_rate:format=duration -of csv=p=0 $f | tr '\n' ' '; echo " $i"
+              ffmpeg -nostdin -v error -i $f -vf "fps=1,scale=320:-2,tile=6x3" -frames:v 1 -q:v 4 video/ref/mixkit/strip-$i.jpg || true
+            done
+            k=$(openssl rand -hex 32)
+            tar cf - -C /tmp clips | openssl enc -aes-256-cbc -pbkdf2 -pass pass:$k -out video/ref/mixkit/clips.tar.enc
+            echo -n $k | openssl pkeyutl -encrypt -pubin -inkey video/ref/pub.pem -out video/ref/mixkit/clips.key.enc
+          fi
       - name: Save
         run: |
           git config user.name "github-actions[bot]"
