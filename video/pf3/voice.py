@@ -9,7 +9,7 @@ ROOT = "video/pf3/out"
 lines = json.load(open("video/pf3/lines.json"))
 clean = lambda w: re.sub(r"[^\w]", "", w).lower()
 # how names are said (captions keep the real spelling)
-SAY_AS = {"Xiaomi": "Sawmi", "Sahnawaz": "Sah-nawaz", "Ahmed": "Aah-med", "Laskar": "Lashkar"}
+SAY_AS = {"Xiaomi": "Shawmi", "Sahnawaz": "Sah-nawaz", "Ahmed": "Aah-med", "Laskar": "Lashkar"}
 def spoken(w):
     for a, b in SAY_AS.items(): w = w.replace(a, b)
     return w
