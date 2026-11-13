@@ -1,0 +1,31 @@
+name: Video studio product shots (temporary)
+
+on:
+  push:
+    branches: [video-studio]
+    paths: ["video/pf2/shots.mjs", ".github/workflows/video-shots.yml"]
+
+permissions:
+  contents: write
+
+jobs:
+  shots:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - name: Shots
+        run: |
+          npm init -y >/dev/null && npm i --no-audit --no-fund playwright@1.48.2 >/dev/null
+          npx playwright install --with-deps chromium >/dev/null
+          node video/pf2/shots.mjs
+      - name: Save
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A video/pf2/out/shots
+          git commit -qm "Video studio: product shots" || exit 0
+          git stash -q -u || true
+          for i in 1 2 3; do git pull -q --rebase origin video-studio && git push -q origin HEAD:video-studio && break; sleep 5; done
