@@ -1,0 +1,12 @@
+[
+ { "id": "quiz", "do": "quiz", "picks": ["1–2 acres", "Tea garden worker 🍃"] },
+ { "id": "en", "do": "ask", "text": "Which schemes can help a small farmer in Assam?" },
+ { "id": "family", "do": "ask", "text": "Check schemes for my mother, she is 62 and a widow" },
+ { "id": "why", "do": "ask", "text": "Why am I not eligible for Post Matric Scholarship?" },
+ { "id": "compare", "do": "ask", "text": "Compare PM Kisan and PM Kisan Maan Dhan Yojana" },
+ { "id": "docs", "do": "ask", "text": "What documents do I need for PM Kisan and Ayushman Bharat?" },
+ { "id": "track", "do": "ask", "text": "I applied for PM Kisan Maan Dhan Yojana today" },
+ { "id": "news", "do": "ask", "text": "Any new schemes, installments or deadlines this month for me?" },
+ { "id": "hinglish", "do": "ask", "text": "Kisan credit card kaise banwaye?" },
+ { "id": "scam", "do": "ask", "text": "Is this message real? \"Congratulations! You are selected for PM Kisan bonus Rs 15,000. Pay Rs 499 processing fee to claim.\"" }
+]

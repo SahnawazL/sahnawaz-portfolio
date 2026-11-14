@@ -1,8 +1,8 @@
 [
  {
   "id": "hookQ",
-  "q": 1,
-  "say": "Did you know India has thousands of government schemes, and most people never hear about the ones meant for them?"
+  "say": "Did you know India has thousands of government schemes, and most people never hear about the ones meant for them?",
+  "q": 1
  },
  {
   "id": "brand",
@@ -14,8 +14,8 @@
  },
  {
   "id": "lifeQ",
-  "q": 1,
-  "say": "What's happening in your life?"
+  "say": "What's happening in your life?",
+  "q": 1
  },
  {
   "id": "life",
@@ -38,13 +38,9 @@
   "say": "And popular schemes like P M Kisan and Ayushman Bharat are just one tap away."
  },
  {
-  "id": "pages",
-  "say": "Every scheme also has its own page, in English and Hindi, easy to find on Google, with the benefit, documents, and the official link to apply."
- },
- {
   "id": "searchQ",
-  "q": 1,
-  "say": "Looking for something specific?"
+  "say": "Looking for something specific?",
+  "q": 1
  },
  {
   "id": "search",
@@ -56,8 +52,8 @@
  },
  {
   "id": "checkQ",
-  "q": 1,
-  "say": "Which schemes can you get?"
+  "say": "Which schemes can you get?",
+  "q": 1
  },
  {
   "id": "check",
@@ -65,16 +61,56 @@
  },
  {
   "id": "aiQ",
-  "q": 1,
-  "say": "Still have a question?"
+  "say": "Still have a question?",
+  "q": 1
  },
  {
   "id": "ai",
-  "say": "Ask AI Help in English or Hindi. It explains schemes in simple words, and gives you clear next steps."
+  "say": "Meet AI Help. It already knows your profile, and answers in Hindi, English or Hinglish, by typing or by voice."
+ },
+ {
+  "id": "spark",
+  "say": "Tap the sparkle to see everything it can do. Find schemes, check for family, spot scams, compare schemes, make document checklists, track applications, and get the latest news."
+ },
+ {
+  "id": "quiz",
+  "say": "Find schemes for me asks only what it doesn't know yet. Two quick taps, and fifty three schemes are matched, worth about one lakh rupees a year."
+ },
+ {
+  "id": "askEn",
+  "say": "Or simply ask, like which schemes can help a small farmer in Assam."
  },
  {
   "id": "smart",
   "say": "And it's smart. It knows your profile, so every answer is personal. It uses official scheme data, and can read answers aloud. It shows the schemes you qualify for, lists the documents for all of them, and suggests what to ask next."
+ },
+ {
+  "id": "fam",
+  "say": "Check for family. Ask for your mother, a sixty two year old widow, and see the pensions and benefits she can get."
+ },
+ {
+  "id": "why",
+  "say": "Why am I not eligible? It tells you the exact reason, and what you can do about it."
+ },
+ {
+  "id": "compare",
+  "say": "Compare two schemes side by side, to see which one suits you better."
+ },
+ {
+  "id": "docs",
+  "say": "Get one document checklist for many schemes at once."
+ },
+ {
+  "id": "track",
+  "say": "Tell it you have applied, and it saves the scheme to My Applications, and reminds you to follow up."
+ },
+ {
+  "id": "news",
+  "say": "For the latest news and deadlines, it searches the web live, just for your profile."
+ },
+ {
+  "id": "hinglish",
+  "say": "And type the way you talk. Even a question in Hinglish gets a clear answer."
  },
  {
   "id": "scam",
@@ -82,7 +118,23 @@
  },
  {
   "id": "profile",
-  "say": "Create a free profile once, to save your matched schemes, keep your chat history, and get alerts for new schemes and deadlines."
+  "say": "Your profile keeps your matched schemes, your saved details, alerts and every setting, in one place."
+ },
+ {
+  "id": "ptabs",
+  "say": "Edit your profile, send a report or a query, find government helplines, or read the FAQ, each just one tap away."
+ },
+ {
+  "id": "about",
+  "say": "About Yojana+Sahay explains our mission, what's new, and how the assistant keeps your chats private."
+ },
+ {
+  "id": "dev",
+  "say": "Tap the Dev badge to meet the developer behind the app, with a direct link to the portfolio."
+ },
+ {
+  "id": "griev",
+  "say": "And for any problem, our Grievance Officer is listed with a direct email. Every report is acknowledged within twenty four hours."
  },
  {
   "id": "lang",
@@ -90,26 +142,43 @@
  },
  {
   "id": "tgQ",
-  "q": 1,
-  "say": "Prefer chatting?"
+  "say": "Prefer chatting?",
+  "q": 1
  },
  {
   "id": "tg",
   "say": "The same eligibility check runs on Telegram. Open Yojana+Sahay bot, tap Start, answer a few quick questions, and get your schemes right in the chat."
  },
  {
+  "id": "webQ",
+  "say": "Using a computer?",
+  "q": 1
+ },
+ {
+  "id": "web",
+  "say": "The Yojana+Sahay website has a page for every scheme, in English and Hindi, easy to find on Google."
+ },
+ {
+  "id": "tools",
+  "say": "There are free QR posters to print for your village, a scheme finder other websites can embed, and our full scheme list, published as open data."
+ },
+ {
   "id": "verifyQ",
-  "q": 1,
-  "say": "How do we keep it accurate?"
+  "say": "How do we keep it accurate?",
+  "q": 1
+ },
+ {
+  "id": "admin",
+  "say": "Behind the app is our admin dashboard. It tracks the whole platform, while keeping everyone's personal data private."
  },
  {
   "id": "verify",
-  "say": "Every scheme comes from official government sources. Each official page is re-checked automatically, on a schedule. Any change, like a new amount, a broken link, or a deadline, is flagged for review. Our admin team checks and approves it, and the app updates with a fresh last verified date."
+  "say": "The Verify tab re-checks the official page of every scheme. Broken links, new amounts and changed deadlines are flagged for review."
  },
  {
   "id": "agentsQ",
-  "q": 1,
-  "say": "So who does all this checking?"
+  "say": "So who does all this checking?",
+  "q": 1
  },
  {
   "id": "agents",
@@ -118,6 +187,10 @@
  {
   "id": "approve",
   "say": "Every change waits for our admin team. Once approved, it goes live in the app automatically, like these real updates from this week."
+ },
+ {
+  "id": "alerts",
+  "say": "Deadline alerts and short scheme news, in English and Hindi, are prepared right here too."
  },
  {
   "id": "trust",

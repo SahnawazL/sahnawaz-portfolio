@@ -5,7 +5,7 @@ name: Video studio YojanaSahay tour (temporary)
 on:
   push:
     branches: [video-studio]
-    paths: ["video/ys2/lines.json", "video/ys2/*.py", ".github/workflows/video-ys2.yml"]
+    paths: ["video/ys2/lines.json", "video/ys2/*.py", "video/ys2/*.mjs", "video/ys2/ai_script.json", "video/ys2/mock/**", ".github/workflows/video-ys2.yml"]
 
 permissions:
   contents: write
@@ -30,6 +30,31 @@ jobs:
           npm run build
           mkdir -p ../video/ys2/out && tar -czf ../video/ys2/out/ys-dist.tgz -C dist .
           du -sh dist ../video/ys2/out/ys-dist.tgz
+      - name: Demo admin build (film only, never deployed)
+        working-directory: ys
+        run: |
+          if [ -f ../video/ys2/out/ys-demo.tgz ]; then echo "demo already built"; exit 0; fi
+          [ -d node_modules ] || npm install --no-audit --no-fund --loglevel=error
+          mkdir -p src/__demo__ && cp ../video/ys2/mock/*.js src/__demo__/
+          cat > vite.demo.config.mjs <<'CFG'
+          import base from "./vite.config.js";
+          import path from "path";
+          export default { ...base, resolve: { alias: [
+            { find: /^firebase\/firestore$/, replacement: path.resolve("src/__demo__/firestore.js") },
+            { find: /^firebase\/auth$/, replacement: path.resolve("src/__demo__/auth.js") } ] },
+            build: { ...(base.build || {}), outDir: "dist-demo" } };
+          CFG
+          npx vite build --config vite.demo.config.mjs
+          tar -czf ../video/ys2/out/ys-demo.tgz -C dist-demo .
+          du -sh ../video/ys2/out/ys-demo.tgz
+      - name: Record assistant answers
+        run: |
+          if [ -f video/ys2/out/ai2.json ]; then echo "answers already saved"; exit 0; fi
+          mkdir -p /tmp/rec /tmp/dist && tar -xzf video/ys2/out/ys-dist.tgz -C /tmp/dist
+          (cd /tmp/rec && npm init -y >/dev/null && npm i playwright@1.49.1 --no-audit --no-fund --loglevel=error && npx playwright install --with-deps chromium > /dev/null)
+          NODE_PATH=/tmp/rec/node_modules node --experimental-default-type=module -e "import('/tmp/rec/node_modules/playwright/index.mjs').then(()=>console.log('pw ok'))" || true
+          cp video/ys2/record.mjs /tmp/rec/record.mjs
+          node /tmp/rec/record.mjs /tmp/dist || true
       - name: Voice
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg espeak-ng > /dev/null
