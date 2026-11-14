@@ -201,6 +201,10 @@
   "say": "Yojana+Sahay is free and independent. It never asks for money or O T P, and always sends you to the official website to apply."
  },
  {
+  "id": "hire",
+  "say": "And we're growing. Once Yojana+Sahay launches on the Indus App Store and Google Play, we'll be hiring agents to handle our admin dashboard and its work. Salary is negotiable, based on experience. The minimum qualification is B C A, M C A, or B Tech."
+ },
+ {
   "id": "cta",
   "say": "Yojana+Sahay. Find the schemes you deserve. Visit yojana sahay dot vercel dot app, or search Yojana+Sahay bot on Telegram."
  }
