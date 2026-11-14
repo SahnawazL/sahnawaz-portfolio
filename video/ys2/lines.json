@@ -23,6 +23,9 @@
  {"id": "tg", "say": "The same eligibility check runs on Telegram. Open Yojana+Sahay bot, tap Start, answer a few quick questions, and get your schemes right in the chat."},
  {"id": "verifyQ", "q": 1, "say": "How do we keep it accurate?"},
  {"id": "verify", "say": "Every scheme comes from official government sources. Each official page is re-checked automatically, on a schedule. Any change, like a new amount, a broken link, or a deadline, is flagged for review. Our admin team checks and approves it, and the app updates with a fresh last verified date."},
+ {"id": "agentsQ", "q": 1, "say": "So who does all this checking?"},
+ {"id": "agents", "say": "Five smart agents, working every day. Scheme Discovery finds schemes that aren't in the app yet. The Background Verifier re-reads official pages for deadlines. U R L Repair fixes broken apply links. News Refresh writes short scheme news in English and Hindi. And Deadline Alerts remind you before a scheme closes."},
+ {"id": "approve", "say": "Every change waits for our admin team. Once approved, it goes live in the app automatically, like these real updates from this week."},
  {"id": "trust", "say": "Yojana+Sahay is free and independent. It never asks for money or O T P, and always sends you to the official website to apply."},
  {"id": "cta", "say": "Yojana+Sahay. Find the schemes you deserve. Visit yojana sahay dot vercel dot app, or search Yojana+Sahay bot on Telegram."}
 ]
