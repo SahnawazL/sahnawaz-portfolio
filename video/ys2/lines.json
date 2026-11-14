@@ -86,7 +86,7 @@
  },
  {
   "id": "fam",
-  "say": "Check for family. Ask for your mother, a sixty two year old widow, and see the pensions and benefits she can get."
+  "say": "Check for family. Ask about your mother, and it checks her eligibility right in the chat, asking only what it doesn't know."
  },
  {
   "id": "why",
@@ -148,6 +148,10 @@
  {
   "id": "tg",
   "say": "The same eligibility check runs on Telegram. Open Yojana+Sahay bot, tap Start, answer a few quick questions, and get your schemes right in the chat."
+ },
+ {
+  "id": "tg2",
+  "say": "Nine quick questions. Who you are, your state, age, income, and a few more. Then your schemes arrive with yearly amounts. Tap a number for details, check again, switch to Hindi, turn on alerts, or share it with your family."
  },
  {
   "id": "webQ",
