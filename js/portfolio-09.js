@@ -1146,6 +1146,17 @@
       var _knownName  = _loggedIn && _loggedIn.firstName  ? _loggedIn.firstName  : null;
       var _knownEmail = _loggedIn && _loggedIn.email      ? _loggedIn.email      : null;
       var _knownFull  = _loggedIn && _loggedIn.fullName   ? _loggedIn.fullName   : _knownName;
+      if (_knownFull === 'Guest') { _knownName = null; _knownFull = null; }
+
+      /* Not signed in? Reuse what they already told me — in the project brief
+         or typed in this chat — so no flow asks for the same thing twice. */
+      var _bc = window._briefContact ? window._briefContact() : {};
+      if (!_knownEmail && _bc.email) _knownEmail = _bc.email;
+      if (!_knownName && _bc.name)  { _knownFull = _bc.name; _knownName = _bc.name.split(/\s+/)[0]; }
+      if (!_knownEmail) _knownEmail = emailFromChat() || null;
+      /* an email is known but no name yet: ask the name, skip the email step */
+      if (_knownEmail && !_knownName) _data.email = _knownEmail;
+      if (_knownName && !window._chatVisitorName) window._chatVisitorName = _knownName;
 
       if (type === 'quickmail') {
         /* the conversation so far goes with the message (the visitor is told) */
@@ -1157,7 +1168,7 @@
           _data.name  = _knownFull;
           _data.email = _knownEmail;
           _step = 3;
-          botSay("Hey " + _knownName + "! 👋 I already have your details from your Google login.\n\nJust type your message for Sahnawaz below 💬" + QM_NOTE());
+          botSay("Hey " + _knownName + "! 👋 I already have your details, so no need to type them again.\n\nJust type your message for Sahnawaz below 💬" + QM_NOTE());
           setPlaceholder('Type your message...');
         } else if (_knownName) {
           /* Name known — skip to email step */
@@ -1205,7 +1216,7 @@
           _data.name  = _knownFull;
           _data.email = _knownEmail;
           _step = 2; _errCount.cbPhone = 0;
-          botSay("Hey " + _knownName + "! 📞 I've got your name and email from your Google login.\n\nPlease enter your 10-digit mobile number.\n(India: +91 is assumed — just type the 10 digits)");
+          botSay("Hey " + _knownName + "! 📞 I've already got your name and email, so no need to type them again.\n\nPlease enter your 10-digit mobile number.\n(India: +91 is assumed — just type the 10 digits)");
           setPlaceholder('e.g. 9876543210');
         } else if (_knownName) {
           _data.name = _knownFull;
@@ -1225,6 +1236,32 @@
     function isValidEmail(v) {
       return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());
     }
+    /* An email address found anywhere in a sentence ("my email is a@b.com"),
+       trimmed of punctuation and lower-cased. '' when there is none. */
+    function extractEmail(text) {
+      var m = String(text || '').match(/[^\s@<>()[\],;:'"!?]+@[^\s@<>()[\],;:'"!?]+\.[A-Za-z]{2,}/);
+      if (!m) return '';
+      var e = m[0].replace(/[.]+$/, '').toLowerCase();
+      return isValidEmail(e) ? e : '';
+    }
+    /* The most recent email the visitor typed anywhere in this chat. */
+    function emailFromChat() {
+      for (var i = conversationHistory.length - 1; i >= 0; i--) {
+        var m = conversationHistory[i];
+        if (m && m.role === 'user') { var e = extractEmail(m.text); if (e) return e; }
+      }
+      return '';
+    }
+    /* What to do with the visitor's reply at an email step: the address in it,
+       or — when they say they already gave it ("shared already", "same one",
+       "that was correct") — the one they gave earlier. '' = still unclear. */
+    function pickEmail(input) {
+      var e = extractEmail(input);
+      if (e) return e;
+      var prev = (_data && _data.email) || emailFromChat() || (window._briefContact ? window._briefContact().email : '');
+      if (prev && /\b(already|shared|same|above|before|earlier|previous|given|gave|sent|correct|right|yes|yeah|yep|ok|okay)\b/i.test(String(input || ''))) return prev;
+      return '';
+    }
     function isValidPhone(v) {
       var digits = v.trim().replace(/[\s\-().]/g, '');
       return /^\+?\d{10,13}$/.test(digits) && digits.replace(/\D/g,'').length >= 10;
@@ -1240,10 +1277,10 @@
     /* Smart cancel nudge — varies by attempt so it never feels robotic */
     /* Email-only flows (quickmail, resume) — no phone mention */
     var _cancelNudgesEmail = [
-      "Still not quite right 😅 — try something like name@gmail.com\n\nOr if you'd rather ask something else, the ❌ Cancel button above will free you right up!",
+      "Still not quite right 😅 — just type it like name@example.com — any provider works (Gmail, iCloud, Outlook…).\n\nOr if you'd rather ask something else, the ❌ Cancel button above will free you right up!",
       "No worries, typos happen! Double-check and try again 🙂\n\nAnd hey — if you've changed your mind or had another question pop up, just tap ❌ Cancel anytime.",
       "Still having trouble? A valid email looks like: user@mail.com ✍️\n\nNo pressure — hit ❌ Cancel above if you'd like to explore something else first.",
-      "One more try! Make sure it has an @ and a domain — like name@gmail.com 📧\n\nOr use ❌ Cancel if you want to chat about something else — I'm not going anywhere! 😊"
+      "One more try! Make sure it has an @ and a domain — like name@example.com 📧\n\nOr use ❌ Cancel if you want to chat about something else — I'm not going anywhere! 😊"
     ];
     /* Callback flow — phone only nudges */
     var _cancelNudgesContact = [
@@ -1282,12 +1319,18 @@
       /* ── Quick Mail flow ── */
       if (_flow === 'quickmail') {
         if (_step === 1) {
-          _data.name = userInput; _step = 2; _errCount.qmEmail = 0;
+          _data.name = userInput; if (!window._chatVisitorName) window._chatVisitorName = userInput.split(/\s+/)[0];
+          if (_data.email) {
+            _step = 3;
+            botSay("Nice to meet you, " + userInput + "! 😊 I already have your email (" + _data.email + ").\n\nNow type your message for Sahnawaz 💬" + QM_NOTE()); setPlaceholder('Type your message...'); return true;
+          }
+          _step = 2; _errCount.qmEmail = 0;
           botSay("Nice to meet you, " + userInput + "! 😊\n\nWhat's your email address?");
           setPlaceholder('Type your email...'); return true;
         }
         if (_step === 2) {
-          if (!isValidEmail(userInput)) {
+          var qmPicked = pickEmail(userInput);
+          if (!qmPicked) {
             _errCount.qmEmail = (_errCount.qmEmail || 0) + 1;
             if (_errCount.qmEmail === 1) {
               botSay("Hmm, that doesn't look like a valid email. 🤔\n\nPlease enter a proper email — like name@example.com");
@@ -1297,7 +1340,7 @@
             return true;
           }
           _errCount.qmEmail = 0;
-          _data.email = userInput; _step = 3;
+          _data.email = qmPicked; _step = 3;
           botSay("Got it! Now type your message for Sahnawaz 💬" + QM_NOTE()); setPlaceholder('Type your message...'); return true;
         }
         if (_step === 3) {
@@ -1322,36 +1365,40 @@
 
       /* ── Resume flow ── */
       if (_flow === 'resume') {
+        var sendResumeTo = function (name, email) {
+          botSay("Sending resume to " + email + "... ⏳");
+          resetFlow();
+          fetch(_apiUrl + 'resume', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ name: name, email: email })
+          })
+          .then(function(r){ return r.json(); })
+          .then(function(d){
+            if (d.success) botSay("✅ Resume sent to " + email + "!\n\nCheck your inbox (and spam just in case). Hope it impresses you, " + name + "! 😄");
+            else botSay("⚠️ Something went wrong. Please try opening the resume from the portfolio page directly.");
+          })
+          .catch(function(){ botSay("⚠️ Network error. Please try the resume button on the portfolio page."); });
+        };
         if (_step === 1) {
-          _data.name = userInput; _step = 2; _errCount.rsEmail = 0;
+          _data.name = userInput; if (!window._chatVisitorName) window._chatVisitorName = userInput.split(/\s+/)[0];
+          if (_data.email) { sendResumeTo(_data.name, _data.email); return true; }
+          _step = 2; _errCount.rsEmail = 0;
           botSay("Nice to meet you, " + userInput + "! 📧\n\nWhat's your email address? I'll send the resume there.");
           setPlaceholder('Type your email...'); return true;
         }
         if (_step === 2) {
-          if (!isValidEmail(userInput)) {
+          var rsPicked = pickEmail(userInput);
+          if (!rsPicked) {
             _errCount.rsEmail = (_errCount.rsEmail || 0) + 1;
             if (_errCount.rsEmail === 1) {
-              botSay("That doesn't look like a valid email. 🤔\n\nPlease enter a proper email — like name@example.com");
+              botSay("I couldn't find an email address in that. 🤔\n\nPlease type it like name@example.com");
             } else {
               botSay(getCancelNudge(_errCount.rsEmail, 'email'));
             }
             return true;
           }
           _errCount.rsEmail = 0;
-          _data.email = userInput;
-          botSay("Sending resume to " + _data.email + "... ⏳");
-          var rsName = _data.name, rsEmail = _data.email;
-          resetFlow();
-          fetch(_apiUrl + 'resume', {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ name: rsName, email: rsEmail })
-          })
-          .then(function(r){ return r.json(); })
-          .then(function(d){
-            if (d.success) botSay("✅ Resume sent to " + rsEmail + "!\n\nCheck your inbox (and spam just in case). Hope it impresses you, " + rsName + "! 😄");
-            else botSay("⚠️ Something went wrong. Please try opening the resume from the portfolio page directly.");
-          })
-          .catch(function(){ botSay("⚠️ Network error. Please try the resume button on the portfolio page."); });
+          sendResumeTo(_data.name, rsPicked);
           return true;
         }
       }
@@ -1361,6 +1408,7 @@
         /* Step 1 — Name */
         if (_step === 1) {
           _data.name = userInput; _step = 2; _errCount.cbPhone = 0;
+          if (!window._chatVisitorName) window._chatVisitorName = userInput.split(/\s+/)[0];
           botSay("Hi " + userInput + "! 📞\n\nPlease enter your 10-digit mobile number.\n(India: +91 is assumed — just type the 10 digits)");
           setPlaceholder('e.g. 9876543210'); return true;
         }
@@ -1424,17 +1472,18 @@
         }
         /* Step 5 — Email + submit */
         if (_step === 5) {
-          if (!isValidEmail(userInput)) {
+          var cbPicked = pickEmail(userInput);
+          if (!cbPicked) {
             _errCount.cbEmail = (_errCount.cbEmail || 0) + 1;
             if (_errCount.cbEmail === 1) {
-              botSay("Hmm, that doesn't look like a valid email. 🤔\n\nPlease enter a proper email — like name@example.com");
+              botSay("I couldn't find an email address in that. 🤔\n\nPlease type it like name@example.com");
             } else {
               botSay(getCancelNudge(_errCount.cbEmail, 'email'));
             }
             return true;
           }
           _errCount.cbEmail = 0;
-          _data.email = userInput;
+          _data.email = cbPicked;
           botSay("Sending your callback request... ⏳");
           var cbName = _data.name, cbPhone = _data.phone, cbEmail = _data.email, cbTime = _data.time, cbPurpose = _data.purpose;
           resetFlow();
@@ -1551,6 +1600,7 @@
     var liveCard = null;    /* the review card that can still be sent */
     var barEl = null;
     var sentThisVisit = null; /* a brief sent during this visit (for the assistant) */
+    var sentContact = null;   /* name / email / phone given in that brief (for the Help flows) */
 
     /* ── state ── */
     function fresh(){
@@ -2014,6 +2064,8 @@
       var email = st.brief.email || 'your inbox';
       var first = String(st.brief.name || '').split(' ')[0];
       sentThisVisit = { type: st.brief.projectType || '', ref: ref || '' };
+      /* keep who sent it, so a callback or message right after doesn't ask again */
+      sentContact = { name: String(st.brief.name || ''), email: String(st.brief.email || ''), phone: String(st.brief.phone || '') };
       st = fresh();
       drop();
       active = false;
@@ -2040,6 +2092,15 @@
 
     window._startBrief = start;
     window._briefPause = function(){ pause(true); };
+    /* Contact details the visitor already typed into the brief (draft or just sent).
+       Used by the callback / message / resume flows so they never ask twice. */
+    window._briefContact = function(){
+      var b = (st && st.brief) || {}, s = sentContact || {};
+      var email = String(b.email || s.email || '').trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) email = '';
+      return { name: String(b.name || s.name || '').trim().slice(0, 60), email: email,
+               phone: String(b.phone || s.phone || '').trim().slice(0, 20) };
+    };
 
     return {
       start: start,
